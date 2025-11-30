@@ -1,4 +1,6 @@
-
+// 🔥 Firebase Firestore
+import { db } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { useState, useEffect } from 'react';
 import { 
   Plane, MapPin, Calendar, Clock, Train, Camera, ShoppingBag, 
@@ -403,6 +405,50 @@ const App = () => {
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
 
+  const TRIP_DOC_ID = "tokyo-2026-02"; // 你可以自己改名字，例如 "my-first-trip"
+
+  // 從 Firebase 載入行程
+  const loadItineraryFromCloud = async () => {
+    try {
+      const ref = doc(db, "trips", TRIP_DOC_ID);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        alert("雲端目前沒有儲存這個行程，請先點【儲存到雲端】。");
+        return;
+      }
+
+      const data = snap.data();
+
+      if (data.itinerary) {
+        setItinerary(data.itinerary);
+      }
+      alert("已從雲端載入行程 ✅");
+    } catch (err) {
+      console.error("載入行程失敗", err);
+      alert("載入行程失敗，請稍後再試。");
+    }
+  };
+
+  // 把目前行程儲存到 Firebase
+  const saveItineraryToCloud = async () => {
+    try {
+      const ref = doc(db, "trips", TRIP_DOC_ID);
+
+      const payload = {
+        tripDetails: initialTripDetails, // 如果未來要讓使用者編輯住宿/日期，這裡可以改成 state
+        itinerary,
+        updatedAt: new Date()
+      };
+
+      await setDoc(ref, payload);
+      alert("已儲存到雲端 ✅");
+    } catch (err) {
+      console.error("儲存行程失敗", err);
+      alert("儲存行程失敗，請稍後再試。");
+    }
+  };
+
   // Handlers
   const handleSaveEvent = (eventData) => {
     if (editingEvent) {
@@ -505,6 +551,22 @@ const App = () => {
                 </div>
               </div>
               
+    {/* 雲端儲存工具列 */}
+    <div className="px-6 mt-2 flex justify-between items-center space-x-2">
+      <button
+        onClick={loadItineraryFromCloud}
+        className="flex-1 py-2 text-xs bg-white border border-gray-300 rounded-lg text-gray-700 font-medium shadow-sm active:scale-[0.98] transition"
+      >
+        從雲端載入
+      </button>
+      <button
+        onClick={saveItineraryToCloud}
+        className="flex-1 py-2 text-xs bg-blue-600 text-white rounded-lg font-bold shadow-sm active:scale-[0.98] transition"
+      >
+        儲存到雲端
+      </button>
+    </div>
+
               <div className="mt-4">
                 {currentDayData.events.length === 0 ? (
                   <div className="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
