@@ -407,45 +407,123 @@ const App = () => {
 
   const TRIP_DOC_ID = "tokyo-2026-02"; // 你可以自己改名字，例如 "my-first-trip"
 
+  // 防抖：用於自動儲存
+  const autoSaveTimeoutRef = React.useRef(null);
+
+  // 自動載入行程（組件掛載時執行一次）
+  useEffect(() => {
+    const autoLoad = async () => {
+      try {
+        if (!db) return;
+
+        const ref = doc(db, "trips", TRIP_DOC_ID);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data && data.itinerary && Array.isArray(data.itinerary)) {
+            setItinerary(data.itinerary);
+            console.log("✅ 自動載入行程成功");
+          }
+        }
+      } catch (err) {
+        console.error("⚠️ 自動載入失敗:", err);
+      }
+    };
+
+    autoLoad();
+  }, []); // 只在組件掛載時執行一次
+
+  // 自動儲存行程到 Firebase（防抖 1 秒）
+  useEffect(() => {
+    // 清除前一個計時器
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // 設定新的計時器
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        if (!db) return;
+
+        const ref = doc(db, "trips", TRIP_DOC_ID);
+        const payload = {
+          tripDetails: initialTripDetails,
+          itinerary,
+          updatedAt: new Date().toISOString()
+        };
+
+        await setDoc(ref, payload, { merge: true });
+        console.log("✅ 自動儲存成功");
+      } catch (err) {
+        console.error("❌ 自動儲存失敗:", err);
+      }
+    }, 1000); // 1 秒防抖
+
+    // Cleanup：組件卸載時清除計時器
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [itinerary]); // 只在 itinerary 變更時執行
+
   // 從 Firebase 載入行程
   const loadItineraryFromCloud = async () => {
     try {
+      if (!db) {
+        alert("❌ Firestore 未初始化，請檢查 Firebase 設定。");
+        return;
+      }
+
       const ref = doc(db, "trips", TRIP_DOC_ID);
       const snap = await getDoc(ref);
 
       if (!snap.exists()) {
-        alert("雲端目前沒有儲存這個行程，請先點【儲存到雲端】。");
+        alert("⚠️ 雲端目前沒有儲存這個行程，請先點【儲存到雲端】。");
         return;
       }
 
       const data = snap.data();
 
-      if (data.itinerary) {
+      if (data && data.itinerary && Array.isArray(data.itinerary)) {
         setItinerary(data.itinerary);
+        alert("✅ 已從雲端載入行程");
+      } else {
+        alert("❌ 行程資料格式不正確，請檢查雲端資料。");
       }
-      alert("已從雲端載入行程 ✅");
     } catch (err) {
-      console.error("載入行程失敗", err);
-      alert("載入行程失敗，請稍後再試。");
+      console.error("❌ 載入行程失敗:", err);
+      alert(`❌ 載入行程失敗：${err.message || '未知錯誤'}`);
     }
   };
 
   // 把目前行程儲存到 Firebase
   const saveItineraryToCloud = async () => {
     try {
+      if (!db) {
+        alert("❌ Firestore 未初始化，請檢查 Firebase 設定。");
+        return;
+      }
+
+      if (!itinerary || itinerary.length === 0) {
+        alert("⚠️ 沒有行程資料可儲存。");
+        return;
+      }
+
       const ref = doc(db, "trips", TRIP_DOC_ID);
 
       const payload = {
-        tripDetails: initialTripDetails, // 如果未來要讓使用者編輯住宿/日期，這裡可以改成 state
+        tripDetails: initialTripDetails,
         itinerary,
-        updatedAt: new Date()
+        updatedAt: new Date().toISOString()
       };
 
-      await setDoc(ref, payload);
-      alert("已儲存到雲端 ✅");
+      await setDoc(ref, payload, { merge: true });
+      alert("✅ 已儲存到雲端");
     } catch (err) {
-      console.error("儲存行程失敗", err);
-      alert("儲存行程失敗，請稍後再試。");
+      console.error("❌ 儲存行程失敗:", err);
+      alert(`❌ 儲存行程失敗：${err.message || '未知錯誤'}`);
     }
   };
 
@@ -552,19 +630,16 @@ const App = () => {
                 </div>
               </div>
               
-    {/* 雲端儲存工具列 */}
+    {/* 雲端同步工具列 */}
     <div className="px-6 mt-2 flex justify-between items-center space-x-2">
+      <div className="flex-1 py-2 text-xs bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium shadow-sm text-center">
+        🔄 自動同步中...
+      </div>
       <button
         onClick={loadItineraryFromCloud}
         className="flex-1 py-2 text-xs bg-white border border-gray-300 rounded-lg text-gray-700 font-medium shadow-sm active:scale-[0.98] transition"
       >
         從雲端載入
-      </button>
-      <button
-        onClick={saveItineraryToCloud}
-        className="flex-1 py-2 text-xs bg-blue-600 text-white rounded-lg font-bold shadow-sm active:scale-[0.98] transition"
-      >
-        儲存到雲端
       </button>
     </div>
 
