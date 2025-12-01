@@ -307,16 +307,16 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos }) => 
 
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all relative">
         {/* Header Section */}
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex items-center space-x-2">
-            <div className={`p-2 rounded-lg ${styleClass}`}>
+        <div className="flex justify-between items-start mb-2 gap-2">
+          <div className="flex items-center space-x-2 min-w-0">
+            <div className={`p-2 rounded-lg flex-shrink-0 ${styleClass}`}>
               <Icon size={18} />
             </div>
-            <span className="font-mono text-sm font-bold bg-gray-50 px-2 py-1 rounded text-gray-600">{event.time}</span>
+            <span className="font-mono text-sm font-bold bg-gray-50 px-2 py-1 rounded text-gray-600 whitespace-nowrap">{event.time}</span>
           </div>
           
-          <div className="flex items-center space-x-1">
-            {event.urgent && <AlertCircle size={16} className="text-red-500 mr-1" />}
+          <div className="flex items-center space-x-1 flex-shrink-0">
+            {event.urgent && <AlertCircle size={16} className="text-red-500" />}
             <button onClick={() => setShowMenu(!showMenu)} className="p-1 hover:bg-gray-100 rounded-full text-gray-400">
               <MoreVertical size={16} />
             </button>
@@ -330,8 +330,8 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos }) => 
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-bold text-gray-800 leading-tight">{event.title}</h3>
-        <p className="text-sm text-gray-500 mt-1">{event.desc}</p>
+        <h3 className="text-lg font-bold text-gray-800 leading-tight break-words word-wrap">{event.title}</h3>
+        <p className="text-sm text-gray-500 mt-1 break-words word-wrap">{event.desc}</p>
 
         {/* Transport Info & Google Map Button */}
         <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between flex-wrap gap-2">
@@ -366,12 +366,12 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos }) => 
             <div className="mt-2 bg-yellow-50 rounded-lg p-2 border border-yellow-100">
               <ul className="space-y-1 mb-2">
                 {event.memos?.map(memo => (
-                  <li key={memo.id} className="flex items-start group/item">
-                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 mr-2 text-gray-400 hover:text-blue-600">
+                  <li key={memo.id} className="flex items-start group/item gap-2">
+                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-blue-600 flex-shrink-0">
                       {memo.done ? <CheckSquare size={14} className="text-blue-500" /> : <Square size={14} />}
                     </button>
-                    <span className={`text-xs flex-1 break-words ${memo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{memo.text}</span>
-                    <button onClick={() => deleteMemo(memo.id)} className="opacity-0 group-hover/item:opacity-100 text-gray-400 hover:text-red-500 ml-1">
+                    <span className={`text-xs flex-1 break-words word-wrap overflow-wrap-break-word ${memo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{memo.text}</span>
+                    <button onClick={() => deleteMemo(memo.id)} className="opacity-0 group-hover/item:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0">
                       <X size={12} />
                     </button>
                   </li>
