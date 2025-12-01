@@ -6,8 +6,9 @@ import {
   Plane, MapPin, Calendar, Clock, Train, Camera, ShoppingBag, 
   Coffee, Info, ChevronRight, AlertCircle, Home, Map, 
   Plus, MoreVertical, Trash2, Edit2, X, CheckSquare, Square,
-  Navigation, ExternalLink, Save
+  Navigation, ExternalLink, Save, ArrowLeft
 } from 'lucide-react';
+import TripListPage from './TripListPage';
 
 // --- Initial Data ---
 
@@ -30,103 +31,37 @@ const initialItinerary = [
   {
     day: 1,
     date: "2/23 (一)",
-    title: "抵達與初探",
-    events: [
-      { 
-        id: 101, 
-        time: "14:40", 
-        type: "flight", 
-        title: "抵達東京成田", 
-        location: "成田國際機場", 
-        desc: "航班 JX802", 
-        memos: [{id: 1, text: "領取 JR Pass", done: false}, {id: 2, text: "購買 Suica 卡", done: false}],
-        transport: { mode: "none", duration: "", route: "" }
-      },
-      { 
-        id: 102, 
-        time: "15:40", 
-        type: "transport", 
-        title: "前往市區", 
-        location: "新大久保站", 
-        desc: "搭乘 Skyliner 至日暮里轉 JR", 
-        memos: [],
-        transport: { mode: "train", duration: "60分", route: "Skyliner -> JR 山手線" }
-      },
-      { 
-        id: 103, 
-        time: "18:30", 
-        type: "food", 
-        title: "晚餐 & 藥妝", 
-        location: "歌舞伎町", 
-        desc: "燒肉敘敘苑 & 唐吉訶德", 
-        memos: [{id: 1, text: "買感冒藥", done: false}],
-        transport: { mode: "walk", duration: "10分", route: "步行" }
-      },
-    ]
+    title: "Day 1",
+    events: []
   },
   {
     day: 2,
     date: "2/24 (二)",
-    title: "魔法與動漫",
-    events: [
-      { 
-        id: 201, 
-        time: "10:00", 
-        type: "sightseeing", 
-        title: "哈利波特影城", 
-        location: "Warner Bros. Studio Tour Tokyo", 
-        desc: "⚠️ 需提前2個月預約", 
-        urgent: true,
-        memos: [{id: 1, text: "帶充電寶", done: true}],
-        transport: { mode: "train", duration: "40分", route: "大江戶線 直達" }
-      },
-      { 
-        id: 202, 
-        time: "15:00", 
-        type: "shopping", 
-        title: "池袋太陽城", 
-        location: "Sunshine City", 
-        desc: "寶可夢中心、Loft", 
-        memos: [],
-        transport: { mode: "train", duration: "25分", route: "西武池袋線" }
-      }
-    ]
+    title: "Day 2",
+    events: []
   },
   {
     day: 3,
     date: "2/25 (三)",
-    title: "富士山絕景",
-    events: [
-      {
-        id: 301,
-        time: "07:30",
-        type: "transport",
-        title: "前往河口湖",
-        location: "河口湖站",
-        desc: "搭乘富士回遊特急",
-        urgent: true,
-        memos: [],
-        transport: { mode: "train", duration: "110分", route: "富士回遊 3號" }
-      }
-    ]
+    title: "Day 3",
+    events: []
   },
-  // ... 為節省長度，Day 4-6 預設簡略，實際可完整填入
   {
     day: 4,
     date: "2/26 (四)",
-    title: "新東京地標",
+    title: "Day 4",
     events: []
   },
   {
     day: 5,
     date: "2/27 (五)",
-    title: "下町與銀座",
+    title: "Day 5",
     events: []
   },
   {
     day: 6,
     date: "2/28 (六)",
-    title: "歸途",
+    title: "Day 6",
     events: []
   }
 ];
@@ -180,7 +115,8 @@ const Modal = ({ isOpen, onClose, children, title }) => {
 const EditEventForm = ({ event, onSave, onCancel }) => {
   const [formData, setFormData] = useState(event || {
     time: "", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
-    transport: { mode: "train", duration: "", route: "" }
+    transport: { mode: "train", duration: "", route: "" },
+    cost: "" // 花費欄位
   });
 
   const handleChange = (e) => {
@@ -249,6 +185,21 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
            </select>
         </div>
         <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white border border-blue-200 rounded p-1.5 text-xs" />
+      </div>
+
+      <div>
+        <label className="text-xs text-gray-500 font-bold block mb-1">💰 預估花費 (選填)</label>
+        <div className="relative">
+          <input 
+            type="number" 
+            name="cost" 
+            value={formData.cost || ""} 
+            onChange={handleChange} 
+            placeholder="輸入金額 (如: 1500)" 
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-blue-500" 
+          />
+          <span className="absolute right-3 top-2.5 text-gray-500 text-sm">元</span>
+        </div>
       </div>
 
       <div className="flex items-center space-x-2">
@@ -395,47 +346,57 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos }) => 
 // --- Main App ---
 
 const App = () => {
+  const [currentView, setCurrentView] = useState('tripList'); // 'tripList' or 'tripDetail'
+  const [currentTripId, setCurrentTripId] = useState(null);
+  const [currentTripData, setCurrentTripData] = useState(null);
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
-  const [itinerary, setItinerary] = useState(initialItinerary);
+  const [itinerary, setItinerary] = useState([]);
+  const [tripDetails, setTripDetails] = useState({});
+  const [checklists, setChecklists] = useState({
+    preTrip: [],
+    packing: []
+  });
   
   // Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null); // null means adding new
+  const [editingEvent, setEditingEvent] = useState(null);
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
-
-  const TRIP_DOC_ID = "tokyo-2026-02"; // 你可以自己改名字，例如 "my-first-trip"
-
-  // 防抖：用於自動儲存
   const autoSaveTimeoutRef = React.useRef(null);
 
-  // 自動載入行程（組件掛載時執行一次）
+  // 載入特定旅程資料
   useEffect(() => {
-    const autoLoad = async () => {
-      try {
-        if (!db) return;
+    const loadTripData = async () => {
+      if (!currentTripId || !db) return;
 
-        const ref = doc(db, "trips", TRIP_DOC_ID);
+      try {
+        const ref = doc(db, 'trips', currentTripId);
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
           const data = snap.data();
-          if (data && data.itinerary && Array.isArray(data.itinerary)) {
-            setItinerary(data.itinerary);
-            console.log("✅ 自動載入行程成功");
-          }
+          setCurrentTripData(data);
+          setItinerary(data.itinerary || []);
+          setTripDetails(data.tripDetails || {});
+          setChecklists(data.checklists || { preTrip: [], packing: [] });
+          setSelectedDay(1);
+          setActiveTab('itinerary');
+          console.log('✅ 已載入旅程:', currentTripId);
         }
       } catch (err) {
-        console.error("⚠️ 自動載入失敗:", err);
+        console.error('❌ 載入旅程失敗:', err);
+        alert('載入旅程失敗');
       }
     };
 
-    autoLoad();
-  }, []); // 只在組件掛載時執行一次
+    loadTripData();
+  }, [currentTripId]);
 
   // 自動儲存行程到 Firebase（防抖 1 秒）
   useEffect(() => {
+    if (!currentTripId || !db) return;
+
     // 清除前一個計時器
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
@@ -444,19 +405,18 @@ const App = () => {
     // 設定新的計時器
     autoSaveTimeoutRef.current = setTimeout(async () => {
       try {
-        if (!db) return;
-
-        const ref = doc(db, "trips", TRIP_DOC_ID);
+        const ref = doc(db, 'trips', currentTripId);
         const payload = {
-          tripDetails: initialTripDetails,
+          tripDetails,
           itinerary,
+          checklists,
           updatedAt: new Date().toISOString()
         };
 
         await setDoc(ref, payload, { merge: true });
-        console.log("✅ 自動儲存成功");
+        console.log('✅ 自動儲存成功');
       } catch (err) {
-        console.error("❌ 自動儲存失敗:", err);
+        console.error('❌ 自動儲存失敗:', err);
       }
     }, 1000); // 1 秒防抖
 
@@ -466,66 +426,7 @@ const App = () => {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [itinerary]); // 只在 itinerary 變更時執行
-
-  // 從 Firebase 載入行程
-  const loadItineraryFromCloud = async () => {
-    try {
-      if (!db) {
-        alert("❌ Firestore 未初始化，請檢查 Firebase 設定。");
-        return;
-      }
-
-      const ref = doc(db, "trips", TRIP_DOC_ID);
-      const snap = await getDoc(ref);
-
-      if (!snap.exists()) {
-        alert("⚠️ 雲端目前沒有儲存這個行程，請先點【儲存到雲端】。");
-        return;
-      }
-
-      const data = snap.data();
-
-      if (data && data.itinerary && Array.isArray(data.itinerary)) {
-        setItinerary(data.itinerary);
-        alert("✅ 已從雲端載入行程");
-      } else {
-        alert("❌ 行程資料格式不正確，請檢查雲端資料。");
-      }
-    } catch (err) {
-      console.error("❌ 載入行程失敗:", err);
-      alert(`❌ 載入行程失敗：${err.message || '未知錯誤'}`);
-    }
-  };
-
-  // 把目前行程儲存到 Firebase
-  const saveItineraryToCloud = async () => {
-    try {
-      if (!db) {
-        alert("❌ Firestore 未初始化，請檢查 Firebase 設定。");
-        return;
-      }
-
-      if (!itinerary || itinerary.length === 0) {
-        alert("⚠️ 沒有行程資料可儲存。");
-        return;
-      }
-
-      const ref = doc(db, "trips", TRIP_DOC_ID);
-
-      const payload = {
-        tripDetails: initialTripDetails,
-        itinerary,
-        updatedAt: new Date().toISOString()
-      };
-
-      await setDoc(ref, payload, { merge: true });
-      alert("✅ 已儲存到雲端");
-    } catch (err) {
-      console.error("❌ 儲存行程失敗:", err);
-      alert(`❌ 儲存行程失敗：${err.message || '未知錯誤'}`);
-    }
-  };
+  }, [itinerary, tripDetails, checklists, currentTripId]); // 只在變更時執行
 
   // Handlers
   const handleSaveEvent = (eventData) => {
@@ -590,29 +491,136 @@ const App = () => {
     setIsEditModalOpen(true);
   };
 
+  // 返回旅程列表
+  const handleBackToList = () => {
+    setCurrentView('tripList');
+    setCurrentTripId(null);
+    setItinerary([]);
+    setTripDetails({});
+  };
+
+  // 如果在列表視圖，顯示 TripListPage
+  if (currentView === 'tripList') {
+    return (
+      <TripListPage
+        onSelectTrip={(tripId) => {
+          setCurrentTripId(tripId);
+          setCurrentView('tripDetail');
+        }}
+        onRefresh={() => {}}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <Header details={initialTripDetails} />
+      {/* Header with back button */}
+      <div className="relative">
+        <Header details={tripDetails} />
+        <button
+          onClick={handleBackToList}
+          className="absolute top-4 left-6 bg-white text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1 text-sm font-medium"
+        >
+          <ArrowLeft size={18} />
+          返回
+        </button>
+      </div>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
 
-      {/* Navigation Tabs */}
-      <div className="flex justify-center space-x-1 bg-white p-1 mt-[-20px] rounded-xl shadow-md relative z-10 border border-gray-100">
-        <button onClick={() => setActiveTab('itinerary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>行程表</button>
-        <button onClick={() => setActiveTab('flights')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>機票/住宿</button>
-      </div>
+        {/* Navigation Tabs */}
+        <div className="flex justify-center space-x-1 bg-white p-1 mt-[-20px] rounded-xl shadow-md relative z-10 border border-gray-100">
+          <button onClick={() => setActiveTab('summary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>總覽</button>
+          <button onClick={() => setActiveTab('itinerary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>行程表</button>
+          <button onClick={() => setActiveTab('checklist')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>清單</button>
+          <button onClick={() => setActiveTab('flights')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>機票/住宿</button>
+        </div>
 
-      <div className="pt-4">
-        {activeTab === 'itinerary' && (
-          <>
-            {/* Day Selector */}
-            <div className="flex overflow-x-auto px-4 py-2 space-x-3 no-scrollbar">
-              {itinerary.map((item) => (
-                <button
-                  key={item.day}
-                  onClick={() => setSelectedDay(item.day)}
-                  className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-18 rounded-2xl transition-all border ${
-                    selectedDay === item.day
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-md transform scale-105'
+        <div className="pt-4">
+          {activeTab === 'summary' && (
+            <div className="px-6 space-y-4 pb-10">
+              {/* 旅程統計 */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">旅程概覽</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-gray-500 text-xs mb-1">旅程期間</p>
+                    <p className="text-lg font-bold text-gray-800">{tripDetails.dates || '未設定'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-500 text-xs mb-1">天數</p>
+                    <p className="text-lg font-bold text-gray-800">{itinerary.length} 天</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 住宿卡片 */}
+              {tripDetails.accommodation && (
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                  <h3 className="font-bold text-gray-800 mb-3">🏨 住宿</h3>
+                  <p className="font-bold text-gray-800">{tripDetails.accommodation.name || '未設定'}</p>
+                  <p className="text-sm text-gray-500 mb-2">{tripDetails.accommodation.address || '未設定地址'}</p>
+                  <div className="text-xs text-gray-600 space-y-1 mb-3">
+                    <p>✓ 入住：{tripDetails.accommodation.checkIn || '未設定'}</p>
+                    <p>✓ 退住：{tripDetails.accommodation.checkOut || '未設定'}</p>
+                  </div>
+                  {tripDetails.accommodation.address && (
+                    <button
+                      onClick={() => openGoogleMaps(null, tripDetails.accommodation.address)}
+                      className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full hover:bg-blue-200 transition-colors"
+                    >
+                      📍 查看地圖
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* 航班卡片 */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 className="font-bold text-gray-800 mb-3">✈️ 航班</h3>
+
+                {tripDetails.flights?.outbound?.code ? (
+                  <div className="mb-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-blue-600">去程</span>
+                      <span className="font-mono text-gray-800 text-sm">{tripDetails.flights.outbound.code}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{tripDetails.flights.outbound.airline || '航空公司'}</p>
+                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
+                    <p className="text-xs text-gray-600 mt-1">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 mb-3">未設定去程</p>
+                )}
+
+                <div className="border-t border-gray-100 my-3"></div>
+
+                {tripDetails.flights?.inbound?.code ? (
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-indigo-600">回程</span>
+                      <span className="font-mono text-gray-800 text-sm">{tripDetails.flights.inbound.code}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{tripDetails.flights.inbound.airline || '航空公司'}</p>
+                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
+                    <p className="text-xs text-gray-600 mt-1">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400">未設定回程</p>
+                )}
+              </div>
+            </div>
+          )}
+          {activeTab === 'itinerary' && (
+            <>
+              {/* Day Selector */}
+              <div className="flex overflow-x-auto px-4 py-2 space-x-3 no-scrollbar">
+                {itinerary.map((item) => (
+                  <button
+                    key={item.day}
+                    onClick={() => setSelectedDay(item.day)}
+                    className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-18 rounded-2xl transition-all border ${
+                      selectedDay === item.day
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-md transform scale-105'
                       : 'bg-white border-gray-100 text-gray-400'
                   }`}
                 >
@@ -620,100 +628,233 @@ const App = () => {
                   <span className="text-lg font-bold">{item.day}</span>
                 </button>
               ))}
-            </div>
-            
-            <div className="px-6 mt-4 pb-20">
-              <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
-                <div>
-                   <h2 className="text-xl font-bold text-gray-800">{currentDayData.title}</h2>
-                   <p className="text-sm text-gray-500">{currentDayData.date}</p>
-                </div>
               </div>
               
-    {/* 雲端同步工具列 */}
-    <div className="px-6 mt-2 flex justify-between items-center space-x-2">
-      <div className="flex-1 py-2 text-xs bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium shadow-sm text-center">
-        🔄 自動同步中...
-      </div>
-      <button
-        onClick={loadItineraryFromCloud}
-        className="flex-1 py-2 text-xs bg-white border border-gray-300 rounded-lg text-gray-700 font-medium shadow-sm active:scale-[0.98] transition"
-      >
-        從雲端載入
-      </button>
-    </div>
-
-              <div className="mt-4">
-                {currentDayData.events.length === 0 ? (
-                  <div className="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                    <p>尚無行程</p>
-                    <button onClick={openAddModal} className="mt-2 text-blue-500 font-bold text-sm">+ 新增第一個行程</button>
+              <div className="px-6 mt-4 pb-20">
+                <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
+                  <div>
+                     <h2 className="text-xl font-bold text-gray-800">{currentDayData.title}</h2>
+                     <p className="text-sm text-gray-500">{currentDayData.date}</p>
                   </div>
-                ) : (
-                  currentDayData.events.map((event, index) => {
-                    // Calculate previous location for Google Maps routing
-                    const prevEvent = index > 0 ? currentDayData.events[index - 1] : null;
-                    const prevLocation = prevEvent ? prevEvent.location : initialTripDetails.accommodation.address;
+                </div>
+                
+                {/* 雲端同步工具列 */}
+                <div className="px-6 mt-2 flex justify-between items-center space-x-2">
+                  <div className="flex-1 py-2 text-xs bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium shadow-sm text-center">
+                    🔄 自動同步中...
+                  </div>
+                  <button
+                    onClick={() => {
+                      const ref = doc(db, 'trips', currentTripId);
+                      getDoc(ref).then(snap => {
+                        if (snap.exists()) {
+                          const data = snap.data();
+                          setItinerary(data.itinerary || []);
+                          setTripDetails(data.tripDetails || {});
+                          alert('✅ 已重新載入雲端資料');
+                        }
+                      });
+                    }}
+                    className="flex-1 py-2 text-xs bg-white border border-gray-300 rounded-lg text-gray-700 font-medium shadow-sm active:scale-[0.98] transition"
+                  >
+                    重新載入
+                  </button>
+                </div>
 
-                    return (
-                      <EventCard 
-                        key={event.id} 
-                        event={event} 
-                        prevLocation={prevLocation}
-                        onEdit={openEditModal}
-                        onDelete={handleDeleteEvent}
-                        onUpdateMemos={handleUpdateMemos}
-                      />
-                    );
-                  })
+                <div className="mt-4">
+                  {currentDayData && currentDayData.events.length === 0 ? (
+                    <div className="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                      <p>尚無行程</p>
+                      <button onClick={openAddModal} className="mt-2 text-blue-500 font-bold text-sm">+ 新增第一個行程</button>
+                    </div>
+                  ) : (
+                    currentDayData.events.map((event, index) => {
+                      // Calculate previous location for Google Maps routing
+                      const prevEvent = index > 0 ? currentDayData.events[index - 1] : null;
+                      const prevLocation = prevEvent ? prevEvent.location : initialTripDetails.accommodation.address;
+
+                      return (
+                        <EventCard 
+                          key={event.id} 
+                          event={event} 
+                          prevLocation={prevLocation}
+                          onEdit={openEditModal}
+                          onDelete={handleDeleteEvent}
+                          onUpdateMemos={handleUpdateMemos}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Daily Cost Summary */}
+                {currentDayData && currentDayData.events.length > 0 && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-xl border border-orange-200">
+                    <h3 className="font-bold text-orange-800 mb-2">💰 今日預估花費</h3>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {currentDayData.events
+                        .filter(e => e.cost)
+                        .reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)
+                        .toLocaleString()} 元
+                    </div>
+                    <p className="text-xs text-orange-700 mt-2">
+                      共 {currentDayData.events.filter(e => e.cost).length} 個項目有記錄花費
+                    </p>
+                  </div>
                 )}
+
+                {/* Add Button */}
+                <button 
+                  onClick={openAddModal}
+                  className="w-full mt-6 py-3 border-2 border-dashed border-blue-300 text-blue-500 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center justify-center"
+                >
+                  <Plus size={20} className="mr-2" />
+                  新增行程
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Checklist Tab */}
+          {activeTab === 'checklist' && (
+            <div className="px-6 mt-6 space-y-4 pb-10">
+              {/* 出國前待辦 */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">📋 出國前待辦</h3>
+                <div className="space-y-2 mb-4">
+                  {checklists.preTrip.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg group">
+                      <button
+                        onClick={() => {
+                          setChecklists(prev => ({
+                            ...prev,
+                            preTrip: prev.preTrip.map(i => i.id === item.id ? { ...i, done: !i.done } : i)
+                          }));
+                        }}
+                        className="flex-shrink-0 text-gray-400 hover:text-blue-600"
+                      >
+                        {item.done ? <CheckSquare size={18} className="text-blue-500" /> : <Square size={18} />}
+                      </button>
+                      <span className={`flex-1 text-sm ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        {item.text}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setChecklists(prev => ({
+                            ...prev,
+                            preTrip: prev.preTrip.filter(i => i.id !== item.id)
+                          }));
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="+ 新增待辦 (Enter)"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-blue-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.target.value.trim()) {
+                        setChecklists(prev => ({
+                          ...prev,
+                          preTrip: [...prev.preTrip, { id: Date.now(), text: e.target.value, done: false }]
+                        }));
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Add Button */}
-              <button 
-                onClick={openAddModal}
-                className="w-full mt-6 py-3 border-2 border-dashed border-blue-300 text-blue-500 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center justify-center"
-              >
-                <Plus size={20} className="mr-2" />
-                新增行程
-              </button>
+              {/* 打包清單 */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">🎒 打包清單</h3>
+                <div className="space-y-2 mb-4">
+                  {checklists.packing.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg group">
+                      <button
+                        onClick={() => {
+                          setChecklists(prev => ({
+                            ...prev,
+                            packing: prev.packing.map(i => i.id === item.id ? { ...i, done: !i.done } : i)
+                          }));
+                        }}
+                        className="flex-shrink-0 text-gray-400 hover:text-blue-600"
+                      >
+                        {item.done ? <CheckSquare size={18} className="text-blue-500" /> : <Square size={18} />}
+                      </button>
+                      <span className={`flex-1 text-sm ${item.done ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        {item.text}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setChecklists(prev => ({
+                            ...prev,
+                            packing: prev.packing.filter(i => i.id !== item.id)
+                          }));
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="+ 新增物品 (Enter)"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-blue-500"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.target.value.trim()) {
+                        setChecklists(prev => ({
+                          ...prev,
+                          packing: [...prev.packing, { id: Date.now(), text: e.target.value, done: false }]
+                        }));
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </>
-        )}
+          )}
 
-        {/* Flight & Info Tab (Simplified for brevity as requested focus was on Itinerary features) */}
-        {activeTab === 'flights' && (
-          <div className="px-6 mt-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-800">住宿資訊</h2>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-               <h3 className="font-bold">{initialTripDetails.accommodation.name}</h3>
-               <p className="text-sm text-gray-500">{initialTripDetails.accommodation.address}</p>
-               <div className="mt-2 flex space-x-2">
-                 <button onClick={() => openGoogleMaps(null, initialTripDetails.accommodation.address)} className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full flex items-center"><MapPin size={10} className="mr-1"/> 查看地圖</button>
-               </div>
+          {/* Flight & Info Tab (Simplified for brevity as requested focus was on Itinerary features) */}
+          {activeTab === 'flights' && (
+            <div className="px-6 mt-6 space-y-4">
+              <h2 className="text-xl font-bold text-gray-800">住宿資訊</h2>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                 <h3 className="font-bold">{initialTripDetails.accommodation.name}</h3>
+                 <p className="text-sm text-gray-500">{initialTripDetails.accommodation.address}</p>
+                 <div className="mt-2 flex space-x-2">
+                   <button onClick={() => openGoogleMaps(null, initialTripDetails.accommodation.address)} className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full flex items-center"><MapPin size={10} className="mr-1"/> 查看地圖</button>
+                 </div>
+              </div>
+
+              <h2 className="text-xl font-bold text-gray-800">航班資訊</h2>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                 <div className="flex justify-between items-center mb-2">
+                   <span className="font-bold text-blue-600">去程</span>
+                   <span className="font-mono text-gray-800">{initialTripDetails.flights.outbound.code}</span>
+                 </div>
+                 <p className="text-sm text-gray-600">{initialTripDetails.flights.outbound.date} - {initialTripDetails.flights.outbound.time}</p>
+                 
+                 <div className="border-t border-gray-100 my-3"></div>
+
+                 <div className="flex justify-between items-center mb-2">
+                   <span className="font-bold text-indigo-600">回程</span>
+                   <span className="font-mono text-gray-800">{initialTripDetails.flights.inbound.code}</span>
+                 </div>
+                 <p className="text-sm text-gray-600">{initialTripDetails.flights.inbound.date} - {initialTripDetails.flights.inbound.time}</p>
+              </div>
             </div>
-
-            <h2 className="text-xl font-bold text-gray-800">航班資訊</h2>
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-               <div className="flex justify-between items-center mb-2">
-                 <span className="font-bold text-blue-600">去程</span>
-                 <span className="font-mono text-gray-800">{initialTripDetails.flights.outbound.code}</span>
-               </div>
-               <p className="text-sm text-gray-600">{initialTripDetails.flights.outbound.date} - {initialTripDetails.flights.outbound.time}</p>
-               
-               <div className="border-t border-gray-100 my-3"></div>
-
-               <div className="flex justify-between items-center mb-2">
-                 <span className="font-bold text-indigo-600">回程</span>
-                 <span className="font-mono text-gray-800">{initialTripDetails.flights.inbound.code}</span>
-               </div>
-               <p className="text-sm text-gray-600">{initialTripDetails.flights.inbound.date} - {initialTripDetails.flights.inbound.time}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      </div>
+          )}
+        </div>
 
       {/* Edit/Add Modal */}
       <Modal 
@@ -727,10 +868,9 @@ const App = () => {
           onCancel={() => setIsEditModalOpen(false)}
         />
       </Modal>
-
+      </div>
     </div>
   );
 };
 
 export default App;
-
