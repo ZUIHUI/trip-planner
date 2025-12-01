@@ -77,7 +77,10 @@ const TripListPage = ({ onSelectTrip, onRefresh }) => {
       alert('✅ 旅程已建立');
       setNewTripForm({ title: '', startDate: '', endDate: '', city: '', emoji: '✈️' });
       setIsCreateModalOpen(false);
-      loadTrips();
+      // 建立完成後自動打開新旅程
+      setTimeout(() => {
+        onSelectTrip(tripId);
+      }, 500);
     } catch (err) {
       console.error('❌ 新增旅程失敗:', err);
       alert('新增旅程失敗');

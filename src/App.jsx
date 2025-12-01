@@ -368,25 +368,33 @@ const App = () => {
   // 載入特定旅程資料
   useEffect(() => {
     const loadTripData = async () => {
-      if (!currentTripId || !db) return;
+      if (!currentTripId || !db) {
+        console.log('⚠️ currentTripId 或 db 未準備好:', { currentTripId, db });
+        return;
+      }
 
       try {
+        console.log('📝 開始載入旅程:', currentTripId);
         const ref = doc(db, 'trips', currentTripId);
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
           const data = snap.data();
+          console.log('✅ 旅程資料已載入:', data);
           setCurrentTripData(data);
           setItinerary(data.itinerary || []);
           setTripDetails(data.tripDetails || {});
           setChecklists(data.checklists || { preTrip: [], packing: [] });
           setSelectedDay(1);
-          setActiveTab('itinerary');
+          setActiveTab('summary'); // 改為載入時先看 Summary tab
           console.log('✅ 已載入旅程:', currentTripId);
+        } else {
+          console.error('❌ 旅程不存在:', currentTripId);
+          alert('旅程不存在或已被刪除');
         }
       } catch (err) {
         console.error('❌ 載入旅程失敗:', err);
-        alert('載入旅程失敗');
+        alert('載入旅程失敗: ' + err.message);
       }
     };
 
