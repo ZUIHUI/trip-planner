@@ -347,11 +347,12 @@ const App = () => {
   // 固定使用單一旅程 ID
   const TRIP_ID = 'default-trip';
   
+  const [isLoading, setIsLoading] = useState(true);
   const [currentTripData, setCurrentTripData] = useState(null);
   const [activeTab, setActiveTab] = useState('summary');
   const [selectedDay, setSelectedDay] = useState(1);
-  const [itinerary, setItinerary] = useState([]);
-  const [tripDetails, setTripDetails] = useState({});
+  const [itinerary, setItinerary] = useState(initialItinerary);
+  const [tripDetails, setTripDetails] = useState(initialTripDetails);
   const [checklists, setChecklists] = useState({
     preTrip: [],
     packing: []
@@ -368,6 +369,7 @@ const App = () => {
   useEffect(() => {
     const initializeTripData = async () => {
       try {
+        setIsLoading(true);
         console.log('📝 開始載入旅程:', TRIP_ID);
         const ref = doc(db, 'trips', TRIP_ID);
         const snap = await getDoc(ref);
@@ -381,7 +383,7 @@ const App = () => {
           setChecklists(data.checklists || { preTrip: [], packing: [] });
           console.log('✅ 已載入旅程');
         } else {
-          console.log('⚠️ 旅程不存在，使用預設資料');
+          console.log('⚠️ 旅程不存在，使用預設資料並建立新旅程');
           // 如果第一次使用，建立預設旅程
           const initialData = {
             title: initialTripDetails.title,
@@ -389,8 +391,8 @@ const App = () => {
             tripDetails: initialTripDetails,
             itinerary: initialItinerary,
             checklists: { preTrip: [], packing: [] },
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           };
           await setDoc(ref, initialData);
           setCurrentTripData(initialData);
@@ -401,10 +403,13 @@ const App = () => {
         }
       } catch (err) {
         console.error('❌ 初始化旅程失敗:', err);
-        // 使用本地預設資料
+        // 使用本地預設資料（故障恢復）
+        console.log('⚠️ 使用本地預設資料');
         setItinerary(initialItinerary);
         setTripDetails(initialTripDetails);
         setChecklists({ preTrip: [], packing: [] });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -510,6 +515,19 @@ const App = () => {
   };
 
   // 直接返回旅程編輯視圖
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="inline-block">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+          <p className="text-gray-600 font-medium">正在載入旅程...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       {/* Header */}
