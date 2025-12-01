@@ -6,10 +6,8 @@ import {
   Plane, MapPin, Calendar, Clock, Train, Camera, ShoppingBag, 
   Coffee, Info, ChevronRight, AlertCircle, Home, Map, 
   Plus, MoreVertical, Trash2, Edit2, X, CheckSquare, Square,
-  Navigation, ExternalLink, Save, ArrowLeft
+  Navigation, ExternalLink, Save
 } from 'lucide-react';
-import TripListPage from './TripListPage';
-
 // --- Initial Data ---
 
 const initialTripDetails = {
@@ -346,10 +344,11 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos }) => 
 // --- Main App ---
 
 const App = () => {
-  const [currentView, setCurrentView] = useState('tripList'); // 'tripList' or 'tripDetail'
-  const [currentTripId, setCurrentTripId] = useState(null);
+  // 固定使用單一旅程 ID
+  const TRIP_ID = 'default-trip';
+  
   const [currentTripData, setCurrentTripData] = useState(null);
-  const [activeTab, setActiveTab] = useState('itinerary');
+  const [activeTab, setActiveTab] = useState('summary');
   const [selectedDay, setSelectedDay] = useState(1);
   const [itinerary, setItinerary] = useState([]);
   const [tripDetails, setTripDetails] = useState({});
@@ -365,45 +364,56 @@ const App = () => {
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const autoSaveTimeoutRef = React.useRef(null);
 
-  // 載入特定旅程資料
+  // 在組件掛載時初始化旅程資料
   useEffect(() => {
-    const loadTripData = async () => {
-      if (!currentTripId || !db) {
-        console.log('⚠️ currentTripId 或 db 未準備好:', { currentTripId, db });
-        return;
-      }
-
+    const initializeTripData = async () => {
       try {
-        console.log('📝 開始載入旅程:', currentTripId);
-        const ref = doc(db, 'trips', currentTripId);
+        console.log('📝 開始載入旅程:', TRIP_ID);
+        const ref = doc(db, 'trips', TRIP_ID);
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
           const data = snap.data();
           console.log('✅ 旅程資料已載入:', data);
           setCurrentTripData(data);
-          setItinerary(data.itinerary || []);
-          setTripDetails(data.tripDetails || {});
+          setItinerary(data.itinerary || initialItinerary);
+          setTripDetails(data.tripDetails || initialTripDetails);
           setChecklists(data.checklists || { preTrip: [], packing: [] });
-          setSelectedDay(1);
-          setActiveTab('summary'); // 改為載入時先看 Summary tab
-          console.log('✅ 已載入旅程:', currentTripId);
+          console.log('✅ 已載入旅程');
         } else {
-          console.error('❌ 旅程不存在:', currentTripId);
-          alert('旅程不存在或已被刪除');
+          console.log('⚠️ 旅程不存在，使用預設資料');
+          // 如果第一次使用，建立預設旅程
+          const initialData = {
+            title: initialTripDetails.title,
+            dates: initialTripDetails.dates,
+            tripDetails: initialTripDetails,
+            itinerary: initialItinerary,
+            checklists: { preTrip: [], packing: [] },
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          await setDoc(ref, initialData);
+          setCurrentTripData(initialData);
+          setItinerary(initialItinerary);
+          setTripDetails(initialTripDetails);
+          setChecklists({ preTrip: [], packing: [] });
+          console.log('✅ 已建立預設旅程');
         }
       } catch (err) {
-        console.error('❌ 載入旅程失敗:', err);
-        alert('載入旅程失敗: ' + err.message);
+        console.error('❌ 初始化旅程失敗:', err);
+        // 使用本地預設資料
+        setItinerary(initialItinerary);
+        setTripDetails(initialTripDetails);
+        setChecklists({ preTrip: [], packing: [] });
       }
     };
 
-    loadTripData();
-  }, [currentTripId]);
+    initializeTripData();
+  }, []);
 
   // 自動儲存行程到 Firebase（防抖 1 秒）
   useEffect(() => {
-    if (!currentTripId || !db) return;
+    if (!db) return;
 
     // 清除前一個計時器
     if (autoSaveTimeoutRef.current) {
@@ -413,7 +423,7 @@ const App = () => {
     // 設定新的計時器
     autoSaveTimeoutRef.current = setTimeout(async () => {
       try {
-        const ref = doc(db, 'trips', currentTripId);
+        const ref = doc(db, 'trips', TRIP_ID);
         const payload = {
           tripDetails,
           itinerary,
@@ -434,7 +444,7 @@ const App = () => {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [itinerary, tripDetails, checklists, currentTripId]); // 只在變更時執行
+  }, [itinerary, tripDetails, checklists]); // 只在變更時執行
 
   // Handlers
   const handleSaveEvent = (eventData) => {
@@ -499,43 +509,14 @@ const App = () => {
     setIsEditModalOpen(true);
   };
 
-  // 返回旅程列表
-  const handleBackToList = () => {
-    setCurrentView('tripList');
-    setCurrentTripId(null);
-    setItinerary([]);
-    setTripDetails({});
-  };
-
-  // 如果在列表視圖，顯示 TripListPage
-  if (currentView === 'tripList') {
-    return (
-      <TripListPage
-        onSelectTrip={(tripId) => {
-          setCurrentTripId(tripId);
-          setCurrentView('tripDetail');
-        }}
-        onRefresh={() => {}}
-      />
-    );
-  }
-
+  // 直接返回旅程編輯視圖
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Header with back button */}
+      {/* Header */}
       <div className="relative">
         <Header details={tripDetails} />
-        <button
-          onClick={handleBackToList}
-          className="absolute top-4 left-6 bg-white text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1 text-sm font-medium"
-        >
-          <ArrowLeft size={18} />
-          返回
-        </button>
       </div>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Navigation Tabs */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">        {/* Navigation Tabs */}
         <div className="flex justify-center space-x-1 bg-white p-1 mt-[-20px] rounded-xl shadow-md relative z-10 border border-gray-100">
           <button onClick={() => setActiveTab('summary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>總覽</button>
           <button onClick={() => setActiveTab('itinerary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>行程表</button>
@@ -659,7 +640,7 @@ const App = () => {
                   </div>
                   <button
                     onClick={() => {
-                      const ref = doc(db, 'trips', currentTripId);
+                      const ref = doc(db, 'trips', TRIP_ID);
                       getDoc(ref).then(snap => {
                         if (snap.exists()) {
                           const data = snap.data();
