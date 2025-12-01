@@ -66,7 +66,11 @@ const TripListPage = ({ onSelectTrip, onRefresh }) => {
           date: '',
           title: `Day ${i + 1}`,
           events: []
-        }))
+        })),
+        checklists: {
+          preTrip: [],
+          packing: []
+        }
       };
 
       await setDoc(doc(db, 'trips', tripId), tripData);

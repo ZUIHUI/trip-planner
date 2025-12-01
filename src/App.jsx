@@ -633,8 +633,14 @@ const App = () => {
               <div className="px-6 mt-4 pb-20">
                 <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
                   <div>
-                     <h2 className="text-xl font-bold text-gray-800">{currentDayData.title}</h2>
-                     <p className="text-sm text-gray-500">{currentDayData.date}</p>
+                     {currentDayData ? (
+                       <>
+                         <h2 className="text-xl font-bold text-gray-800">{currentDayData.title}</h2>
+                         <p className="text-sm text-gray-500">{currentDayData.date}</p>
+                       </>
+                     ) : (
+                       <p className="text-gray-500">載入中...</p>
+                     )}
                   </div>
                 </div>
                 
@@ -671,7 +677,7 @@ const App = () => {
                     currentDayData.events.map((event, index) => {
                       // Calculate previous location for Google Maps routing
                       const prevEvent = index > 0 ? currentDayData.events[index - 1] : null;
-                      const prevLocation = prevEvent ? prevEvent.location : initialTripDetails.accommodation.address;
+                      const prevLocation = prevEvent ? prevEvent.location : (tripDetails.accommodation?.address || '');
 
                       return (
                         <EventCard 
@@ -826,31 +832,45 @@ const App = () => {
 
           {/* Flight & Info Tab (Simplified for brevity as requested focus was on Itinerary features) */}
           {activeTab === 'flights' && (
-            <div className="px-6 mt-6 space-y-4">
+            <div className="px-6 mt-6 space-y-4 pb-10">
               <h2 className="text-xl font-bold text-gray-800">住宿資訊</h2>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                 <h3 className="font-bold">{initialTripDetails.accommodation.name}</h3>
-                 <p className="text-sm text-gray-500">{initialTripDetails.accommodation.address}</p>
-                 <div className="mt-2 flex space-x-2">
-                   <button onClick={() => openGoogleMaps(null, initialTripDetails.accommodation.address)} className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full flex items-center"><MapPin size={10} className="mr-1"/> 查看地圖</button>
-                 </div>
+                 <h3 className="font-bold">{tripDetails.accommodation?.name || '未設定'}</h3>
+                 <p className="text-sm text-gray-500">{tripDetails.accommodation?.address || '未設定地址'}</p>
+                 {tripDetails.accommodation?.address && (
+                   <div className="mt-2 flex space-x-2">
+                     <button onClick={() => openGoogleMaps(null, tripDetails.accommodation.address)} className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full flex items-center"><MapPin size={10} className="mr-1"/> 查看地圖</button>
+                   </div>
+                 )}
               </div>
 
               <h2 className="text-xl font-bold text-gray-800">航班資訊</h2>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                 <div className="flex justify-between items-center mb-2">
-                   <span className="font-bold text-blue-600">去程</span>
-                   <span className="font-mono text-gray-800">{initialTripDetails.flights.outbound.code}</span>
-                 </div>
-                 <p className="text-sm text-gray-600">{initialTripDetails.flights.outbound.date} - {initialTripDetails.flights.outbound.time}</p>
+                 {tripDetails.flights?.outbound?.code ? (
+                   <div className="mb-3">
+                     <div className="flex justify-between items-center mb-2">
+                       <span className="font-bold text-blue-600">去程</span>
+                       <span className="font-mono text-gray-800">{tripDetails.flights.outbound.code}</span>
+                     </div>
+                     <p className="text-sm text-gray-600">{tripDetails.flights.outbound.date} - {tripDetails.flights.outbound.time}</p>
+                   </div>
+                 ) : (
+                   <p className="text-sm text-gray-400 mb-3">未設定去程</p>
+                 )}
                  
                  <div className="border-t border-gray-100 my-3"></div>
 
-                 <div className="flex justify-between items-center mb-2">
-                   <span className="font-bold text-indigo-600">回程</span>
-                   <span className="font-mono text-gray-800">{initialTripDetails.flights.inbound.code}</span>
-                 </div>
-                 <p className="text-sm text-gray-600">{initialTripDetails.flights.inbound.date} - {initialTripDetails.flights.inbound.time}</p>
+                 {tripDetails.flights?.inbound?.code ? (
+                   <div>
+                     <div className="flex justify-between items-center mb-2">
+                       <span className="font-bold text-indigo-600">回程</span>
+                       <span className="font-mono text-gray-800">{tripDetails.flights.inbound.code}</span>
+                     </div>
+                     <p className="text-sm text-gray-600">{tripDetails.flights.inbound.date} - {tripDetails.flights.inbound.time}</p>
+                   </div>
+                 ) : (
+                   <p className="text-sm text-gray-400">未設定回程</p>
+                 )}
               </div>
             </div>
           )}
