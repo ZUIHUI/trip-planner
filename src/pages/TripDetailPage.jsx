@@ -21,6 +21,21 @@ const TripDetailPage = () => {
   const [tripData, setTripData] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
+  // 初始旅程資料結構
+  const defaultTripDetails = {
+    title: '',
+    dates: '',
+    accommodation: {},
+    flights: {}
+  };
+
+  const defaultItinerary = Array.from({ length: 6 }, (_, i) => ({
+    day: i + 1,
+    date: `Day ${i + 1}`,
+    title: `Day ${i + 1}`,
+    events: []
+  }));
+
   const { 
     isLoading, 
     tripDetails, 
@@ -29,7 +44,7 @@ const TripDetailPage = () => {
     setItinerary, 
     checklists, 
     setChecklists 
-  } = useTrip(tripId);
+  } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
   const budgetInfo = useBudget(itinerary);
 
