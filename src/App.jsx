@@ -32,8 +32,9 @@ const initialItinerary = Array.from({ length: 6 }, (_, i) => ({
 }));
 
 const App = () => {
+  const TRIP_ID = 'default-trip';
   const { isLoading, tripDetails, setTripDetails, itinerary, setItinerary, checklists, setChecklists } = 
-    useTrip(initialTripDetails, initialItinerary);
+    useTrip(TRIP_ID, initialTripDetails, initialItinerary);
 
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
