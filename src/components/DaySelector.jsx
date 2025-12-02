@@ -33,7 +33,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
 
   // 取得星期
   const getWeekday = (dateString) => {
-    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     if (!dateString) return '';
     try {
       const date = new Date(dateString);
