@@ -2,12 +2,13 @@ import React, { useState, useCallback } from 'react';
 import Header from './components/Header';
 import Modal from './components/Modal';
 import EditEventForm from './components/EditEventForm';
+import EditDetailsForm from './components/EditDetailsForm';
 import EventCard from './components/EventCard';
 import Checklist from './components/Checklist';
 import DaySelector from './components/DaySelector';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
-import { Plus } from 'lucide-react';
+import { Plus, Edit2 } from 'lucide-react';
 
 // 預設資料
 const initialTripDetails = {
@@ -60,6 +61,8 @@ const App = () => {
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [isEditDetailsModalOpen, setIsEditDetailsModalOpen] = useState(false);
+  const [editingDetailsType, setEditingDetailsType] = useState(null); // 'accommodation', 'outbound', 'inbound'
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const budgetSummary = useBudget(itinerary);
@@ -120,6 +123,16 @@ const App = () => {
       window.open(mapsUrl, '_blank');
     }
   };
+
+  // 編輯詳情處理
+  const handleSaveDetails = useCallback((updatedData) => {
+    setTripDetails(prev => ({
+      ...prev,
+      ...updatedData
+    }));
+    setIsEditDetailsModalOpen(false);
+    setEditingDetailsType(null);
+  }, [setTripDetails]);
 
   // 待辦清單處理
   const handleAddChecklistItem = (type, text) => {
@@ -359,7 +372,18 @@ const App = () => {
             <div className="px-6 space-y-4 pb-10">
               {tripDetails?.accommodation && (
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-800 mb-3">🏨 住宿詳情</h3>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-gray-800">🏨 住宿詳情</h3>
+                    <button
+                      onClick={() => {
+                        setEditingDetailsType('accommodation');
+                        setIsEditDetailsModalOpen(true);
+                      }}
+                      className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                  </div>
                   <p className="font-bold text-gray-800">{tripDetails.accommodation.name}</p>
                   <p className="text-sm text-gray-500 mb-2">{tripDetails.accommodation.address}</p>
                   <div className="text-xs text-gray-600 space-y-1">
@@ -371,13 +395,35 @@ const App = () => {
               {tripDetails?.flights && (
                 <>
                   <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-3">✈️ 去程</h3>
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-bold text-gray-800">✈️ 去程</h3>
+                      <button
+                        onClick={() => {
+                          setEditingDetailsType('outbound');
+                          setIsEditDetailsModalOpen(true);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
                     <p className="text-sm"><span className="font-bold">{tripDetails.flights.outbound.code}</span> - {tripDetails.flights.outbound.airline}</p>
                     <p className="text-xs text-gray-500">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
                     <p className="text-xs text-gray-500">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
                   </div>
                   <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-3">✈️ 回程</h3>
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-bold text-gray-800">✈️ 回程</h3>
+                      <button
+                        onClick={() => {
+                          setEditingDetailsType('inbound');
+                          setIsEditDetailsModalOpen(true);
+                        }}
+                        className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
                     <p className="text-sm"><span className="font-bold">{tripDetails.flights.inbound.code}</span> - {tripDetails.flights.inbound.airline}</p>
                     <p className="text-xs text-gray-500">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
                     <p className="text-xs text-gray-500">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
@@ -399,6 +445,24 @@ const App = () => {
           event={editingEvent}
           onSave={handleSaveEvent}
           onCancel={() => { setIsEditModalOpen(false); setEditingEvent(null); }}
+        />
+      </Modal>
+
+      {/* Details Edit Modal */}
+      <Modal
+        isOpen={isEditDetailsModalOpen}
+        onClose={() => { setIsEditDetailsModalOpen(false); setEditingDetailsType(null); }}
+        title={
+          editingDetailsType === 'accommodation' ? '編輯住宿' :
+          editingDetailsType === 'outbound' ? '編輯去程' :
+          editingDetailsType === 'inbound' ? '編輯回程' : '編輯詳情'
+        }
+      >
+        <EditDetailsForm
+          tripDetails={tripDetails}
+          detailsType={editingDetailsType}
+          onSave={handleSaveDetails}
+          onCancel={() => { setIsEditDetailsModalOpen(false); setEditingDetailsType(null); }}
         />
       </Modal>
     </div>
