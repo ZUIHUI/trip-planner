@@ -244,26 +244,29 @@ const App = () => {
               )}
 
               {/* 預算總覽 */}
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm border border-blue-200">
                 <h3 className="font-bold text-gray-800 mb-4">💰 預算總覽</h3>
                 {itinerary.some(day => day.events?.some(e => e.cost)) ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {itinerary.map(day => {
                       const dayTotal = day.events?.reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0) || 0;
                       const costItems = day.events?.filter(e => e.cost).length || 0;
                       return dayTotal > 0 && (
-                        <div key={day.day} className="flex justify-between items-center pb-2 border-b border-gray-100">
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">Day {day.day} ({day.date})</p>
-                            <p className="text-xs text-gray-500">{costItems} 個項目</p>
+                        <div key={day.day} className="flex justify-between items-center px-3 py-2 bg-white rounded-lg shadow-sm">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-800">
+                              <span className="inline-block bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2">Day {day.day}</span>
+                              <span className="text-gray-600">{day.date} {day.weekday}</span>
+                            </p>
+                            <p className="text-xs text-gray-500 ml-0">{costItems} 個項目</p>
                           </div>
-                          <p className="text-lg font-bold text-blue-600">${dayTotal.toLocaleString()}</p>
+                          <p className="text-base font-bold text-blue-600 ml-4">${dayTotal.toLocaleString()}</p>
                         </div>
                       );
                     })}
-                    <div className="flex justify-between items-center pt-3 border-t-2 border-gray-300">
-                      <p className="font-bold text-gray-800">總計</p>
-                      <p className="text-xl font-bold text-green-600">
+                    <div className="flex justify-between items-center px-3 py-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-300 mt-3">
+                      <p className="font-bold text-gray-800">旅程總計</p>
+                      <p className="text-lg font-bold text-green-700">
                         ${itinerary.reduce((sum, day) => {
                           return sum + (day.events?.reduce((daySum, e) => daySum + (parseInt(e.cost) || 0), 0) || 0);
                         }, 0).toLocaleString()}
@@ -289,7 +292,12 @@ const App = () => {
               {/* Events for selected day */}
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-gray-800">行程</h3>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      Day {currentDayData?.day} - {currentDayData?.date} {currentDayData?.weekday}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">行程表</p>
+                  </div>
                   <button onClick={() => { setEditingEvent(null); setIsEditModalOpen(true); }} className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm">
                     <Plus size={16} /> 新增
                   </button>
