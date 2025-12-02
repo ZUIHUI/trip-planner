@@ -1,98 +1,93 @@
-import React, { useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
 
 const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const containerRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const selectedTabRef = useRef(null);
 
-  // 處理滑動事件
-  const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = (e) => {
-    setTouchEnd(e.changedTouches[0].clientX);
-    handleSwipe();
-  };
-
-  const handleSwipe = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      // 向左滑動 → 下一天
-      onSelectDay(Math.min(selectedDay + 1, itinerary.length));
+  // 自動滾動至選中的 Tab
+  useEffect(() => {
+    if (selectedTabRef.current && scrollContainerRef.current) {
+      selectedTabRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
     }
-    if (isRightSwipe) {
-      // 向右滑動 → 上一天
-      onSelectDay(Math.max(selectedDay - 1, 1));
+  }, [selectedDay]);
+
+  // 格式化日期（提取日期部分）
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      // 嘗試多種日期格式
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.getDate().toString();
+      }
+      // 如果是 "2/23" 格式，直接取最後部分
+      return dateString.split('/').pop();
+    } catch {
+      return dateString.split('/').pop() || dateString;
     }
   };
 
-  // 獲取星期
-  const getDayOfWeek = (dayIndex) => {
-    const days = ['日', '一', '二', '三', '四', '五', '六'];
-    // 假設第一天是起始日期，可根據實際調整
-    return days[(dayIndex - 1) % 7];
+  // 取得星期
+  const getWeekday = (dateString) => {
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return weekdays[date.getDay()];
+      }
+    } catch {
+      // 降級處理
+    }
+    return '';
   };
 
   return (
-    <div className="space-y-2 mb-6">
-      {/* 日曆行 */}
-      <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 overflow-x-auto">
-        <div className="flex gap-2 min-w-min">
-          {itinerary.map((day) => (
+    <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
+      <div
+        ref={scrollContainerRef}
+        className="flex overflow-x-auto px-4 py-4 space-x-3 no-scrollbar scroll-smooth"
+        style={{ scrollBehavior: 'smooth' }}
+      >
+        {itinerary.map((item) => {
+          const isSelected = selectedDay === item.day;
+          const dateNum = formatDate(item.date);
+          const weekday = getWeekday(item.date);
+
+          return (
             <button
-              key={day.day}
-              onClick={() => onSelectDay(day.day)}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all whitespace-nowrap min-w-fit ${
-                selectedDay === day.day
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+              key={item.day}
+              ref={isSelected ? selectedTabRef : null}
+              onClick={() => onSelectDay(item.day)}
+              className={`flex-shrink-0 w-20 px-2 py-3 rounded-2xl transition-all duration-200 transform ${
+                isSelected
+                  ? 'bg-blue-600 text-white shadow-lg scale-110'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 shadow-sm'
               }`}
             >
-              <span className="text-xs font-bold">Day {day.day}</span>
-              <span className="text-xs text-gray-500" style={selectedDay === day.day ? { color: 'rgba(255,255,255,0.8)' } : {}}>
-                {getDayOfWeek(day.day)}
-              </span>
+              <div className="flex flex-col items-center justify-center space-y-0.5">
+                {/* 第 1 層：Day X */}
+                <span className="text-xs font-medium" style={{ opacity: isSelected ? 0.9 : 0.7 }}>
+                  Day {item.day}
+                </span>
+
+                {/* 第 2 層：日期 */}
+                <span className="text-lg font-bold leading-tight">
+                  {dateNum || item.day}
+                </span>
+
+                {/* 第 3 層：星期 */}
+                <span className="text-xs font-medium" style={{ opacity: isSelected ? 0.9 : 0.7 }}>
+                  {weekday}
+                </span>
+              </div>
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 滑動區域 + 當前日期 */}
-      <div
-        ref={containerRef}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm border border-gray-100 cursor-grab active:cursor-grabbing"
-      >
-        <button
-          onClick={() => onSelectDay(Math.max(selectedDay - 1, 1))}
-          className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
-          disabled={selectedDay === 1}
-        >
-          <ChevronLeft size={20} className={selectedDay === 1 ? 'text-gray-300' : 'text-gray-600'} />
-        </button>
-
-        <div className="text-center flex-grow select-none">
-          <p className="text-sm font-bold text-gray-800">Day {selectedDay}</p>
-          <p className="text-xs text-gray-500">
-            {getDayOfWeek(selectedDay)} · {itinerary[selectedDay - 1]?.date || ''}
-          </p>
-        </div>
-
-        <button
-          onClick={() => onSelectDay(Math.min(selectedDay + 1, itinerary.length))}
-          className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
-          disabled={selectedDay === itinerary.length}
-        >
-          <ChevronRight size={20} className={selectedDay === itinerary.length ? 'text-gray-300' : 'text-gray-600'} />
-        </button>
+          );
+        })}
       </div>
     </div>
   );
