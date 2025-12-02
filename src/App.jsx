@@ -242,6 +242,38 @@ const App = () => {
                   </div>
                 </>
               )}
+
+              {/* 預算總覽 */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h3 className="font-bold text-gray-800 mb-4">💰 預算總覽</h3>
+                {itinerary.some(day => day.events?.some(e => e.cost)) ? (
+                  <div className="space-y-3">
+                    {itinerary.map(day => {
+                      const dayTotal = day.events?.reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0) || 0;
+                      const costItems = day.events?.filter(e => e.cost).length || 0;
+                      return dayTotal > 0 && (
+                        <div key={day.day} className="flex justify-between items-center pb-2 border-b border-gray-100">
+                          <div>
+                            <p className="text-sm font-medium text-gray-800">Day {day.day} ({day.date})</p>
+                            <p className="text-xs text-gray-500">{costItems} 個項目</p>
+                          </div>
+                          <p className="text-lg font-bold text-blue-600">${dayTotal.toLocaleString()}</p>
+                        </div>
+                      );
+                    })}
+                    <div className="flex justify-between items-center pt-3 border-t-2 border-gray-300">
+                      <p className="font-bold text-gray-800">總計</p>
+                      <p className="text-xl font-bold text-green-600">
+                        ${itinerary.reduce((sum, day) => {
+                          return sum + (day.events?.reduce((daySum, e) => daySum + (parseInt(e.cost) || 0), 0) || 0);
+                        }, 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500 text-sm py-4">還沒有記錄花費</p>
+                )}
+              </div>
             </div>
           )}
 
