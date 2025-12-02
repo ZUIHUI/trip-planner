@@ -26,12 +26,12 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-2">
-        <div className="col-span-1">
+      <div className="grid grid-cols-2 gap-2">
+        <div>
           <label className="text-xs text-gray-500 font-bold block mb-1">時間</label>
           <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-blue-500" />
         </div>
-        <div className="col-span-2">
+        <div>
           <label className="text-xs text-gray-500 font-bold block mb-1">類型</label>
           <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-blue-500">
             <option value="sightseeing">景點</option>
