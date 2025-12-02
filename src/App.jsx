@@ -25,12 +25,31 @@ const initialTripDetails = {
   }
 };
 
-const initialItinerary = Array.from({ length: 6 }, (_, i) => ({
-  day: i + 1,
-  date: `2/${23 + i}`,
-  title: `Day ${i + 1}`,
-  events: []
-}));
+// 根據起始日期計算每天的正確日期
+const calculateItinerary = (startDateStr = "2026/02/23") => {
+  const [year, month, day] = startDateStr.split('/').map(Number);
+  const startDate = new Date(year, month - 1, day);
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  return Array.from({ length: 6 }, (_, i) => {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(currentDate.getDate() + i);
+    
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const date = String(currentDate.getDate()).padStart(2, '0');
+    const weekday = weekdays[currentDate.getDay()];
+    
+    return {
+      day: i + 1,
+      date: `${month}/${date}`,
+      weekday: weekday,
+      title: `Day ${i + 1}`,
+      events: []
+    };
+  });
+};
+
+const initialItinerary = calculateItinerary("2026/02/23");
 
 const App = () => {
   const TRIP_ID = 'default-trip';

@@ -36,14 +36,25 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return weekdays[date.getDay()];
+      // 嘗試從 itinerary 找到對應的日期項目以獲取準確的星期
+      const item = itinerary.find(d => d.date === dateString);
+      if (item && item.weekday) {
+        return item.weekday;
       }
+      
+      // 備用方案：根據日期計算星期
+      // 假設起始日期，計算相對星期
+      const [month, day] = dateString.split('/').map(Number);
+      // 2026年2月23日是星期一（可根據實際調整）
+      const startDate = new Date(2026, 1, 23); // 月份從 0 開始
+      const currentDate = new Date(2026, month - 1, day);
+      const dayDiff = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+      const startWeekday = startDate.getDay(); // 星期一 = 1
+      const calculatedWeekday = (startWeekday + dayDiff) % 7;
+      return weekdays[calculatedWeekday];
     } catch {
-      // 降級處理
+      return '';
     }
-    return '';
   };
 
   return (
