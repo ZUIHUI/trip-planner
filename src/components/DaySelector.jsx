@@ -15,19 +15,14 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     }
   }, [selectedDay]);
 
-  // 格式化日期（提取日期部分）
+  // 格式化日期（保留月/日格式）
   const formatDate = (dateString) => {
     if (!dateString) return '';
     try {
-      // 嘗試多種日期格式
-      const date = new Date(dateString);
-      if (!isNaN(date.getTime())) {
-        return date.getDate().toString();
-      }
-      // 如果是 "2/23" 格式，直接取最後部分
-      return dateString.split('/').pop();
+      // 直接返回原始的月/日格式，例如 "2/23" → "2/23"
+      return dateString;
     } catch {
-      return dateString.split('/').pop() || dateString;
+      return dateString;
     }
   };
 

@@ -4,6 +4,30 @@ import { loadTrip, saveTrip } from '../services/tripService';
 const STORAGE_KEY = 'trip_planner_data';
 const FIREBASE_TIMEOUT = 3000; // 3 秒超時
 
+// 確保 itinerary 有完整的日期資訊
+const ensureItineraryComplete = (itinerary) => {
+  if (!itinerary || itinerary.length === 0) return itinerary;
+  
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  return itinerary.map((day, index) => {
+    // 如果缺少 weekday，從 date 計算
+    if (!day.weekday && day.date) {
+      const [month, dayNum] = day.date.split('/').map(Number);
+      const date = new Date(2026, month - 1, dayNum);
+      return {
+        ...day,
+        day: day.day || index + 1,
+        weekday: weekdays[date.getDay()]
+      };
+    }
+    return {
+      ...day,
+      day: day.day || index + 1
+    };
+  });
+};
+
 /**
  * useTrip Hook - 管理旅程狀態，支持 Firebase 和 localStorage 同步，協作編輯
  */
@@ -31,7 +55,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
             localData = JSON.parse(savedData);
             console.log('✅ 從 localStorage 載入資料成功');
             setTripDetails(localData.tripDetails || initialTripDetails);
-            setItinerary(localData.itinerary || initialItinerary);
+            setItinerary(ensureItineraryComplete(localData.itinerary || initialItinerary));
             setChecklists(localData.checklists || { preTrip: [], packing: [] });
           }
         } catch (err) {
@@ -49,7 +73,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
             if (firebaseData) {
               console.log('✅ 從 Firebase 載入資料成功');
               setTripDetails(firebaseData.tripDetails || initialTripDetails);
-              setItinerary(firebaseData.itinerary || initialItinerary);
+              setItinerary(ensureItineraryComplete(firebaseData.itinerary || initialItinerary));
               setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
             }
           } catch (err) {
@@ -152,7 +176,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       if (firebaseData) {
         console.log('✅ 手動更新成功');
         setTripDetails(firebaseData.tripDetails || initialTripDetails);
-        setItinerary(firebaseData.itinerary || initialItinerary);
+        setItinerary(ensureItineraryComplete(firebaseData.itinerary || initialItinerary));
         setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
         return true;
       }
