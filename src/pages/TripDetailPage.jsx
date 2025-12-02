@@ -12,8 +12,9 @@ import { useBudget } from '../hooks/useBudget';
 import { loadTrip } from '../services/tripService';
 
 const TripDetailPage = () => {
-  const { tripId } = useParams();
-  const navigate = useNavigate();
+  const { tripId: paramTripId } = useParams();
+  const tripId = paramTripId || 'default-trip';
+  // const navigate = useNavigate(); // 移除 navigate
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -144,13 +145,7 @@ const TripDetailPage = () => {
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="relative">
         <Header details={tripDetails} />
-        <button
-          onClick={() => navigate('/')}
-          className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
-          title="返回旅程列表"
-        >
-          <ArrowLeft size={24} />
-        </button>
+        {/* 移除返回按鈕 */}
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
