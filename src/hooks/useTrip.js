@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { loadTrip, saveTrip } from '../services/tripService';
 
 const STORAGE_KEY = 'trip_planner_data';
+const FIREBASE_TIMEOUT = 3000; // 3 秒超時
 
 /**
  * useTrip Hook - 管理旅程狀態，支持 Firebase 和 localStorage 同步
@@ -12,53 +13,76 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
   const [itinerary, setItinerary] = useState(initialItinerary);
   const [checklists, setChecklists] = useState({ preTrip: [], packing: [] });
   const autoSaveTimeoutRef = useRef(null);
+  const loadingTimeoutRef = useRef(null);
 
-  // 初始化：先嘗試從 Firebase 載入，失敗則從 localStorage 載入
+  // 初始化：優先使用 localStorage，背景嘗試更新 Firebase 資料
   useEffect(() => {
     const initializeData = async () => {
       try {
         setIsLoading(true);
-        console.log('📝 開始從 Firebase 載入旅程:', tripId);
 
-        // 嘗試從 Firebase 載入
-        const firebaseData = await loadTrip(tripId);
-        if (firebaseData) {
-          console.log('✅ 從 Firebase 載入資料成功:', firebaseData);
-          setTripDetails(firebaseData.tripDetails || initialTripDetails);
-          setItinerary(firebaseData.itinerary || initialItinerary);
-          setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
-          return;
+        // 第一步：立即從 localStorage 載入（快速）
+        let localData = null;
+        try {
+          const savedData = localStorage.getItem(STORAGE_KEY);
+          if (savedData) {
+            localData = JSON.parse(savedData);
+            console.log('✅ 從 localStorage 載入資料成功');
+            setTripDetails(localData.tripDetails || initialTripDetails);
+            setItinerary(localData.itinerary || initialItinerary);
+            setChecklists(localData.checklists || { preTrip: [], packing: [] });
+          }
+        } catch (err) {
+          console.error('❌ localStorage 載入失敗:', err);
         }
-      } catch (firebaseErr) {
-        console.warn('⚠️ Firebase 載入失敗，嘗試從 localStorage 載入:', firebaseErr.message);
-      }
 
-      // Firebase 失敗或無資料，嘗試從 localStorage 載入
-      try {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          console.log('✅ 從 localStorage 載入資料成功');
-          setTripDetails(parsed.tripDetails || initialTripDetails);
-          setItinerary(parsed.itinerary || initialItinerary);
-          setChecklists(parsed.checklists || { preTrip: [], packing: [] });
-        } else {
-          console.log('ℹ️ 無任何儲存資料，使用預設值');
-          setTripDetails(initialTripDetails);
-          setItinerary(initialItinerary);
-          setChecklists({ preTrip: [], packing: [] });
+        // 標記初始加載完成
+        setIsLoading(false);
+
+        // 第二步：背景嘗試從 Firebase 載入（含超時）
+        console.log('📝 背景從 Firebase 載入旅程:', tripId);
+        const firebasePromise = (async () => {
+          try {
+            const firebaseData = await loadTrip(tripId);
+            if (firebaseData) {
+              console.log('✅ 從 Firebase 載入資料成功');
+              setTripDetails(firebaseData.tripDetails || initialTripDetails);
+              setItinerary(firebaseData.itinerary || initialItinerary);
+              setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
+            }
+          } catch (err) {
+            console.warn('⚠️ Firebase 載入失敗:', err.message);
+          }
+        })();
+
+        // 3 秒超時
+        const timeoutPromise = new Promise((_, reject) => {
+          loadingTimeoutRef.current = setTimeout(
+            () => reject(new Error('Firebase 加載超時')),
+            FIREBASE_TIMEOUT
+          );
+        });
+
+        try {
+          await Promise.race([firebasePromise, timeoutPromise]);
+          clearTimeout(loadingTimeoutRef.current);
+        } catch (timeoutErr) {
+          console.warn('⏱️ Firebase 加載超時，使用 localStorage 資料');
+          clearTimeout(loadingTimeoutRef.current);
         }
-      } catch (localErr) {
-        console.error('❌ localStorage 載入失敗:', localErr);
-        setTripDetails(initialTripDetails);
-        setItinerary(initialItinerary);
-        setChecklists({ preTrip: [], packing: [] });
+      } catch (err) {
+        console.error('❌ 初始化失敗:', err);
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     initializeData();
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
   }, [tripId]);
 
   // 自動儲存到 localStorage 和 Firebase（防抖 1 秒）
@@ -76,7 +100,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
           savedAt: new Date().toISOString()
         };
 
-        // 儲存到 localStorage
+        // 優先儲存到 localStorage（立即）
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
           console.log('💾 自動儲存到 localStorage 成功');
@@ -84,9 +108,14 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
           console.error('❌ localStorage 儲存失敗:', localErr);
         }
 
-        // 儲存到 Firebase
+        // 背景儲存到 Firebase（含超時）
         try {
-          await saveTrip(tripId, dataToSave);
+          const savePromise = saveTrip(tripId, dataToSave);
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Firebase 儲存超時')), FIREBASE_TIMEOUT);
+          });
+
+          await Promise.race([savePromise, timeoutPromise]);
           console.log('🔥 自動儲存到 Firebase 成功');
         } catch (firebaseErr) {
           console.warn('⚠️ Firebase 儲存失敗:', firebaseErr.message);
