@@ -33,7 +33,7 @@ const initialItinerary = Array.from({ length: 6 }, (_, i) => ({
 
 const App = () => {
   const TRIP_ID = 'default-trip';
-  const { isLoading, tripDetails, setTripDetails, itinerary, setItinerary, checklists, setChecklists } = 
+  const { isLoading, isSaving, saveError, tripDetails, setTripDetails, itinerary, setItinerary, checklists, setChecklists, manualRefresh } = 
     useTrip(TRIP_ID, initialTripDetails, initialItinerary);
 
   const [activeTab, setActiveTab] = useState('itinerary');
@@ -141,8 +141,35 @@ const App = () => {
       <Header details={tripDetails} />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* 儲存狀態和手動更新工具欄 */}
+        <div className="flex justify-between items-center bg-white p-3 mt-4 rounded-lg shadow-sm border border-gray-100 mb-2">
+          <div className="flex items-center gap-2">
+            {isSaving && (
+              <div className="flex items-center gap-2 text-blue-600">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                <span className="text-xs font-medium">自動儲存中...</span>
+              </div>
+            )}
+            {saveError && !isSaving && (
+              <div className="flex items-center gap-2 text-orange-600">
+                <span className="text-xs">⚠️ {saveError}</span>
+              </div>
+            )}
+            {!isSaving && !saveError && (
+              <span className="text-xs text-gray-500">✓ 已儲存</span>
+            )}
+          </div>
+          <button
+            onClick={manualRefresh}
+            disabled={isLoading}
+            className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            {isLoading ? '更新中...' : '🔄 手動更新'}
+          </button>
+        </div>
+
         {/* Navigation Tabs */}
-        <div className="flex justify-center space-x-1 bg-white p-1 mt-[-20px] rounded-xl shadow-md relative z-10 border border-gray-100">
+        <div className="flex justify-center space-x-1 bg-white p-1 rounded-xl shadow-md relative z-10 border border-gray-100">
           <button onClick={() => setActiveTab('summary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>總覽</button>
           <button onClick={() => setActiveTab('itinerary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>行程表</button>
           <button onClick={() => setActiveTab('checklist')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>清單</button>

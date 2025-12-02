@@ -5,10 +5,12 @@ const STORAGE_KEY = 'trip_planner_data';
 const FIREBASE_TIMEOUT = 3000; // 3 秒超時
 
 /**
- * useTrip Hook - 管理旅程狀態，支持 Firebase 和 localStorage 同步
+ * useTrip Hook - 管理旅程狀態，支持 Firebase 和 localStorage 同步，協作編輯
  */
 export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [tripDetails, setTripDetails] = useState(initialTripDetails);
   const [itinerary, setItinerary] = useState(initialItinerary);
   const [checklists, setChecklists] = useState({ preTrip: [], packing: [] });
@@ -93,6 +95,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
 
     autoSaveTimeoutRef.current = setTimeout(async () => {
       try {
+        setIsSaving(true);
+        setSaveError(null);
+        
         const dataToSave = {
           tripDetails,
           itinerary,
@@ -106,6 +111,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
           console.log('💾 自動儲存到 localStorage 成功');
         } catch (localErr) {
           console.error('❌ localStorage 儲存失敗:', localErr);
+          setSaveError('本地儲存失敗');
         }
 
         // 背景儲存到 Firebase（含超時）
@@ -117,11 +123,16 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
 
           await Promise.race([savePromise, timeoutPromise]);
           console.log('🔥 自動儲存到 Firebase 成功');
+          setSaveError(null);
         } catch (firebaseErr) {
           console.warn('⚠️ Firebase 儲存失敗:', firebaseErr.message);
+          setSaveError('雲端同步失敗，但本地已儲存');
         }
       } catch (err) {
         console.error('❌ 自動儲存失敗:', err);
+        setSaveError('儲存失敗');
+      } finally {
+        setIsSaving(false);
       }
     }, 1000);
 
@@ -132,13 +143,38 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     };
   }, [tripDetails, itinerary, checklists, tripId]);
 
+  // 手動從 Firebase 更新資料
+  const manualRefresh = async () => {
+    try {
+      setIsLoading(true);
+      console.log('🔄 手動從 Firebase 更新資料...');
+      const firebaseData = await loadTrip(tripId);
+      if (firebaseData) {
+        console.log('✅ 手動更新成功');
+        setTripDetails(firebaseData.tripDetails || initialTripDetails);
+        setItinerary(firebaseData.itinerary || initialItinerary);
+        setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
+        return true;
+      }
+    } catch (err) {
+      console.error('❌ 手動更新失敗:', err);
+      setSaveError('無法連接伺服器');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
+    isSaving,
+    saveError,
     tripDetails,
     setTripDetails,
     itinerary,
     setItinerary,
     checklists,
-    setChecklists
+    setChecklists,
+    manualRefresh
   };
 };

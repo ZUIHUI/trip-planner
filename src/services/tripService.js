@@ -19,15 +19,47 @@ export const loadTrip = async (tripId) => {
 };
 
 /**
- * 儲存或更新旅程
+ * 深層合併旅程資料（避免覆蓋其他人編輯的內容）
+ */
+const deepMerge = (target, source) => {
+  const result = { ...target };
+  for (const key in source) {
+    if (source.hasOwnProperty(key)) {
+      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        result[key] = deepMerge(target[key] || {}, source[key]);
+      } else {
+        result[key] = source[key];
+      }
+    }
+  }
+  return result;
+};
+
+/**
+ * 儲存或更新旅程（使用深層合併避免覆蓋）
  */
 export const saveTrip = async (tripId, tripData) => {
   try {
     const ref = doc(db, 'trips', tripId);
-    await setDoc(ref, {
-      ...tripData,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+    const snap = await getDoc(ref);
+    
+    if (snap.exists()) {
+      // 已存在的旅程：深層合併，避免覆蓋其他人編輯的內容
+      const existingData = snap.data();
+      const mergedData = deepMerge(existingData, {
+        ...tripData,
+        updatedAt: new Date().toISOString(),
+        lastEditor: 'local-user' // 可選：記錄最後編輯者
+      });
+      await setDoc(ref, mergedData, { merge: true });
+    } else {
+      // 新旅程：直接建立
+      await setDoc(ref, {
+        ...tripData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
     console.log('✅ 旅程已儲存');
     return true;
   } catch (err) {
