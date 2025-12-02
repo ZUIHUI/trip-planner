@@ -4,6 +4,7 @@ import Modal from './components/Modal';
 import EditEventForm from './components/EditEventForm';
 import EventCard from './components/EventCard';
 import Checklist from './components/Checklist';
+import DaySelector from './components/DaySelector';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -228,15 +229,11 @@ const App = () => {
           {/* Itinerary Tab */}
           {activeTab === 'itinerary' && (
             <div className="px-6 pb-10">
-              {/* Day Selector */}
-              <div className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm border border-gray-100 mb-6">
-                <button onClick={() => setSelectedDay(d => d > 1 ? d - 1 : d)} className="p-2 hover:bg-gray-100 rounded"><ChevronLeft size={20} /></button>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-gray-600">Day {selectedDay}</p>
-                  <p className="text-xs text-gray-500">{currentDayData?.date}</p>
-                </div>
-                <button onClick={() => setSelectedDay(d => d < itinerary.length ? d + 1 : d)} className="p-2 hover:bg-gray-100 rounded"><ChevronRight size={20} /></button>
-              </div>
+              <DaySelector 
+                itinerary={itinerary}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+              />
 
               {/* Events for selected day */}
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
