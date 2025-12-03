@@ -6,6 +6,7 @@ import EditDetailsForm from './components/EditDetailsForm';
 import EventCard from './components/EventCard';
 import Checklist from './components/Checklist';
 import DaySelector from './components/DaySelector';
+import WeatherWidget from './components/WeatherWidget';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { Plus, Edit2 } from 'lucide-react';
@@ -300,6 +301,12 @@ const App = () => {
                       onSelectDay={setSelectedDay}
                     />
                   </div>
+
+                  {/* Weather Widget */}
+                  <WeatherWidget 
+                    date={currentDayData?.date}
+                    location={tripDetails?.accommodation?.name || '東京'}
+                  />
                 </div>
 
                 {/* Events Section */}
