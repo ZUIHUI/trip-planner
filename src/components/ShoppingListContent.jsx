@@ -117,7 +117,7 @@ const ShoppingListContent = () => {
   };
 
   return (
-    <div className="py-4 pb-20 space-y-6">
+    <div className="w-full px-6 py-4 pb-20 space-y-6">
       {/* 新增清單 */}
       <div className="flex gap-2">
         <input
