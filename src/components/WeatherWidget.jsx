@@ -4,7 +4,7 @@ import CuteWeatherIcon from './CuteWeatherIcon';
 
 const WeatherWidget = ({ 
   date, 
-  currentLocation = null, 
+  currentLocation = null,  // 現在可能是 GPS 對象 { latitude, longitude, locationName }
   accommodation = '東京', 
   firstEventLocation = null,
   selectedEventLocation = null
@@ -12,18 +12,24 @@ const WeatherWidget = ({
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
   
+  // 提取 GPS 坐標和位置名稱
+  const gpsCoords = (currentLocation?.latitude && currentLocation?.longitude) ? 
+    { lat: currentLocation.latitude, lon: currentLocation.longitude } : null;
+  const gpsLocationName = currentLocation?.locationName || null;
+  
   // 優先級邏輯：
   // 1. 用戶選中的行程地點（最高優先級，但如果為空則跳過）
   // 2. 第一個行程的地點（次優先級，但如果為空則跳過）
   // 3. 當前GPS位置（第三優先級）
   // 4. 住宿地點（預設備用位置）
-  const displayLocation = (selectedEventLocation?.trim() || firstEventLocation?.trim() || currentLocation || accommodation || '東京');
+  const displayLocation = (selectedEventLocation?.trim() || firstEventLocation?.trim() || gpsLocationName || accommodation || '東京');
 
-  console.log('WeatherWidget Props:', { 
+  console.log('🌤️ WeatherWidget Props:', { 
     date, 
     selectedEventLocation,
     firstEventLocation,
-    currentLocation,
+    gpsLocationName,
+    gpsCoords,
     accommodation,
     displayLocation,
     timestamp: new Date().toLocaleTimeString()
@@ -42,12 +48,13 @@ const WeatherWidget = ({
     
     const fetchWeather = async () => {
       try {
-        console.log('開始獲取天氣:', { date, displayLocation });
-        const result = await getWeatherForDate(date, displayLocation);
-        console.log('天氣數據已取得:', { date, displayLocation, result });
+        console.log('📡 開始獲取天氣:', { date, displayLocation, hasGPS: !!gpsCoords });
+        // 如果有 GPS 坐標，傳遞給 API；否則使用地點名稱
+        const result = await getWeatherForDate(date, displayLocation, gpsCoords);
+        console.log('✅ 天氣數據已取得:', { date, displayLocation, result });
         setWeather(result);
       } catch (error) {
-        console.error('天氣獲取錯誤:', error);
+        console.error('❌ 天氣獲取錯誤:', error);
         setWeather(null);
       } finally {
         setLoading(false);
@@ -60,7 +67,7 @@ const WeatherWidget = ({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [date, displayLocation]);
+  }, [date, displayLocation, gpsCoords]);
 
   if (loading) {
     return (
@@ -83,8 +90,8 @@ const WeatherWidget = ({
       return `${displayLocation} (選中行程)`;
     } else if (firstEventLocation?.trim()) {
       return `${displayLocation} (行程地點)`;
-    } else if (currentLocation) {
-      return `${displayLocation} (當前位置)`;
+    } else if (gpsCoords) {
+      return `${displayLocation} (GPS位置)`;
     } else {
       return `${displayLocation} (預設位置)`;
     }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getWeatherForDate } from '../services/weatherService';
 import { Cloud, Sun, CloudRain, Wind, Droplets } from 'lucide-react';
 
-const EventWeatherWidget = ({ date, location }) => {
+const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -15,10 +15,12 @@ const EventWeatherWidget = ({ date, location }) => {
     setLoading(true);
     const fetchWeather = async () => {
       try {
-        const result = await getWeatherForDate(date, location);
+        console.log('📍 EventWeatherWidget 獲取天氣:', { date, location, hasGPS: !!gpsCoords });
+        // 如果有 GPS 坐標，傳遞給 API
+        const result = await getWeatherForDate(date, location, gpsCoords);
         setWeather(result);
       } catch (error) {
-        console.error('天氣獲取錯誤:', error);
+        console.error('❌ 天氣獲取錯誤:', error);
         setWeather(null);
       } finally {
         setLoading(false);
@@ -26,7 +28,7 @@ const EventWeatherWidget = ({ date, location }) => {
     };
 
     fetchWeather();
-  }, [date, location]);
+  }, [date, location, gpsCoords]);
 
   if (loading) {
     return (

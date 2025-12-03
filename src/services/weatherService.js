@@ -1,11 +1,18 @@
 /**
  * 天氣服務
- * 使用免費天氣數據 + 模擬預報
+ * 使用 Open-Meteo 免費天氣 API + GPS 定位
  */
 
-// 地點坐標映射 (東京主要地點)
+// 地點坐標映射 (東京主要地點 + 台灣主要城市)
 const LOCATION_COORDS = {
-  // 地區
+  // 台灣
+  '台北': { lat: 25.0330, lon: 121.5654 },
+  '台中': { lat: 24.1372, lon: 120.6539 },
+  '高雄': { lat: 22.6273, lon: 120.3014 },
+  '新竹': { lat: 24.8026, lon: 120.9676 },
+  '台南': { lat: 22.9937, lon: 120.2153 },
+  
+  // 東京地區
   '新宿': { lat: 35.6895, lon: 139.7037 },
   '新大久保': { lat: 35.6976, lon: 139.7015 },
   '新宿御苑': { lat: 35.6788, lon: 139.7097 },
@@ -36,92 +43,32 @@ const LOCATION_COORDS = {
   '歌舞伎座': { lat: 35.6644, lon: 139.7674 },
 };
 
-// 天氣代碼到圖示的映射（可愛簡約風格）
+// 天氣代碼到圖示的映射（WMO 代碼 + 可愛簡約風格）
 const WEATHER_ICON_MAP = {
-  0: '☀️',    // 晴天
-  1: '🌤️',   // 大部分晴朗
-  2: '⛅',    // 部分多雲
-  3: '☁️',    // 陰天
-  45: '🌫️',  // 霧
-  48: '🌫️',  // 結冰霧
-  51: '🌧️',  // 毛毛雨
-  53: '🌧️',  // 中毛毛雨
-  55: '🌧️',  // 大毛毛雨
-  61: '🌧️',  // 小雨
-  63: '🌧️',  // 中雨
-  65: '⛈️',  // 大雨
-  71: '❄️',   // 小雪
-  73: '❄️',   // 中雪
-  75: '❄️',   // 大雪
-  77: '❄️',   // 雪粒
-  80: '🌧️',  // 陣雨
-  81: '⛈️',  // 中陣雨
-  82: '⛈️',  // 大陣雨
-  85: '❄️',   // 陣雪
-  86: '❄️',   // 大陣雪
-  95: '⛈️',  // 雷暴
-  96: '⛈️',  // 有冰雹的雷暴
-  99: '⛈️',  // 有冰雹的雷暴
-};
-
-// 根據日期和位置生成逼真的模擬天氣數據
-const generateWeatherData = (dateStr, locationName) => {
-  // 解析日期 (格式: "MM/DD")
-  const [month, day] = dateStr.split('/').map(Number);
-  
-  // 使用日期 + 位置名稱作為種子生成虛擬天氣（確保同一天同一地點總是相同的天氣）
-  // 這樣不同地點會有不同的天氣，但同地點同日期總是相同
-  const dateNum = month * 31 + day;
-  const locationHash = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const combinedSeed = dateNum + locationHash;
-  const seed = combinedSeed % 100;
-  
-  console.log('天氣種子計算:', { 
-    dateStr, 
-    locationName, 
-    dateNum, 
-    locationHash, 
-    combinedSeed,
-    seed,
-    seedDiv5: Math.floor(combinedSeed / 5),
-    tempFormula: `8 + ${Math.floor((combinedSeed / 5) % 13)}`
-  });
-  
-  // 東京 2 月中下旬天氣特性：溫度範圍更廣 8-20°C
-  // 使用 combinedSeed 而不是 seed % 100，確保有足夠的變化
-  const baseTempValue = Math.floor((combinedSeed / 5) % 13);
-  const baseTemp = 8 + baseTempValue;
-  
-  console.log('溫度計算詳情:', { combinedSeed, baseTempValue, baseTemp });
-  
-  // 根據種子決定天氣類型
-  let weatherCode;
-  if (seed < 40) {
-    weatherCode = 0; // 晴天
-  } else if (seed < 65) {
-    weatherCode = 2; // 多雲
-  } else if (seed < 80) {
-    weatherCode = 3; // 陰天
-  } else if (seed < 95) {
-    weatherCode = 61; // 小雨
-  } else {
-    weatherCode = 63; // 中雨
-  }
-  
-  const precipitation = seed > 80 ? Math.floor(seed / 20) : 0;
-  const windSpeed = 5 + (seed % 10);
-  
-  return {
-    success: true,
-    date: dateStr,
-    location: locationName,
-    temperature: Math.round(baseTemp),
-    weatherCode,
-    icon: WEATHER_ICON_MAP[weatherCode] || '🌤️',
-    precipitation,
-    windSpeed,
-    description: getWeatherDescription(weatherCode),
-  };
+  0: '☀️',    // Clear sky
+  1: '🌤️',   // Mainly clear, partly cloudy, and overcast
+  2: '⛅',    // Partly cloudy
+  3: '☁️',    // Overcast
+  45: '🌫️',  // Foggy
+  48: '🌫️',  // Depositing rime fog
+  51: '🌧️',  // Light drizzle
+  53: '🌧️',  // Moderate drizzle
+  55: '🌧️',  // Dense drizzle
+  61: '🌧️',  // Slight rain
+  63: '🌧️',  // Moderate rain
+  65: '⛈️',  // Heavy rain
+  71: '❄️',   // Slight snow
+  73: '❄️',   // Moderate snow
+  75: '❄️',   // Heavy snow
+  77: '❄️',   // Snow grains
+  80: '🌧️',  // Slight rain showers
+  81: '⛈️',  // Moderate rain showers
+  82: '⛈️',  // Violent rain showers
+  85: '❄️',   // Slight snow showers
+  86: '❄️',   // Heavy snow showers
+  95: '⛈️',  // Thunderstorm
+  96: '⛈️',  // Thunderstorm with slight hail
+  99: '⛈️',  // Thunderstorm with heavy hail
 };
 
 /**
@@ -142,12 +89,85 @@ const getCoordinates = (locationName) => {
 };
 
 /**
+ * 從 Open-Meteo API 獲取天氣數據（真實數據）
+ * @param {number} lat - 緯度
+ * @param {number} lon - 經度
+ * @param {string} dateStr - 日期字符串，格式 "MM/DD"
+ * @returns {Promise<object>} 天氣數據
+ */
+const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
+  try {
+    // 轉換日期格式為 YYYY-MM-DD
+    const today = new Date();
+    const [month, day] = dateStr.split('/').map(Number);
+    const year = today.getFullYear();
+    
+    // 處理年份邊界（如果月份/日期是過去的，可能是明年）
+    const date = new Date(year, month - 1, day);
+    if (date < today) {
+      date.setFullYear(year + 1);
+    }
+    
+    const formattedDate = date.toISOString().split('T')[0];
+    
+    console.log('📍 Open-Meteo API 請求:', {
+      lat,
+      lon,
+      dateStr,
+      formattedDate,
+      url: `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${formattedDate}&end_date=${formattedDate}&hourly=temperature_2m,weather_code&temperature_unit=celsius`
+    });
+    
+    const response = await fetch(
+      `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${formattedDate}&end_date=${formattedDate}&hourly=temperature_2m,weather_code&temperature_unit=celsius`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`API 錯誤: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.hourly || !data.hourly.temperature_2m || data.hourly.temperature_2m.length === 0) {
+      throw new Error('無效的 API 回應');
+    }
+    
+    // 取得該天的平均溫度和天氣
+    const temperatures = data.hourly.temperature_2m;
+    const weatherCodes = data.hourly.weather_code;
+    
+    // 計算平均溫度（12 小時數據）
+    const avgTemp = Math.round(
+      temperatures.slice(0, 12).reduce((a, b) => a + b, 0) / Math.min(12, temperatures.length)
+    );
+    
+    // 取得中午 12 點的天氣代碼
+    const weatherCode = weatherCodes[12] || weatherCodes[0] || 0;
+    
+    console.log('✅ API 數據成功:', { avgTemp, weatherCode, temperatures: temperatures.slice(0, 12) });
+    
+    return {
+      success: true,
+      temperature: avgTemp,
+      weatherCode,
+      icon: WEATHER_ICON_MAP[weatherCode] || '🌤️',
+      description: getWeatherDescription(weatherCode),
+      source: 'open-meteo'
+    };
+  } catch (error) {
+    console.error('❌ Open-Meteo API 錯誤:', error);
+    return null;
+  }
+};
+
+/**
  * 獲取指定日期的天氣資訊
  * @param {string} dateStr - 日期字符串，格式 "MM/DD"
  * @param {string} locationName - 位置名稱
+ * @param {object} gpsCoords - GPS 坐標 (可選，優先使用)
  * @returns {Promise<object>} 天氣數據
  */
-export const getWeatherForDate = async (dateStr, locationName = '東京') => {
+export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoords = null) => {
   try {
     if (!dateStr) {
       return {
@@ -159,13 +179,32 @@ export const getWeatherForDate = async (dateStr, locationName = '東京') => {
       };
     }
 
-    // 模擬 API 延遲
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // 優先使用 GPS 坐標，否則從地點名稱獲取
+    const coords = gpsCoords || getCoordinates(locationName);
     
-    // 使用模擬數據
-    return generateWeatherData(dateStr, locationName);
+    console.log('🌍 開始獲取天氣:', { dateStr, locationName, coords });
+    
+    // 從 Open-Meteo API 獲取真實天氣數據
+    const result = await fetchWeatherFromAPI(coords.lat, coords.lon, dateStr);
+    
+    if (result) {
+      return {
+        ...result,
+        date: dateStr,
+        location: locationName,
+      };
+    }
+    
+    // API 失敗時的備用方案
+    return {
+      success: false,
+      error: 'API 無法連接',
+      icon: '❓',
+      temperature: '?',
+      description: '無法獲取天氣',
+    };
   } catch (error) {
-    console.error('獲取天氣失敗:', error);
+    console.error('❌ 獲取天氣失敗:', error);
     return {
       success: false,
       error: error.message,
@@ -182,7 +221,7 @@ export const getWeatherForDate = async (dateStr, locationName = '東京') => {
 const getWeatherDescription = (code) => {
   const descriptions = {
     0: '晴天',
-    1: '晴天',
+    1: '大部分晴朗',
     2: '多雲',
     3: '陰天',
     45: '霧',
@@ -190,12 +229,12 @@ const getWeatherDescription = (code) => {
     51: '毛毛雨',
     53: '毛毛雨',
     55: '毛毛雨',
-    61: '雨',
-    63: '雨',
+    61: '小雨',
+    63: '中雨',
     65: '大雨',
-    71: '雪',
-    73: '雪',
-    75: '雪',
+    71: '小雪',
+    73: '中雪',
+    75: '大雪',
     77: '雪粒',
     80: '陣雨',
     81: '雷陣雨',
