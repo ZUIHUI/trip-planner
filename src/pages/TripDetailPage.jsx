@@ -153,7 +153,13 @@ const TripDetailPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="relative">
-        <Header details={tripDetails} />
+        <Header 
+          details={tripDetails} 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSettingsOpen={() => setIsSettingsOpen(true)}
+          onShoppingOpen={() => setIsShoppingListOpen(true)}
+        />
         {/* 設定按鈕 */}
         <button
           onClick={() => setIsSettingsOpen(true)}
