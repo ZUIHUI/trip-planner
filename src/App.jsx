@@ -173,6 +173,14 @@ const App = () => {
     <div className="min-h-screen bg-gray-50 font-sans">
       <Header details={tripDetails} />
 
+      {/* Navigation Tabs */}
+      <div className="flex justify-center space-x-1 bg-white p-2 shadow-md relative z-10 border-b border-gray-100 sticky top-0">
+        <button onClick={() => setActiveTab('summary')} className={`flex-1 py-2 rounded-lg text-sm font-bold mx-1 ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>總覽</button>
+        <button onClick={() => setActiveTab('itinerary')} className={`flex-1 py-2 rounded-lg text-sm font-bold mx-1 ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>行程表</button>
+        <button onClick={() => setActiveTab('checklist')} className={`flex-1 py-2 rounded-lg text-sm font-bold mx-1 ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>清單</button>
+        <button onClick={() => setActiveTab('flights')} className={`flex-1 py-2 rounded-lg text-sm font-bold mx-1 ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>機票/住宿</button>
+      </div>
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 儲存狀態和手動更新工具欄 */}
         <div className="flex justify-between items-center bg-white p-3 mt-4 rounded-lg shadow-sm border border-gray-100 mb-2">
@@ -199,14 +207,6 @@ const App = () => {
           >
             {isLoading ? '更新中...' : '🔄 手動更新'}
           </button>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex justify-center space-x-1 bg-white p-1 rounded-xl shadow-md relative z-10 border border-gray-100">
-          <button onClick={() => setActiveTab('summary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>總覽</button>
-          <button onClick={() => setActiveTab('itinerary')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>行程表</button>
-          <button onClick={() => setActiveTab('checklist')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>清單</button>
-          <button onClick={() => setActiveTab('flights')} className={`flex-1 py-2 rounded-lg text-sm font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>機票/住宿</button>
         </div>
 
         <div className="pt-4">
@@ -295,56 +295,57 @@ const App = () => {
 
           {/* Itinerary Tab */}
           {activeTab === 'itinerary' && (
-            <div className="px-6 pb-10">
-              <DaySelector 
-                itinerary={itinerary}
-                selectedDay={selectedDay}
-                onSelectDay={setSelectedDay}
-              />
-
-              {/* Events for selected day */}
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">
-                      Day {currentDayData?.day} - {currentDayData?.date} {currentDayData?.weekday}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">行程表</p>
-                  </div>
-                  <button onClick={() => { setEditingEvent(null); setIsEditModalOpen(true); }} className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm">
-                    <Plus size={16} /> 新增
-                  </button>
-                </div>
-
-                {currentDayData?.events?.length > 0 ? (
-                  <div className="space-y-4">
-                    {currentDayData.events.map((event, idx) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
-                        onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
-                        onDelete={handleDeleteEvent}
-                        onUpdateMemos={handleUpdateMemos}
-                        onOpenGoogleMaps={handleOpenGoogleMaps}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-8">還沒有行程，點擊「新增」開始規劃</p>
-                )}
+            <>
+              <div className="mt-4">
+                <DaySelector 
+                  itinerary={itinerary}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                />
               </div>
 
-              {/* Daily Cost Summary */}
-              {currentDayData?.events?.some(e => e.cost) && (
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                  <p className="text-sm text-blue-900">
-                    💰 今天消費: <span className="font-bold">{currentDayData.events.filter(e => e.cost).reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)}</span> 元
-                    ({currentDayData.events.filter(e => e.cost).length} 個項目)
-                  </p>
+              <div className="mt-4 px-6 pb-10">
+                {/* Events for selected day */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-800">
+                        Day {currentDayData?.day} - {currentDayData?.date} {currentDayData?.weekday}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1">行程表</p>
+                    </div>
+                  </div>
+
+                  {currentDayData?.events?.length > 0 ? (
+                    <div className="space-y-4">
+                      {currentDayData.events.map((event, idx) => (
+                        <EventCard
+                          key={event.id}
+                          event={event}
+                          prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
+                          onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
+                          onDelete={handleDeleteEvent}
+                          onUpdateMemos={handleUpdateMemos}
+                          onOpenGoogleMaps={handleOpenGoogleMaps}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">還沒有行程，點擊「新增」開始規劃</p>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Daily Cost Summary */}
+                {currentDayData?.events?.some(e => e.cost) && (
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-sm text-blue-900">
+                      💰 今天消費: <span className="font-bold">{currentDayData.events.filter(e => e.cost).reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)}</span> 元
+                      ({currentDayData.events.filter(e => e.cost).length} 個項目)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
           {/* Checklist Tab */}
@@ -434,6 +435,17 @@ const App = () => {
           )}
         </div>
       </div>
+
+      {/* Floating Action Button for adding events */}
+      {activeTab === 'itinerary' && (
+        <button
+          onClick={() => { setEditingEvent(null); setIsEditModalOpen(true); }}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
+          title="新增行程"
+        >
+          <Plus size={28} />
+        </button>
+      )}
 
       {/* Event Edit Modal */}
       <Modal
