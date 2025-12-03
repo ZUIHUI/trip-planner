@@ -26,7 +26,6 @@ const TripDetailPage = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [enableGPS, setEnableGPS] = useState(false);
-  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
 
   // 初始旅程資料結構
   const defaultTripDetails = {
@@ -158,7 +157,6 @@ const TripDetailPage = () => {
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onSettingsOpen={() => setIsSettingsOpen(true)}
-          onShoppingOpen={() => setIsShoppingListOpen(true)}
         />
         {/* 設定按鈕 */}
         <button
@@ -205,8 +203,10 @@ const TripDetailPage = () => {
             機票/住宿
           </button>
           <button
-            onClick={() => setIsShoppingListOpen(true)}
-            className="flex-1 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all flex items-center justify-center gap-1"
+            onClick={() => setActiveTab('shopping')}
+            className={`flex-1 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1 transition-all ${
+              activeTab === 'shopping' ? 'bg-white text-orange-600' : 'text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
+            }`}
             title="打開購物清單"
           >
             <ShoppingCart size={18} />
@@ -486,6 +486,15 @@ const TripDetailPage = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'shopping' && (
+            <div className="pt-4">
+              <ShoppingList
+                isOpen={true}
+                onClose={() => setActiveTab('summary')}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -538,12 +547,6 @@ const TripDetailPage = () => {
           ) : null}
         </div>
       )}
-
-      {/* 購物清單模態窗口 */}
-      <ShoppingList
-        isOpen={isShoppingListOpen}
-        onClose={() => setIsShoppingListOpen(false)}
-      />
     </div>
   );
 };
