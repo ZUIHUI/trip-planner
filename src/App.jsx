@@ -9,6 +9,7 @@ import DaySelector from './components/DaySelector';
 import WeatherWidget from './components/WeatherWidget';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
+import { useDeviceLocation } from './hooks/useDeviceLocation';
 import { Plus, Edit2 } from 'lucide-react';
 
 // 預設資料
@@ -64,6 +65,9 @@ const App = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [isEditDetailsModalOpen, setIsEditDetailsModalOpen] = useState(false);
   const [editingDetailsType, setEditingDetailsType] = useState(null); // 'accommodation', 'outbound', 'inbound'
+
+  // 取得設備GPS位置
+  const { currentLocation, isLocating, locationError } = useDeviceLocation();
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const budgetSummary = useBudget(itinerary);
@@ -305,7 +309,9 @@ const App = () => {
                   {/* Weather Widget */}
                   <WeatherWidget 
                     date={currentDayData?.date}
-                    location={tripDetails?.accommodation?.name || '東京'}
+                    currentLocation={currentLocation?.locationName}
+                    accommodation={tripDetails?.accommodation?.name || '東京'}
+                    firstEventLocation={currentDayData?.events?.[0]?.location}
                   />
                 </div>
 
@@ -329,7 +335,6 @@ const App = () => {
                           <div key={event.id} className="p-6">
                             <EventCard
                               event={event}
-                              date={currentDayData?.date}
                               prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
                               onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
                               onDelete={handleDeleteEvent}
