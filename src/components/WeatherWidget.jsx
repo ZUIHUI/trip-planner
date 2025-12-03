@@ -80,7 +80,7 @@ const WeatherWidget = ({
     );
   }
 
-  if (!weather || !weather.success) {
+  if (!weather) {
     return null;
   }
 
@@ -97,6 +97,18 @@ const WeatherWidget = ({
     }
   };
 
+  // 判斷數據來源
+  const getSourceBadge = () => {
+    if (weather.source === 'fallback') {
+      return '(模擬)';
+    } else if (weather.source === 'open-meteo-archive') {
+      return '(歷史)';
+    } else if (weather.source === 'open-meteo-forecast') {
+      return '(預報)';
+    }
+    return '';
+  };
+
   return (
     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
       <div className="flex items-center justify-between">
@@ -104,18 +116,20 @@ const WeatherWidget = ({
           <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />
           <div>
             <p className="text-sm text-gray-600">
-              {getLocationLabel()}
+              {getLocationLabel()} {getSourceBadge()}
             </p>
             <p className="text-2xl font-bold text-gray-900">{weather.temperature}°C</p>
             <p className="text-sm text-gray-600">{weather.description}</p>
           </div>
         </div>
-        <div className="text-right text-sm text-gray-600">
-          {weather.precipitation > 0 && (
-            <p className="mb-1">💧 {weather.precipitation}mm</p>
-          )}
-          <p>💨 {weather.windSpeed}km/h</p>
-        </div>
+        {weather.precipitation !== undefined && weather.windSpeed !== undefined && (
+          <div className="text-right text-sm text-gray-600">
+            {weather.precipitation > 0 && (
+              <p className="mb-1">💧 {weather.precipitation}mm</p>
+            )}
+            <p>💨 {weather.windSpeed}km/h</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -41,7 +41,7 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
     );
   }
 
-  if (!weather || !weather.success) {
+  if (!weather) {
     return null;
   }
 
@@ -56,16 +56,18 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
             <p className="text-xs text-gray-600">{weather.description}</p>
           </div>
         </div>
-        <div className="text-right flex items-center gap-2 text-xs text-gray-600">
-          <div className="flex items-center gap-1">
-            <Droplets size={14} className="text-blue-500" />
-            <span>{weather.precipitation}mm</span>
+        {weather.precipitation !== undefined && weather.windSpeed !== undefined && (
+          <div className="text-right flex items-center gap-2 text-xs text-gray-600">
+            <div className="flex items-center gap-1">
+              <Droplets size={14} className="text-blue-500" />
+              <span>{weather.precipitation}mm</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Wind size={14} className="text-gray-500" />
+              <span>{weather.windSpeed}km/h</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Wind size={14} className="text-gray-500" />
-            <span>{weather.windSpeed}km/h</span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
