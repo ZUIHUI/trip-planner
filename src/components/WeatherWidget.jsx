@@ -13,11 +13,11 @@ const WeatherWidget = ({
   const [loading, setLoading] = useState(false);
   
   // 優先級邏輯：
-  // 1. 用戶選中的行程地點（最高優先級）
-  // 2. 第一個行程的地點（次優先級）
+  // 1. 用戶選中的行程地點（最高優先級，但如果為空則跳過）
+  // 2. 第一個行程的地點（次優先級，但如果為空則跳過）
   // 3. 當前GPS位置（第三優先級）
   // 4. 住宿地點（預設備用位置）
-  const displayLocation = selectedEventLocation || firstEventLocation || currentLocation || accommodation;
+  const displayLocation = (selectedEventLocation?.trim() || firstEventLocation?.trim() || currentLocation || accommodation || '東京');
 
   console.log('WeatherWidget Props:', { 
     date, 
@@ -25,7 +25,8 @@ const WeatherWidget = ({
     firstEventLocation,
     currentLocation,
     accommodation,
-    displayLocation
+    displayLocation,
+    timestamp: new Date().toLocaleTimeString()
   });
 
   useEffect(() => {

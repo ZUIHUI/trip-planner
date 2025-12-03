@@ -82,9 +82,15 @@ const App = () => {
     currentDayData: currentDayData ? {
       day: currentDayData.day,
       eventsCount: currentDayData.events?.length,
-      events: currentDayData.events?.map(e => ({ id: e.id, title: e.title, location: e.location }))
+      events: currentDayData.events?.map(e => ({ 
+        id: e.id, 
+        title: e.title, 
+        location: e.location,
+        hasLocation: !!e.location
+      }))
     } : null,
-    selectedEventLocation
+    selectedEventLocation,
+    timestamp: new Date().toLocaleTimeString()
   });
 
   // 當日期改變時，重置選中的行程狀態

@@ -73,12 +73,26 @@ const generateWeatherData = (dateStr, locationName) => {
   // 這樣不同地點會有不同的天氣，但同地點同日期總是相同
   const dateNum = month * 31 + day;
   const locationHash = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const seed = (dateNum + locationHash) % 100;
+  const combinedSeed = dateNum + locationHash;
+  const seed = combinedSeed % 100;
   
-  console.log('天氣種子計算:', { dateStr, locationName, dateNum, locationHash, seed });
+  console.log('天氣種子計算:', { 
+    dateStr, 
+    locationName, 
+    dateNum, 
+    locationHash, 
+    combinedSeed,
+    seed,
+    seedDiv5: Math.floor(combinedSeed / 5),
+    tempFormula: `8 + ${Math.floor((combinedSeed / 5) % 13)}`
+  });
   
-  // 東京 2 月中下旬天氣特性：多是晴朗或多雲，偶有雨
-  const baseTemp = 8 + (seed % 8); // 8-15°C
+  // 東京 2 月中下旬天氣特性：溫度範圍更廣 8-20°C
+  // 使用 combinedSeed 而不是 seed % 100，確保有足夠的變化
+  const baseTempValue = Math.floor((combinedSeed / 5) % 13);
+  const baseTemp = 8 + baseTempValue;
+  
+  console.log('溫度計算詳情:', { combinedSeed, baseTempValue, baseTemp });
   
   // 根據種子決定天氣類型
   let weatherCode;
