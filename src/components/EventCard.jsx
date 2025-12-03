@@ -73,6 +73,14 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         {/* Content */}
         <h3 className="text-lg font-bold text-gray-800 leading-tight break-words word-wrap">{event.title}</h3>
         <p className="text-sm text-gray-500 mt-1 break-words word-wrap">{event.desc}</p>
+        
+        {/* Location Info */}
+        {event.location && (
+          <p className="text-sm text-blue-600 mt-2 flex items-center gap-1 font-medium">
+            <MapPin size={14} />
+            {event.location}
+          </p>
+        )}
 
         {/* Transport Info & Google Map Button */}
         <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between flex-wrap gap-2">

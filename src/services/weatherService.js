@@ -69,11 +69,13 @@ const generateWeatherData = (dateStr, locationName) => {
   // 解析日期 (格式: "MM/DD")
   const [month, day] = dateStr.split('/').map(Number);
   
-  // 使用月日作為種子生成虛擬天氣（確保同一天總是相同的天氣）
-  // 這樣才能在多次調用時保持一致
-  const seed = (month * 31 + day) % 100;
+  // 使用日期 + 位置名稱作為種子生成虛擬天氣（確保同一天同一地點總是相同的天氣）
+  // 這樣不同地點會有不同的天氣，但同地點同日期總是相同
+  const dateNum = month * 31 + day;
+  const locationHash = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seed = (dateNum + locationHash) % 100;
   
-  console.log('天氣種子計算:', { dateStr, month, day, seed });
+  console.log('天氣種子計算:', { dateStr, locationName, dateNum, locationHash, seed });
   
   // 東京 2 月中下旬天氣特性：多是晴朗或多雲，偶有雨
   const baseTemp = 8 + (seed % 8); // 8-15°C

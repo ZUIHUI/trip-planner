@@ -6,16 +6,27 @@ const WeatherWidget = ({
   date, 
   currentLocation = null, 
   accommodation = '東京', 
-  firstEventLocation = null 
+  firstEventLocation = null,
+  selectedEventLocation = null
 }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
   
   // 優先級邏輯：
-  // 1. 第一個行程的地點（用戶明確指定）
-  // 2. 當前GPS位置（實時位置）
-  // 3. 住宿地點（預設位置）
-  const displayLocation = firstEventLocation || currentLocation || accommodation;
+  // 1. 用戶選中的行程地點（最高優先級）
+  // 2. 第一個行程的地點（次優先級）
+  // 3. 當前GPS位置（第三優先級）
+  // 4. 住宿地點（預設備用位置）
+  const displayLocation = selectedEventLocation || firstEventLocation || currentLocation || accommodation;
+
+  console.log('WeatherWidget Props:', { 
+    date, 
+    selectedEventLocation,
+    firstEventLocation,
+    currentLocation,
+    accommodation,
+    displayLocation
+  });
 
   useEffect(() => {
     // 如果沒有日期或地點，清空天氣
@@ -50,7 +61,6 @@ const WeatherWidget = ({
     return () => clearTimeout(timer);
   }, [date, displayLocation]);
 
-
   if (loading) {
     return (
       <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
@@ -68,7 +78,9 @@ const WeatherWidget = ({
 
   // 判斷位置來源
   const getLocationLabel = () => {
-    if (firstEventLocation) {
+    if (selectedEventLocation) {
+      return `${displayLocation} (選中行程)`;
+    } else if (firstEventLocation) {
       return `${displayLocation} (行程地點)`;
     } else if (currentLocation) {
       return `${displayLocation} (當前位置)`;
@@ -102,21 +114,6 @@ const WeatherWidget = ({
 };
 
 export default WeatherWidget;
-
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
-        <div className="flex items-center gap-3">
-          <div className="text-3xl animate-pulse">⏳</div>
-          <p className="text-sm text-gray-600">正在載入 {displayLocation} 的天氣...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!weather || !weather.success) {
-    return null;
-  }
 
   // 判斷位置來源
   const getLocationLabel = () => {

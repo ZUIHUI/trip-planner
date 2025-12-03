@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Header from './components/Header';
 import Modal from './components/Modal';
 import EditEventForm from './components/EditEventForm';
@@ -61,6 +61,7 @@ const App = () => {
 
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
+  const [selectedEventId, setSelectedEventId] = useState(null); // 追踪選中的行程
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isEditDetailsModalOpen, setIsEditDetailsModalOpen] = useState(false);
@@ -71,6 +72,25 @@ const App = () => {
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const budgetSummary = useBudget(itinerary);
+  
+  // 找到選中行程的地點（點擊行程卡時使用）
+  const selectedEventLocation = currentDayData?.events?.find(e => e.id === selectedEventId)?.location;
+
+  console.log('App.jsx State:', {
+    selectedDay,
+    selectedEventId,
+    currentDayData: currentDayData ? {
+      day: currentDayData.day,
+      eventsCount: currentDayData.events?.length,
+      events: currentDayData.events?.map(e => ({ id: e.id, title: e.title, location: e.location }))
+    } : null,
+    selectedEventLocation
+  });
+
+  // 當日期改變時，重置選中的行程狀態
+  useEffect(() => {
+    setSelectedEventId(null);
+  }, [selectedDay]);
 
   // 事件處理函數
   const handleSaveEvent = useCallback((eventData) => {
@@ -312,6 +332,7 @@ const App = () => {
                     currentLocation={currentLocation?.locationName}
                     accommodation={tripDetails?.accommodation?.name || '東京'}
                     firstEventLocation={currentDayData?.events?.[0]?.location}
+                    selectedEventLocation={selectedEventLocation}
                   />
                 </div>
 
@@ -332,7 +353,15 @@ const App = () => {
                     {currentDayData?.events?.length > 0 ? (
                       <div className="divide-y divide-gray-100">
                         {currentDayData.events.map((event, idx) => (
-                          <div key={event.id} className="p-6">
+                          <div 
+                            key={event.id} 
+                            className={`p-6 cursor-pointer transition-all ${
+                              selectedEventId === event.id 
+                                ? 'bg-blue-50 border-l-4 border-blue-400' 
+                                : 'hover:bg-gray-50'
+                            }`}
+                            onClick={() => setSelectedEventId(event.id)}
+                          >
                             <EventCard
                               event={event}
                               prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
