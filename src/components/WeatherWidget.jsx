@@ -79,9 +79,9 @@ const WeatherWidget = ({
 
   // 判斷位置來源
   const getLocationLabel = () => {
-    if (selectedEventLocation) {
+    if (selectedEventLocation?.trim()) {
       return `${displayLocation} (選中行程)`;
-    } else if (firstEventLocation) {
+    } else if (firstEventLocation?.trim()) {
       return `${displayLocation} (行程地點)`;
     } else if (currentLocation) {
       return `${displayLocation} (當前位置)`;
@@ -116,39 +116,3 @@ const WeatherWidget = ({
 
 export default WeatherWidget;
 
-  // 判斷位置來源
-  const getLocationLabel = () => {
-    if (firstEventLocation) {
-      return `${displayLocation} (行程地點)`;
-    } else if (currentLocation) {
-      return `${displayLocation} (當前位置)`;
-    } else {
-      return `${displayLocation} (預設位置)`;
-    }
-  };
-
-  return (
-    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />
-          <div>
-            <p className="text-sm text-gray-600">
-              {getLocationLabel()}
-            </p>
-            <p className="text-2xl font-bold text-gray-900">{weather.temperature}°C</p>
-            <p className="text-sm text-gray-600">{weather.description}</p>
-          </div>
-        </div>
-        <div className="text-right text-sm text-gray-600">
-          {weather.precipitation > 0 && (
-            <p className="mb-1">💧 {weather.precipitation}mm</p>
-          )}
-          <p>💨 {weather.windSpeed}km/h</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default WeatherWidget;
