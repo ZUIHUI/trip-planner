@@ -30,8 +30,9 @@ const WeatherWidget = ({
     
     const fetchWeather = async () => {
       try {
+        console.log('開始獲取天氣:', { date, displayLocation });
         const result = await getWeatherForDate(date, displayLocation);
-        console.log('天氣數據更新:', { date, displayLocation, result });
+        console.log('天氣數據已取得:', { date, displayLocation, result });
         setWeather(result);
       } catch (error) {
         console.error('天氣獲取錯誤:', error);
@@ -47,7 +48,8 @@ const WeatherWidget = ({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [date, displayLocation, currentLocation, accommodation, firstEventLocation]);
+  }, [date, displayLocation]);
+
 
   if (loading) {
     return (

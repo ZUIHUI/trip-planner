@@ -66,12 +66,14 @@ const WEATHER_ICON_MAP = {
 
 // 根據日期和位置生成逼真的模擬天氣數據
 const generateWeatherData = (dateStr, locationName) => {
-  // 解析日期
+  // 解析日期 (格式: "MM/DD")
   const [month, day] = dateStr.split('/').map(Number);
-  const dayOfYear = new Date(2026, month - 1, day).getTime();
   
-  // 使用日期作為種子生成虛擬天氣（確保同一天總是相同的天氣）
-  const seed = dayOfYear % 100;
+  // 使用月日作為種子生成虛擬天氣（確保同一天總是相同的天氣）
+  // 這樣才能在多次調用時保持一致
+  const seed = (month * 31 + day) % 100;
+  
+  console.log('天氣種子計算:', { dateStr, month, day, seed });
   
   // 東京 2 月中下旬天氣特性：多是晴朗或多雲，偶有雨
   const baseTemp = 8 + (seed % 8); // 8-15°C
