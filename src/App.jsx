@@ -7,6 +7,7 @@ import EventCard from './components/EventCard';
 import Checklist from './components/Checklist';
 import DaySelector from './components/DaySelector';
 import WeatherWidget from './components/WeatherWidget';
+import SettingsPanel from './components/SettingsPanel';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
@@ -66,9 +67,11 @@ const App = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [isEditDetailsModalOpen, setIsEditDetailsModalOpen] = useState(false);
   const [editingDetailsType, setEditingDetailsType] = useState(null); // 'accommodation', 'outbound', 'inbound'
+  const [enableGPS, setEnableGPS] = useState(false); // GPS 開關狀態
+  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // 設定面板開啟狀態
 
-  // 取得設備GPS位置
-  const { currentLocation, isLocating, locationError } = useDeviceLocation();
+  // 取得設備GPS位置（受 enableGPS 控制）
+  const { currentLocation, isLocating, locationError } = useDeviceLocation(enableGPS);
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const budgetSummary = useBudget(itinerary);
@@ -202,7 +205,12 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <Header details={tripDetails} activeTab={activeTab} onTabChange={setActiveTab} />
+      <Header 
+        details={tripDetails} 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        onSettingsOpen={() => setIsSettingsPanelOpen(true)}
+      />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 儲存狀態和手動更新工具欄 */}
@@ -541,6 +549,14 @@ const App = () => {
           onCancel={() => { setIsEditDetailsModalOpen(false); setEditingDetailsType(null); }}
         />
       </Modal>
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsPanelOpen}
+        onClose={() => setIsSettingsPanelOpen(false)}
+        enableGPS={enableGPS}
+        onGPSToggle={() => setEnableGPS(!enableGPS)}
+      />
     </div>
   );
 };
