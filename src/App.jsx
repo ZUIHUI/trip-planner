@@ -175,7 +175,7 @@ const App = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 儲存狀態和手動更新工具欄 */}
-        <div className="flex justify-between items-center bg-white p-3 mt-4 rounded-lg shadow-sm border border-gray-100 mb-2">
+        <div className="flex justify-between items-center bg-white p-2 mt-2 rounded-lg shadow-sm border border-gray-100 mb-0">
           <div className="flex items-center gap-2">
             {isSaving && (
               <div className="flex items-center gap-2 text-blue-600">
@@ -201,7 +201,7 @@ const App = () => {
           </button>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-2">
           {/* Summary Tab */}
           {activeTab === 'summary' && (
             <div className="px-6 space-y-4 pb-10">
