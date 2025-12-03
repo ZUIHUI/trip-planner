@@ -329,6 +329,7 @@ const App = () => {
                           <div key={event.id} className="p-6">
                             <EventCard
                               event={event}
+                              date={currentDayData?.date}
                               prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
                               onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
                               onDelete={handleDeleteEvent}

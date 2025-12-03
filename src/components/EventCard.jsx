@@ -4,8 +4,9 @@ import {
   AlertCircle, MoreVertical, Edit2, Trash2, X, CheckSquare, Square,
   Navigation, Map, ChevronRight
 } from 'lucide-react';
+import EventWeatherWidget from './EventWeatherWidget';
 
-const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps }) => {
+const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, date }) => {
   const [showMemos, setShowMemos] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -47,6 +48,11 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
       )}
 
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all relative">
+        {/* 天氣 Widget */}
+        {event.location && (
+          <EventWeatherWidget date={date} location={event.location} />
+        )}
+
         {/* Header Section */}
         <div className="flex justify-between items-start mb-2 gap-2">
           <div className="flex items-center space-x-2 min-w-0">
