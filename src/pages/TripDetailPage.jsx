@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, Settings } from 'lucide-react';
+import { Plus, ArrowLeft, Settings, ShoppingCart } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
@@ -8,6 +8,7 @@ import EventCard from '../components/EventCard';
 import Checklist from '../components/Checklist';
 import DaySelector from '../components/DaySelector';
 import SettingsPanel from '../components/SettingsPanel';
+import ShoppingList from '../components/ShoppingList';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
@@ -25,6 +26,7 @@ const TripDetailPage = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [enableGPS, setEnableGPS] = useState(false);
+  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
 
   // 初始旅程資料結構
   const defaultTripDetails = {
@@ -195,6 +197,14 @@ const TripDetailPage = () => {
             }`}
           >
             機票/住宿
+          </button>
+          <button
+            onClick={() => setIsShoppingListOpen(true)}
+            className="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors flex items-center justify-center gap-1"
+            title="打開購物清單"
+          >
+            <ShoppingCart size={18} />
+            購物
           </button>
         </div>
 
@@ -522,6 +532,12 @@ const TripDetailPage = () => {
           ) : null}
         </div>
       )}
+
+      {/* 購物清單模態窗口 */}
+      <ShoppingList
+        isOpen={isShoppingListOpen}
+        onClose={() => setIsShoppingListOpen(false)}
+      />
     </div>
   );
 };
