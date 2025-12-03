@@ -10,7 +10,6 @@ const WeatherWidget = ({
 }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [displayedLocation, setDisplayedLocation] = useState(null);
   
   // 優先級邏輯：
   // 1. 第一個行程的地點（用戶明確指定）
@@ -22,19 +21,12 @@ const WeatherWidget = ({
     // 如果沒有日期或地點，清空天氣
     if (!date || !displayLocation) {
       setWeather(null);
-      setDisplayedLocation(null);
+      setLoading(false);
       return;
     }
 
-    // 如果地點變化，更新當前地點記錄
-    if (displayedLocation !== displayLocation) {
-      setDisplayedLocation(displayLocation);
-      setLoading(true);
-      setWeather(null);
-    } else {
-      // 如果只有日期變化，保持當前狀態
-      setLoading(true);
-    }
+    setLoading(true);
+    setWeather(null); // 立即清空舊天氣資料
     
     const fetchWeather = async () => {
       try {
@@ -49,13 +41,65 @@ const WeatherWidget = ({
       }
     };
 
-    // 添加一個小延遲以確保地點完全變化
+    // 添加延遲以確保DOM完全更新
     const timer = setTimeout(() => {
       fetchWeather();
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [date, displayLocation]);
+  }, [date, displayLocation, currentLocation, accommodation, firstEventLocation]);
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="text-3xl animate-pulse">⏳</div>
+          <p className="text-sm text-gray-600">正在載入 {displayLocation} 的天氣...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!weather || !weather.success) {
+    return null;
+  }
+
+  // 判斷位置來源
+  const getLocationLabel = () => {
+    if (firstEventLocation) {
+      return `${displayLocation} (行程地點)`;
+    } else if (currentLocation) {
+      return `${displayLocation} (當前位置)`;
+    } else {
+      return `${displayLocation} (預設位置)`;
+    }
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />
+          <div>
+            <p className="text-sm text-gray-600">
+              {getLocationLabel()}
+            </p>
+            <p className="text-2xl font-bold text-gray-900">{weather.temperature}°C</p>
+            <p className="text-sm text-gray-600">{weather.description}</p>
+          </div>
+        </div>
+        <div className="text-right text-sm text-gray-600">
+          {weather.precipitation > 0 && (
+            <p className="mb-1">💧 {weather.precipitation}mm</p>
+          )}
+          <p>💨 {weather.windSpeed}km/h</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WeatherWidget;
 
   if (loading) {
     return (
