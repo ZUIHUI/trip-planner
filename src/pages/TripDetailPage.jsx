@@ -200,7 +200,7 @@ const TripDetailPage = () => {
           </button>
           <button
             onClick={() => setIsShoppingListOpen(true)}
-            className="flex-1 py-2 rounded-lg text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors flex items-center justify-center gap-1"
+            className="flex-1 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all flex items-center justify-center gap-1"
             title="打開購物清單"
           >
             <ShoppingCart size={18} />
