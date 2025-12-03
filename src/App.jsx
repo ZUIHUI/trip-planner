@@ -173,6 +173,18 @@ const App = () => {
     <div className="min-h-screen bg-gray-50 font-sans">
       <Header details={tripDetails} />
 
+      {/* Global Navigation */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center gap-1 py-2">
+            <button onClick={() => setActiveTab('summary')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>總覽</button>
+            <button onClick={() => setActiveTab('itinerary')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>行程表</button>
+            <button onClick={() => setActiveTab('checklist')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>清單</button>
+            <button onClick={() => setActiveTab('flights')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>機票/住宿</button>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 儲存狀態和手動更新工具欄 */}
         <div className="flex justify-between items-center bg-white p-3 mt-4 rounded-lg shadow-sm border border-gray-100 mb-2">
@@ -206,25 +218,17 @@ const App = () => {
           {activeTab === 'summary' && (
             <div className="px-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">{tripDetails?.title || '旅程概覽'}</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <p className="text-gray-500 text-xs mb-1">旅程期間</p>
-                        <p className="text-lg font-bold text-gray-800">{tripDetails?.dates || '未設定'}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-gray-500 text-xs mb-1">天數</p>
-                        <p className="text-lg font-bold text-gray-800">{itinerary.length} 天</p>
-                      </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">{tripDetails?.title || '旅程概覽'}</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <p className="text-gray-500 text-xs mb-1">旅程期間</p>
+                      <p className="text-lg font-bold text-gray-800">{tripDetails?.dates || '未設定'}</p>
                     </div>
-                  </div>
-                  <div className="flex gap-1 ml-4">
-                    <button onClick={() => setActiveTab('summary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>總覽</button>
-                    <button onClick={() => setActiveTab('itinerary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>行程表</button>
-                    <button onClick={() => setActiveTab('checklist')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>清單</button>
-                    <button onClick={() => setActiveTab('flights')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>機票/住宿</button>
+                    <div className="text-center">
+                      <p className="text-gray-500 text-xs mb-1">天數</p>
+                      <p className="text-lg font-bold text-gray-800">{itinerary.length} 天</p>
+                    </div>
                   </div>
                 </div>
               </div>
