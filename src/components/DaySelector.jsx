@@ -56,7 +56,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto px-4 py-4 space-x-3 no-scrollbar scroll-smooth"
+        className="flex overflow-x-auto px-4 py-5 space-x-4 no-scrollbar scroll-smooth"
         style={{ scrollBehavior: 'smooth' }}
       >
         {itinerary.map((item) => {
@@ -69,15 +69,15 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               key={item.day}
               ref={isSelected ? selectedTabRef : null}
               onClick={() => onSelectDay(item.day)}
-              className={`flex-shrink-0 w-20 px-2 py-3 rounded-2xl transition-all duration-200 transform ${
+              className={`flex-shrink-0 w-24 px-3 py-4 rounded-2xl transition-all duration-200 transform ${
                 isSelected
-                  ? 'bg-blue-600 text-white shadow-lg scale-110'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 shadow-sm'
+                  ? 'bg-blue-600 text-white shadow-lg scale-105'
+                  : 'bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 shadow-sm'
               }`}
             >
-              <div className="flex flex-col items-center justify-center space-y-0.5">
+              <div className="flex flex-col items-center justify-center space-y-1">
                 {/* 第 1 層：Day X */}
-                <span className="text-xs font-medium" style={{ opacity: isSelected ? 0.9 : 0.7 }}>
+                <span className="text-xs font-medium leading-tight" style={{ opacity: isSelected ? 1 : 0.6 }}>
                   Day {item.day}
                 </span>
 
@@ -87,7 +87,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
                 </span>
 
                 {/* 第 3 層：星期 */}
-                <span className="text-xs font-medium" style={{ opacity: isSelected ? 0.9 : 0.7 }}>
+                <span className="text-xs font-medium leading-tight" style={{ opacity: isSelected ? 1 : 0.6 }}>
                   {weekday}
                 </span>
               </div>
