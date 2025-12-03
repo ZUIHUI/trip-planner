@@ -290,55 +290,69 @@ const App = () => {
           {/* Itinerary Tab */}
           {activeTab === 'itinerary' && (
             <>
-              <div className="mt-4">
-                <DaySelector 
-                  itinerary={itinerary}
-                  selectedDay={selectedDay}
-                  onSelectDay={setSelectedDay}
-                />
-              </div>
-
-              <div className="mt-4 pb-10">
-                <div className="px-6">
-                {/* Events for selected day */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">
-                        Day {currentDayData?.day} - {currentDayData?.date} {currentDayData?.weekday}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1">行程表</p>
-                    </div>
-                  </div>
-
-                  {currentDayData?.events?.length > 0 ? (
-                    <div className="space-y-4">
-                      {currentDayData.events.map((event, idx) => (
-                        <EventCard
-                          key={event.id}
-                          event={event}
-                          prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
-                          onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
-                          onDelete={handleDeleteEvent}
-                          onUpdateMemos={handleUpdateMemos}
-                          onOpenGoogleMaps={handleOpenGoogleMaps}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">還沒有行程，點擊「新增」開始規劃</p>
-                  )}
+              <div className="px-4 sm:px-6 lg:px-8 mt-6">
+                {/* Day Selector */}
+                <div className="mb-6">
+                  <DaySelector 
+                    itinerary={itinerary}
+                    selectedDay={selectedDay}
+                    onSelectDay={setSelectedDay}
+                  />
                 </div>
 
-                {/* Daily Cost Summary */}
-                {currentDayData?.events?.some(e => e.cost) && (
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <p className="text-sm text-blue-900">
-                      💰 今天消費: <span className="font-bold">{currentDayData.events.filter(e => e.cost).reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)}</span> 元
-                      ({currentDayData.events.filter(e => e.cost).length} 個項目)
+                {/* Events Section */}
+                <div className="space-y-6 pb-20">
+                  {/* Day Header */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Day {currentDayData?.day}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {currentDayData?.date} ({currentDayData?.weekday})
                     </p>
                   </div>
-                )}
+
+                  {/* Events List */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    {currentDayData?.events?.length > 0 ? (
+                      <div className="divide-y divide-gray-100">
+                        {currentDayData.events.map((event, idx) => (
+                          <div key={event.id} className="p-6">
+                            <EventCard
+                              event={event}
+                              prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
+                              onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
+                              onDelete={handleDeleteEvent}
+                              onUpdateMemos={handleUpdateMemos}
+                              onOpenGoogleMaps={handleOpenGoogleMaps}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <p className="text-gray-400 text-lg">還沒有行程</p>
+                        <p className="text-gray-400 text-sm mt-2">點擊右下方「+」開始規劃</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Daily Cost Summary */}
+                  {currentDayData?.events?.some(e => e.cost) && (
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-5 border border-amber-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-amber-700 font-medium">今日消費統計</p>
+                          <p className="text-2xl font-bold text-amber-900 mt-1">
+                            ¥ {currentDayData.events.filter(e => e.cost).reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-amber-700">{currentDayData.events.filter(e => e.cost).length} 項</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
