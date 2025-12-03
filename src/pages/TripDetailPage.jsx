@@ -488,7 +488,9 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'shopping' && (
-            <ShoppingListContent />
+            <div className="pt-4">
+              <ShoppingListContent />
+            </div>
           )}
         </div>
       </div>
