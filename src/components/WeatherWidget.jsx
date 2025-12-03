@@ -6,13 +6,23 @@ const WeatherWidget = ({ date, location, isLoading = false }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!date) return;
+    if (!date) {
+      setWeather(null);
+      return;
+    }
 
     setLoading(true);
     const fetchWeather = async () => {
-      const result = await getWeatherForDate(date, location);
-      setWeather(result);
-      setLoading(false);
+      try {
+        const result = await getWeatherForDate(date, location);
+        console.log('天氣數據:', result);
+        setWeather(result);
+      } catch (error) {
+        console.error('天氣獲取錯誤:', error);
+        setWeather(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchWeather();
@@ -20,14 +30,10 @@ const WeatherWidget = ({ date, location, isLoading = false }) => {
 
   if (loading || isLoading) {
     return (
-      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="text-3xl animate-pulse">⏳</div>
-            <div>
-              <p className="text-sm text-gray-600">正在載入天氣...</p>
-            </div>
-          </div>
+      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="text-3xl animate-pulse">⏳</div>
+          <p className="text-sm text-gray-600">正在載入天氣...</p>
         </div>
       </div>
     );
