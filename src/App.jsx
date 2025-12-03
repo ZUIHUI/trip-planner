@@ -298,19 +298,6 @@ const App = () => {
           {/* Itinerary Tab */}
           {activeTab === 'itinerary' && (
             <>
-              <div className="px-6 mt-4">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-800">行程表</h3>
-                    <div className="flex gap-1">
-                      <button onClick={() => setActiveTab('summary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>總覽</button>
-                      <button onClick={() => setActiveTab('itinerary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>行程表</button>
-                      <button onClick={() => setActiveTab('checklist')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>清單</button>
-                      <button onClick={() => setActiveTab('flights')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>機票/住宿</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
               <div className="mt-4">
                 <DaySelector 
                   itinerary={itinerary}
@@ -368,20 +355,7 @@ const App = () => {
           {/* Checklist Tab */}
           {activeTab === 'checklist' && (
             <>
-              <div className="px-6 mt-4">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-800">清單</h3>
-                    <div className="flex gap-1">
-                      <button onClick={() => setActiveTab('summary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>總覽</button>
-                      <button onClick={() => setActiveTab('itinerary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>行程表</button>
-                      <button onClick={() => setActiveTab('checklist')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>清單</button>
-                      <button onClick={() => setActiveTab('flights')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>機票/住宿</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 space-y-6 pb-10">
+              <div className="px-6 space-y-6 pb-10 mt-4">
               <Checklist
                 title="🎒 行前清單"
                 items={checklists?.preTrip || []}
@@ -403,20 +377,7 @@ const App = () => {
           {/* Flights/Accommodation Tab */}
           {activeTab === 'flights' && (
             <>
-              <div className="px-6 mt-4">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-gray-800">機票/住宿</h3>
-                    <div className="flex gap-1">
-                      <button onClick={() => setActiveTab('summary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>總覽</button>
-                      <button onClick={() => setActiveTab('itinerary')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>行程表</button>
-                      <button onClick={() => setActiveTab('checklist')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>清單</button>
-                      <button onClick={() => setActiveTab('flights')} className={`px-3 py-1 rounded-lg text-xs font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>機票/住宿</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 space-y-4 pb-10">
+              <div className="px-6 space-y-4 pb-10 mt-4">
               {tripDetails?.accommodation && (
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                   <div className="flex justify-between items-start mb-3">
