@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, Settings } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
 import EventCard from '../components/EventCard';
 import Checklist from '../components/Checklist';
 import DaySelector from '../components/DaySelector';
+import SettingsPanel from '../components/SettingsPanel';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
+import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { loadTrip } from '../services/tripService';
 
 const TripDetailPage = () => {
   const { tripId: paramTripId } = useParams();
   const tripId = paramTripId || 'default-trip';
-  // const navigate = useNavigate(); // 移除 navigate
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [tripData, setTripData] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [enableGPS, setEnableGPS] = useState(false);
 
   // 初始旅程資料結構
   const defaultTripDetails = {
@@ -48,6 +52,9 @@ const TripDetailPage = () => {
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
   const budgetInfo = useBudget(itinerary);
+
+  // 使用 GPS Hook 獲取設備位置
+  const { currentLocation, isLocating, locationError } = useDeviceLocation(enableGPS);
 
   useEffect(() => {
     const initTrip = async () => {
@@ -145,7 +152,14 @@ const TripDetailPage = () => {
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="relative">
         <Header details={tripDetails} />
-        {/* 移除返回按鈕 */}
+        {/* 設定按鈕 */}
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
+          title="打開設定"
+        >
+          <Settings size={24} />
+        </button>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -476,6 +490,38 @@ const TripDetailPage = () => {
           }}
         />
       </Modal>
+
+      {/* 設定面板 */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        enableGPS={enableGPS}
+        onGPSToggle={() => setEnableGPS(!enableGPS)}
+      />
+
+      {/* GPS 位置監視 - 當啟用 GPS 時顯示狀態 */}
+      {enableGPS && (
+        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 text-sm z-40 max-w-xs">
+          {isLocating ? (
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-gray-600">正在定位中...</span>
+            </div>
+          ) : locationError ? (
+            <div className="flex items-center gap-2">
+              <span className="text-red-600">❌ {locationError}</span>
+            </div>
+          ) : currentLocation ? (
+            <div className="flex items-center gap-2">
+              <span className="text-green-600">✓</span>
+              <div>
+                <p className="font-bold text-gray-900">{currentLocation.locationName}</p>
+                <p className="text-xs text-gray-500">精度: {Math.round(currentLocation.accuracy)}m</p>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 };
