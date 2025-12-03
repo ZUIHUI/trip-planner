@@ -290,18 +290,20 @@ const App = () => {
           {/* Itinerary Tab */}
           {activeTab === 'itinerary' && (
             <>
-              <div className="px-4 sm:px-6 lg:px-8 mt-6">
-                {/* Day Selector */}
-                <div className="mb-6">
-                  <DaySelector 
-                    itinerary={itinerary}
-                    selectedDay={selectedDay}
-                    onSelectDay={setSelectedDay}
-                  />
+              <div className="mt-2">
+                <div className="px-4 sm:px-6 lg:px-8">
+                  {/* Day Selector */}
+                  <div className="mb-4">
+                    <DaySelector 
+                      itinerary={itinerary}
+                      selectedDay={selectedDay}
+                      onSelectDay={setSelectedDay}
+                    />
+                  </div>
                 </div>
 
                 {/* Events Section */}
-                <div className="space-y-6 pb-20">
+                <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20">
                   {/* Day Header */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
                     <h2 className="text-2xl font-bold text-gray-900">
