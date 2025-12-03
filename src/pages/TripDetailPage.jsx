@@ -8,7 +8,7 @@ import EventCard from '../components/EventCard';
 import Checklist from '../components/Checklist';
 import DaySelector from '../components/DaySelector';
 import SettingsPanel from '../components/SettingsPanel';
-import ShoppingList from '../components/ShoppingList';
+import ShoppingListContent from '../components/ShoppingListContent';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
@@ -488,12 +488,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'shopping' && (
-            <div className="pt-4">
-              <ShoppingList
-                isOpen={true}
-                onClose={() => setActiveTab('summary')}
-              />
-            </div>
+            <ShoppingListContent />
           )}
         </div>
       </div>
