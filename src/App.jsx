@@ -171,19 +171,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      <Header details={tripDetails} />
-
-      {/* Global Navigation */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center gap-1 py-2">
-            <button onClick={() => setActiveTab('summary')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'summary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>總覽</button>
-            <button onClick={() => setActiveTab('itinerary')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>行程表</button>
-            <button onClick={() => setActiveTab('checklist')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>清單</button>
-            <button onClick={() => setActiveTab('flights')} className={`px-4 py-2 rounded-lg text-sm font-bold ${activeTab === 'flights' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>機票/住宿</button>
-          </div>
-        </div>
-      </div>
+      <Header details={tripDetails} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 儲存狀態和手動更新工具欄 */}
