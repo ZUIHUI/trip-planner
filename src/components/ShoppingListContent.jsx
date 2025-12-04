@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { updateShoppingList } from '../services/tripService';
@@ -7,6 +7,7 @@ import { updateShoppingList } from '../services/tripService';
 const ShoppingListContent = ({ tripId }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
   
@@ -48,6 +49,7 @@ const ShoppingListContent = ({ tripId }) => {
       setLoading(false);
     }, (error) => {
       console.error("Error fetching shopping list:", error);
+      setError(error.message);
       setLoading(false);
     });
 
@@ -131,8 +133,16 @@ const ShoppingListContent = ({ tripId }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <Loader2 className="animate-spin text-blue-500" size={32} />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         <span className="ml-2 text-gray-500">載入購物清單中...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12 text-red-500">
+        <p>載入失敗: {error}</p>
       </div>
     );
   }
