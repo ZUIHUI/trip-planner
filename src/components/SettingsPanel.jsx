@@ -12,6 +12,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
     { id: 'forest', name: '森林綠', color: 'bg-emerald-500' },
     { id: 'sunset', name: '夕陽橘', color: 'bg-orange-500' },
     { id: 'lavender', name: '薰衣草', color: 'bg-violet-500' },
+    { id: 'midnight', name: '極夜黑', color: 'bg-gray-800' },
   ];
 
   const handleAddTraveler = () => {
@@ -53,7 +54,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               <Palette size={20} className="text-brand-600" />
               外觀主題
             </h3>
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {themes.map((theme) => (
                 <button
                   key={theme.id}

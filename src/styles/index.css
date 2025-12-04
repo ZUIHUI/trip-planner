@@ -77,6 +77,21 @@
     --color-brand-900: 76 29 149;
     --color-brand-950: 46 16 101;
   }
+
+  [data-theme='midnight'] {
+    /* Zinc/Black */
+    --color-brand-50: 250 250 250;
+    --color-brand-100: 244 244 245;
+    --color-brand-200: 228 228 231;
+    --color-brand-300: 212 212 216;
+    --color-brand-400: 161 161 170;
+    --color-brand-500: 82 82 91;
+    --color-brand-600: 63 63 70;
+    --color-brand-700: 39 39 42;
+    --color-brand-800: 24 24 27;
+    --color-brand-900: 9 9 11;
+    --color-brand-950: 0 0 0;
+  }
 }
 
 html, body {
