@@ -5,8 +5,9 @@ import { db } from '../services/firebase';
 import { updateShoppingList } from '../services/tripService';
 
 const ShoppingListContent = ({ tripId }) => {
+  // Temporary Debug Mode
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
@@ -24,45 +25,28 @@ const ShoppingListContent = ({ tripId }) => {
 
   // Categories for suggestion
   const categories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
-
+  
+  /*
   // Load from Firestore
   useEffect(() => {
     if (!tripId) {
       setLoading(false);
       return;
     }
-
-    console.log("Subscribing to shopping list for trip:", tripId);
-    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (docSnapshot) => {
-      if (docSnapshot.exists()) {
-        const data = docSnapshot.data();
-        console.log("Received data:", data);
-        if (data.shoppingList && Array.isArray(data.shoppingList)) {
-          setItems(data.shoppingList);
-        } else {
-          setItems([]);
-        }
-      } else {
-        console.log("No such document!");
-        setItems([]);
-      }
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching shopping list:", error);
-      setError(error.message);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    // ... firebase logic commented out for debugging
+    setLoading(false);
   }, [tripId]);
+  */
 
   const updateItems = (newItems) => {
     setItems(newItems);
+    /*
     if (tripId) {
       updateShoppingList(tripId, newItems).catch(err => {
         console.error("Failed to save shopping list:", err);
       });
     }
+    */
   };
 
   const handleImageChange = (e) => {
