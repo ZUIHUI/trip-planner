@@ -417,10 +417,9 @@ const App = () => {
             </>
           )}
 
-          {/* Checklist Tab */}
-          {activeTab === 'checklist' && (
-            <>
-              <div className="px-6 space-y-6 pb-10 mt-4">
+          {/* Pre-Trip Checklist Tab */}
+          {activeTab === 'preTrip' && (
+            <div className="px-6 space-y-6 pb-10 mt-4">
               <Checklist
                 title="🎒 行前清單"
                 items={checklists?.preTrip || []}
@@ -428,6 +427,12 @@ const App = () => {
                 onToggleItem={(id) => handleToggleChecklistItem('preTrip', id)}
                 onDeleteItem={(id) => handleDeleteChecklistItem('preTrip', id)}
               />
+            </div>
+          )}
+
+          {/* Packing Checklist Tab */}
+          {activeTab === 'packing' && (
+            <div className="px-6 space-y-6 pb-10 mt-4">
               <Checklist
                 title="🧳 行李清單"
                 items={checklists?.packing || []}
@@ -435,8 +440,7 @@ const App = () => {
                 onToggleItem={(id) => handleToggleChecklistItem('packing', id)}
                 onDeleteItem={(id) => handleDeleteChecklistItem('packing', id)}
               />
-              </div>
-            </>
+            </div>
           )}
 
           {/* Flights/Accommodation Tab */}

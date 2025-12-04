@@ -31,9 +31,12 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen }) => (
       <button onClick={() => onTabChange('itinerary')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
         activeTab === 'itinerary' ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
       }`}>行程表</button>
-      <button onClick={() => onTabChange('checklist')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
-        activeTab === 'checklist' ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
-      }`}>清單</button>
+      <button onClick={() => onTabChange('preTrip')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
+        activeTab === 'preTrip' ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
+      }`}>行前</button>
+      <button onClick={() => onTabChange('packing')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
+        activeTab === 'packing' ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
+      }`}>行李</button>
       <button onClick={() => onTabChange('flights')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
         activeTab === 'flights' ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
       }`}>機票/住宿</button>
