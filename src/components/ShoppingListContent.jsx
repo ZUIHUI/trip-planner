@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn, Pencil } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { updateShoppingList, updateShoppingCategories } from '../services/tripService';
@@ -29,6 +29,7 @@ const ShoppingListContent = ({ tripId }) => {
     image: null
   });
   const [imagePreview, setImagePreview] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   
   // Load from Firestore
   useEffect(() => {
@@ -100,20 +101,46 @@ const ShoppingListContent = ({ tripId }) => {
     }
   };
 
-  const addItem = () => {
+  const handleSaveItem = () => {
     if (!formData.name.trim()) {
       alert('請輸入商品名稱');
       return;
     }
-    const newItem = {
-      id: Date.now(),
-      ...formData,
-      purchased: false,
-      createdAt: new Date().toISOString()
-    };
-    const newItems = [newItem, ...items];
-    updateItems(newItems);
+
+    if (editingId) {
+      // Update existing item
+      const newItems = items.map(item => 
+        item.id === editingId 
+          ? { ...item, ...formData } 
+          : item
+      );
+      updateItems(newItems);
+    } else {
+      // Add new item
+      const newItem = {
+        id: Date.now(),
+        ...formData,
+        purchased: false,
+        createdAt: new Date().toISOString()
+      };
+      const newItems = [newItem, ...items];
+      updateItems(newItems);
+    }
     resetForm();
+  };
+
+  const handleEditItem = (item) => {
+    setFormData({
+      name: item.name,
+      category: item.category || '未分類',
+      shop: item.shop || '',
+      quantity: item.quantity || 1,
+      notes: item.notes || '',
+      image: item.image || null
+    });
+    setImagePreview(item.image || null);
+    setEditingId(item.id);
+    setShowAddForm(true);
   };
 
   const deleteItem = (id) => {
@@ -140,6 +167,7 @@ const ShoppingListContent = ({ tripId }) => {
       image: null
     });
     setImagePreview(null);
+    setEditingId(null);
     setShowAddForm(false);
   };
 
@@ -220,14 +248,6 @@ const ShoppingListContent = ({ tripId }) => {
          </div>
 
          <div className="flex flex-col sm:flex-row gap-3">
-           <button 
-             onClick={() => setShowAddForm(true)}
-             className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-           >
-             <Plus size={20} />
-             新增商品
-           </button>
-           
            <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 flex-1">
              <Filter size={18} className="text-gray-400 mr-2" />
              <select 
@@ -323,7 +343,7 @@ const ShoppingListContent = ({ tripId }) => {
          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
            <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
-               <h3 className="text-xl font-bold text-gray-900">新增購物項目</h3>
+               <h3 className="text-xl font-bold text-gray-900">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
                <button onClick={resetForm}><X size={24} className="text-gray-400 hover:text-gray-600" /></button>
              </div>
              
@@ -418,10 +438,10 @@ const ShoppingListContent = ({ tripId }) => {
                </div>
 
                <button 
-                 onClick={addItem}
+                 onClick={handleSaveItem}
                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors mt-2"
                >
-                 確認新增
+                 {editingId ? '儲存變更' : '確認新增'}
                </button>
              </div>
            </div>
@@ -469,12 +489,20 @@ const ShoppingListContent = ({ tripId }) => {
                          </span>
                        </div>
                      </div>
-                     <button 
-                       onClick={() => deleteItem(item.id)}
-                       className="text-gray-400 hover:text-red-500 p-1"
-                     >
-                       <Trash2 size={18} />
-                     </button>
+                     <div className="flex gap-1">
+                       <button 
+                         onClick={() => handleEditItem(item)}
+                         className="text-gray-400 hover:text-blue-500 p-1"
+                       >
+                         <Pencil size={18} />
+                       </button>
+                       <button 
+                         onClick={() => deleteItem(item.id)}
+                         className="text-gray-400 hover:text-red-500 p-1"
+                       >
+                         <Trash2 size={18} />
+                       </button>
+                     </div>
                    </div>
 
                    {/* Notes & Image */}
@@ -513,6 +541,14 @@ const ShoppingListContent = ({ tripId }) => {
            ))
          )}
        </div>
+
+       {/* Floating Action Button */}
+       <button
+         onClick={() => setShowAddForm(true)}
+         className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors z-40"
+       >
+         <Plus size={32} />
+       </button>
     </div>
   );
 };
