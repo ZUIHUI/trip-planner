@@ -8,6 +8,7 @@ import Checklist from './components/Checklist';
 import DaySelector from './components/DaySelector';
 import WeatherWidget from './components/WeatherWidget';
 import SettingsPanel from './components/SettingsPanel';
+import ShoppingListContent from './components/ShoppingListContent';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
@@ -504,6 +505,13 @@ const App = () => {
               )}
               </div>
             </>
+          )}
+
+          {/* Shopping Tab */}
+          {activeTab === 'shopping' && (
+            <div className="px-6 mt-4 pb-10">
+               <ShoppingListContent tripId="default-trip" />
+            </div>
           )}
         </div>
       </div>

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart } from 'lucide-react';
-// import { doc, onSnapshot } from 'firebase/firestore';
-// import { db } from '../services/firebase';
-// import { updateShoppingList } from '../services/tripService';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { updateShoppingList } from '../services/tripService';
 
 const ShoppingListContent = ({ tripId }) => {
-  // Temporary Debug Mode
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
@@ -26,27 +25,38 @@ const ShoppingListContent = ({ tripId }) => {
   // Categories for suggestion
   const categories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
   
-  /*
   // Load from Firestore
   useEffect(() => {
     if (!tripId) {
       setLoading(false);
       return;
     }
-    // ... firebase logic commented out for debugging
-    setLoading(false);
+
+    setLoading(true);
+    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        if (data.shoppingList) {
+          setItems(data.shoppingList);
+        }
+      }
+      setLoading(false);
+    }, (err) => {
+      console.error("Error fetching shopping list:", err);
+      setError("無法載入購物清單");
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [tripId]);
-  */
 
   const updateItems = (newItems) => {
     setItems(newItems);
-    /*
     if (tripId) {
       updateShoppingList(tripId, newItems).catch(err => {
         console.error("Failed to save shopping list:", err);
       });
     }
-    */
   };
 
   const handleImageChange = (e) => {
