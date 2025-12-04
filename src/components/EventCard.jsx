@@ -71,8 +71,8 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-bold text-gray-800 leading-tight break-words word-wrap">{event.title}</h3>
-        <p className="text-sm text-gray-500 mt-1 break-words word-wrap">{event.desc}</p>
+        <h3 className="text-lg font-bold text-gray-800 leading-tight break-words">{event.title}</h3>
+        <p className="text-sm text-gray-500 mt-1 break-words whitespace-pre-wrap">{event.desc}</p>
         
         {/* Location Info */}
         {event.location && (
