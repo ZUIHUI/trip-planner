@@ -9,6 +9,7 @@ import DaySelector from './components/DaySelector';
 import WeatherWidget from './components/WeatherWidget';
 import SettingsPanel from './components/SettingsPanel';
 import ShoppingListContent from './components/ShoppingListContent';
+import PackingListContent from './components/PackingListContent';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
@@ -433,12 +434,9 @@ const App = () => {
           {/* Packing Checklist Tab */}
           {activeTab === 'packing' && (
             <div className="px-6 space-y-6 pb-10 mt-4">
-              <Checklist
-                title="🧳 行李清單"
+              <PackingListContent
                 items={checklists?.packing || []}
-                onAddItem={(text) => handleAddChecklistItem('packing', text)}
-                onToggleItem={(id) => handleToggleChecklistItem('packing', id)}
-                onDeleteItem={(id) => handleDeleteChecklistItem('packing', id)}
+                onUpdate={(newItems) => setChecklists(prev => ({ ...prev, packing: newItems }))}
               />
             </div>
           )}

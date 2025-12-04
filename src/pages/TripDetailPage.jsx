@@ -9,6 +9,7 @@ import Checklist from '../components/Checklist';
 import DaySelector from '../components/DaySelector';
 import SettingsPanel from '../components/SettingsPanel';
 import ShoppingListContent from '../components/ShoppingListContent';
+import PackingListContent from '../components/PackingListContent';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
@@ -363,7 +364,7 @@ const TripDetailPage = () => {
             <div className="px-6 mt-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">🎒 打包清單</h3>
-                <Checklist
+                <PackingListContent
                   items={checklists.packing}
                   onUpdate={(newItems) =>
                     setChecklists(prev => ({ ...prev, packing: newItems }))
