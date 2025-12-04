@@ -15,9 +15,9 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   }[event.type] || MapPin;
 
   const styleClass = {
-    flight: 'bg-indigo-100 text-indigo-600', transport: 'bg-gray-100 text-gray-600',
+    flight: 'bg-brand-100 text-brand-600', transport: 'bg-gray-100 text-gray-600',
     sightseeing: 'bg-pink-100 text-pink-600', food: 'bg-orange-100 text-orange-600',
-    shopping: 'bg-emerald-100 text-emerald-600', hotel: 'bg-blue-100 text-blue-600'
+    shopping: 'bg-emerald-100 text-emerald-600', hotel: 'bg-brand-100 text-brand-600'
   }[event.type] || 'bg-gray-100 text-gray-600';
 
   const handleToggleMemo = (id) => {
@@ -40,7 +40,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
   return (
     <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 ml-3 group">
-      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white ${event.urgent ? 'border-red-500 bg-red-50' : 'border-blue-400'}`}></div>
+      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white ${event.urgent ? 'border-red-500 bg-red-50' : 'border-brand-400'}`}></div>
 
       {prevLocation && (
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
@@ -76,7 +76,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         
         {/* Location Info */}
         {event.location && (
-          <p className="text-sm text-blue-600 mt-2 flex items-center gap-1 font-medium">
+          <p className="text-sm text-brand-600 mt-2 flex items-center gap-1 font-medium">
             <MapPin size={14} />
             {event.location}
           </p>
@@ -86,9 +86,9 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
             {event.transport?.mode === 'flight' ? (
-              <Plane size={12} className="mr-1 text-blue-500" />
+              <Plane size={12} className="mr-1 text-brand-500" />
             ) : (
-              <Navigation size={12} className="mr-1 text-blue-500" />
+              <Navigation size={12} className="mr-1 text-brand-500" />
             )}
             {event.transport?.duration
               ? <span>{event.transport.duration} {event.transport.route && `• ${event.transport.route}`}</span>
@@ -97,7 +97,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           </div>
           <button
             onClick={() => onOpenGoogleMaps(prevLocation, event.location)}
-            className="flex items-center text-xs font-medium text-blue-600 hover:bg-blue-50 px-2 py-1 rounded border border-blue-100 transition-colors"
+            className="flex items-center text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded border border-brand-100 transition-colors"
           >
             <Map size={12} className="mr-1" />
             規劃路線
@@ -108,7 +108,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="mt-3">
           <button
             onClick={() => setShowMemos(!showMemos)}
-            className="flex items-center text-xs text-gray-500 font-medium hover:text-blue-600 transition-colors"
+            className="flex items-center text-xs text-gray-500 font-medium hover:text-brand-600 transition-colors"
           >
             <CheckSquare size={12} className="mr-1" />
             備忘錄 ({event.memos?.length || 0})
@@ -120,8 +120,8 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               <ul className="space-y-1 mb-2">
                 {event.memos?.map(memo => (
                   <li key={memo.id} className="flex items-start group/item gap-2">
-                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-blue-600 flex-shrink-0">
-                      {memo.done ? <CheckSquare size={14} className="text-blue-500" /> : <Square size={14} />}
+                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-brand-600 flex-shrink-0">
+                      {memo.done ? <CheckSquare size={14} className="text-brand-500" /> : <Square size={14} />}
                     </button>
                     <span className={`text-xs flex-1 break-words word-wrap overflow-wrap-break-word ${memo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{memo.text}</span>
                     <button onClick={() => deleteMemo(memo.id)} className="opacity-0 group-hover/item:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0">

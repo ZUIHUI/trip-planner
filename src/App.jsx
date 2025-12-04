@@ -72,6 +72,11 @@ const App = () => {
   const [enableGPS, setEnableGPS] = useState(false); // GPS 開關狀態
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // 設定面板開啟狀態
   const [draggedEventId, setDraggedEventId] = useState(null);
+  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('app_theme') || 'ocean');
+
+  useEffect(() => {
+    localStorage.setItem('app_theme', currentTheme);
+  }, [currentTheme]);
 
   // 取得設備GPS位置（受 enableGPS 控制）
   const { currentLocation, isLocating, locationError } = useDeviceLocation(enableGPS);
@@ -279,7 +284,7 @@ const App = () => {
       <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="inline-block">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
           </div>
           <p className="text-gray-600 font-medium">正在載入旅程...</p>
         </div>
@@ -288,7 +293,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans pb-20">
+    <div className="min-h-screen bg-gray-50 font-sans pb-20" data-theme={currentTheme}>
       <Header 
         details={tripDetails} 
         activeTab={activeTab}
@@ -348,7 +353,7 @@ const App = () => {
               )}
 
               {/* 預算總覽 */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm border border-blue-200">
+              <div className="bg-gradient-to-br from-brand-50 to-brand-100 p-4 rounded-xl shadow-sm border border-brand-200">
                 <h3 className="font-bold text-gray-800 mb-4">💰 預算總覽</h3>
                 {itinerary.some(day => day.events?.some(e => e.cost)) ? (
                   <div className="space-y-2">
@@ -359,12 +364,12 @@ const App = () => {
                         <div key={day.day} className="flex justify-between items-center px-3 py-2 bg-white rounded-lg shadow-sm">
                           <div className="flex-1">
                             <p className="text-sm font-medium text-gray-800">
-                              <span className="inline-block bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2">Day {day.day}</span>
+                              <span className="inline-block bg-brand-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2">Day {day.day}</span>
                               <span className="text-gray-600">{day.date} {day.weekday}</span>
                             </p>
                             <p className="text-xs text-gray-500 ml-0">{costItems} 個項目</p>
                           </div>
-                          <p className="text-base font-bold text-blue-600 ml-4">${dayTotal.toLocaleString()}</p>
+                          <p className="text-base font-bold text-brand-600 ml-4">${dayTotal.toLocaleString()}</p>
                         </div>
                       );
                     })}
@@ -424,7 +429,7 @@ const App = () => {
                             onDrop={(e) => handleDrop(e, event.id)}
                             className={`p-6 cursor-pointer transition-all relative ${
                               selectedEventId === event.id 
-                                ? 'bg-blue-50 border-l-4 border-blue-400' 
+                                ? 'bg-brand-50 border-l-4 border-brand-400' 
                                 : 'hover:bg-gray-50'
                             } ${draggedEventId === event.id ? 'opacity-50 bg-gray-100' : ''}`}
                             onClick={() => setSelectedEventId(event.id)}
@@ -520,7 +525,7 @@ const App = () => {
                         setEditingDetailsType('accommodation');
                         setIsEditDetailsModalOpen(true);
                       }}
-                      className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                      className="p-1 hover:bg-gray-100 rounded text-brand-600"
                     >
                       <Edit2 size={16} />
                     </button>
@@ -543,7 +548,7 @@ const App = () => {
                           setEditingDetailsType('outbound');
                           setIsEditDetailsModalOpen(true);
                         }}
-                        className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                        className="p-1 hover:bg-gray-100 rounded text-brand-600"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -560,7 +565,7 @@ const App = () => {
                           setEditingDetailsType('inbound');
                           setIsEditDetailsModalOpen(true);
                         }}
-                        className="p-1 hover:bg-gray-100 rounded text-blue-600"
+                        className="p-1 hover:bg-gray-100 rounded text-brand-600"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -588,7 +593,7 @@ const App = () => {
       {activeTab === 'itinerary' && (
         <button
           onClick={() => { setEditingEvent(null); setIsEditModalOpen(true); }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg hover:bg-brand-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
           title="新增行程"
         >
           <Plus size={28} />
@@ -634,6 +639,8 @@ const App = () => {
         onGPSToggle={() => setEnableGPS(!enableGPS)}
         travelers={tripDetails?.travelers || []}
         onUpdateTravelers={(newTravelers) => setTripDetails(prev => ({ ...prev, travelers: newTravelers }))}
+        currentTheme={currentTheme}
+        onThemeChange={setCurrentTheme}
       />
     </div>
   );

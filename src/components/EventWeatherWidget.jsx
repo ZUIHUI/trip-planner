@@ -32,7 +32,7 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-3 border border-sky-200 mb-3">
+      <div className="bg-gradient-to-r from-brand-50 to-brand-100 rounded-lg p-3 border border-brand-200 mb-3">
         <div className="flex items-center gap-2">
           <div className="text-xl animate-pulse">⏳</div>
           <span className="text-xs text-gray-600">載入天氣中...</span>
@@ -46,7 +46,7 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
   }
 
   return (
-    <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-3 border border-sky-200 mb-3">
+    <div className="bg-gradient-to-r from-brand-50 to-brand-100 rounded-lg p-3 border border-brand-200 mb-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="text-3xl">{weather.icon}</div>
@@ -59,7 +59,7 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
         {weather.precipitation !== undefined && weather.windSpeed !== undefined && (
           <div className="text-right flex items-center gap-2 text-xs text-gray-600">
             <div className="flex items-center gap-1">
-              <Droplets size={14} className="text-blue-500" />
+              <Droplets size={14} className="text-brand-500" />
               <span>{weather.precipitation}mm</span>
             </div>
             <div className="flex items-center gap-1">

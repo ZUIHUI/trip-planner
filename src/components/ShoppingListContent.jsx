@@ -257,7 +257,7 @@ const ShoppingListContent = ({ tripId }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
         <span className="ml-2 text-gray-500">載入購物清單中...</span>
       </div>
     );
@@ -302,7 +302,7 @@ const ShoppingListContent = ({ tripId }) => {
              placeholder="搜尋商品、店家或備註..."
              value={searchQuery}
              onChange={(e) => setSearchQuery(e.target.value)}
-             className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500"
+             className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500"
            />
            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
            {searchQuery && (
@@ -353,13 +353,13 @@ const ShoppingListContent = ({ tripId }) => {
                  value={newCategoryName}
                  onChange={(e) => setNewCategoryName(e.target.value)}
                  placeholder="新分類名稱"
-                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
                  onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
                />
                <button 
                  onClick={handleAddCategory}
                  disabled={!newCategoryName.trim()}
-                 className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                 className="bg-brand-600 text-white px-3 py-2 rounded-lg hover:bg-brand-700 disabled:opacity-50"
                >
                  <Plus size={18} />
                </button>
@@ -422,7 +422,7 @@ const ShoppingListContent = ({ tripId }) => {
                    type="text" 
                    value={formData.name}
                    onChange={e => setFormData({...formData, name: e.target.value})}
-                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 outline-none"
                    placeholder="例如: EVE止痛藥"
                  />
                </div>
@@ -507,7 +507,7 @@ const ShoppingListContent = ({ tripId }) => {
 
                <button 
                  onClick={handleSaveItem}
-                 className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors mt-2"
+                 className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors mt-2"
                >
                  {editingId ? '儲存變更' : '確認新增'}
                </button>
@@ -552,7 +552,7 @@ const ShoppingListContent = ({ tripId }) => {
                      type="checkbox" 
                      checked={item.purchased}
                      onChange={() => togglePurchased(item.id)}
-                     className="w-6 h-6 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                     className="w-6 h-6 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                    />
                  </div>
 
@@ -580,7 +580,7 @@ const ShoppingListContent = ({ tripId }) => {
                      <div className="flex gap-1">
                        <button 
                          onClick={() => handleEditItem(item)}
-                         className="text-gray-400 hover:text-blue-500 p-1"
+                         className="text-gray-400 hover:text-brand-500 p-1"
                        >
                          <Pencil size={18} />
                        </button>
@@ -599,7 +599,7 @@ const ShoppingListContent = ({ tripId }) => {
                        {item.notes && (
                          <div className="text-sm text-gray-600 break-words">
                            {item.notes.includes('http') ? (
-                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline flex items-center gap-1">
                                <ExternalLink size={14} />
                                連結
                              </a>
@@ -633,7 +633,7 @@ const ShoppingListContent = ({ tripId }) => {
        {/* Floating Action Button */}
        <button
          onClick={() => setShowAddForm(true)}
-         className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors z-40"
+         className="fixed bottom-24 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-700 transition-colors z-40"
        >
          <Plus size={32} />
        </button>

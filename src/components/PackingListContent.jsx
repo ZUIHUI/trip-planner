@@ -9,7 +9,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   const [draggedItemId, setDraggedItemId] = useState(null);
 
   const categories = [
-    { id: 'suitcase', name: '行李箱', icon: <Luggage size={20} />, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+    { id: 'suitcase', name: '行李箱', icon: <Luggage size={20} />, color: 'text-brand-600', bg: 'bg-brand-50', border: 'border-brand-200' },
     { id: 'carryOn', name: '隨身包', icon: <Briefcase size={20} />, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
     { id: 'clothing', name: '每日衣服', icon: <Shirt size={20} />, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
     { id: 'other', name: '其他', icon: <Package size={20} />, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200' }
@@ -218,7 +218,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                     checked={item.done || false}
                     onChange={() => handleToggleItem(item.id)}
                     className={`w-5 h-5 rounded border-gray-300 focus:ring-offset-0 cursor-pointer ${
-                      activeCategory === 'suitcase' ? 'text-blue-600 focus:ring-blue-500' :
+                      activeCategory === 'suitcase' ? 'text-brand-600 focus:ring-brand-500' :
                       activeCategory === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
                       activeCategory === 'clothing' ? 'text-purple-600 focus:ring-purple-500' :
                       'text-gray-600 focus:ring-gray-500'
@@ -251,7 +251,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               <select
                 value={selectedTravelerId}
                 onChange={(e) => setSelectedTravelerId(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 max-w-[100px]"
+                className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-brand-400 max-w-[100px]"
               >
                 <option value="">共用</option>
                 {travelers.map(t => (
@@ -263,7 +263,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               <input
                 type="text"
                 placeholder={`+ 新增至${currentCategory.name}...`}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-blue-400 transition-colors"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleAddItem(e.target.value);

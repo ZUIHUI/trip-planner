@@ -48,7 +48,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="name"
               value={formData.name || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：新大久保 / 新宿御苑 V"
             />
           </div>
@@ -59,7 +59,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="address"
               value={formData.address || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：新大久保站"
             />
           </div>
@@ -70,7 +70,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="checkIn"
               value={formData.checkIn || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：2/23 16:00"
             />
           </div>
@@ -81,7 +81,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="checkOut"
               value={formData.checkOut || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：2/28 10:00"
             />
           </div>
@@ -97,7 +97,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="code"
               value={formData.code || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：JX802"
             />
           </div>
@@ -108,7 +108,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="airline"
               value={formData.airline || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：星宇航空"
             />
           </div>
@@ -119,7 +119,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="date"
               value={formData.date || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：2/23"
             />
           </div>
@@ -130,7 +130,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               name="time"
               value={formData.time || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
               placeholder="例：14:40 抵達"
             />
           </div>
@@ -142,7 +142,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
                 name="dep"
                 value={formData.dep || ''}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="例：TPE"
               />
             </div>
@@ -153,7 +153,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
                 name="arr"
                 value={formData.arr || ''}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="例：NRT"
               />
             </div>
@@ -164,7 +164,7 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
       <div className="flex gap-2 pt-4">
         <button
           type="submit"
-          className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium"
+          className="flex-1 bg-brand-600 text-white py-2 rounded-lg hover:bg-brand-700 font-medium"
         >
           保存
         </button>

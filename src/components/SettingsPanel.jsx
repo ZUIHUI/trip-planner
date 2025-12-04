@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
-import { X, MapPin, Zap, Users, Plus, Trash2 } from 'lucide-react';
+import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check } from 'lucide-react';
 
-const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers }) => {
+const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange }) => {
   const [newTravelerName, setNewTravelerName] = useState('');
 
   if (!isOpen) return null;
+
+  const themes = [
+    { id: 'ocean', name: '海洋藍', color: 'bg-blue-500' },
+    { id: 'sakura', name: '櫻花粉', color: 'bg-rose-500' },
+    { id: 'forest', name: '森林綠', color: 'bg-emerald-500' },
+    { id: 'sunset', name: '夕陽橘', color: 'bg-orange-500' },
+    { id: 'lavender', name: '薰衣草', color: 'bg-violet-500' },
+  ];
 
   const handleAddTraveler = () => {
     if (newTravelerName.trim()) {
@@ -39,6 +47,31 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
 
         {/* Settings Content */}
         <div className="p-6 space-y-6">
+          {/* 主題設定 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Palette size={20} className="text-brand-600" />
+              外觀主題
+            </h3>
+            <div className="grid grid-cols-5 gap-3">
+              {themes.map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => onThemeChange(theme.id)}
+                  className={`
+                    relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all
+                    ${currentTheme === theme.id ? 'border-brand-500 bg-brand-50' : 'border-transparent hover:bg-gray-50'}
+                  `}
+                >
+                  <div className={`w-10 h-10 rounded-full ${theme.color} shadow-sm flex items-center justify-center`}>
+                    {currentTheme === theme.id && <Check size={16} className="text-white" />}
+                  </div>
+                  <span className="text-xs font-medium text-gray-600">{theme.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* 成員設定 */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -88,7 +121,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
           {/* GPS 設定 */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <MapPin size={20} className="text-blue-600" />
+              <MapPin size={20} className="text-brand-600" />
               位置設定
             </h3>
 
@@ -127,9 +160,9 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               天氣資訊優先級
             </h3>
 
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 space-y-3">
+            <div className="bg-brand-50 rounded-xl p-4 border border-brand-200 space-y-3">
               <div className="flex gap-3">
-                <span className="font-bold text-blue-700 text-lg flex-shrink-0">1</span>
+                <span className="font-bold text-brand-700 text-lg flex-shrink-0">1</span>
                 <div>
                   <p className="font-bold text-gray-900">選中的行程地點</p>
                   <p className="text-sm text-gray-600">點擊行程卡片時顯示該地點的天氣</p>
@@ -137,7 +170,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               </div>
 
               <div className="flex gap-3">
-                <span className="font-bold text-blue-700 text-lg flex-shrink-0">2</span>
+                <span className="font-bold text-brand-700 text-lg flex-shrink-0">2</span>
                 <div>
                   <p className="font-bold text-gray-900">第一個行程的地點</p>
                   <p className="text-sm text-gray-600">未選中時顯示當天第一個行程的天氣</p>
@@ -145,7 +178,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               </div>
 
               <div className="flex gap-3">
-                <span className="font-bold text-blue-700 text-lg flex-shrink-0">3</span>
+                <span className="font-bold text-brand-700 text-lg flex-shrink-0">3</span>
                 <div>
                   <p className="font-bold text-gray-900">當前 GPS 位置</p>
                   <p className="text-sm text-gray-600">GPS 啟用時顯示設備當前位置的天氣</p>
@@ -153,7 +186,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               </div>
 
               <div className="flex gap-3">
-                <span className="font-bold text-blue-700 text-lg flex-shrink-0">4</span>
+                <span className="font-bold text-brand-700 text-lg flex-shrink-0">4</span>
                 <div>
                   <p className="font-bold text-gray-900">住宿地點</p>
                   <p className="text-sm text-gray-600">最終備用位置，顯示住宿地點的天氣</p>

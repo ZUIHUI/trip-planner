@@ -71,7 +71,7 @@ const WeatherWidget = ({
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
+      <div className="bg-gradient-to-r from-brand-50 to-cyan-50 rounded-xl p-4 border border-brand-100 mb-4">
         <div className="flex items-center gap-3">
           <div className="text-3xl animate-pulse">⏳</div>
           <p className="text-sm text-gray-600">正在載入 {displayLocation} 的天氣...</p>
@@ -110,7 +110,7 @@ const WeatherWidget = ({
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border border-blue-100 mb-4">
+    <div className="bg-gradient-to-r from-brand-50 to-cyan-50 rounded-xl p-4 border border-brand-100 mb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />

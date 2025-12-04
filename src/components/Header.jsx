@@ -14,7 +14,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
   return (
     <div className="bg-white sticky top-0 z-30 shadow-sm">
       {/* Main Header Content - Gradient Background */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white pt-12 pb-6 px-6 rounded-b-[2rem] shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 text-white pt-12 pb-6 px-6 rounded-b-[2rem] shadow-lg relative overflow-hidden transition-colors duration-500">
         {/* Decorative Background Elements */}
         <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 pointer-events-none">
           <Plane size={200} />
@@ -26,13 +26,13 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
         {/* Top Bar: Date & Actions */}
         <div className="relative flex justify-between items-center mb-4">
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-sm">
-            <Calendar size={14} className="text-blue-200" />
-            <span className="text-xs font-medium text-blue-50 tracking-wide">{details?.dates || '未設定日期'}</span>
+            <Calendar size={14} className="text-brand-100" />
+            <span className="text-xs font-medium text-brand-50 tracking-wide">{details?.dates || '未設定日期'}</span>
           </div>
           
           <div className="flex items-center gap-3">
             {isSaving && (
-              <div className="flex items-center gap-1.5 text-xs font-medium text-blue-200 bg-black/20 px-3 py-1 rounded-full animate-pulse">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-brand-200 bg-black/20 px-3 py-1 rounded-full animate-pulse">
                 <RefreshCw size={12} className="animate-spin" />
                 儲存中
               </div>
@@ -52,9 +52,9 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
           <h1 className="text-3xl font-bold mb-2 tracking-tight leading-tight drop-shadow-md">
             {details?.title || '我的旅程'}
           </h1>
-          <div className="flex items-center gap-2 text-blue-100/90 text-sm font-medium">
+          <div className="flex items-center gap-2 text-brand-100/90 text-sm font-medium">
             <div className="p-1 bg-white/10 rounded-md">
-              <Home size={14} className="text-blue-200" />
+              <Home size={14} className="text-brand-200" />
             </div>
             <span className="truncate max-w-[250px]">{details?.accommodation?.name || '尚未設定住宿'}</span>
           </div>
@@ -74,7 +74,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
                 className={`
                   flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all snap-start
                   ${isActive 
-                    ? 'bg-blue-50 text-blue-600 shadow-sm scale-105 ring-1 ring-blue-100' 
+                    ? 'bg-brand-50 text-brand-600 shadow-sm scale-105 ring-1 ring-brand-100' 
                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                   }
                 `}
