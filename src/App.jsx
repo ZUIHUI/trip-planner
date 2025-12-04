@@ -355,16 +355,6 @@ const App = () => {
 
                 {/* Events Section */}
                 <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20">
-                  {/* Day Header */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Day {currentDayData?.day}
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {currentDayData?.date} ({currentDayData?.weekday})
-                    </p>
-                  </div>
-
                   {/* Events List */}
                   <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     {currentDayData?.events?.length > 0 ? (
