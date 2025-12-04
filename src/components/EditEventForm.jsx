@@ -71,6 +71,7 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
             <option value="walk">步行</option>
             <option value="taxi">計程車/Uber</option>
             <option value="bus">巴士</option>
+            <option value="flight">飛機</option>
           </select>
         </div>
         <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white border border-blue-200 rounded p-1.5 text-xs" />

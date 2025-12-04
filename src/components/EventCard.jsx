@@ -85,7 +85,11 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         {/* Transport Info & Google Map Button */}
         <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
-            <Navigation size={12} className="mr-1 text-blue-500" />
+            {event.transport?.mode === 'flight' ? (
+              <Plane size={12} className="mr-1 text-blue-500" />
+            ) : (
+              <Navigation size={12} className="mr-1 text-blue-500" />
+            )}
             {event.transport?.duration
               ? <span>{event.transport.duration} {event.transport.route && `• ${event.transport.route}`}</span>
               : <span className="text-gray-400">未設定交通</span>
