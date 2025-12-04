@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plane, Home, Settings, ShoppingCart } from 'lucide-react';
+import { Plane, Home, Settings } from 'lucide-react';
 
-const Header = ({ details, activeTab, onTabChange, onSettingsOpen, onShoppingOpen }) => (
+const Header = ({ details, activeTab, onTabChange, onSettingsOpen }) => (
   <div className="bg-gradient-to-r from-blue-600 to-indigo-700 pt-12 pb-3 px-6 text-white rounded-b-3xl shadow-lg relative overflow-hidden">
     <div className="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10">
       <Plane size={150} />
@@ -37,12 +37,6 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, onShoppingOpe
       <button onClick={() => onTabChange('flights')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
         activeTab === 'flights' ? 'bg-white text-blue-600' : 'bg-blue-500 text-white hover:bg-blue-400'
       }`}>機票/住宿</button>
-      <button onClick={() => onTabChange('shopping')} className={`rounded-lg font-bold transition-colors text-sm px-4 py-2 ${
-        activeTab === 'shopping' ? 'bg-white text-orange-600' : 'bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:from-amber-500 hover:to-orange-600'
-      } flex items-center gap-1`} title="打開購物清單">
-        <ShoppingCart size={18} />
-        購物
-      </button>
     </div>
   </div>
 );
