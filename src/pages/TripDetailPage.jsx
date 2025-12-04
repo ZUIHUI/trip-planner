@@ -282,12 +282,6 @@ const TripDetailPage = () => {
                   </div>
                 </div>
 
-                <div className="px-6 mt-2 flex justify-between items-center space-x-2">
-                  <div className="flex-1 py-2 text-xs bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium shadow-sm text-center">
-                    🔄 自動同步中...
-                  </div>
-                </div>
-
                 <div className="mt-4">
                   {currentDayData && currentDayData.events.length === 0 ? (
                     <div className="text-center py-10 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">

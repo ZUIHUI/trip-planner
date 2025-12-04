@@ -78,6 +78,45 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
     setDraggedItemId(null);
   };
 
+  // Touch Support for Mobile Drag and Drop
+  const handleTouchStart = (e, id) => {
+    setDraggedItemId(id);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggedItemId) return;
+    // Prevent scrolling while dragging via the handle
+    if (e.cancelable && e.target.closest('.touch-none')) {
+      e.preventDefault();
+    }
+
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!target) return;
+
+    const targetRow = target.closest('[data-item-id]');
+    if (targetRow) {
+      const targetId = parseInt(targetRow.getAttribute('data-item-id'));
+      
+      // Only reorder if we are over a different item
+      if (targetId && targetId !== draggedItemId) {
+        const sourceIndex = items.findIndex(i => i.id === draggedItemId);
+        const targetIndex = items.findIndex(i => i.id === targetId);
+
+        if (sourceIndex !== -1 && targetIndex !== -1) {
+          const newItems = [...items];
+          const [movedItem] = newItems.splice(sourceIndex, 1);
+          newItems.splice(targetIndex, 0, movedItem);
+          onUpdate(newItems);
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setDraggedItemId(null);
+  };
+
   // Filter items based on active category and day (if clothing)
   const filteredItems = items.filter(item => {
     // Handle legacy items without category (default to 'other')
@@ -157,6 +196,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               filteredItems.map(item => (
                 <div 
                   key={item.id} 
+                  data-item-id={item.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, item.id)}
                   onDragOver={handleDragOver}
@@ -165,7 +205,12 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                     draggedItemId === item.id ? 'opacity-50 bg-gray-100' : ''
                   }`}
                 >
-                  <div className="cursor-grab text-gray-300 hover:text-gray-500 flex-shrink-0">
+                  <div 
+                    className="cursor-grab text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none p-2 -ml-2"
+                    onTouchStart={(e) => handleTouchStart(e, item.id)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                  >
                     <GripVertical size={16} />
                   </div>
                   <input

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn, Pencil } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn, Pencil, GripVertical } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { updateShoppingList, updateShoppingCategories } from '../services/tripService';
@@ -30,6 +30,7 @@ const ShoppingListContent = ({ tripId }) => {
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [draggedItemId, setDraggedItemId] = useState(null);
   
   // Load from Firestore
   useEffect(() => {
@@ -169,6 +170,73 @@ const ShoppingListContent = ({ tripId }) => {
     setImagePreview(null);
     setEditingId(null);
     setShowAddForm(false);
+  };
+
+  // Drag and Drop Handlers
+  const handleDragStart = (e, id) => {
+    setDraggedItemId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetId) => {
+    e.preventDefault();
+    if (!draggedItemId || draggedItemId === targetId) return;
+
+    const sourceIndex = items.findIndex(i => i.id === draggedItemId);
+    const targetIndex = items.findIndex(i => i.id === targetId);
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const newItems = [...items];
+    const [movedItem] = newItems.splice(sourceIndex, 1);
+    newItems.splice(targetIndex, 0, movedItem);
+
+    updateItems(newItems);
+    setDraggedItemId(null);
+  };
+
+  // Touch Support for Mobile Drag and Drop
+  const handleTouchStart = (e, id) => {
+    setDraggedItemId(id);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggedItemId) return;
+    // Prevent scrolling while dragging via the handle
+    if (e.cancelable && e.target.closest('.touch-none')) {
+      e.preventDefault();
+    }
+
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!target) return;
+
+    const targetRow = target.closest('[data-item-id]');
+    if (targetRow) {
+      const targetId = parseInt(targetRow.getAttribute('data-item-id'));
+      
+      // Only reorder if we are over a different item
+      if (targetId && targetId !== draggedItemId) {
+        const sourceIndex = items.findIndex(i => i.id === draggedItemId);
+        const targetIndex = items.findIndex(i => i.id === targetId);
+
+        if (sourceIndex !== -1 && targetIndex !== -1) {
+          const newItems = [...items];
+          const [movedItem] = newItems.splice(sourceIndex, 1);
+          newItems.splice(targetIndex, 0, movedItem);
+          updateItems(newItems);
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setDraggedItemId(null);
   };
 
   // Safe filter
@@ -456,8 +524,28 @@ const ShoppingListContent = ({ tripId }) => {
            </div>
          ) : (
            filteredItems.map(item => (
-             <div key={item.id} className={`bg-white p-4 rounded-xl shadow-sm border ${item.purchased ? 'border-green-200 bg-green-50/30' : 'border-gray-100'} transition-all`}>
+             <div 
+               key={item.id} 
+               data-item-id={item.id}
+               draggable
+               onDragStart={(e) => handleDragStart(e, item.id)}
+               onDragOver={handleDragOver}
+               onDrop={(e) => handleDrop(e, item.id)}
+               className={`bg-white p-4 rounded-xl shadow-sm border transition-all ${
+                 item.purchased ? 'border-green-200 bg-green-50/30' : 'border-gray-100'
+               } ${draggedItemId === item.id ? 'opacity-50 bg-gray-100' : ''}`}
+             >
                <div className="flex gap-4">
+                 {/* Drag Handle */}
+                 <div 
+                   className="cursor-grab text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none flex items-center -ml-2 p-2"
+                   onTouchStart={(e) => handleTouchStart(e, item.id)}
+                   onTouchMove={handleTouchMove}
+                   onTouchEnd={handleTouchEnd}
+                 >
+                   <GripVertical size={20} />
+                 </div>
+
                  {/* Checkbox */}
                  <div className="pt-1">
                    <input 
