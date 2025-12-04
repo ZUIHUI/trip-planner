@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Briefcase, Luggage, Shirt, Package, User } from 'lucide-react';
+import { Plus, Trash2, Briefcase, Luggage, Shirt, Package, User, GripVertical } from 'lucide-react';
 import DaySelector from './DaySelector';
 
 const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [] }) => {
   const [activeCategory, setActiveCategory] = useState('suitcase');
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedTravelerId, setSelectedTravelerId] = useState(''); // '' means shared/all
+  const [draggedItemId, setDraggedItemId] = useState(null);
 
   const categories = [
     { id: 'suitcase', name: '行李箱', icon: <Luggage size={20} />, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
@@ -47,6 +48,34 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
       const newItems = items.filter(item => item.id !== id);
       onUpdate(newItems);
     }
+  };
+
+  const handleDragStart = (e, id) => {
+    setDraggedItemId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    // Make the drag image transparent or custom if needed, but default is usually fine
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetId) => {
+    e.preventDefault();
+    if (!draggedItemId || draggedItemId === targetId) return;
+
+    const sourceIndex = items.findIndex(i => i.id === draggedItemId);
+    const targetIndex = items.findIndex(i => i.id === targetId);
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const newItems = [...items];
+    const [movedItem] = newItems.splice(sourceIndex, 1);
+    newItems.splice(targetIndex, 0, movedItem);
+
+    onUpdate(newItems);
+    setDraggedItemId(null);
   };
 
   // Filter items based on active category and day (if clothing)
@@ -126,7 +155,19 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               </p>
             ) : (
               filteredItems.map(item => (
-                <div key={item.id} className="flex items-center gap-3 group hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                <div 
+                  key={item.id} 
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, item.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, item.id)}
+                  className={`flex items-center gap-3 group hover:bg-gray-50 p-2 rounded-lg transition-colors ${
+                    draggedItemId === item.id ? 'opacity-50 bg-gray-100' : ''
+                  }`}
+                >
+                  <div className="cursor-grab text-gray-300 hover:text-gray-500 flex-shrink-0">
+                    <GripVertical size={16} />
+                  </div>
                   <input
                     type="checkbox"
                     checked={item.done || false}
