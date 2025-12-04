@@ -169,6 +169,9 @@ const TripDetailPage = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-red-100 p-2 text-center text-red-600 font-bold">
+            DEBUG: Current Tab is [{activeTab}]
+        </div>
         <div className="pt-4">
           {activeTab === 'summary' && (
             <div className="px-6 space-y-4 pb-10">
@@ -444,8 +447,9 @@ const TripDetailPage = () => {
 
           {activeTab === 'shopping' && (
             <div className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-2xl font-bold mb-4">購物清單測試</h2>
-              <ShoppingListContent tripId={tripId} />
+              <h2 className="text-2xl font-bold mb-4">購物清單測試 (Tab: {activeTab})</h2>
+              {/* <ShoppingListContent tripId={tripId} /> */}
+              <p>如果看到這行字，表示分頁切換成功，但元件可能有問題。</p>
             </div>
           )}
         </div>
