@@ -13,7 +13,7 @@ import PackingListContent from './components/PackingListContent';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
-import { Plus, Edit2 } from 'lucide-react';
+import { Plus, Edit2, GripVertical } from 'lucide-react';
 
 // 預設資料
 const initialTripDetails = {
@@ -71,6 +71,7 @@ const App = () => {
   const [editingDetailsType, setEditingDetailsType] = useState(null); // 'accommodation', 'outbound', 'inbound'
   const [enableGPS, setEnableGPS] = useState(false); // GPS 開關狀態
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // 設定面板開啟狀態
+  const [draggedEventId, setDraggedEventId] = useState(null);
 
   // 取得設備GPS位置（受 enableGPS 控制）
   const { currentLocation, isLocating, locationError } = useDeviceLocation(enableGPS);
@@ -107,19 +108,26 @@ const App = () => {
   const handleSaveEvent = useCallback((eventData) => {
     setItinerary(prev => prev.map(day => {
       if (day.day === selectedDay) {
+        let newEvents;
         if (editingEvent) {
           // 編輯現有事件
-          return {
-            ...day,
-            events: day.events.map(e => e.id === editingEvent.id ? { ...eventData, id: e.id, memos: e.memos } : e)
-          };
+          newEvents = day.events.map(e => e.id === editingEvent.id ? { ...eventData, id: e.id, memos: e.memos } : e);
         } else {
           // 新增事件
-          return {
-            ...day,
-            events: [...(day.events || []), { ...eventData, id: Date.now(), memos: [] }]
-          };
+          newEvents = [...(day.events || []), { ...eventData, id: Date.now(), memos: [] }];
         }
+
+        // 根據時間排序
+        newEvents.sort((a, b) => {
+          const timeA = a.time || '';
+          const timeB = b.time || '';
+          return timeA.localeCompare(timeB);
+        });
+
+        return {
+          ...day,
+          events: newEvents
+        };
       }
       return day;
     }));
@@ -190,6 +198,80 @@ const App = () => {
       ...prev,
       [type]: prev[type].filter(item => item.id !== id)
     }));
+  };
+
+  // Drag and Drop Handlers for Itinerary
+  const handleDragStart = (e, id) => {
+    setDraggedEventId(id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetId) => {
+    e.preventDefault();
+    if (!draggedEventId || draggedEventId === targetId) return;
+
+    setItinerary(prev => prev.map(day => {
+      if (day.day === selectedDay) {
+        const events = [...day.events];
+        const sourceIndex = events.findIndex(e => e.id === draggedEventId);
+        const targetIndex = events.findIndex(e => e.id === targetId);
+
+        if (sourceIndex !== -1 && targetIndex !== -1) {
+          const [movedEvent] = events.splice(sourceIndex, 1);
+          events.splice(targetIndex, 0, movedEvent);
+          return { ...day, events };
+        }
+      }
+      return day;
+    }));
+    setDraggedEventId(null);
+  };
+
+  // Touch Support for Mobile Drag and Drop
+  const handleTouchStart = (e, id) => {
+    setDraggedEventId(id);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggedEventId) return;
+    if (e.cancelable && e.target.closest('.touch-none')) {
+      e.preventDefault();
+    }
+
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!target) return;
+
+    const targetRow = target.closest('[data-event-id]');
+    if (targetRow) {
+      const targetId = parseInt(targetRow.getAttribute('data-event-id'));
+      
+      if (targetId && targetId !== draggedEventId) {
+        setItinerary(prev => prev.map(day => {
+          if (day.day === selectedDay) {
+            const events = [...day.events];
+            const sourceIndex = events.findIndex(e => e.id === draggedEventId);
+            const targetIndex = events.findIndex(e => e.id === targetId);
+
+            if (sourceIndex !== -1 && targetIndex !== -1) {
+              const [movedEvent] = events.splice(sourceIndex, 1);
+              events.splice(targetIndex, 0, movedEvent);
+              return { ...day, events };
+            }
+          }
+          return day;
+        }));
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setDraggedEventId(null);
   };
 
   if (isLoading) {
@@ -335,21 +417,39 @@ const App = () => {
                         {currentDayData.events.map((event, idx) => (
                           <div 
                             key={event.id} 
-                            className={`p-6 cursor-pointer transition-all ${
+                            data-event-id={event.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, event.id)}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, event.id)}
+                            className={`p-6 cursor-pointer transition-all relative ${
                               selectedEventId === event.id 
                                 ? 'bg-blue-50 border-l-4 border-blue-400' 
                                 : 'hover:bg-gray-50'
-                            }`}
+                            } ${draggedEventId === event.id ? 'opacity-50 bg-gray-100' : ''}`}
                             onClick={() => setSelectedEventId(event.id)}
                           >
-                            <EventCard
-                              event={event}
-                              prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
-                              onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
-                              onDelete={handleDeleteEvent}
-                              onUpdateMemos={handleUpdateMemos}
-                              onOpenGoogleMaps={handleOpenGoogleMaps}
-                            />
+                            {/* Drag Handle */}
+                            <div 
+                              className="absolute left-2 top-1/2 transform -translate-y-1/2 cursor-grab text-gray-300 hover:text-gray-500 touch-none p-2 z-10"
+                              onTouchStart={(e) => handleTouchStart(e, event.id)}
+                              onTouchMove={handleTouchMove}
+                              onTouchEnd={handleTouchEnd}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <GripVertical size={20} />
+                            </div>
+                            
+                            <div className="pl-6">
+                              <EventCard
+                                event={event}
+                                prevLocation={idx > 0 ? currentDayData.events[idx - 1].location : tripDetails?.accommodation?.address}
+                                onEdit={(e) => { setEditingEvent(e); setIsEditModalOpen(true); }}
+                                onDelete={handleDeleteEvent}
+                                onUpdateMemos={handleUpdateMemos}
+                                onOpenGoogleMaps={handleOpenGoogleMaps}
+                              />
+                            </div>
                           </div>
                         ))}
                       </div>
