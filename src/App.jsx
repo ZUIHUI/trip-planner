@@ -439,6 +439,7 @@ const App = () => {
                 items={checklists?.packing || []}
                 onUpdate={(newItems) => setChecklists(prev => ({ ...prev, packing: newItems }))}
                 travelers={tripDetails?.travelers || []}
+                itinerary={itinerary}
               />
             </div>
           )}

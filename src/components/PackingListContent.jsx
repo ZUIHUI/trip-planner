@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Briefcase, Luggage, Shirt, Package, User } from 'lucide-react';
+import DaySelector from './DaySelector';
 
-const PackingListContent = ({ items = [], onUpdate, travelers = [] }) => {
-  const [newItemText, setNewItemText] = useState('');
+const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [] }) => {
+  const [activeCategory, setActiveCategory] = useState('suitcase');
+  const [selectedDay, setSelectedDay] = useState(1);
   const [selectedTravelerId, setSelectedTravelerId] = useState(''); // '' means shared/all
 
   const categories = [
@@ -18,15 +20,16 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [] }) => {
     return traveler ? traveler.name : null;
   };
 
-  const handleAddItem = (category, text) => {
+  const handleAddItem = (text) => {
     if (!text.trim()) return;
     
     const newItem = {
       id: Date.now(),
       text: text,
       done: false,
-      category: category,
-      assignedTo: selectedTravelerId || null
+      category: activeCategory,
+      assignedTo: selectedTravelerId || null,
+      day: activeCategory === 'clothing' ? selectedDay : null
     };
     
     onUpdate([...items, newItem]);
@@ -46,103 +49,149 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [] }) => {
     }
   };
 
-  // Group items by category
-  const getItemsByCategory = (catId) => {
-    return items.filter(item => {
-      if (catId === 'other') {
-        return item.category === 'other' || !item.category; // Handle legacy items
-      }
-      return item.category === catId;
-    });
-  };
+  // Filter items based on active category and day (if clothing)
+  const filteredItems = items.filter(item => {
+    // Handle legacy items without category (default to 'other')
+    const itemCategory = item.category || 'other';
+    
+    if (activeCategory === 'other') {
+      return itemCategory === 'other';
+    }
+    
+    if (activeCategory === 'clothing') {
+      // For clothing, match category AND day
+      // If item has no day (legacy), maybe show in Day 1?
+      const itemDay = item.day || 1;
+      return itemCategory === 'clothing' && itemDay === selectedDay;
+    }
+    
+    return itemCategory === activeCategory;
+  });
+
+  const currentCategory = categories.find(c => c.id === activeCategory);
 
   return (
-    <div className="space-y-6">
-      {/* Global Traveler Filter/Selector could go here if we wanted to filter the view */}
-      
-      {categories.map(cat => (
-        <div key={cat.id} className={`rounded-xl shadow-sm border ${cat.border} overflow-hidden`}>
-          <div className={`${cat.bg} p-4 border-b ${cat.border} flex items-center gap-2`}>
-            <span className={cat.color}>{cat.icon}</span>
-            <h3 className={`font-bold ${cat.color}`}>{cat.name}</h3>
-            <span className="ml-auto text-xs font-medium px-2 py-1 bg-white/50 rounded-full text-gray-600">
-              {getItemsByCategory(cat.id).filter(i => i.done).length} / {getItemsByCategory(cat.id).length}
-            </span>
-          </div>
-          
-          <div className="p-4 bg-white">
-            <div className="space-y-2 mb-4">
-              {getItemsByCategory(cat.id).length === 0 ? (
-                <p className="text-sm text-gray-400 italic text-center py-2">尚無項目</p>
-              ) : (
-                getItemsByCategory(cat.id).map(item => (
-                  <div key={item.id} className="flex items-center gap-3 group hover:bg-gray-50 p-2 rounded-lg transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={item.done || false}
-                      onChange={() => handleToggleItem(item.id)}
-                      className={`w-5 h-5 rounded border-gray-300 focus:ring-offset-0 cursor-pointer ${
-                        cat.id === 'suitcase' ? 'text-blue-600 focus:ring-blue-500' :
-                        cat.id === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
-                        cat.id === 'clothing' ? 'text-purple-600 focus:ring-purple-500' :
-                        'text-gray-600 focus:ring-gray-500'
-                      }`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                        <span className="truncate">{item.text}</span>
-                        {item.assignedTo && (
-                          <span className="flex-shrink-0 text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
-                            <User size={10} />
-                            {getTravelerName(item.assignedTo) || '未知'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteItem(item.id)}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-1"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
+    <div className="space-y-4">
+      {/* Category Tabs */}
+      <div className="flex space-x-1 overflow-x-auto pb-2 no-scrollbar">
+        {categories.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold whitespace-nowrap transition-colors ${
+              activeCategory === cat.id 
+                ? `${cat.bg} ${cat.color} border ${cat.border}` 
+                : 'bg-white text-gray-500 hover:bg-gray-50 border border-transparent'
+            }`}
+          >
+            {cat.icon}
+            {cat.name}
+          </button>
+        ))}
+      </div>
 
-            <div className="flex gap-2">
-              {travelers.length > 0 && (
-                <select
-                  value={selectedTravelerId}
-                  onChange={(e) => setSelectedTravelerId(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 max-w-[100px]"
-                >
-                  <option value="">共用</option>
-                  {travelers.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              )}
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder={`+ 新增至${cat.name}...`}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-blue-400 transition-colors"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddItem(cat.id, e.target.value);
-                      e.target.value = '';
-                    }
-                  }}
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                  <Plus size={16} />
+      {/* Day Selector for Clothing */}
+      {activeCategory === 'clothing' && (
+        <div className="mb-4">
+          <DaySelector
+            itinerary={itinerary}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+          />
+        </div>
+      )}
+
+      {/* Content Area */}
+      <div className={`bg-white rounded-xl shadow-sm border ${currentCategory.border} overflow-hidden`}>
+        <div className={`${currentCategory.bg} p-4 border-b ${currentCategory.border} flex items-center justify-between`}>
+          <div className="flex items-center gap-2">
+            <span className={currentCategory.color}>{currentCategory.icon}</span>
+            <h3 className={`font-bold ${currentCategory.color}`}>
+              {currentCategory.name} 
+              {activeCategory === 'clothing' && ` (Day ${selectedDay})`}
+            </h3>
+          </div>
+          <span className="text-xs font-medium px-2 py-1 bg-white/50 rounded-full text-gray-600">
+            {filteredItems.filter(i => i.done).length} / {filteredItems.length}
+          </span>
+        </div>
+        
+        <div className="p-4">
+          <div className="space-y-2 mb-4">
+            {filteredItems.length === 0 ? (
+              <p className="text-sm text-gray-400 italic text-center py-8">
+                {activeCategory === 'clothing' 
+                  ? `Day ${selectedDay} 尚無衣物清單` 
+                  : '尚無項目'}
+              </p>
+            ) : (
+              filteredItems.map(item => (
+                <div key={item.id} className="flex items-center gap-3 group hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={item.done || false}
+                    onChange={() => handleToggleItem(item.id)}
+                    className={`w-5 h-5 rounded border-gray-300 focus:ring-offset-0 cursor-pointer ${
+                      activeCategory === 'suitcase' ? 'text-blue-600 focus:ring-blue-500' :
+                      activeCategory === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
+                      activeCategory === 'clothing' ? 'text-purple-600 focus:ring-purple-500' :
+                      'text-gray-600 focus:ring-gray-500'
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                      <span className="truncate">{item.text}</span>
+                      {item.assignedTo && (
+                        <span className="flex-shrink-0 text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full flex items-center gap-1">
+                          <User size={10} />
+                          {getTravelerName(item.assignedTo) || '未知'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-1"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            {travelers.length > 0 && (
+              <select
+                value={selectedTravelerId}
+                onChange={(e) => setSelectedTravelerId(e.target.value)}
+                className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 max-w-[100px]"
+              >
+                <option value="">共用</option>
+                {travelers.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            )}
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder={`+ 新增至${currentCategory.name}...`}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-blue-400 transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddItem(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                <Plus size={16} />
               </div>
             </div>
           </div>
         </div>
-      ))}
+      </div>
     </div>
   );
 };

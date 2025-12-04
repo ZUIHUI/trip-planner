@@ -369,6 +369,8 @@ const TripDetailPage = () => {
                   onUpdate={(newItems) =>
                     setChecklists(prev => ({ ...prev, packing: newItems }))
                   }
+                  travelers={tripDetails?.travelers || []}
+                  itinerary={itinerary}
                 />
               </div>
             </div>
