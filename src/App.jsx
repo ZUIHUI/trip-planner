@@ -216,33 +216,6 @@ const App = () => {
       />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 儲存狀態和手動更新工具欄 */}
-        <div className="flex justify-between items-center bg-white p-2 mt-2 rounded-lg shadow-sm border border-gray-100 mb-0">
-          <div className="flex items-center gap-2">
-            {isSaving && (
-              <div className="flex items-center gap-2 text-blue-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                <span className="text-xs font-medium">自動儲存中...</span>
-              </div>
-            )}
-            {saveError && !isSaving && (
-              <div className="flex items-center gap-2 text-orange-600">
-                <span className="text-xs">⚠️ {saveError}</span>
-              </div>
-            )}
-            {!isSaving && !saveError && (
-              <span className="text-xs text-gray-500">✓ 已儲存</span>
-            )}
-          </div>
-          <button
-            onClick={manualRefresh}
-            disabled={isLoading}
-            className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-          >
-            {isLoading ? '更新中...' : '🔄 手動更新'}
-          </button>
-        </div>
-
         <div className="pt-2">
           {/* Summary Tab */}
           {activeTab === 'summary' && (
