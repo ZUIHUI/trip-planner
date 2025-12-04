@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, X, ExternalLink, Search, Filter, ShoppingBag } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart } from 'lucide-react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { updateShoppingList } from '../services/tripService';
 
-const ShoppingListContent = () => {
+const ShoppingListContent = ({ tripId }) => {
   const [items, setItems] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
@@ -20,20 +23,32 @@ const ShoppingListContent = () => {
   // Categories for suggestion
   const categories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
 
+  // Load from Firestore
   useEffect(() => {
-    const saved = localStorage.getItem('shoppingItems');
-    if (saved) {
-      try {
-        setItems(JSON.parse(saved));
-      } catch (err) {
-        console.error('Failed to load shopping list', err);
-      }
-    }
-  }, []);
+    if (!tripId) return;
 
-  useEffect(() => {
-    localStorage.setItem('shoppingItems', JSON.stringify(items));
-  }, [items]);
+    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        if (data.shoppingList && Array.isArray(data.shoppingList)) {
+          setItems(data.shoppingList);
+        }
+      }
+    }, (error) => {
+      console.error("Error fetching shopping list:", error);
+    });
+
+    return () => unsubscribe();
+  }, [tripId]);
+
+  const updateItems = (newItems) => {
+    setItems(newItems);
+    if (tripId) {
+      updateShoppingList(tripId, newItems).catch(err => {
+        console.error("Failed to save shopping list:", err);
+      });
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -58,20 +73,23 @@ const ShoppingListContent = () => {
       purchased: false,
       createdAt: new Date().toISOString()
     };
-    setItems(prev => [newItem, ...prev]);
+    const newItems = [newItem, ...items];
+    updateItems(newItems);
     resetForm();
   };
 
   const deleteItem = (id) => {
     if (window.confirm('確定要刪除此商品嗎？')) {
-      setItems(prev => prev.filter(item => item.id !== id));
+      const newItems = items.filter(item => item.id !== id);
+      updateItems(newItems);
     }
   };
 
   const togglePurchased = (id) => {
-    setItems(prev => prev.map(item => 
+    const newItems = items.map(item => 
       item.id === id ? { ...item, purchased: !item.purchased } : item
-    ));
+    );
+    updateItems(newItems);
   };
 
   const resetForm = () => {
@@ -87,20 +105,22 @@ const ShoppingListContent = () => {
     setShowAddForm(false);
   };
 
+  // Safe filter
+  const safeItems = Array.isArray(items) ? items : [];
   const filteredItems = filterCategory === 'All' 
-    ? items 
-    : items.filter(item => item.category === filterCategory);
+    ? safeItems 
+    : safeItems.filter(item => item.category === filterCategory);
 
   // Calculate stats
-  const totalItems = items.length;
-  const purchasedItems = items.filter(i => i.purchased).length;
+  const totalItems = safeItems.length;
+  const purchasedItems = safeItems.filter(i => i.purchased).length;
 
   return (
     <div className="w-full px-4 sm:px-6 py-6 pb-24">
        {/* Header & Stats */}
        <div className="mb-6">
          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-           <ShoppingBag className="text-orange-500" />
+           <ShoppingCart className="text-orange-500" />
            購物清單
          </h2>
          <div className="flex gap-4 mt-2 text-sm text-gray-600">

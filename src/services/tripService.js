@@ -119,3 +119,16 @@ export const deleteTrip = async (tripId) => {
     throw err;
   }
 };
+
+/**
+ * 更新購物清單
+ */
+export const updateShoppingList = async (tripId, shoppingList) => {
+  try {
+    const ref = doc(db, 'trips', tripId);
+    await setDoc(ref, { shoppingList }, { merge: true });
+  } catch (err) {
+    console.error('❌ 更新購物清單失敗:', err);
+    throw err;
+  }
+};
