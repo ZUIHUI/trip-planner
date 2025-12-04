@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { updateShoppingList } from '../services/tripService';
+import { updateShoppingList, updateShoppingCategories } from '../services/tripService';
 
 const ShoppingListContent = ({ tripId }) => {
   const [items, setItems] = useState([]);
@@ -10,7 +10,15 @@ const ShoppingListContent = ({ tripId }) => {
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [zoomedImage, setZoomedImage] = useState(null);
   
+  // Categories State
+  const defaultCategories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
+  const [categories, setCategories] = useState(defaultCategories);
+  const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
   // Form State
   const [formData, setFormData] = useState({
     name: '',
@@ -21,9 +29,6 @@ const ShoppingListContent = ({ tripId }) => {
     image: null
   });
   const [imagePreview, setImagePreview] = useState(null);
-
-  // Categories for suggestion
-  const categories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
   
   // Load from Firestore
   useEffect(() => {
@@ -38,6 +43,9 @@ const ShoppingListContent = ({ tripId }) => {
         const data = doc.data();
         if (data.shoppingList) {
           setItems(data.shoppingList);
+        }
+        if (data.shoppingCategories && Array.isArray(data.shoppingCategories)) {
+          setCategories(data.shoppingCategories);
         }
       }
       setLoading(false);
@@ -56,6 +64,27 @@ const ShoppingListContent = ({ tripId }) => {
       updateShoppingList(tripId, newItems).catch(err => {
         console.error("Failed to save shopping list:", err);
       });
+    }
+  };
+
+  const handleAddCategory = () => {
+    if (newCategoryName.trim() && !categories.includes(newCategoryName.trim())) {
+      const newCategories = [...categories, newCategoryName.trim()];
+      setCategories(newCategories);
+      setNewCategoryName('');
+      if (tripId) {
+        updateShoppingCategories(tripId, newCategories);
+      }
+    }
+  };
+
+  const handleDeleteCategory = (categoryToDelete) => {
+    if (window.confirm(`確定要刪除分類「${categoryToDelete}」嗎？`)) {
+      const newCategories = categories.filter(c => c !== categoryToDelete);
+      setCategories(newCategories);
+      if (tripId) {
+        updateShoppingCategories(tripId, newCategories);
+      }
     }
   };
 
@@ -116,9 +145,14 @@ const ShoppingListContent = ({ tripId }) => {
 
   // Safe filter
   const safeItems = Array.isArray(items) ? items : [];
-  const filteredItems = filterCategory === 'All' 
-    ? safeItems 
-    : safeItems.filter(item => item.category === filterCategory);
+  const filteredItems = safeItems.filter(item => {
+    const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
+    const matchesSearch = searchQuery.trim() === '' || 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.shop && item.shop.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (item.notes && item.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
 
   // Calculate stats
   const totalItems = safeItems.length;
@@ -164,27 +198,125 @@ const ShoppingListContent = ({ tripId }) => {
        </div>
 
        {/* Controls */}
-       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-         <button 
-           onClick={() => setShowAddForm(true)}
-           className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-         >
-           <Plus size={20} />
-           新增商品
-         </button>
-         
-         <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 flex-1">
-           <Filter size={18} className="text-gray-400 mr-2" />
-           <select 
-             value={filterCategory}
-             onChange={(e) => setFilterCategory(e.target.value)}
-             className="bg-transparent w-full outline-none text-gray-700"
+       <div className="space-y-3 mb-6">
+         {/* Search Bar */}
+         <div className="relative">
+           <input
+             type="text"
+             placeholder="搜尋商品、店家或備註..."
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500"
+           />
+           <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+           {searchQuery && (
+             <button 
+               onClick={() => setSearchQuery('')}
+               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+             >
+               <X size={16} />
+             </button>
+           )}
+         </div>
+
+         <div className="flex flex-col sm:flex-row gap-3">
+           <button 
+             onClick={() => setShowAddForm(true)}
+             className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
            >
-             <option value="All">顯示所有分類</option>
-             {categories.map(c => <option key={c} value={c}>{c}</option>)}
-           </select>
+             <Plus size={20} />
+             新增商品
+           </button>
+           
+           <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 flex-1">
+             <Filter size={18} className="text-gray-400 mr-2" />
+             <select 
+               value={filterCategory}
+               onChange={(e) => setFilterCategory(e.target.value)}
+               className="bg-transparent w-full outline-none text-gray-700"
+             >
+               <option value="All">顯示所有分類</option>
+               {categories.map(c => <option key={c} value={c}>{c}</option>)}
+             </select>
+           </div>
+
+           <button
+             onClick={() => setIsManageCategoriesOpen(true)}
+             className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+             title="管理分類"
+           >
+             <Settings size={20} />
+           </button>
          </div>
        </div>
+
+       {/* Manage Categories Modal */}
+       {isManageCategoriesOpen && (
+         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+           <div className="bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl">
+             <div className="flex justify-between items-center mb-4">
+               <h3 className="text-lg font-bold text-gray-900">管理分類</h3>
+               <button onClick={() => setIsManageCategoriesOpen(false)}><X size={24} className="text-gray-400 hover:text-gray-600" /></button>
+             </div>
+             
+             <div className="flex gap-2 mb-4">
+               <input
+                 type="text"
+                 value={newCategoryName}
+                 onChange={(e) => setNewCategoryName(e.target.value)}
+                 placeholder="新分類名稱"
+                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                 onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+               />
+               <button 
+                 onClick={handleAddCategory}
+                 disabled={!newCategoryName.trim()}
+                 className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+               >
+                 <Plus size={18} />
+               </button>
+             </div>
+
+             <div className="space-y-2 max-h-60 overflow-y-auto">
+               {categories.map(cat => (
+                 <div key={cat} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                   <span className="text-gray-700">{cat}</span>
+                   {!defaultCategories.includes(cat) && (
+                     <button 
+                       onClick={() => handleDeleteCategory(cat)}
+                       className="text-gray-400 hover:text-red-500"
+                     >
+                       <Trash2 size={16} />
+                     </button>
+                   )}
+                 </div>
+               ))}
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Image Zoom Modal */}
+       {zoomedImage && (
+         <div 
+           className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4 cursor-pointer"
+           onClick={() => setZoomedImage(null)}
+         >
+           <div className="relative max-w-4xl max-h-[90vh]">
+             <img 
+               src={zoomedImage} 
+               alt="Zoomed" 
+               className="max-w-full max-h-[90vh] object-contain rounded-lg"
+             />
+             <button 
+               onClick={() => setZoomedImage(null)}
+               className="absolute -top-4 -right-4 bg-white text-black rounded-full p-2 shadow-lg hover:bg-gray-200"
+             >
+               <X size={24} />
+             </button>
+           </div>
+         </div>
+       )}
 
        {/* Add Form Modal/Panel */}
        {showAddForm && (
@@ -361,7 +493,17 @@ const ShoppingListContent = ({ tripId }) => {
                          </div>
                        )}
                        {item.image && (
-                         <img src={item.image} alt={item.name} className="max-h-32 rounded-lg border border-gray-200" />
+                         <div className="relative group inline-block">
+                           <img 
+                             src={item.image} 
+                             alt={item.name} 
+                             className="max-h-32 rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity" 
+                             onClick={() => setZoomedImage(item.image)}
+                           />
+                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                             <ZoomIn className="text-white drop-shadow-md" size={24} />
+                           </div>
+                         </div>
                        )}
                      </div>
                    )}

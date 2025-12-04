@@ -132,3 +132,16 @@ export const updateShoppingList = async (tripId, shoppingList) => {
     throw err;
   }
 };
+
+/**
+ * 更新購物清單分類
+ */
+export const updateShoppingCategories = async (tripId, shoppingCategories) => {
+  try {
+    const ref = doc(db, 'trips', tripId);
+    await setDoc(ref, { shoppingCategories }, { merge: true });
+  } catch (err) {
+    console.error('❌ 更新購物分類失敗:', err);
+    throw err;
+  }
+};
