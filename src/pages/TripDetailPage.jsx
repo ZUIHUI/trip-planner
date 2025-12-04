@@ -443,7 +443,8 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'shopping' && (
-            <div className="w-full">
+            <div className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold mb-4">購物清單測試</h2>
               <ShoppingListContent tripId={tripId} />
             </div>
           )}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart } from 'lucide-react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
-import { updateShoppingList } from '../services/tripService';
+// import { doc, onSnapshot } from 'firebase/firestore';
+// import { db } from '../services/firebase';
+// import { updateShoppingList } from '../services/tripService';
 
 const ShoppingListContent = ({ tripId }) => {
   // Temporary Debug Mode
