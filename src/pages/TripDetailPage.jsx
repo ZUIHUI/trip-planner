@@ -169,51 +169,6 @@ const TripDetailPage = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-center space-x-1 bg-white p-1 mt-[-20px] rounded-xl shadow-md relative z-10 border border-gray-100">
-          <button
-            onClick={() => setActiveTab('summary')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activeTab === 'summary' ? 'bg-blue-600 text-white' : 'text-gray-500'
-            }`}
-          >
-            總覽
-          </button>
-          <button
-            onClick={() => setActiveTab('itinerary')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activeTab === 'itinerary' ? 'bg-blue-600 text-white' : 'text-gray-500'
-            }`}
-          >
-            行程表
-          </button>
-          <button
-            onClick={() => setActiveTab('checklist')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activeTab === 'checklist' ? 'bg-blue-600 text-white' : 'text-gray-500'
-            }`}
-          >
-            清單
-          </button>
-          <button
-            onClick={() => setActiveTab('flights')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activeTab === 'flights' ? 'bg-blue-600 text-white' : 'text-gray-500'
-            }`}
-          >
-            機票/住宿
-          </button>
-          <button
-            onClick={() => setActiveTab('shopping')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-1 transition-all ${
-              activeTab === 'shopping' ? 'bg-white text-orange-600' : 'text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-            }`}
-            title="打開購物清單"
-          >
-            <ShoppingCart size={18} />
-            購物
-          </button>
-        </div>
-
         <div className="pt-4">
           {activeTab === 'summary' && (
             <div className="px-6 space-y-4 pb-10">
@@ -488,7 +443,9 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'shopping' && (
-            <ShoppingListContent />
+            <div className="w-full">
+              <ShoppingListContent />
+            </div>
           )}
         </div>
       </div>
