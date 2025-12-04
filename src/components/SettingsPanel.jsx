@@ -1,14 +1,33 @@
-import React from 'react';
-import { X, MapPin, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, MapPin, Zap, Users, Plus, Trash2 } from 'lucide-react';
 
-const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle }) => {
+const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers }) => {
+  const [newTravelerName, setNewTravelerName] = useState('');
+
   if (!isOpen) return null;
+
+  const handleAddTraveler = () => {
+    if (newTravelerName.trim()) {
+      const newTraveler = {
+        id: Date.now().toString(),
+        name: newTravelerName.trim()
+      };
+      onUpdateTravelers([...travelers, newTraveler]);
+      setNewTravelerName('');
+    }
+  };
+
+  const handleDeleteTraveler = (id) => {
+    if (window.confirm('確定要刪除此成員嗎？')) {
+      onUpdateTravelers(travelers.filter(t => t.id !== id));
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h2 className="text-2xl font-bold text-gray-900">設定</h2>
           <button
             onClick={onClose}
@@ -20,6 +39,52 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle }) => {
 
         {/* Settings Content */}
         <div className="p-6 space-y-6">
+          {/* 成員設定 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Users size={20} className="text-purple-600" />
+              旅程成員
+            </h3>
+            
+            <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+              <div className="space-y-2 mb-4">
+                {travelers.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-2">尚未新增成員</p>
+                ) : (
+                  travelers.map(traveler => (
+                    <div key={traveler.id} className="flex items-center justify-between bg-white p-2 rounded-lg border border-purple-100">
+                      <span className="font-medium text-gray-800">{traveler.name}</span>
+                      <button 
+                        onClick={() => handleDeleteTraveler(traveler.id)}
+                        className="text-gray-400 hover:text-red-500 p-1"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newTravelerName}
+                  onChange={(e) => setNewTravelerName(e.target.value)}
+                  placeholder="輸入成員姓名"
+                  className="flex-1 bg-white border border-purple-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddTraveler()}
+                />
+                <button
+                  onClick={handleAddTraveler}
+                  disabled={!newTravelerName.trim()}
+                  className="bg-purple-600 text-white p-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* GPS 設定 */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">

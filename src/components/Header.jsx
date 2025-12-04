@@ -1,12 +1,20 @@
 import React from 'react';
-import { Plane, Home, Settings, ShoppingCart } from 'lucide-react';
+import { Plane, Home, Settings, ShoppingCart, Cloud, RefreshCw } from 'lucide-react';
 
-const Header = ({ details, activeTab, onTabChange, onSettingsOpen }) => (
+const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) => (
   <div className="bg-gradient-to-r from-blue-600 to-indigo-700 pt-12 pb-3 px-6 text-white rounded-b-3xl shadow-lg relative overflow-hidden">
     <div className="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10">
       <Plane size={150} />
     </div>
-    <p className="text-blue-100 text-sm font-medium tracking-wider mb-1">{details?.dates || '未設定'}</p>
+    <div className="flex justify-between items-start">
+      <p className="text-blue-100 text-sm font-medium tracking-wider mb-1">{details?.dates || '未設定'}</p>
+      {isSaving && (
+        <div className="flex items-center gap-1 text-xs text-blue-200 bg-white/10 px-2 py-1 rounded-full animate-pulse">
+          <RefreshCw size={12} className="animate-spin" />
+          儲存中...
+        </div>
+      )}
+    </div>
     <h1 className="text-3xl font-bold mb-2">{details?.title || '旅程'}</h1>
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-2 text-blue-100 text-sm">

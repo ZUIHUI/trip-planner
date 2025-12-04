@@ -206,12 +206,13 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans pb-20">
       <Header 
         details={tripDetails} 
-        activeTab={activeTab} 
+        activeTab={activeTab}
         onTabChange={setActiveTab}
         onSettingsOpen={() => setIsSettingsPanelOpen(true)}
+        isSaving={isSaving}
       />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -437,6 +438,7 @@ const App = () => {
               <PackingListContent
                 items={checklists?.packing || []}
                 onUpdate={(newItems) => setChecklists(prev => ({ ...prev, packing: newItems }))}
+                travelers={tripDetails?.travelers || []}
               />
             </div>
           )}
@@ -566,6 +568,8 @@ const App = () => {
         onClose={() => setIsSettingsPanelOpen(false)}
         enableGPS={enableGPS}
         onGPSToggle={() => setEnableGPS(!enableGPS)}
+        travelers={tripDetails?.travelers || []}
+        onUpdateTravelers={(newTravelers) => setTripDetails(prev => ({ ...prev, travelers: newTravelers }))}
       />
     </div>
   );
