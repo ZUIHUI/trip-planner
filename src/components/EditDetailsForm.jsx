@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import TimePicker from './TimePicker';
 
 const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
   const [formData, setFormData] = useState(
@@ -14,28 +13,6 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
       ...prev,
       [name]: value
     }));
-  };
-
-  // Helper for Date+Time fields (Accommodation)
-  const handleDateTimeChange = (fieldName, type, value) => {
-    const currentVal = formData[fieldName] || '';
-    const parts = currentVal.split(' ');
-    const date = parts[0] || '';
-    const time = parts[1] || '15:00';
-
-    if (type === 'date') {
-      setFormData(prev => ({ ...prev, [fieldName]: `${value} ${time}`.trim() }));
-    } else {
-      setFormData(prev => ({ ...prev, [fieldName]: `${date} ${value}`.trim() }));
-    }
-  };
-
-  // Helper for Time+Suffix fields (Flights)
-  const handleTimeSuffixChange = (value) => {
-    const currentVal = formData.time || '';
-    const parts = currentVal.split(' ');
-    const suffix = parts[1] || (detailsType === 'outbound' ? '抵達' : '起飛');
-    setFormData(prev => ({ ...prev, time: `${value} ${suffix}`.trim() }));
   };
 
   const handleSubmit = (e) => {
@@ -88,39 +65,25 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={formData.checkIn?.split(' ')[0] || ''}
-                onChange={(e) => handleDateTimeChange('checkIn', 'date', e.target.value)}
-                className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="日期 (2/23)"
-              />
-              <div className="w-1/2">
-                <TimePicker
-                  value={formData.checkIn?.split(' ')[1] || ''}
-                  onChange={(e) => handleDateTimeChange('checkIn', 'time', e.target.value)}
-                />
-              </div>
-            </div>
+            <input
+              type="text"
+              name="checkIn"
+              value={formData.checkIn || ''}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="例：2/23 16:00"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={formData.checkOut?.split(' ')[0] || ''}
-                onChange={(e) => handleDateTimeChange('checkOut', 'date', e.target.value)}
-                className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                placeholder="日期 (2/28)"
-              />
-              <div className="w-1/2">
-                <TimePicker
-                  value={formData.checkOut?.split(' ')[1] || ''}
-                  onChange={(e) => handleDateTimeChange('checkOut', 'time', e.target.value)}
-                />
-              </div>
-            </div>
+            <input
+              type="text"
+              name="checkOut"
+              value={formData.checkOut || ''}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="例：2/28 10:00"
+            />
           </div>
         </>
       )}
@@ -162,17 +125,14 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">時間</label>
-            <div className="flex gap-2 items-center">
-              <div className="flex-1">
-                <TimePicker
-                  value={formData.time?.split(' ')[0] || ''}
-                  onChange={(e) => handleTimeSuffixChange(e.target.value)}
-                />
-              </div>
-              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
-                {formData.time?.split(' ')[1] || (detailsType === 'outbound' ? '抵達' : '起飛')}
-              </span>
-            </div>
+            <input
+              type="text"
+              name="time"
+              value={formData.time || ''}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="例：14:40 抵達"
+            />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
