@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Save } from 'lucide-react';
+import TimePicker from './TimePicker';
 
 const EditEventForm = ({ event, onSave, onCancel }) => {
   const [formData, setFormData] = useState(event || {
-    time: "", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
+    time: "09:00", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
     transport: { mode: "train", duration: "", route: "" },
     cost: ""
   });
@@ -29,7 +30,7 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="text-xs text-gray-500 font-bold block mb-1">時間</label>
-          <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-blue-500" />
+          <TimePicker name="time" value={formData.time} onChange={handleChange} />
         </div>
         <div>
           <label className="text-xs text-gray-500 font-bold block mb-1">類型</label>
