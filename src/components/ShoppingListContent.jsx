@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Loader2 } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { updateShoppingList } from '../services/tripService';
 
 const ShoppingListContent = ({ tripId }) => {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
   
@@ -25,17 +26,29 @@ const ShoppingListContent = ({ tripId }) => {
 
   // Load from Firestore
   useEffect(() => {
-    if (!tripId) return;
+    if (!tripId) {
+      setLoading(false);
+      return;
+    }
 
-    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
+    console.log("Subscribing to shopping list for trip:", tripId);
+    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        console.log("Received data:", data);
         if (data.shoppingList && Array.isArray(data.shoppingList)) {
           setItems(data.shoppingList);
+        } else {
+          setItems([]);
         }
+      } else {
+        console.log("No such document!");
+        setItems([]);
       }
+      setLoading(false);
     }, (error) => {
       console.error("Error fetching shopping list:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -114,6 +127,15 @@ const ShoppingListContent = ({ tripId }) => {
   // Calculate stats
   const totalItems = safeItems.length;
   const purchasedItems = safeItems.filter(i => i.purchased).length;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <Loader2 className="animate-spin text-blue-500" size={32} />
+        <span className="ml-2 text-gray-500">載入購物清單中...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full px-4 sm:px-6 py-6 pb-24">
@@ -323,9 +345,16 @@ const ShoppingListContent = ({ tripId }) => {
                    {(item.notes || item.image) && (
                      <div className={`mt-3 pt-3 border-t ${item.purchased ? 'border-green-100' : 'border-gray-50'} space-y-2`}>
                        {item.notes && (
-                         <p className="text-sm text-gray-600 break-words">
-                           {item.notes}
-                         </p>
+                         <div className="text-sm text-gray-600 break-words">
+                           {item.notes.includes('http') ? (
+                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                               <ExternalLink size={14} />
+                               連結
+                             </a>
+                           ) : (
+                             item.notes
+                           )}
+                         </div>
                        )}
                        {item.image && (
                          <img src={item.image} alt={item.name} className="max-h-32 rounded-lg border border-gray-200" />
