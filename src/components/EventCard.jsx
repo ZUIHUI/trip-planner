@@ -169,7 +169,6 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           )}
         </div>
       </div>
-    </div>
   );
 };
 
