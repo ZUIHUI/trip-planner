@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check } from 'lucide-react';
 
-const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange }) => {
+const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange, exchangeRate, onExchangeRateChange, onUpdateRate, lastUpdateDate }) => {
   const [newTravelerName, setNewTravelerName] = useState('');
 
   if (!isOpen) return null;
@@ -70,6 +70,40 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
                   <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{theme.name}</span>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* 匯率設定 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <span className="text-xl">💱</span>
+              匯率設定 (JPY → TWD)
+            </h3>
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center gap-4 mb-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  1 日圓 = 
+                </label>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={exchangeRate || ''}
+                  onChange={(e) => onExchangeRateChange(parseFloat(e.target.value))}
+                  className="w-24 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-500"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">台幣</span>
+                
+                <button 
+                  onClick={onUpdateRate}
+                  className="ml-auto px-3 py-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold rounded-lg hover:bg-brand-200 dark:hover:bg-brand-900/50 transition-colors flex items-center gap-1"
+                >
+                  <span className="text-lg">↻</span> 更新
+                </button>
+              </div>
+              <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                <span>此匯率將用於計算預算總覽及顯示換算金額。</span>
+                {lastUpdateDate && <span>更新於: {lastUpdateDate}</span>}
+              </div>
             </div>
           </div>
 

@@ -77,18 +77,46 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
         <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-gray-200" />
       </div>
 
-      <div>
-        <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">💰 預估花費 (選填)</label>
-        <div className="relative">
-          <input
-            type="number"
-            name="cost"
-            value={formData.cost || ""}
-            onChange={handleChange}
-            placeholder="輸入金額 (如: 1500)"
-            className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
-          />
-          <span className="absolute right-3 top-2.5 text-gray-500 dark:text-gray-400 text-sm">元</span>
+      <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold">💰 花費設定</label>
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-500 dark:text-gray-400">幣別:</label>
+            <select
+              name="currency"
+              value={formData.currency || 'JPY'}
+              onChange={handleChange}
+              className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-gray-200 focus:outline-none focus:border-brand-500"
+            >
+              <option value="JPY">JPY (日幣)</option>
+              <option value="TWD">TWD (台幣)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">預估金額</label>
+            <input
+              type="number"
+              name="cost"
+              value={formData.cost || ""}
+              onChange={handleChange}
+              placeholder="預算"
+              className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">實際支出</label>
+            <input
+              type="number"
+              name="actualCost"
+              value={formData.actualCost || ""}
+              onChange={handleChange}
+              placeholder="實際花費"
+              className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
+            />
+          </div>
         </div>
       </div>
 

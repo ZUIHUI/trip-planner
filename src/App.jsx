@@ -13,6 +13,7 @@ import PackingListContent from './components/PackingListContent';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
+import { fetchJPYRate } from './services/currencyService';
 import { Plus, Edit2, GripVertical } from 'lucide-react';
 
 // 預設資料
@@ -73,6 +74,8 @@ const App = () => {
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // 設定面板開啟狀態
   const [draggedEventId, setDraggedEventId] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('app_theme') || 'ocean');
+  const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localStorage.getItem('exchange_rate')) || 0.215);
+  const [lastRateUpdate, setLastRateUpdate] = useState(() => localStorage.getItem('last_rate_update') || null);
 
   useEffect(() => {
     localStorage.setItem('app_theme', currentTheme);
@@ -82,6 +85,40 @@ const App = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [currentTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('exchange_rate', exchangeRate);
+  }, [exchangeRate]);
+
+  useEffect(() => {
+    if (lastRateUpdate) {
+      localStorage.setItem('last_rate_update', lastRateUpdate);
+    }
+  }, [lastRateUpdate]);
+
+  // 自動更新匯率
+  useEffect(() => {
+    const updateRate = async () => {
+      const result = await fetchJPYRate();
+      if (result.success) {
+        setExchangeRate(result.rate);
+        setLastRateUpdate(new Date().toLocaleString());
+        console.log('匯率已自動更新:', result.rate);
+      }
+    };
+    updateRate();
+  }, []);
+
+  const handleManualRateUpdate = async () => {
+    const result = await fetchJPYRate();
+    if (result.success) {
+      setExchangeRate(result.rate);
+      setLastRateUpdate(new Date().toLocaleString());
+      alert(`匯率已更新: 1 JPY = ${result.rate} TWD`);
+    } else {
+      alert('匯率更新失敗，請檢查網路連線');
+    }
+  };
 
   // 取得設備GPS位置（受 enableGPS 控制）
   const { currentLocation, isLocating, locationError } = useDeviceLocation(enableGPS);
@@ -370,12 +407,21 @@ const App = () => {
 
               {/* 預算總覽 */}
               <div className="bg-gradient-to-br from-brand-50 to-brand-100 p-4 rounded-xl shadow-sm border border-brand-200">
-                <h3 className="font-bold text-gray-800 mb-4">💰 預算總覽</h3>
-                {itinerary.some(day => day.events?.some(e => e.cost)) ? (
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-bold text-gray-800">💰 預算總覽 (TWD)</h3>
+                  <span className="text-xs text-gray-500 bg-white/50 px-2 py-1 rounded">匯率: {exchangeRate}</span>
+                </div>
+                {itinerary.some(day => day.events?.some(e => e.cost || e.actualCost)) ? (
                   <div className="space-y-2">
                     {itinerary.map(day => {
-                      const dayTotal = day.events?.reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0) || 0;
-                      const costItems = day.events?.filter(e => e.cost).length || 0;
+                      const dayTotal = day.events?.reduce((sum, e) => {
+                        const amount = e.actualCost ? parseInt(e.actualCost) : (parseInt(e.cost) || 0);
+                        if (!amount) return sum;
+                        const currency = e.currency || 'JPY';
+                        return sum + (currency === 'JPY' ? Math.round(amount * exchangeRate) : amount);
+                      }, 0) || 0;
+                      
+                      const costItems = day.events?.filter(e => e.cost || e.actualCost).length || 0;
                       return dayTotal > 0 && (
                         <div key={day.day} className="flex justify-between items-center px-3 py-2 bg-white rounded-lg shadow-sm">
                           <div className="flex-1">
@@ -390,10 +436,15 @@ const App = () => {
                       );
                     })}
                     <div className="flex justify-between items-center px-3 py-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-300 mt-3">
-                      <p className="font-bold text-gray-800">旅程總計</p>
+                      <p className="font-bold text-gray-800">旅程總計 (約)</p>
                       <p className="text-lg font-bold text-green-700">
                         ${itinerary.reduce((sum, day) => {
-                          return sum + (day.events?.reduce((daySum, e) => daySum + (parseInt(e.cost) || 0), 0) || 0);
+                          return sum + (day.events?.reduce((daySum, e) => {
+                            const amount = e.actualCost ? parseInt(e.actualCost) : (parseInt(e.cost) || 0);
+                            if (!amount) return daySum;
+                            const currency = e.currency || 'JPY';
+                            return daySum + (currency === 'JPY' ? Math.round(amount * exchangeRate) : amount);
+                          }, 0) || 0);
                         }, 0).toLocaleString()}
                       </p>
                     </div>
@@ -469,6 +520,7 @@ const App = () => {
                                 onDelete={handleDeleteEvent}
                                 onUpdateMemos={handleUpdateMemos}
                                 onOpenGoogleMaps={handleOpenGoogleMaps}
+                                exchangeRate={exchangeRate}
                               />
                             </div>
                           </div>
@@ -657,6 +709,10 @@ const App = () => {
         onUpdateTravelers={(newTravelers) => setTripDetails(prev => ({ ...prev, travelers: newTravelers }))}
         currentTheme={currentTheme}
         onThemeChange={setCurrentTheme}
+        exchangeRate={exchangeRate}
+        onExchangeRateChange={setExchangeRate}
+        onUpdateRate={handleManualRateUpdate}
+        lastUpdateDate={lastRateUpdate}
       />
     </div>
   );

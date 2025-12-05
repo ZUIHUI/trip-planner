@@ -5,7 +5,7 @@ import {
   Navigation, Map, ChevronRight
 } from 'lucide-react';
 
-const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps }) => {
+const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, exchangeRate = 0.21 }) => {
   const [showMemos, setShowMemos] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -84,17 +84,38 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
         {/* Transport Info & Google Map Button */}
         <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
-            {event.transport?.mode === 'flight' ? (
-              <Plane size={12} className="mr-1 text-brand-500" />
-            ) : (
-              <Navigation size={12} className="mr-1 text-brand-500" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
+              {event.transport?.mode === 'flight' ? (
+                <Plane size={12} className="mr-1 text-brand-500" />
+              ) : (
+                <Navigation size={12} className="mr-1 text-brand-500" />
+              )}
+              {event.transport?.duration
+                ? <span>{event.transport.duration} {event.transport.route && `• ${event.transport.route}`}</span>
+                : <span className="text-gray-400">未設定交通</span>
+              }
+            </div>
+
+            {/* Cost Info */}
+            {(event.cost || event.actualCost) && (
+              <div className="flex items-center text-xs font-medium px-2 py-1 rounded bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800">
+                <span className="mr-1">💰</span>
+                {event.actualCost ? (
+                  <span className="font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.actualCost}</span>
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400">預估: {event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
+                )}
+                {/* Conversion for JPY */}
+                {(event.currency !== 'TWD' && (event.actualCost || event.cost)) && (
+                  <span className="ml-1 text-gray-500 dark:text-gray-400">
+                    (≈NT${Math.round((event.actualCost || event.cost) * exchangeRate)})
+                  </span>
+                )}
+              </div>
             )}
-            {event.transport?.duration
-              ? <span>{event.transport.duration} {event.transport.route && `• ${event.transport.route}`}</span>
-              : <span className="text-gray-400">未設定交通</span>
-            }
           </div>
+
           <button
             onClick={() => onOpenGoogleMaps(prevLocation, event.location)}
             className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-2 py-1 rounded border border-brand-100 dark:border-brand-800 transition-colors"
