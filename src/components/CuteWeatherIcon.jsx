@@ -50,5 +50,3 @@ export const CuteWeatherIcon = ({ code, size = 'text-5xl' }) => {
 };
 
 export default CuteWeatherIcon;
-
-export default CuteWeatherIcon;
