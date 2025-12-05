@@ -12,7 +12,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
   ];
 
   return (
-    <div className="bg-white sticky top-0 z-30 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 sticky top-0 z-30 shadow-sm transition-colors duration-300">
       {/* Main Header Content - Gradient Background */}
       <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 text-white pt-12 pb-6 px-6 rounded-b-[2rem] shadow-lg relative overflow-hidden transition-colors duration-500">
         {/* Decorative Background Elements */}
@@ -62,7 +62,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
       </div>
 
       {/* Scrollable Tab Navigation */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
         <div className="flex overflow-x-auto px-4 py-2 gap-2 no-scrollbar snap-x">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -74,8 +74,8 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
                 className={`
                   flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all snap-start
                   ${isActive 
-                    ? 'bg-brand-50 text-brand-600 shadow-sm scale-105 ring-1 ring-brand-100' 
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                    ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 shadow-sm scale-105 ring-1 ring-brand-100 dark:ring-brand-800' 
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200'
                   }
                 `}
               >

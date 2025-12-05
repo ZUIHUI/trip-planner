@@ -11,8 +11,8 @@ const Checklist = ({ items = [], onAddItem, onToggleItem, onDeleteItem, title = 
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">{title}</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">{title}</h3>
 
       <div className="space-y-2 mb-4">
         {items.map(item => (
@@ -23,7 +23,7 @@ const Checklist = ({ items = [], onAddItem, onToggleItem, onDeleteItem, title = 
               onChange={() => onToggleItem(item.id)}
               className="rounded text-brand-600 cursor-pointer"
             />
-            <span className={`flex-1 ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+            <span className={`flex-1 ${item.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>
               {item.text}
             </span>
             <button
@@ -42,7 +42,7 @@ const Checklist = ({ items = [], onAddItem, onToggleItem, onDeleteItem, title = 
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleAddItem}
         placeholder="+ 新增待辦事項 (Enter)"
-        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:border-brand-400"
+        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-none focus:border-brand-400 dark:text-gray-200"
       />
     </div>
   );

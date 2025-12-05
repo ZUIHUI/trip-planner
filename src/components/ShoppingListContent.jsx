@@ -258,14 +258,14 @@ const ShoppingListContent = ({ tripId }) => {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-        <span className="ml-2 text-gray-500">載入購物清單中...</span>
+        <span className="ml-2 text-gray-500 dark:text-gray-400">載入購物清單中...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-500">
+      <div className="text-center py-12 text-red-500 dark:text-red-400">
         <p>載入失敗: {error}</p>
       </div>
     );
@@ -275,17 +275,17 @@ const ShoppingListContent = ({ tripId }) => {
     <div className="w-full px-4 sm:px-6 py-6 pb-24">
        {/* Header & Stats */}
        <div className="mb-6">
-         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
            <ShoppingCart className="text-orange-500" />
            購物清單
          </h2>
-         <div className="flex gap-4 mt-2 text-sm text-gray-600">
+         <div className="flex gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
            <span>總計: {totalItems} 項</span>
            <span>已買: {purchasedItems} 項</span>
            <span>進度: {totalItems ? Math.round((purchasedItems / totalItems) * 100) : 0}%</span>
          </div>
          {/* Progress Bar */}
-         <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
             <div 
               className="bg-orange-500 h-2.5 rounded-full transition-all duration-500" 
               style={{ width: `${totalItems ? (purchasedItems / totalItems) * 100 : 0}%` }}
@@ -302,13 +302,13 @@ const ShoppingListContent = ({ tripId }) => {
              placeholder="搜尋商品、店家或備註..."
              value={searchQuery}
              onChange={(e) => setSearchQuery(e.target.value)}
-             className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500"
+             className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500 text-gray-900 dark:text-gray-100"
            />
-           <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+           <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
            {searchQuery && (
              <button 
                onClick={() => setSearchQuery('')}
-               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
              >
                <X size={16} />
              </button>
@@ -316,21 +316,21 @@ const ShoppingListContent = ({ tripId }) => {
          </div>
 
          <div className="flex flex-col sm:flex-row gap-3">
-           <div className="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 flex-1">
-             <Filter size={18} className="text-gray-400 mr-2" />
+           <div className="flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 flex-1">
+             <Filter size={18} className="text-gray-400 dark:text-gray-500 mr-2" />
              <select 
                value={filterCategory}
                onChange={(e) => setFilterCategory(e.target.value)}
-               className="bg-transparent w-full outline-none text-gray-700"
+               className="bg-transparent w-full outline-none text-gray-700 dark:text-gray-200"
              >
-               <option value="All">顯示所有分類</option>
-               {categories.map(c => <option key={c} value={c}>{c}</option>)}
+               <option value="All" className="dark:bg-gray-800">顯示所有分類</option>
+               {categories.map(c => <option key={c} value={c} className="dark:bg-gray-800">{c}</option>)}
              </select>
            </div>
 
            <button
              onClick={() => setIsManageCategoriesOpen(true)}
-             className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+             className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center"
              title="管理分類"
            >
              <Settings size={20} />
@@ -341,10 +341,10 @@ const ShoppingListContent = ({ tripId }) => {
        {/* Manage Categories Modal */}
        {isManageCategoriesOpen && (
          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-           <div className="bg-white rounded-xl w-full max-w-sm p-6 shadow-2xl">
+           <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-sm p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
-               <h3 className="text-lg font-bold text-gray-900">管理分類</h3>
-               <button onClick={() => setIsManageCategoriesOpen(false)}><X size={24} className="text-gray-400 hover:text-gray-600" /></button>
+               <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">管理分類</h3>
+               <button onClick={() => setIsManageCategoriesOpen(false)}><X size={24} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" /></button>
              </div>
              
              <div className="flex gap-2 mb-4">
@@ -353,7 +353,7 @@ const ShoppingListContent = ({ tripId }) => {
                  value={newCategoryName}
                  onChange={(e) => setNewCategoryName(e.target.value)}
                  placeholder="新分類名稱"
-                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
+                 className="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
                  onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
                />
                <button 
@@ -367,12 +367,12 @@ const ShoppingListContent = ({ tripId }) => {
 
              <div className="space-y-2 max-h-60 overflow-y-auto">
                {categories.map(cat => (
-                 <div key={cat} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                   <span className="text-gray-700">{cat}</span>
+                 <div key={cat} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                   <span className="text-gray-700 dark:text-gray-200">{cat}</span>
                    {!defaultCategories.includes(cat) && (
                      <button 
                        onClick={() => handleDeleteCategory(cat)}
-                       className="text-gray-400 hover:text-red-500"
+                       className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400"
                      >
                        <Trash2 size={16} />
                      </button>
@@ -398,7 +398,7 @@ const ShoppingListContent = ({ tripId }) => {
              />
              <button 
                onClick={() => setZoomedImage(null)}
-               className="absolute -top-4 -right-4 bg-white text-black rounded-full p-2 shadow-lg hover:bg-gray-200"
+               className="absolute -top-4 -right-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-full p-2 shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700"
              >
                <X size={24} />
              </button>
@@ -409,72 +409,72 @@ const ShoppingListContent = ({ tripId }) => {
        {/* Add Form Modal/Panel */}
        {showAddForm && (
          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-           <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+           <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
-               <h3 className="text-xl font-bold text-gray-900">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
-               <button onClick={resetForm}><X size={24} className="text-gray-400 hover:text-gray-600" /></button>
+               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
+               <button onClick={resetForm}><X size={24} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" /></button>
              </div>
              
              <div className="space-y-4">
                <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-1">商品名稱 *</label>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">商品名稱 *</label>
                  <input 
                    type="text" 
                    value={formData.name}
                    onChange={e => setFormData({...formData, name: e.target.value})}
-                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 outline-none"
+                   className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 outline-none"
                    placeholder="例如: EVE止痛藥"
                  />
                </div>
 
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-1">分類</label>
+                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">分類</label>
                    <select 
                      value={formData.category}
                      onChange={e => setFormData({...formData, category: e.target.value})}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none"
+                     className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 outline-none"
                    >
                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
                    </select>
                  </div>
                  <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-1">數量</label>
+                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">數量</label>
                    <input 
                      type="number" 
                      min="1"
                      value={formData.quantity}
                      onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
-                     className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none"
+                     className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 outline-none"
                    />
                  </div>
                </div>
 
                <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-1">店家 / 地點</label>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">店家 / 地點</label>
                  <input 
                    type="text" 
                    value={formData.shop}
                    onChange={e => setFormData({...formData, shop: e.target.value})}
-                   className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none"
+                   className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 outline-none"
                    placeholder="例如: 松本清, Donki"
                  />
                </div>
 
                <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-1">備註 (可貼連結)</label>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">備註 (可貼連結)</label>
                  <textarea 
                    value={formData.notes}
                    onChange={e => setFormData({...formData, notes: e.target.value})}
-                   className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none resize-none"
+                   className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 outline-none resize-none"
                    rows="3"
                    placeholder="規格、型號、價格..."
                  />
                </div>
 
                <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-1">圖片</label>
-                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer relative">
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">圖片</label>
+                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer relative">
                    <input 
                      type="file" 
                      accept="image/*" 
@@ -497,7 +497,7 @@ const ShoppingListContent = ({ tripId }) => {
                        </button>
                      </div>
                    ) : (
-                     <div className="flex flex-col items-center text-gray-500">
+                     <div className="flex flex-col items-center text-gray-500 dark:text-gray-400">
                        <Upload size={24} className="mb-2" />
                        <span className="text-sm">點擊上傳圖片</span>
                      </div>
@@ -519,8 +519,8 @@ const ShoppingListContent = ({ tripId }) => {
        {/* List */}
        <div className="space-y-3">
          {filteredItems.length === 0 ? (
-           <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-             <p className="text-gray-400">沒有找到商品</p>
+           <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+             <p className="text-gray-400 dark:text-gray-500">沒有找到商品</p>
            </div>
          ) : (
            filteredItems.map(item => (
@@ -531,14 +531,14 @@ const ShoppingListContent = ({ tripId }) => {
                onDragStart={(e) => handleDragStart(e, item.id)}
                onDragOver={handleDragOver}
                onDrop={(e) => handleDrop(e, item.id)}
-               className={`bg-white p-4 rounded-xl shadow-sm border transition-all ${
-                 item.purchased ? 'border-green-200 bg-green-50/30' : 'border-gray-100'
-               } ${draggedItemId === item.id ? 'opacity-50 bg-gray-100' : ''}`}
+               className={`bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border transition-all ${
+                 item.purchased ? 'border-green-200 dark:border-green-900 bg-green-50/30 dark:bg-green-900/20' : 'border-gray-100 dark:border-gray-700'
+               } ${draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-gray-700' : ''}`}
              >
                <div className="flex gap-4">
                  {/* Drag Handle */}
                  <div 
-                   className="cursor-grab text-gray-300 hover:text-gray-500 flex-shrink-0 touch-none flex items-center -ml-2 p-2"
+                   className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 flex-shrink-0 touch-none flex items-center -ml-2 p-2"
                    onTouchStart={(e) => handleTouchStart(e, item.id)}
                    onTouchMove={handleTouchMove}
                    onTouchEnd={handleTouchEnd}
@@ -552,7 +552,7 @@ const ShoppingListContent = ({ tripId }) => {
                      type="checkbox" 
                      checked={item.purchased}
                      onChange={() => togglePurchased(item.id)}
-                     className="w-6 h-6 rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                     className="w-6 h-6 rounded border-gray-300 dark:border-gray-600 text-brand-600 focus:ring-brand-500 cursor-pointer bg-white dark:bg-gray-700"
                    />
                  </div>
 
@@ -560,19 +560,19 @@ const ShoppingListContent = ({ tripId }) => {
                  <div className="flex-1 min-w-0">
                    <div className="flex justify-between items-start">
                      <div>
-                       <h3 className={`font-bold text-lg text-gray-900 truncate ${item.purchased ? 'line-through text-gray-400' : ''}`}>
+                       <h3 className={`font-bold text-lg truncate ${item.purchased ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>
                          {item.name}
                        </h3>
                        <div className="flex items-center gap-2 mt-1">
-                         <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                         <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
                            {item.category}
                          </span>
                          {item.shop && (
-                           <span className="text-xs text-gray-500 flex items-center gap-1">
+                           <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                              🏪 {item.shop}
                            </span>
                          )}
-                         <span className="text-xs text-gray-500">
+                         <span className="text-xs text-gray-500 dark:text-gray-400">
                            x{item.quantity}
                          </span>
                        </div>
@@ -580,13 +580,13 @@ const ShoppingListContent = ({ tripId }) => {
                      <div className="flex gap-1">
                        <button 
                          onClick={() => handleEditItem(item)}
-                         className="text-gray-400 hover:text-brand-500 p-1"
+                         className="text-gray-400 dark:text-gray-500 hover:text-brand-500 dark:hover:text-brand-400 p-1"
                        >
                          <Pencil size={18} />
                        </button>
                        <button 
                          onClick={() => deleteItem(item.id)}
-                         className="text-gray-400 hover:text-red-500 p-1"
+                         className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1"
                        >
                          <Trash2 size={18} />
                        </button>
@@ -595,11 +595,11 @@ const ShoppingListContent = ({ tripId }) => {
 
                    {/* Notes & Image */}
                    {(item.notes || item.image) && (
-                     <div className={`mt-3 pt-3 border-t ${item.purchased ? 'border-green-100' : 'border-gray-50'} space-y-2`}>
+                     <div className={`mt-3 pt-3 border-t ${item.purchased ? 'border-green-100 dark:border-green-900/30' : 'border-gray-50 dark:border-gray-700'} space-y-2`}>
                        {item.notes && (
-                         <div className="text-sm text-gray-600 break-words">
+                         <div className="text-sm text-gray-600 dark:text-gray-300 break-words">
                            {item.notes.includes('http') ? (
-                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline flex items-center gap-1">
+                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
                                <ExternalLink size={14} />
                                連結
                              </a>
@@ -613,7 +613,7 @@ const ShoppingListContent = ({ tripId }) => {
                            <img 
                              src={item.image} 
                              alt={item.name} 
-                             className="max-h-32 rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity" 
+                             className="max-h-32 rounded-lg border border-gray-200 dark:border-gray-600 cursor-zoom-in hover:opacity-90 transition-opacity" 
                              onClick={() => setZoomedImage(item.image)}
                            />
                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">

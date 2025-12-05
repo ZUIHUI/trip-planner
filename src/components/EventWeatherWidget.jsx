@@ -32,10 +32,10 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-brand-50 to-brand-100 rounded-lg p-3 border border-brand-200 mb-3">
+      <div className="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/20 dark:to-brand-800/20 rounded-lg p-3 border border-brand-200 dark:border-brand-800 mb-3">
         <div className="flex items-center gap-2">
           <div className="text-xl animate-pulse">⏳</div>
-          <span className="text-xs text-gray-600">載入天氣中...</span>
+          <span className="text-xs text-gray-600 dark:text-gray-400">載入天氣中...</span>
         </div>
       </div>
     );
@@ -46,24 +46,24 @@ const EventWeatherWidget = ({ date, location, gpsCoords = null }) => {
   }
 
   return (
-    <div className="bg-gradient-to-r from-brand-50 to-brand-100 rounded-lg p-3 border border-brand-200 mb-3">
+    <div className="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/20 dark:to-brand-800/20 rounded-lg p-3 border border-brand-200 dark:border-brand-800 mb-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="text-3xl">{weather.icon}</div>
           <div>
-            <p className="text-xs text-gray-600">{location}</p>
-            <p className="text-lg font-bold text-gray-900">{weather.temperature}°C</p>
-            <p className="text-xs text-gray-600">{weather.description}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{location}</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{weather.temperature}°C</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{weather.description}</p>
           </div>
         </div>
         {weather.precipitation !== undefined && weather.windSpeed !== undefined && (
-          <div className="text-right flex items-center gap-2 text-xs text-gray-600">
+          <div className="text-right flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-1">
-              <Droplets size={14} className="text-brand-500" />
+              <Droplets size={14} className="text-brand-500 dark:text-brand-400" />
               <span>{weather.precipitation}mm</span>
             </div>
             <div className="flex items-center gap-1">
-              <Wind size={14} className="text-gray-500" />
+              <Wind size={14} className="text-gray-500 dark:text-gray-400" />
               <span>{weather.windSpeed}km/h</span>
             </div>
           </div>

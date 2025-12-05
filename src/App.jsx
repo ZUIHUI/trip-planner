@@ -76,6 +76,11 @@ const App = () => {
 
   useEffect(() => {
     localStorage.setItem('app_theme', currentTheme);
+    if (currentTheme === 'midnight') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [currentTheme]);
 
   // 取得設備GPS位置（受 enableGPS 控制）
@@ -281,19 +286,19 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center space-y-4">
           <div className="inline-block">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
           </div>
-          <p className="text-gray-600 font-medium">正在載入旅程...</p>
+          <p className="text-gray-600 dark:text-gray-300 font-medium">正在載入旅程...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans pb-20" data-theme={currentTheme}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-20" data-theme={currentTheme}>
       <Header 
         details={tripDetails} 
         activeTab={activeTab}

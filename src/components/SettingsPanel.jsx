@@ -34,15 +34,15 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <h2 className="text-2xl font-bold text-gray-900">設定</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">設定</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <X size={24} className="text-gray-600" />
+            <X size={24} className="text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
@@ -50,8 +50,8 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
         <div className="p-6 space-y-6">
           {/* 主題設定 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Palette size={20} className="text-brand-600" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Palette size={20} className="text-brand-600 dark:text-brand-400" />
               外觀主題
             </h3>
             <div className="grid grid-cols-3 gap-3">
@@ -61,13 +61,13 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
                   onClick={() => onThemeChange(theme.id)}
                   className={`
                     relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all
-                    ${currentTheme === theme.id ? 'border-brand-500 bg-brand-50' : 'border-transparent hover:bg-gray-50'}
+                    ${currentTheme === theme.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}
                   `}
                 >
                   <div className={`w-10 h-10 rounded-full ${theme.color} shadow-sm flex items-center justify-center`}>
                     {currentTheme === theme.id && <Check size={16} className="text-white" />}
                   </div>
-                  <span className="text-xs font-medium text-gray-600">{theme.name}</span>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{theme.name}</span>
                 </button>
               ))}
             </div>
@@ -75,19 +75,19 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
 
           {/* 成員設定 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Users size={20} className="text-purple-600" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Users size={20} className="text-purple-600 dark:text-purple-400" />
               旅程成員
             </h3>
             
-            <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-900/30">
               <div className="space-y-2 mb-4">
                 {travelers.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-2">尚未新增成員</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-2">尚未新增成員</p>
                 ) : (
                   travelers.map(traveler => (
-                    <div key={traveler.id} className="flex items-center justify-between bg-white p-2 rounded-lg border border-purple-100">
-                      <span className="font-medium text-gray-800">{traveler.name}</span>
+                    <div key={traveler.id} className="flex items-center justify-between bg-white dark:bg-gray-700 p-2 rounded-lg border border-purple-100 dark:border-purple-800">
+                      <span className="font-medium text-gray-800 dark:text-gray-200">{traveler.name}</span>
                       <button 
                         onClick={() => handleDeleteTraveler(traveler.id)}
                         className="text-gray-400 hover:text-red-500 p-1"
@@ -105,7 +105,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
                   value={newTravelerName}
                   onChange={(e) => setNewTravelerName(e.target.value)}
                   placeholder="輸入成員姓名"
-                  className="flex-1 bg-white border border-purple-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"
+                  className="flex-1 bg-white dark:bg-gray-700 border border-purple-200 dark:border-purple-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400 dark:text-gray-200"
                   onKeyDown={(e) => e.key === 'Enter' && handleAddTraveler()}
                 />
                 <button
@@ -121,24 +121,24 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
 
           {/* GPS 設定 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <MapPin size={20} className="text-brand-600" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <MapPin size={20} className="text-brand-600 dark:text-brand-400" />
               位置設定
             </h3>
 
             {/* GPS 開關 */}
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-gray-300 transition-colors">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="font-bold text-gray-900 mb-1">啟用 GPS 定位</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">啟用 GPS 定位</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     使用設備位置獲取當前位置的天氣資訊
                   </p>
                 </div>
                 <button
                   onClick={onGPSToggle}
                   className={`ml-4 relative inline-flex h-8 w-14 items-center rounded-full transition-colors flex-shrink-0 ${
-                    enableGPS ? 'bg-green-500' : 'bg-gray-300'
+                    enableGPS ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 >
                   <span
@@ -148,7 +148,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
                   />
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                 {enableGPS ? '✓ GPS 已啟用' : '✗ GPS 已禁用'}
               </p>
             </div>
@@ -156,49 +156,49 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
 
           {/* 天氣優先級說明 */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Zap size={20} className="text-amber-600" />
               天氣資訊優先級
             </h3>
 
-            <div className="bg-brand-50 rounded-xl p-4 border border-brand-200 space-y-3">
+            <div className="bg-brand-50 dark:bg-brand-900/20 rounded-xl p-4 border border-brand-200 dark:border-brand-900/30 space-y-3">
               <div className="flex gap-3">
-                <span className="font-bold text-brand-700 text-lg flex-shrink-0">1</span>
+                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">1</span>
                 <div>
-                  <p className="font-bold text-gray-900">選中的行程地點</p>
-                  <p className="text-sm text-gray-600">點擊行程卡片時顯示該地點的天氣</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">選中的行程地點</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">點擊行程卡片時顯示該地點的天氣</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <span className="font-bold text-brand-700 text-lg flex-shrink-0">2</span>
+                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">2</span>
                 <div>
-                  <p className="font-bold text-gray-900">第一個行程的地點</p>
-                  <p className="text-sm text-gray-600">未選中時顯示當天第一個行程的天氣</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">第一個行程的地點</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">未選中時顯示當天第一個行程的天氣</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <span className="font-bold text-brand-700 text-lg flex-shrink-0">3</span>
+                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">3</span>
                 <div>
-                  <p className="font-bold text-gray-900">當前 GPS 位置</p>
-                  <p className="text-sm text-gray-600">GPS 啟用時顯示設備當前位置的天氣</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">當前 GPS 位置</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">GPS 啟用時顯示設備當前位置的天氣</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <span className="font-bold text-brand-700 text-lg flex-shrink-0">4</span>
+                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">4</span>
                 <div>
-                  <p className="font-bold text-gray-900">住宿地點</p>
-                  <p className="text-sm text-gray-600">最終備用位置，顯示住宿地點的天氣</p>
+                  <p className="font-bold text-gray-900 dark:text-gray-100">住宿地點</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">最終備用位置，顯示住宿地點的天氣</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 版本資訊 */}
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               Trip Planner v1.0.0
             </p>
           </div>

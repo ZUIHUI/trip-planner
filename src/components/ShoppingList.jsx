@@ -120,15 +120,15 @@ const ShoppingList = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white">
-          <h2 className="text-2xl font-bold text-gray-900">🛒 購物清單</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">🛒 購物清單</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <X size={24} className="text-gray-600" />
+            <X size={24} className="text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
@@ -142,7 +142,7 @@ const ShoppingList = ({ isOpen, onClose }) => {
               value={newList}
               onChange={(e) => setNewList(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addList()}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               onClick={addList}
@@ -155,23 +155,23 @@ const ShoppingList = ({ isOpen, onClose }) => {
 
           {/* 清單列表 */}
           {lists.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-gray-400 dark:text-gray-500">
               <p>尚無購物清單</p>
             </div>
           ) : (
             <div className="space-y-4">
               {lists.map(list => (
-                <div key={list.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                <div key={list.id} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                   {/* 清單標題 */}
                   <div
                     onClick={() => setExpandedList(expandedList === list.id ? null : list.id)}
-                    className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 p-4 cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
+                    className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 p-4 cursor-pointer hover:from-blue-100 hover:to-indigo-100 dark:hover:from-gray-600 dark:hover:to-gray-500 transition-colors"
                   >
                     <div className="flex items-center gap-3 flex-1">
-                      {expandedList === list.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      {expandedList === list.id ? <ChevronUp size={20} className="dark:text-gray-300" /> : <ChevronDown size={20} className="dark:text-gray-300" />}
                       <div>
-                        <h3 className="font-bold text-gray-900">{list.name}</h3>
-                        <p className="text-sm text-gray-500">
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100">{list.name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {list.items.filter(i => i.purchased).length}/{list.items.length} 已購買
                         </p>
                       </div>
@@ -181,7 +181,7 @@ const ShoppingList = ({ isOpen, onClose }) => {
                         e.stopPropagation();
                         deleteList(list.id);
                       }}
-                      className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-600"
+                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
                       title="刪除清單"
                     >
                       <Trash2 size={20} />
@@ -190,7 +190,7 @@ const ShoppingList = ({ isOpen, onClose }) => {
 
                   {/* 清單項目 */}
                   {expandedList === list.id && (
-                    <div className="p-4 space-y-4 bg-white border-t border-gray-200">
+                    <div className="p-4 space-y-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                       {/* 新增項目表單 */}
                       {showForm && (
                         <ShoppingItemForm
@@ -203,7 +203,7 @@ const ShoppingList = ({ isOpen, onClose }) => {
 
                       {/* 項目列表 */}
                       {list.items.length === 0 ? (
-                        <div className="text-center py-6 text-gray-400">
+                        <div className="text-center py-6 text-gray-400 dark:text-gray-500">
                           <p>此清單尚無項目</p>
                         </div>
                       ) : (
@@ -224,7 +224,7 @@ const ShoppingList = ({ isOpen, onClose }) => {
                       {!showForm && (
                         <button
                           onClick={() => setShowForm(true)}
-                          className="w-full mt-4 py-2 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                          className="w-full mt-4 py-2 border-2 border-dashed border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center gap-2"
                         >
                           <Plus size={20} />
                           新增項目
@@ -256,28 +256,28 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
 
   if (isEditing) {
     return (
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
+      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <input
             type="text"
             placeholder="店家"
             value={editData.shop}
             onChange={(e) => setEditData({ ...editData, shop: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm"
           />
           <input
             type="text"
             placeholder="商品"
             value={editData.product}
             onChange={(e) => setEditData({ ...editData, product: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm"
           />
         </div>
         <textarea
           placeholder="備註 (可放連結: https://...)"
           value={editData.notes}
           onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm resize-none"
           rows="2"
         />
         <div className="flex gap-2">
@@ -289,7 +289,7 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
           </button>
           <button
             onClick={() => setIsEditing(false)}
-            className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 rounded-lg font-bold transition-colors"
+            className="flex-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-gray-100 py-2 rounded-lg font-bold transition-colors"
           >
             取消
           </button>
@@ -302,8 +302,8 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-colors ${
         item.purchased
-          ? 'bg-gray-50 border-gray-200'
-          : 'bg-white border-blue-200'
+          ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
+          : 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700'
       }`}
     >
       <div className="flex items-start gap-3">
@@ -320,15 +320,15 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
           <div className="flex gap-2 mb-2 flex-wrap">
             <span className={`px-3 py-1 rounded-full text-sm font-bold ${
               item.purchased
-                ? 'bg-gray-200 text-gray-600 line-through'
-                : 'bg-blue-100 text-blue-700'
+                ? 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 line-through'
+                : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
             }`}>
               {item.shop}
             </span>
             <span className={`px-3 py-1 rounded-full text-sm font-bold ${
               item.purchased
-                ? 'bg-gray-200 text-gray-600 line-through'
-                : 'bg-indigo-100 text-indigo-700'
+                ? 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 line-through'
+                : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300'
             }`}>
               {item.product} {item.quantity > 1 ? `×${item.quantity}` : ''}
             </span>
@@ -347,8 +347,8 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
 
           {/* 備註 */}
           {item.notes && (
-            <div className="mb-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200">
-              <p className="text-sm text-gray-700 break-words">
+            <div className="mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+              <p className="text-sm text-gray-700 dark:text-gray-300 break-words">
                 {/* 檢測並渲染連結 */}
                 {item.notes.split(/(\bhttps?:\/\/[^\s]+)/g).map((part, i) =>
                   part.match(/^https?:/) ? (
@@ -357,7 +357,7 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
                       href={part}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                      className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
                     >
                       {part} <ExternalLink size={14} />
                     </a>
@@ -374,14 +374,14 @@ const ShoppingItemCard = ({ item, onTogglePurchased, onUpdate, onDelete }) => {
         <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={() => setIsEditing(true)}
-            className="p-2 hover:bg-blue-100 rounded-lg transition-colors text-blue-600"
+            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-blue-600 dark:text-blue-400"
             title="編輯"
           >
             <Edit2 size={18} />
           </button>
           <button
             onClick={onDelete}
-            className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-600"
+            className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
             title="刪除"
           >
             <Trash2 size={18} />
@@ -426,8 +426,8 @@ const ShoppingItemForm = ({ onSubmit, onCancel }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200 space-y-4">
-      <h4 className="font-bold text-gray-900">新增項目</h4>
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 p-4 rounded-lg border-2 border-blue-200 dark:border-gray-500 space-y-4">
+      <h4 className="font-bold text-gray-900 dark:text-gray-100">新增項目</h4>
 
       {/* 基本信息 */}
       <div className="grid grid-cols-2 gap-3">
@@ -436,14 +436,14 @@ const ShoppingItemForm = ({ onSubmit, onCancel }) => {
           placeholder="店家 (如: 百貨公司)"
           value={formData.shop}
           onChange={(e) => setFormData({ ...formData, shop: e.target.value })}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="text"
           placeholder="商品名稱"
           value={formData.product}
           onChange={(e) => setFormData({ ...formData, product: e.target.value })}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -454,11 +454,11 @@ const ShoppingItemForm = ({ onSubmit, onCancel }) => {
         placeholder="數量"
         value={formData.quantity}
         onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       {/* 圖片上傳 */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors">
+      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors">
         <input
           type="file"
           accept="image/*"
@@ -467,8 +467,8 @@ const ShoppingItemForm = ({ onSubmit, onCancel }) => {
           id="imageInput"
         />
         <label htmlFor="imageInput" className="flex flex-col items-center gap-2 cursor-pointer">
-          <Upload size={24} className="text-gray-400" />
-          <span className="text-sm text-gray-600">點擊上傳商品圖片</span>
+          <Upload size={24} className="text-gray-400 dark:text-gray-500" />
+          <span className="text-sm text-gray-600 dark:text-gray-400">點擊上傳商品圖片</span>
         </label>
         {imagePreview && (
           <div className="mt-3 relative">
@@ -492,7 +492,7 @@ const ShoppingItemForm = ({ onSubmit, onCancel }) => {
         placeholder="備註 (可放連結: https://... 或其他備註)"
         value={formData.notes}
         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         rows="3"
       />
 
@@ -506,7 +506,7 @@ const ShoppingItemForm = ({ onSubmit, onCancel }) => {
         </button>
         <button
           onClick={onCancel}
-          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 rounded-lg font-bold transition-colors"
+          className="flex-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-gray-100 py-2 rounded-lg font-bold transition-colors"
         >
           取消
         </button>

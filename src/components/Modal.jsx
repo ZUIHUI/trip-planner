@@ -6,10 +6,10 @@ const Modal = ({ isOpen, onClose, children, title }) => {
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-up">
-        <div className="flex justify-between items-center p-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-up">
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
             <X size={24} />
           </button>
         </div>

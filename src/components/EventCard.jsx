@@ -39,52 +39,52 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   };
 
   return (
-    <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 ml-3 group">
-      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white ${event.urgent ? 'border-red-500 bg-red-50' : 'border-brand-400'}`}></div>
+    <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-700 ml-3 group">
+      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white dark:bg-gray-800 ${event.urgent ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-brand-400'}`}></div>
 
       {prevLocation && (
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
       )}
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all relative">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all relative">
         {/* Header Section */}
         <div className="flex justify-between items-start mb-2 gap-2">
           <div className="flex items-center space-x-2 min-w-0">
             <div className={`p-2 rounded-lg flex-shrink-0 ${styleClass}`}>
               <Icon size={18} />
             </div>
-            <span className="font-mono text-sm font-bold bg-gray-50 px-2 py-1 rounded text-gray-600 whitespace-nowrap">{event.time}</span>
+            <span className="font-mono text-sm font-bold bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 whitespace-nowrap">{event.time}</span>
           </div>
 
           <div className="flex items-center space-x-1 flex-shrink-0">
             {event.urgent && <AlertCircle size={16} className="text-red-500" />}
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1 hover:bg-gray-100 rounded-full text-gray-400">
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400">
               <MoreVertical size={16} />
             </button>
             {showMenu && (
-              <div className="absolute right-2 top-10 bg-white shadow-xl border border-gray-100 rounded-lg z-10 w-24 py-1 flex flex-col">
-                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"><Edit2 size={12} className="mr-2"/> 編輯</button>
-                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-3 py-2 text-left text-sm hover:bg-gray-50 text-red-500 flex items-center"><Trash2 size={12} className="mr-2"/> 刪除</button>
+              <div className="absolute right-2 top-10 bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 rounded-lg z-10 w-24 py-1 flex flex-col">
+                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center"><Edit2 size={12} className="mr-2"/> 編輯</button>
+                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-500 flex items-center"><Trash2 size={12} className="mr-2"/> 刪除</button>
               </div>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-bold text-gray-800 leading-tight break-words">{event.title}</h3>
-        <p className="text-sm text-gray-500 mt-1 break-words whitespace-pre-wrap">{event.desc}</p>
+        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight break-words">{event.title}</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 break-words whitespace-pre-wrap">{event.desc}</p>
         
         {/* Location Info */}
         {event.location && (
-          <p className="text-sm text-brand-600 mt-2 flex items-center gap-1 font-medium">
+          <p className="text-sm text-brand-600 dark:text-brand-400 mt-2 flex items-center gap-1 font-medium">
             <MapPin size={14} />
             {event.location}
           </p>
         )}
 
         {/* Transport Info & Google Map Button */}
-        <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+        <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
             {event.transport?.mode === 'flight' ? (
               <Plane size={12} className="mr-1 text-brand-500" />
             ) : (
@@ -97,7 +97,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           </div>
           <button
             onClick={() => onOpenGoogleMaps(prevLocation, event.location)}
-            className="flex items-center text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded border border-brand-100 transition-colors"
+            className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-2 py-1 rounded border border-brand-100 dark:border-brand-800 transition-colors"
           >
             <Map size={12} className="mr-1" />
             規劃路線
@@ -108,7 +108,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="mt-3">
           <button
             onClick={() => setShowMemos(!showMemos)}
-            className="flex items-center text-xs text-gray-500 font-medium hover:text-brand-600 transition-colors"
+            className="flex items-center text-xs text-gray-500 dark:text-gray-400 font-medium hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
           >
             <CheckSquare size={12} className="mr-1" />
             備忘錄 ({event.memos?.length || 0})
@@ -116,14 +116,14 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           </button>
 
           {showMemos && (
-            <div className="mt-2 bg-yellow-50 rounded-lg p-2 border border-yellow-100">
+            <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-2 border border-yellow-100 dark:border-yellow-900/30">
               <ul className="space-y-1 mb-2">
                 {event.memos?.map(memo => (
                   <li key={memo.id} className="flex items-start group/item gap-2">
-                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-brand-600 flex-shrink-0">
+                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 flex-shrink-0">
                       {memo.done ? <CheckSquare size={14} className="text-brand-500" /> : <Square size={14} />}
                     </button>
-                    <span className={`text-xs flex-1 break-words word-wrap overflow-wrap-break-word ${memo.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{memo.text}</span>
+                    <span className={`text-xs flex-1 break-words word-wrap overflow-wrap-break-word ${memo.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>{memo.text}</span>
                     <button onClick={() => deleteMemo(memo.id)} className="opacity-0 group-hover/item:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0">
                       <X size={12} />
                     </button>
@@ -133,7 +133,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               <input
                 type="text"
                 placeholder="+ 新增待辦 (Enter)"
-                className="w-full bg-white border border-yellow-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-yellow-400"
+                className="w-full bg-white dark:bg-gray-800 border border-yellow-200 dark:border-yellow-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-yellow-400 dark:text-gray-200"
                 onKeyDown={handleAddMemo}
               />
             </div>
