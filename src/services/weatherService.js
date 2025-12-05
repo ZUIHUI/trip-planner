@@ -155,21 +155,27 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
     const temperatures = data.hourly.temperature_2m;
     const weatherCodes = data.hourly.weather_code;
     
-    // 計算日均溫度
-    const validTemps = temperatures.filter(t => t !== null && !isNaN(t));
-    const avgTemp = validTemps.length > 0 
-      ? Math.round(validTemps.reduce((a, b) => a + b, 0) / validTemps.length)
-      : null;
+    // 獲取當前小時
+    const currentHour = new Date().getHours();
     
-    // 取得中午 12 點的天氣代碼，或使用第一個可用的代碼
-    const weatherCode = weatherCodes[12] || weatherCodes.find(c => c !== null) || 0;
+    // 取得當前時間的溫度 (如果數據不足，則回退到中午或第一個可用數據)
+    const currentTemp = temperatures[currentHour] !== undefined && temperatures[currentHour] !== null
+      ? temperatures[currentHour] 
+      : (temperatures[12] !== undefined && temperatures[12] !== null ? temperatures[12] : temperatures.find(t => t !== null));
+
+    const avgTemp = currentTemp !== null && currentTemp !== undefined ? Math.round(currentTemp) : null;
+    
+    // 取得當前時間的天氣代碼 (如果數據不足，則回退到中午或第一個可用數據)
+    const weatherCode = weatherCodes[currentHour] !== undefined && weatherCodes[currentHour] !== null
+      ? weatherCodes[currentHour]
+      : (weatherCodes[12] !== undefined && weatherCodes[12] !== null ? weatherCodes[12] : (weatherCodes.find(c => c !== null) || 0));
     
     console.log('✅ API 數據成功:', { 
       avgTemp, 
       weatherCode, 
-      tempCount: validTemps.length,
-      minTemp: Math.min(...validTemps),
-      maxTemp: Math.max(...validTemps)
+      currentHour,
+      tempAtHour: temperatures[currentHour],
+      codeAtHour: weatherCodes[currentHour]
     });
     
     return {
@@ -190,11 +196,12 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
  * 生成備用天氣數據（當 API 失敗時）
  */
 const generateFallbackWeather = (dateStr, locationName) => {
-  // 使用日期 + 位置作為種子生成虛擬天氣
+  // 使用日期 + 位置 + 當前小時作為種子生成虛擬天氣
   const [month, day] = dateStr.split('/').map(Number);
   const dateNum = month * 31 + day;
   const locationHash = locationName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const seed = (dateNum + locationHash) % 100;
+  const currentHour = new Date().getHours();
+  const seed = (dateNum + locationHash + currentHour) % 100;
   
   let weatherCode;
   if (seed < 40) {
@@ -248,7 +255,24 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
     console.log('🌍 開始獲取天氣:', { dateStr, locationName, hasGPS: !!gpsCoords, coords });
     
     // 嘗試從 Open-Meteo API 獲取真實天氣數據
-    const result = await fetchWeatherFromAPI(coords.lat, coords.lon, dateStr);
+    let result = await fetchWeatherFromAPI(coords.lat, coords.lon, dateStr);
+    
+    // 如果獲取失敗（可能是因為日期太遠），嘗試獲取「當前」天氣作為參考
+    if (!result) {
+      const today = new Date();
+      const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
+      
+      // 如果請求的不是今天，才嘗試獲取今天的天氣
+      if (dateStr !== todayStr) {
+        console.log('⚠️ 無法獲取目標日期天氣（可能太遠），改為獲取當前實時天氣...');
+        result = await fetchWeatherFromAPI(coords.lat, coords.lon, todayStr);
+        
+        if (result) {
+          result.isCurrentWeather = true;
+          result.description = `(目前) ${result.description}`;
+        }
+      }
+    }
     
     if (result) {
       return {
