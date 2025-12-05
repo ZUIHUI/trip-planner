@@ -72,19 +72,35 @@ const WEATHER_ICON_MAP = {
 };
 
 /**
- * 從地址或地點名稱獲取坐標
+ * 解析地點坐標 (支援靜態列表和 Geocoding API)
  */
-const getCoordinates = (locationName) => {
+const resolveCoordinates = async (locationName) => {
   if (!locationName) return LOCATION_COORDS['東京'];
-  
-  // 嘗試從映射中找到
+
+  // 1. 嘗試從靜態映射中找到
   for (const [key, coords] of Object.entries(LOCATION_COORDS)) {
     if (locationName.includes(key)) {
       return coords;
     }
   }
   
-  // 預設東京
+  // 2. 嘗試使用 Geocoding API 搜尋
+  try {
+    console.log(`🔍 搜尋地點坐標: ${locationName}`);
+    const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=1&language=zh&format=json`);
+    const data = await response.json();
+    
+    if (data.results && data.results.length > 0) {
+      const result = data.results[0];
+      console.log(`✅ 找到地點坐標: ${result.name}`, result);
+      return { lat: result.latitude, lon: result.longitude };
+    }
+  } catch (error) {
+    console.error('❌ Geocoding 失敗:', error);
+  }
+  
+  // 3. 預設東京
+  console.warn(`⚠️ 找不到地點: ${locationName}, 使用預設(東京)`);
   return LOCATION_COORDS['東京'];
 };
 
@@ -133,7 +149,8 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
       apiUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${formattedDate}&end_date=${formattedDate}&hourly=temperature_2m,weather_code&temperature_unit=celsius`;
     } else {
       // 當前或未來日期 - 使用 Forecast API（最多 16 天）
-      apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&start_date=${formattedDate}&end_date=${formattedDate}&hourly=temperature_2m,weather_code&temperature_unit=celsius&forecast_days=16`;
+      // 使用 timezone=GMT 確保小時對齊
+      apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&start_date=${formattedDate}&end_date=${formattedDate}&hourly=temperature_2m,weather_code&temperature_unit=celsius&forecast_days=16&timezone=GMT`;
     }
     
     console.log('🌐 API 終點:', apiUrl.substring(0, 80) + '...');
@@ -155,17 +172,19 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
     const temperatures = data.hourly.temperature_2m;
     const weatherCodes = data.hourly.weather_code;
     
-    // 獲取當前小時
-    const currentHour = new Date().getHours();
+    // 獲取當前 UTC 小時 (因為我們請求了 timezone=GMT)
+    const currentHour = new Date().getUTCHours();
     
     // 取得當前時間的溫度 (如果數據不足，則回退到中午或第一個可用數據)
+    // 注意：如果查看的是未來/過去的某一天，這裡取的是「該日期」在「當前時刻」的天氣
+    // 例如：現在是 15:00，查看明天天氣，會顯示明天 15:00 的預報
     const currentTemp = temperatures[currentHour] !== undefined && temperatures[currentHour] !== null
       ? temperatures[currentHour] 
       : (temperatures[12] !== undefined && temperatures[12] !== null ? temperatures[12] : temperatures.find(t => t !== null));
 
     const avgTemp = currentTemp !== null && currentTemp !== undefined ? Math.round(currentTemp) : null;
     
-    // 取得當前時間的天氣代碼 (如果數據不足，則回退到中午或第一個可用數據)
+    // 取得當前時間的天氣代碼
     const weatherCode = weatherCodes[currentHour] !== undefined && weatherCodes[currentHour] !== null
       ? weatherCodes[currentHour]
       : (weatherCodes[12] !== undefined && weatherCodes[12] !== null ? weatherCodes[12] : (weatherCodes.find(c => c !== null) || 0));
@@ -278,8 +297,8 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
       };
     }
 
-    // 優先使用 GPS 坐標，否則從地點名稱獲取
-    const coords = gpsCoords || getCoordinates(locationName);
+    // 優先使用 GPS 坐標，否則解析地點名稱
+    const coords = gpsCoords || await resolveCoordinates(locationName);
     
     console.log('🌍 開始獲取天氣:', { dateStr, locationName, hasGPS: !!gpsCoords, coords });
     
