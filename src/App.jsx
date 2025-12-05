@@ -172,8 +172,19 @@ const App = () => {
   }, [selectedDay, setItinerary]);
 
   const handleOpenGoogleMaps = (origin, destination) => {
+    let startPoint = origin;
+
+    // 如果有啟用 GPS 且有獲取到位置，優先使用當前 GPS 位置作為起點
+    if (enableGPS && currentLocation) {
+      if (currentLocation.latitude && currentLocation.longitude) {
+        startPoint = `${currentLocation.latitude},${currentLocation.longitude}`;
+      } else if (currentLocation.locationName) {
+        startPoint = currentLocation.locationName;
+      }
+    }
+
     if (destination) {
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin || '')}&destination=${encodeURIComponent(destination)}`;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(startPoint || '')}&destination=${encodeURIComponent(destination)}`;
       window.open(mapsUrl, '_blank');
     }
   };
