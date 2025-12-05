@@ -46,95 +46,106 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all relative">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all relative">
         {/* Header Section */}
-        <div className="flex justify-between items-start mb-2 gap-2">
-          <div className="flex items-center space-x-2 min-w-0">
-            <div className={`p-2 rounded-lg flex-shrink-0 ${styleClass}`}>
-              <Icon size={18} />
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl flex-shrink-0 ${styleClass}`}>
+              <Icon size={20} />
             </div>
-            <span className="font-mono text-sm font-bold bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 whitespace-nowrap">{event.time}</span>
+            <span className="font-mono text-lg font-bold text-gray-700 dark:text-gray-200">{event.time}</span>
           </div>
 
           <div className="flex items-center space-x-1 flex-shrink-0">
-            {event.urgent && <AlertCircle size={16} className="text-red-500" />}
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400">
-              <MoreVertical size={16} />
+            {event.urgent && <AlertCircle size={18} className="text-red-500" />}
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 transition-colors">
+              <MoreVertical size={18} />
             </button>
             {showMenu && (
-              <div className="absolute right-2 top-10 bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 rounded-lg z-10 w-24 py-1 flex flex-col">
-                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center"><Edit2 size={12} className="mr-2"/> 編輯</button>
-                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-500 flex items-center"><Trash2 size={12} className="mr-2"/> 刪除</button>
+              <div className="absolute right-2 top-12 bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 rounded-lg z-10 w-28 py-1 flex flex-col">
+                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
+                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
               </div>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight break-words">{event.title}</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 break-words whitespace-pre-wrap">{event.desc}</p>
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words mb-1">{event.title}</h3>
+          {event.desc && <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed break-words whitespace-pre-wrap">{event.desc}</p>}
+        </div>
         
-        {/* Location Info */}
-        {event.location && (
-          <p className="text-sm text-brand-600 dark:text-brand-400 mt-2 flex items-center gap-1 font-medium">
-            <MapPin size={14} />
-            {event.location}
-          </p>
-        )}
-
-        {/* Transport Info & Google Map Button */}
-        <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
-              {event.transport?.mode === 'flight' ? (
-                <Plane size={12} className="mr-1 text-brand-500" />
-              ) : (
-                <Navigation size={12} className="mr-1 text-brand-500" />
-              )}
-              {event.transport?.duration
-                ? <span>{event.transport.duration} {event.transport.route && `• ${event.transport.route}`}</span>
-                : <span className="text-gray-400">未設定交通</span>
-              }
+        {/* Info Section - Vertical Stack */}
+        <div className="space-y-2.5">
+          {/* Location Info */}
+          {event.location && (
+            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <MapPin size={16} className="mt-0.5 text-brand-500 shrink-0" />
+              <span className="font-medium">{event.location}</span>
             </div>
+          )}
 
-            {/* Cost Info */}
-            {event.cost && (
-              <div className="flex items-center text-xs font-medium px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600" title="預估預算">
-                <span className="mr-1 text-xs">預</span>
-                <span className="font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
-              </div>
-            )}
-            
-            {event.actualCost && (
-              <div className="flex items-center text-xs font-medium px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800" title="實際支出">
-                <span className="mr-1">💰</span>
-                <span className="font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.actualCost}</span>
-              </div>
-            )}
-          </div>
+          {/* Transport Info */}
+          {(event.transport?.duration || event.transport?.route) && (
+            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+              {event.transport?.mode === 'flight' ? (
+                <Plane size={16} className="mt-0.5 text-gray-400 shrink-0" />
+              ) : (
+                <Navigation size={16} className="mt-0.5 text-gray-400 shrink-0" />
+              )}
+              <span>
+                {event.transport.duration && <span className="font-medium mr-1">{event.transport.duration}</span>}
+                {event.transport.route && <span className="text-gray-500 dark:text-gray-400">{event.transport.route}</span>}
+              </span>
+            </div>
+          )}
+
+          {/* Cost Info */}
+          {(event.cost || event.actualCost) && (
+            <div className="flex items-center gap-3 pt-1">
+              {event.cost && (
+                <div className="flex items-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md" title="預估預算">
+                  <span className="mr-1.5">預算</span>
+                  <span className="font-mono font-medium">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
+                </div>
+              )}
+              
+              {event.actualCost && (
+                <div className="flex items-center text-xs text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-1 rounded-md border border-emerald-100 dark:border-emerald-800/50" title="實際支出">
+                  <span className="mr-1.5">支出</span>
+                  <span className="font-mono font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.actualCost}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
+          <button
+            onClick={() => setShowMemos(!showMemos)}
+            className={`flex items-center text-xs font-medium transition-colors ${
+              (event.memos?.length > 0) ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+            }`}
+          >
+            <CheckSquare size={14} className="mr-1.5" />
+            備忘錄 ({event.memos?.length || 0})
+            <ChevronRight size={14} className={`ml-1 transform transition-transform ${showMemos ? 'rotate-90' : ''}`} />
+          </button>
 
           <button
             onClick={() => onOpenGoogleMaps(prevLocation, event.location)}
-            className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-2 py-1 rounded border border-brand-100 dark:border-brand-800 transition-colors"
+            className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
           >
-            <Map size={12} className="mr-1" />
+            <Map size={14} className="mr-1.5" />
             規劃路線
           </button>
         </div>
 
         {/* Memos Section */}
-        <div className="mt-3">
-          <button
-            onClick={() => setShowMemos(!showMemos)}
-            className="flex items-center text-xs text-gray-500 dark:text-gray-400 font-medium hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-          >
-            <CheckSquare size={12} className="mr-1" />
-            備忘錄 ({event.memos?.length || 0})
-            <ChevronRight size={12} className={`transform transition-transform ${showMemos ? 'rotate-90' : ''}`} />
-          </button>
-
-          {showMemos && (
-            <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-2 border border-yellow-100 dark:border-yellow-900/30">
+        {showMemos && (
+          <div className="mt-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-100 dark:border-yellow-900/30 animate-in fade-in slide-in-from-top-2 duration-200">
               <ul className="space-y-1 mb-2">
                 {event.memos?.map(memo => (
                   <li key={memo.id} className="flex items-start group/item gap-2">

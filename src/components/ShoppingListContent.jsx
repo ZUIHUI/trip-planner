@@ -531,14 +531,14 @@ const ShoppingListContent = ({ tripId }) => {
                onDragStart={(e) => handleDragStart(e, item.id)}
                onDragOver={handleDragOver}
                onDrop={(e) => handleDrop(e, item.id)}
-               className={`bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border transition-all ${
+               className={`bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border transition-all ${
                  item.purchased ? 'border-green-200 dark:border-green-900 bg-green-50/30 dark:bg-green-900/20' : 'border-gray-100 dark:border-gray-700'
                } ${draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-gray-700' : ''}`}
              >
                <div className="flex gap-4">
                  {/* Drag Handle */}
                  <div 
-                   className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 flex-shrink-0 touch-none flex items-center -ml-2 p-2"
+                   className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 flex-shrink-0 touch-none flex items-start pt-1 -ml-2 p-2"
                    onTouchStart={(e) => handleTouchStart(e, item.id)}
                    onTouchMove={handleTouchMove}
                    onTouchEnd={handleTouchEnd}
@@ -558,50 +558,53 @@ const ShoppingListContent = ({ tripId }) => {
 
                  {/* Content */}
                  <div className="flex-1 min-w-0">
-                   <div className="flex justify-between items-start">
-                     <div>
-                       <h3 className={`font-bold text-lg truncate ${item.purchased ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>
+                   <div className="flex justify-between items-start mb-2">
+                     <div className="pr-2">
+                       <h3 className={`font-bold text-lg leading-tight break-words ${item.purchased ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}`}>
                          {item.name}
                        </h3>
-                       <div className="flex items-center gap-2 mt-1">
-                         <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
+                       
+                       {/* Tags Row */}
+                       <div className="flex flex-wrap items-center gap-2 mt-2">
+                         <span className="text-xs px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md font-medium">
                            {item.category}
                          </span>
                          {item.shop && (
-                           <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                           <span className="text-xs px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-md font-medium flex items-center gap-1">
                              🏪 {item.shop}
                            </span>
                          )}
-                         <span className="text-xs text-gray-500 dark:text-gray-400">
+                         <span className="text-xs px-2.5 py-1 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-md font-medium">
                            x{item.quantity}
                          </span>
                        </div>
                      </div>
-                     <div className="flex gap-1">
+                     
+                     <div className="flex gap-1 flex-shrink-0">
                        <button 
                          onClick={() => handleEditItem(item)}
-                         className="text-gray-400 dark:text-gray-500 hover:text-brand-500 dark:hover:text-brand-400 p-1"
+                         className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                        >
-                         <Pencil size={18} />
+                         <Pencil size={16} />
                        </button>
                        <button 
                          onClick={() => deleteItem(item.id)}
-                         className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1"
+                         className="p-1.5 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400 rounded-full transition-colors"
                        >
-                         <Trash2 size={18} />
+                         <Trash2 size={16} />
                        </button>
                      </div>
                    </div>
 
                    {/* Notes & Image */}
                    {(item.notes || item.image) && (
-                     <div className={`mt-3 pt-3 border-t ${item.purchased ? 'border-green-100 dark:border-green-900/30' : 'border-gray-50 dark:border-gray-700'} space-y-2`}>
+                     <div className={`mt-3 pt-3 border-t ${item.purchased ? 'border-green-100 dark:border-green-900/30' : 'border-gray-50 dark:border-gray-700'} space-y-3`}>
                        {item.notes && (
-                         <div className="text-sm text-gray-600 dark:text-gray-300 break-words">
+                         <div className="text-sm text-gray-600 dark:text-gray-300 break-words leading-relaxed bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
                            {item.notes.includes('http') ? (
-                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
-                               <ExternalLink size={14} />
-                               連結
+                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 break-all">
+                               <ExternalLink size={14} className="shrink-0" />
+                               {item.notes}
                              </a>
                            ) : (
                              item.notes
@@ -613,10 +616,10 @@ const ShoppingListContent = ({ tripId }) => {
                            <img 
                              src={item.image} 
                              alt={item.name} 
-                             className="max-h-32 rounded-lg border border-gray-200 dark:border-gray-600 cursor-zoom-in hover:opacity-90 transition-opacity" 
+                             className="h-32 w-auto object-cover rounded-lg border border-gray-200 dark:border-gray-600 cursor-zoom-in hover:opacity-90 transition-opacity shadow-sm" 
                              onClick={() => setZoomedImage(item.image)}
                            />
-                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity bg-black/20 rounded-lg">
                              <ZoomIn className="text-white drop-shadow-md" size={24} />
                            </div>
                          </div>
