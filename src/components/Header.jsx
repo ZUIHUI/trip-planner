@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw } from 'lucide-react';
+import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw, DollarSign } from 'lucide-react';
 
 const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) => {
   const tabs = [
@@ -8,6 +8,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
     { id: 'preTrip', label: '行前', icon: CheckSquare },
     { id: 'packing', label: '行李', icon: Luggage },
     { id: 'flights', label: '資訊', icon: Ticket },
+    { id: 'expenses', label: '記帳', icon: DollarSign },
     { id: 'shopping', label: '購物', icon: ShoppingCart },
   ];
 

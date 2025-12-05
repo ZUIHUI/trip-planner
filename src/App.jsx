@@ -10,6 +10,7 @@ import WeatherWidget from './components/WeatherWidget';
 import SettingsPanel from './components/SettingsPanel';
 import ShoppingListContent from './components/ShoppingListContent';
 import PackingListContent from './components/PackingListContent';
+import ExpenseTracker from './components/ExpenseTracker';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
@@ -405,54 +406,17 @@ const App = () => {
                 </>
               )}
 
-              {/* 預算總覽 */}
-              <div className="bg-gradient-to-br from-brand-50 to-brand-100 p-4 rounded-xl shadow-sm border border-brand-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-gray-800">💰 預算總覽 (TWD)</h3>
-                  <span className="text-xs text-gray-500 bg-white/50 px-2 py-1 rounded">匯率: {exchangeRate}</span>
-                </div>
-                {itinerary.some(day => day.events?.some(e => e.cost || e.actualCost)) ? (
-                  <div className="space-y-2">
-                    {itinerary.map(day => {
-                      const dayTotal = day.events?.reduce((sum, e) => {
-                        const amount = e.actualCost ? parseInt(e.actualCost) : (parseInt(e.cost) || 0);
-                        if (!amount) return sum;
-                        const currency = e.currency || 'JPY';
-                        return sum + (currency === 'JPY' ? Math.round(amount * exchangeRate) : amount);
-                      }, 0) || 0;
-                      
-                      const costItems = day.events?.filter(e => e.cost || e.actualCost).length || 0;
-                      return dayTotal > 0 && (
-                        <div key={day.day} className="flex justify-between items-center px-3 py-2 bg-white rounded-lg shadow-sm">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-800">
-                              <span className="inline-block bg-brand-600 text-white px-2 py-0.5 rounded text-xs font-bold mr-2">Day {day.day}</span>
-                              <span className="text-gray-600">{day.date} {day.weekday}</span>
-                            </p>
-                            <p className="text-xs text-gray-500 ml-0">{costItems} 個項目</p>
-                          </div>
-                          <p className="text-base font-bold text-brand-600 ml-4">${dayTotal.toLocaleString()}</p>
-                        </div>
-                      );
-                    })}
-                    <div className="flex justify-between items-center px-3 py-3 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-300 mt-3">
-                      <p className="font-bold text-gray-800">旅程總計 (約)</p>
-                      <p className="text-lg font-bold text-green-700">
-                        ${itinerary.reduce((sum, day) => {
-                          return sum + (day.events?.reduce((daySum, e) => {
-                            const amount = e.actualCost ? parseInt(e.actualCost) : (parseInt(e.cost) || 0);
-                            if (!amount) return daySum;
-                            const currency = e.currency || 'JPY';
-                            return daySum + (currency === 'JPY' ? Math.round(amount * exchangeRate) : amount);
-                          }, 0) || 0);
-                        }, 0).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-center text-gray-500 text-sm py-4">還沒有記錄花費</p>
-                )}
-              </div>
+              {/* 預算總覽已移至記帳頁面 */}
+            </div>
+          )}
+
+          {/* Expense Tab */}
+          {activeTab === 'expenses' && (
+            <div className="px-4 sm:px-6 lg:px-8 mt-4">
+              <ExpenseTracker 
+                itinerary={itinerary} 
+                exchangeRate={exchangeRate}
+              />
             </div>
           )}
 
@@ -534,48 +498,7 @@ const App = () => {
                     )}
                   </div>
 
-                  {/* Daily Cost Summary */}
-                  {currentDayData?.events?.some(e => e.cost) && (
-                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-5 border border-amber-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-amber-700 font-medium">今日消費統計</p>
-                          <div className="mt-1 space-y-1">
-                            {/* JPY Total */}
-                            {currentDayData.events.some(e => e.cost && (!e.currency || e.currency === 'JPY')) && (
-                              <p className="text-xl font-bold text-amber-900">
-                                ¥ {currentDayData.events
-                                  .filter(e => e.cost && (!e.currency || e.currency === 'JPY'))
-                                  .reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)
-                                  .toLocaleString()}
-                              </p>
-                            )}
-                            {/* TWD Total */}
-                            {currentDayData.events.some(e => e.cost && e.currency === 'TWD') && (
-                              <p className="text-lg font-bold text-amber-800">
-                                NT$ {currentDayData.events
-                                  .filter(e => e.cost && e.currency === 'TWD')
-                                  .reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)
-                                  .toLocaleString()}
-                              </p>
-                            )}
-                            {/* Converted Total */}
-                            <p className="text-sm text-amber-600 font-medium pt-1 border-t border-amber-200/50 mt-1">
-                              約合台幣: NT$ {Math.round(currentDayData.events.reduce((sum, e) => {
-                                const amount = parseInt(e.cost) || 0;
-                                if (!amount) return sum;
-                                const currency = e.currency || 'JPY';
-                                return sum + (currency === 'JPY' ? amount * exchangeRate : amount);
-                              }, 0)).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-amber-700">{currentDayData.events.filter(e => e.cost).length} 項</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Daily Cost Summary 已移至記帳頁面 */}
                 </div>
               </div>
             </>
