@@ -231,6 +231,35 @@ const generateFallbackWeather = (dateStr, locationName) => {
 };
 
 /**
+ * 獲取當前實時天氣 (使用 Current Weather API)
+ */
+const fetchCurrentWeather = async (lat, lon) => {
+  try {
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=celsius`;
+    
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error('Weather API error');
+    
+    const data = await response.json();
+    if (!data.current) throw new Error('No current data');
+    
+    const weatherCode = data.current.weather_code;
+    
+    return {
+      success: true,
+      temperature: Math.round(data.current.temperature_2m),
+      weatherCode,
+      icon: WEATHER_ICON_MAP[weatherCode] || '🌤️',
+      description: `(目前) ${getWeatherDescription(weatherCode)}`,
+      source: 'open-meteo-current'
+    };
+  } catch (error) {
+    console.error('❌ Current weather fetch failed:', error);
+    return null;
+  }
+};
+
+/**
  * 獲取指定日期的天氣資訊
  * @param {string} dateStr - 日期字符串，格式 "MM/DD"
  * @param {string} locationName - 位置名稱
@@ -259,19 +288,8 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
     
     // 如果獲取失敗（可能是因為日期太遠），嘗試獲取「當前」天氣作為參考
     if (!result) {
-      const today = new Date();
-      const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
-      
-      // 如果請求的不是今天，才嘗試獲取今天的天氣
-      if (dateStr !== todayStr) {
-        console.log('⚠️ 無法獲取目標日期天氣（可能太遠），改為獲取當前實時天氣...');
-        result = await fetchWeatherFromAPI(coords.lat, coords.lon, todayStr);
-        
-        if (result) {
-          result.isCurrentWeather = true;
-          result.description = `(目前) ${result.description}`;
-        }
-      }
+      console.log('⚠️ 無法獲取目標日期天氣（可能太遠），改為獲取當前實時天氣...');
+      result = await fetchCurrentWeather(coords.lat, coords.lon);
     }
     
     if (result) {
