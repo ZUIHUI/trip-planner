@@ -75,8 +75,7 @@ const App = () => {
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // 設定面板開啟狀態
   const [draggedEventId, setDraggedEventId] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('app_theme') || 'ocean');
-  const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localS
-    torage.getItem('exchange_rate')) || 0.215);
+  const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localStorage.getItem('exchange_rate')) || 0.215);
   const [lastRateUpdate, setLastRateUpdate] = useState(() => localStorage.getItem('last_rate_update') || null);
 
   useEffect(() => {
