@@ -19,6 +19,15 @@ const LOCATION_COORDS = {
   '台南': { lat: 22.9937, lon: 120.2153 },
   'Tainan': { lat: 22.9937, lon: 120.2153 },
   
+  // 機場
+  '桃園機場': { lat: 25.0797, lon: 121.2342 },
+  'Taoyuan Airport': { lat: 25.0797, lon: 121.2342 },
+  'TPE': { lat: 25.0797, lon: 121.2342 },
+  '松山機場': { lat: 25.0697, lon: 121.5525 },
+  'TSA': { lat: 25.0697, lon: 121.5525 },
+  '小港機場': { lat: 22.5771, lon: 120.3459 },
+  'KHH': { lat: 22.5771, lon: 120.3459 },
+  
   // 日本
   '日本': { lat: 35.6895, lon: 139.7037 }, // 預設對應到東京
   'Japan': { lat: 35.6895, lon: 139.7037 }, // 預設對應到東京
@@ -62,8 +71,15 @@ const LOCATION_COORDS = {
   'Shinagawa': { lat: 35.6290, lon: 139.7401 },
   '羽田': { lat: 35.5494, lon: 139.7798 },
   'Haneda': { lat: 35.5494, lon: 139.7798 },
+  '羽田機場': { lat: 35.5494, lon: 139.7798 },
+  'Haneda Airport': { lat: 35.5494, lon: 139.7798 },
   '成田': { lat: 35.7653, lon: 140.3930 },
   'Narita': { lat: 35.7653, lon: 140.3930 },
+  '成田機場': { lat: 35.7653, lon: 140.3930 },
+  'Narita Airport': { lat: 35.7653, lon: 140.3930 },
+  '關西機場': { lat: 34.4320, lon: 135.2304 },
+  'Kansai Airport': { lat: 34.4320, lon: 135.2304 },
+  'KIX': { lat: 34.4320, lon: 135.2304 },
   // 景點
   '淺草寺': { lat: 35.7148, lon: 139.7967 },
   'Senso-ji': { lat: 35.7148, lon: 139.7967 },
@@ -114,30 +130,62 @@ const WEATHER_ICON_MAP = {
 const resolveCoordinates = async (locationName) => {
   if (!locationName) return LOCATION_COORDS['東京'];
 
-  // 1. 嘗試從靜態映射中找到
-  for (const [key, coords] of Object.entries(LOCATION_COORDS)) {
-    if (locationName.includes(key)) {
-      return coords;
-    }
+  // 0. 清理地點名稱
+  const cleanName = locationName.trim();
+
+  // 1. 精確匹配靜態映射 (優先級最高，用於快速命中常用地點)
+  if (LOCATION_COORDS[cleanName]) {
+    return LOCATION_COORDS[cleanName];
   }
   
-  // 2. 嘗試使用 Geocoding API 搜尋
+  // 2. 嘗試使用 Geocoding API 搜尋 (Open-Meteo)
+  // 這能支援絕大多數的城市、鄉鎮和主要地標
   try {
-    console.log(`🔍 搜尋地點坐標: ${locationName}`);
-    const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationName)}&count=1&language=zh&format=json`);
+    console.log(`🔍 搜尋地點坐標 (Open-Meteo): ${cleanName}`);
+    const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanName)}&count=1&language=zh&format=json`);
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
       const result = data.results[0];
-      console.log(`✅ 找到地點坐標: ${result.name}`, result);
+      console.log(`✅ 找到地點坐標 (Open-Meteo): ${result.name}`, result);
       return { lat: result.latitude, lon: result.longitude };
     }
   } catch (error) {
-    console.error('❌ Geocoding 失敗:', error);
+    console.error('❌ Open-Meteo Geocoding 失敗:', error);
+  }
+
+  // 3. 嘗試使用 Nominatim API (OpenStreetMap)
+  // 這對於具體的 POI (如景點、商店、車站) 支援度更好，更接近 Google Maps 的體驗
+  try {
+    console.log(`🔍 搜尋地點坐標 (Nominatim): ${cleanName}`);
+    // Nominatim 需要 User-Agent
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanName)}&format=json&limit=1`, {
+      headers: {
+        'User-Agent': 'TripPlannerApp/1.0'
+      }
+    });
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const result = data[0];
+      console.log(`✅ 找到地點坐標 (Nominatim): ${result.display_name}`, result);
+      return { lat: parseFloat(result.lat), lon: parseFloat(result.lon) };
+    }
+  } catch (error) {
+    console.error('❌ Nominatim Geocoding 失敗:', error);
+  }
+
+  // 4. 模糊匹配靜態映射 (作為最後的備選)
+  // 例如輸入 "台北101"，如果上面都沒找到，至少匹配到 "台北"
+  for (const [key, coords] of Object.entries(LOCATION_COORDS)) {
+    if (cleanName.includes(key)) {
+      console.log(`⚠️ 使用模糊匹配: ${cleanName} -> ${key}`);
+      return coords;
+    }
   }
   
-  // 3. 預設東京
-  console.warn(`⚠️ 找不到地點: ${locationName}, 使用預設(東京)`);
+  // 5. 真的找不到，預設東京
+  console.warn(`⚠️ 找不到地點: ${cleanName}, 使用預設(東京)`);
   return LOCATION_COORDS['東京'];
 };
 
