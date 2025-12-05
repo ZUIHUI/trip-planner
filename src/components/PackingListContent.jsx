@@ -5,7 +5,6 @@ import DaySelector from './DaySelector';
 const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [] }) => {
   const [activeCategory, setActiveCategory] = useState('suitcase');
   const [selectedDay, setSelectedDay] = useState(1);
-  const [selectedTravelerId, setSelectedTravelerId] = useState(''); // '' means shared/all
   const [draggedItemId, setDraggedItemId] = useState(null);
 
   const categories = [
@@ -15,13 +14,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
     { id: 'other', name: '其他', icon: <Package size={20} />, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800', border: 'border-gray-200 dark:border-gray-700' }
   ];
 
-  const getTravelerName = (id) => {
-    if (!id) return null;
-    const traveler = travelers.find(t => t.id === id);
-    return traveler ? traveler.name : null;
-  };
-
-  const handleAddItem = (text) => {
+  const handleAddItem = (text, assignedTo = null) => {
     if (!text.trim()) return;
     
     const newItem = {
@@ -29,7 +22,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
       text: text,
       done: false,
       category: activeCategory,
-      assignedTo: selectedTravelerId || null,
+      assignedTo: assignedTo,
       day: activeCategory === 'clothing' ? selectedDay : null
     };
     
@@ -185,97 +178,99 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
         </div>
         
         <div className="p-4">
-          <div className="space-y-2 mb-4">
-            {filteredItems.length === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 italic text-center py-8">
-                {activeCategory === 'clothing' 
-                  ? `Day ${selectedDay} 尚無衣物清單` 
-                  : '尚無項目'}
-              </p>
-            ) : (
-              filteredItems.map(item => (
-                <div 
-                  key={item.id} 
-                  data-item-id={item.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, item.id)}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, item.id)}
-                  className={`flex items-center gap-3 group hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                    draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-gray-700' : ''
-                  }`}
-                >
-                  <div 
-                    className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 flex-shrink-0 touch-none p-2 -ml-2"
-                    onTouchStart={(e) => handleTouchStart(e, item.id)}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                  >
-                    <GripVertical size={16} />
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={item.done || false}
-                    onChange={() => handleToggleItem(item.id)}
-                    className={`w-5 h-5 rounded border-gray-300 dark:border-gray-600 focus:ring-offset-0 cursor-pointer bg-white dark:bg-gray-700 ${
-                      activeCategory === 'suitcase' ? 'text-brand-600 focus:ring-brand-500' :
-                      activeCategory === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
-                      activeCategory === 'clothing' ? 'text-purple-600 focus:ring-purple-500' :
-                      'text-gray-600 dark:text-gray-400 focus:ring-gray-500'
-                    }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-200'}`}>
-                      <span className="truncate">{item.text}</span>
-                      {item.assignedTo && (
-                        <span className="flex-shrink-0 text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full flex items-center gap-1">
-                          <User size={10} />
-                          {getTravelerName(item.assignedTo) || '未知'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all p-1"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+          {[
+            { id: '', name: '共用', isShared: true },
+            ...travelers.map(t => ({ ...t, isShared: false }))
+          ].map(group => {
+            const groupItems = filteredItems.filter(item => {
+              const itemAssignedTo = item.assignedTo || '';
+              const groupID = group.id || '';
+              return itemAssignedTo === groupID;
+            });
 
-          <div className="flex gap-2">
-            {travelers.length > 0 && (
-              <select
-                value={selectedTravelerId}
-                onChange={(e) => setSelectedTravelerId(e.target.value)}
-                className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-brand-400 max-w-[100px]"
-              >
-                <option value="">共用</option>
-                {travelers.map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            )}
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder={`+ 新增至${currentCategory.name}...`}
-                className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleAddItem(e.target.value);
-                    e.target.value = '';
-                  }
-                }}
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
-                <Plus size={16} />
+            return (
+              <div key={group.id || 'shared'} className="mb-8 last:mb-0">
+                <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
+                  {group.isShared ? (
+                    <span className="bg-gray-100 dark:bg-gray-700 p-1 rounded-full"><User size={14} /></span>
+                  ) : (
+                    <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 p-1 rounded-full"><User size={14} /></span>
+                  )}
+                  {group.name}
+                </h4>
+
+                <div className="space-y-2 mb-3">
+                  {groupItems.length === 0 ? (
+                    <p className="text-sm text-gray-400 dark:text-gray-500 italic pl-2 border-l-2 border-gray-100 dark:border-gray-700">
+                      尚無項目
+                    </p>
+                  ) : (
+                    groupItems.map(item => (
+                      <div 
+                        key={item.id} 
+                        data-item-id={item.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item.id)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, item.id)}
+                        className={`flex items-center gap-3 group hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors ${
+                          draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-gray-700' : ''
+                        }`}
+                      >
+                        <div 
+                          className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 flex-shrink-0 touch-none p-2 -ml-2"
+                          onTouchStart={(e) => handleTouchStart(e, item.id)}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
+                        >
+                          <GripVertical size={16} />
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={item.done || false}
+                          onChange={() => handleToggleItem(item.id)}
+                          className={`w-5 h-5 rounded border-gray-300 dark:border-gray-600 focus:ring-offset-0 cursor-pointer bg-white dark:bg-gray-700 ${
+                            activeCategory === 'suitcase' ? 'text-brand-600 focus:ring-brand-500' :
+                            activeCategory === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
+                            activeCategory === 'clothing' ? 'text-purple-600 focus:ring-purple-500' :
+                            'text-gray-600 dark:text-gray-400 focus:ring-gray-500'
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-200'}`}>
+                            <span className="truncate">{item.text}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all p-1"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={`+ 新增至${group.name}...`}
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddItem(e.target.value, group.id);
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
+                    <Plus size={16} />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>
