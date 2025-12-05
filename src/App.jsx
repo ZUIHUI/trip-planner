@@ -540,9 +540,35 @@ const App = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-amber-700 font-medium">今日消費統計</p>
-                          <p className="text-2xl font-bold text-amber-900 mt-1">
-                            ¥ {currentDayData.events.filter(e => e.cost).reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)}
-                          </p>
+                          <div className="mt-1 space-y-1">
+                            {/* JPY Total */}
+                            {currentDayData.events.some(e => e.cost && (!e.currency || e.currency === 'JPY')) && (
+                              <p className="text-xl font-bold text-amber-900">
+                                ¥ {currentDayData.events
+                                  .filter(e => e.cost && (!e.currency || e.currency === 'JPY'))
+                                  .reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)
+                                  .toLocaleString()}
+                              </p>
+                            )}
+                            {/* TWD Total */}
+                            {currentDayData.events.some(e => e.cost && e.currency === 'TWD') && (
+                              <p className="text-lg font-bold text-amber-800">
+                                NT$ {currentDayData.events
+                                  .filter(e => e.cost && e.currency === 'TWD')
+                                  .reduce((sum, e) => sum + (parseInt(e.cost) || 0), 0)
+                                  .toLocaleString()}
+                              </p>
+                            )}
+                            {/* Converted Total */}
+                            <p className="text-sm text-amber-600 font-medium pt-1 border-t border-amber-200/50 mt-1">
+                              約合台幣: NT$ {Math.round(currentDayData.events.reduce((sum, e) => {
+                                const amount = parseInt(e.cost) || 0;
+                                if (!amount) return sum;
+                                const currency = e.currency || 'JPY';
+                                return sum + (currency === 'JPY' ? amount * exchangeRate : amount);
+                              }, 0)).toLocaleString()}
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-amber-700">{currentDayData.events.filter(e => e.cost).length} 項</p>

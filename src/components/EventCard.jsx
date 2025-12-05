@@ -98,20 +98,10 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
             </div>
 
             {/* Cost Info */}
-            {(event.cost || event.actualCost) && (
+            {event.cost && (
               <div className="flex items-center text-xs font-medium px-2 py-1 rounded bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800">
                 <span className="mr-1">💰</span>
-                {event.actualCost ? (
-                  <span className="font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.actualCost}</span>
-                ) : (
-                  <span className="text-gray-500 dark:text-gray-400">預估: {event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
-                )}
-                {/* Conversion for JPY */}
-                {(event.currency !== 'TWD' && (event.actualCost || event.cost)) && (
-                  <span className="ml-1 text-gray-500 dark:text-gray-400">
-                    (≈NT${Math.round((event.actualCost || event.cost) * exchangeRate)})
-                  </span>
-                )}
+                <span className="font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
               </div>
             )}
           </div>

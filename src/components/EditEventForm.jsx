@@ -94,29 +94,16 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">預估金額</label>
-            <input
-              type="number"
-              name="cost"
-              value={formData.cost || ""}
-              onChange={handleChange}
-              placeholder="預算"
-              className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">實際支出</label>
-            <input
-              type="number"
-              name="actualCost"
-              value={formData.actualCost || ""}
-              onChange={handleChange}
-              placeholder="實際花費"
-              className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
-            />
-          </div>
+        <div>
+          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">花費金額</label>
+          <input
+            type="number"
+            name="cost"
+            value={formData.cost || ""}
+            onChange={handleChange}
+            placeholder="輸入金額"
+            className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
+          />
         </div>
       </div>
 
