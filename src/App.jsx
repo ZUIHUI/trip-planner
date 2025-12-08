@@ -418,6 +418,7 @@ const App = () => {
                 expenses={expenses}
                 setExpenses={setExpenses}
                 exchangeRate={exchangeRate}
+                travelers={tripDetails.travelers || []}
               />
             </div>
           )}

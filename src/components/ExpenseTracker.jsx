@@ -1,17 +1,24 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2 } from 'lucide-react';
 
-const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 0.215 }) => {
+const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 0.215, travelers = [] }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedDay, setSelectedDay] = useState('all');
   
+  // 確保至少有一個付款人選項
+  const payerOptions = travelers.length > 0 ? travelers : ['我'];
+
   const initialFormState = {
     title: '',
     amount: '',
     currency: 'JPY',
     date: itinerary[0]?.date || '',
-    category: 'food'
+    category: 'food',
+    payer: payerOptions[0],
+    splitType: 'all', // all, specific, settled
+    involved: payerOptions, // 預設所有人分攤
+    isSettled: false // 是否已結清
   };
   
   const [formData, setFormData] = useState(initialFormState);
@@ -36,8 +43,22 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
 
   // 處理表單變更
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
+  };
+
+  // 處理分攤人選擇
+  const handleInvolvedChange = (person) => {
+    setFormData(prev => {
+      const currentInvolved = prev.involved || [];
+      const newInvolved = currentInvolved.includes(person)
+        ? currentInvolved.filter(p => p !== person)
+        : [...currentInvolved, person];
+      return { ...prev, involved: newInvolved };
+    });
   };
 
   // 提交表單 (新增或編輯)
@@ -45,17 +66,25 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
     e.preventDefault();
     if (!formData.title || !formData.amount) return;
 
+    const expenseData = {
+      ...formData,
+      amount: parseFloat(formData.amount),
+      // 如果是已結清，強制設定 isSettled 為 true
+      isSettled: formData.splitType === 'settled' ? true : formData.isSettled,
+      // 如果是全部分攤，確保 involved 包含所有人
+      involved: formData.splitType === 'all' ? payerOptions : formData.involved
+    };
+
     if (editingId) {
       // 編輯模式
       setExpenses(prev => prev.map(item => 
-        item.id === editingId ? { ...formData, id: editingId, amount: parseFloat(formData.amount) } : item
+        item.id === editingId ? { ...expenseData, id: editingId } : item
       ));
     } else {
       // 新增模式
       const newExpense = {
-        ...formData,
-        id: Date.now().toString(),
-        amount: parseFloat(formData.amount)
+        ...expenseData,
+        id: Date.now().toString()
       };
       setExpenses(prev => [...prev, newExpense]);
     }
@@ -72,7 +101,11 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
 
   // 開啟編輯
   const handleEdit = (item) => {
-    setFormData(item);
+    setFormData({
+      ...initialFormState, // 確保有預設值
+      ...item,
+      involved: item.involved || payerOptions // 兼容舊資料
+    });
     setEditingId(item.id);
     setIsFormOpen(true);
   };
@@ -184,6 +217,23 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
                             {category.label}
                           </span>
                           <p className="font-bold text-gray-800 dark:text-gray-200 truncate">{item.title}</p>
+                          {item.isSettled && (
+                            <span className="text-[10px] bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded flex items-center">
+                              <CheckCircle2 size={10} className="mr-1" /> 已結清
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                          <span className="flex items-center">
+                            <Users size={12} className="mr-1" />
+                            {item.payer} 付款
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {item.splitType === 'settled' ? '已分帳' : 
+                             item.splitType === 'all' ? '全員分攤' : 
+                             `分攤: ${item.involved?.join(', ')}`}
+                          </span>
                         </div>
                       </div>
                       <div className="text-right flex items-center gap-3">
@@ -320,6 +370,75 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
                       <option key={c.id} value={c.id}>{c.label}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* 付款與分帳設定 */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-600 space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">誰先付款？</label>
+                  <select
+                    name="payer"
+                    value={formData.payer}
+                    onChange={handleChange}
+                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-emerald-500 dark:text-white"
+                  >
+                    {payerOptions.map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">分帳方式</label>
+                  <div className="flex gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, splitType: 'all' }))}
+                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'all' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600'}`}
+                    >
+                      全員均分
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, splitType: 'specific' }))}
+                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'specific' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600'}`}
+                    >
+                      指定分攤
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, splitType: 'settled' }))}
+                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'settled' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600'}`}
+                    >
+                      已結清
+                    </button>
+                  </div>
+
+                  {formData.splitType === 'specific' && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {payerOptions.map(person => (
+                        <button
+                          key={person}
+                          type="button"
+                          onClick={() => handleInvolvedChange(person)}
+                          className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                            formData.involved?.includes(person)
+                              ? 'bg-emerald-500 text-white border-emerald-600'
+                              : 'bg-white text-gray-500 border-gray-200'
+                          }`}
+                        >
+                          {person}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {formData.splitType === 'settled' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      此筆支出將只列入總花費，不參與後續的債務計算。
+                    </p>
+                  )}
                 </div>
               </div>
 
