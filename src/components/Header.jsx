@@ -5,11 +5,11 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
   const tabs = [
     { id: 'summary', label: '總覽', icon: LayoutDashboard },
     { id: 'itinerary', label: '行程', icon: Map },
+    { id: 'expenses', label: '記帳', icon: DollarSign },
+    { id: 'shopping', label: '購物', icon: ShoppingCart },
     { id: 'preTrip', label: '行前', icon: CheckSquare },
     { id: 'packing', label: '行李', icon: Luggage },
     { id: 'flights', label: '資訊', icon: Ticket },
-    { id: 'expenses', label: '記帳', icon: DollarSign },
-    { id: 'shopping', label: '購物', icon: ShoppingCart },
   ];
 
   return (
