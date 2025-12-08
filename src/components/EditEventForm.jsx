@@ -5,7 +5,7 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
   const [formData, setFormData] = useState(event || {
     time: "", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
     transport: { mode: "train", duration: "", route: "" },
-    cost: "", actualCost: ""
+    cost: ""
   });
 
   const handleChange = (e) => {
@@ -103,18 +103,6 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
             onChange={handleChange}
             placeholder="輸入預算"
             className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
-          />
-        </div>
-        
-        <div>
-          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">實際支出 (記帳)</label>
-          <input
-            type="number"
-            name="actualCost"
-            value={formData.actualCost || ""}
-            onChange={handleChange}
-            placeholder="輸入實際花費"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200 border-l-4 border-l-emerald-500"
           />
         </div>
       </div>

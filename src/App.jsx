@@ -61,7 +61,7 @@ const initialItinerary = calculateItinerary("2026/02/23");
 
 const App = () => {
   const TRIP_ID = 'default-trip';
-  const { isLoading, isSaving, saveError, tripDetails, setTripDetails, itinerary, setItinerary, checklists, setChecklists, manualRefresh } = 
+  const { isLoading, isSaving, saveError, tripDetails, setTripDetails, itinerary, setItinerary, checklists, setChecklists, expenses, setExpenses, manualRefresh } = 
     useTrip(TRIP_ID, initialTripDetails, initialItinerary);
 
   const [activeTab, setActiveTab] = useState('itinerary');
@@ -415,6 +415,8 @@ const App = () => {
             <div className="px-4 sm:px-6 lg:px-8 mt-4">
               <ExpenseTracker 
                 itinerary={itinerary} 
+                expenses={expenses}
+                setExpenses={setExpenses}
                 exchangeRate={exchangeRate}
               />
             </div>

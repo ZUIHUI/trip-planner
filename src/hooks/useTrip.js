@@ -38,6 +38,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
   const [tripDetails, setTripDetails] = useState(initialTripDetails);
   const [itinerary, setItinerary] = useState(initialItinerary);
   const [checklists, setChecklists] = useState({ preTrip: [], packing: [] });
+  const [expenses, setExpenses] = useState([]);
   const autoSaveTimeoutRef = useRef(null);
   const loadingTimeoutRef = useRef(null);
 
@@ -57,6 +58,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
             setTripDetails(localData.tripDetails || initialTripDetails);
             setItinerary(ensureItineraryComplete(localData.itinerary || initialItinerary));
             setChecklists(localData.checklists || { preTrip: [], packing: [] });
+            setExpenses(localData.expenses || []);
           }
         } catch (err) {
           console.error('❌ localStorage 載入失敗:', err);
@@ -75,6 +77,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
               setTripDetails(firebaseData.tripDetails || initialTripDetails);
               setItinerary(ensureItineraryComplete(firebaseData.itinerary || initialItinerary));
               setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
+              setExpenses(firebaseData.expenses || []);
             }
           } catch (err) {
             console.warn('⚠️ Firebase 載入失敗:', err.message);
@@ -126,6 +129,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
           tripDetails,
           itinerary,
           checklists,
+          expenses,
           savedAt: new Date().toISOString()
         };
 
@@ -165,7 +169,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [tripDetails, itinerary, checklists, tripId]);
+  }, [tripDetails, itinerary, checklists, expenses, tripId]);
 
   // 手動從 Firebase 更新資料
   const manualRefresh = async () => {
@@ -178,6 +182,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         setTripDetails(firebaseData.tripDetails || initialTripDetails);
         setItinerary(ensureItineraryComplete(firebaseData.itinerary || initialItinerary));
         setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
+        setExpenses(firebaseData.expenses || []);
         return true;
       }
     } catch (err) {
@@ -199,6 +204,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     setItinerary,
     checklists,
     setChecklists,
+    expenses,
+    setExpenses,
     manualRefresh
   };
 };

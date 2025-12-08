@@ -102,21 +102,12 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           )}
 
           {/* Cost Info */}
-          {(event.cost || event.actualCost) && (
+          {event.cost && (
             <div className="flex items-center gap-3 pt-1">
-              {event.cost && (
-                <div className="flex items-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md" title="預估預算">
-                  <span className="mr-1.5">預算</span>
-                  <span className="font-mono font-medium">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
-                </div>
-              )}
-              
-              {event.actualCost && (
-                <div className="flex items-center text-xs text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-1 rounded-md border border-emerald-100 dark:border-emerald-800/50" title="實際支出">
-                  <span className="mr-1.5">支出</span>
-                  <span className="font-mono font-bold">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.actualCost}</span>
-                </div>
-              )}
+              <div className="flex items-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md" title="預估預算">
+                <span className="mr-1.5">預算</span>
+                <span className="font-mono font-medium">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
+              </div>
             </div>
           )}
         </div>
