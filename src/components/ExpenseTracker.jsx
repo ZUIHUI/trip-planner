@@ -1,19 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2 } from 'lucide-react';
 
-const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 0.215, travelers = [] }) => {
+const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [] }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedDay, setSelectedDay] = useState('all');
   
   // 確保至少有一個付款人選項
-  const payerOptions = travelers.length > 0 ? travelers : ['我'];
+  const payerOptions = useMemo(() => 
+    (travelers && travelers.length > 0) ? travelers : ['我'], 
+  [travelers]);
 
   const initialFormState = useMemo(() => ({
     title: '',
     amount: '',
     currency: 'JPY',
-    date: itinerary[0]?.date || '',
+    date: (itinerary && itinerary.length > 0) ? itinerary[0].date : '',
     category: 'food',
     payer: payerOptions[0],
     splitType: 'all', // all, specific, settled
@@ -357,7 +359,7 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
                     onChange={handleChange}
                     className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
                   >
-                    {itinerary.map(day => (
+                    {itinerary && itinerary.map(day => (
                       <option key={day.day} value={day.date}>
                         Day {day.day} ({day.date})
                       </option>
