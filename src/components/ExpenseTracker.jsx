@@ -512,13 +512,6 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
               {/* 付款與分帳設定 */}
               <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-600 space-y-3">
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* 付款與分帳設定 */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-600 space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">誰先付款？</label>
                   <select
