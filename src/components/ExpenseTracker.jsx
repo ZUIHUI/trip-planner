@@ -9,7 +9,7 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
   // 確保至少有一個付款人選項
   const payerOptions = travelers.length > 0 ? travelers : ['我'];
 
-  const initialFormState = {
+  const initialFormState = useMemo(() => ({
     title: '',
     amount: '',
     currency: 'JPY',
@@ -19,7 +19,7 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
     splitType: 'all', // all, specific, settled
     involved: payerOptions, // 預設所有人分攤
     isSettled: false // 是否已結清
-  };
+  }), [itinerary, payerOptions]);
   
   const [formData, setFormData] = useState(initialFormState);
 
@@ -102,7 +102,7 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
   // 開啟編輯
   const handleEdit = (item) => {
     setFormData({
-      ...initialFormState, // 確保有預設值
+      ...initialFormState,
       ...item,
       involved: item.involved || payerOptions // 兼容舊資料
     });
@@ -305,7 +305,7 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
                 <input
                   type="text"
                   name="title"
-                  value={formData.title}
+                  value={formData.title || ''}
                   onChange={handleChange}
                   placeholder="例如：午餐、紀念品"
                   className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
@@ -320,7 +320,7 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
                   <input
                     type="number"
                     name="amount"
-                    value={formData.amount}
+                    value={formData.amount || ''}
                     onChange={handleChange}
                     placeholder="0"
                     className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
