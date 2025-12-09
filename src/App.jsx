@@ -373,15 +373,6 @@ const App = () => {
               selectedDay={selectedDay}
               onSelectDay={setSelectedDay}
             />
-            <div className="mt-2">
-              <WeatherWidget 
-                date={currentDayData?.date}
-                currentLocation={currentLocation?.locationName}
-                accommodation={tripDetails?.accommodation?.name || '東京'}
-                firstEventLocation={currentDayData?.events?.[0]?.location}
-                selectedEventLocation={selectedEventLocation}
-              />
-            </div>
           </div>
         )}
       </Header>
@@ -457,6 +448,16 @@ const App = () => {
           {activeTab === 'itinerary' && (
             <>
               <div className="mt-2">
+                <div className="px-4 sm:px-6 lg:px-8 mb-4">
+                  <WeatherWidget 
+                    date={currentDayData?.date}
+                    currentLocation={currentLocation?.locationName}
+                    accommodation={tripDetails?.accommodation?.name || '東京'}
+                    firstEventLocation={currentDayData?.events?.[0]?.location}
+                    selectedEventLocation={selectedEventLocation}
+                  />
+                </div>
+
                 {/* Events Section */}
                 <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20">
                   {/* Events List */}
