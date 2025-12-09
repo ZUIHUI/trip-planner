@@ -15,7 +15,7 @@ import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
 import { fetchJPYRate } from './services/currencyService';
-import { Plus, Edit2, GripVertical } from 'lucide-react';
+import { Plus, Edit2, GripVertical, Clock, MapPin, Users, Wallet, PlaneTakeoff, PlaneLanding, Copy, ExternalLink, CalendarDays } from 'lucide-react';
 
 // 預設資料
 const initialTripDetails = {
@@ -381,53 +381,229 @@ const App = () => {
         <div className="pt-2">
           {/* Summary Tab */}
           {activeTab === 'summary' && (
-            <div className="px-6 space-y-4 pb-10">
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">{tripDetails?.title || '旅程概覽'}</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <p className="text-gray-500 text-xs mb-1">旅程期間</p>
-                      <p className="text-lg font-bold text-gray-800">{tripDetails?.dates || '未設定'}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-500 text-xs mb-1">天數</p>
-                      <p className="text-lg font-bold text-gray-800">{itinerary.length} 天</p>
-                    </div>
-                  </div>
+            <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20 mt-4">
+              {/* Countdown / Status Card */}
+              <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                  <Clock size={150} />
+                </div>
+                <div className="relative z-10">
+                  <p className="text-indigo-100 text-sm font-medium mb-1">旅程狀態</p>
+                  {(() => {
+                    const startDateStr = tripDetails?.dates?.split(' - ')[0];
+                    if (!startDateStr) return <h2 className="text-3xl font-bold">未設定日期</h2>;
+                    
+                    const [year, month, day] = startDateStr.split('/').map(Number);
+                    const start = new Date(year, month - 1, day);
+                    const now = new Date();
+                    const diffTime = start - now;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays > 0) {
+                      return (
+                        <div>
+                          <h2 className="text-4xl font-bold mb-1">還有 {diffDays} 天</h2>
+                          <p className="text-indigo-100">準備好出發了嗎？</p>
+                        </div>
+                      );
+                    } else if (Math.abs(diffDays) < itinerary.length) {
+                      return (
+                        <div>
+                          <h2 className="text-4xl font-bold mb-1">Day {Math.abs(diffDays) + 1}</h2>
+                          <p className="text-indigo-100">旅程進行中，享受當下！</p>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div>
+                          <h2 className="text-3xl font-bold mb-1">旅程已結束</h2>
+                          <p className="text-indigo-100">期待下一次的冒險！</p>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
 
-              {tripDetails?.accommodation && (
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-800 mb-3">🏨 住宿</h3>
-                  <p className="font-bold text-gray-800">{tripDetails.accommodation.name}</p>
-                  <p className="text-sm text-gray-500 mb-2">{tripDetails.accommodation.address}</p>
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <p>✓ Check-in: {tripDetails.accommodation.checkIn}</p>
-                    <p>✓ Check-out: {tripDetails.accommodation.checkOut}</p>
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-2 text-orange-600">
+                    <CalendarDays size={20} />
+                  </div>
+                  <p className="text-xs text-gray-500">總天數</p>
+                  <p className="text-xl font-bold text-gray-800">{itinerary.length} 天</p>
+                </div>
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 text-blue-600">
+                    <MapPin size={20} />
+                  </div>
+                  <p className="text-xs text-gray-500">行程景點</p>
+                  <p className="text-xl font-bold text-gray-800">
+                    {itinerary.reduce((acc, day) => acc + (day.events?.length || 0), 0)} 個
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mb-2 text-emerald-600">
+                    <Users size={20} />
+                  </div>
+                  <p className="text-xs text-gray-500">旅伴人數</p>
+                  <p className="text-xl font-bold text-gray-800">{tripDetails.travelers?.length || 1} 人</p>
+                </div>
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center mb-2 text-rose-600">
+                    <Wallet size={20} />
+                  </div>
+                  <p className="text-xs text-gray-500">目前花費</p>
+                  <p className="text-lg font-bold text-gray-800 truncate w-full">
+                    ${Math.round(expenses.reduce((acc, curr) => acc + (curr.currency === 'JPY' ? curr.amount * exchangeRate : curr.amount), 0)).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Flight Cards */}
+              {tripDetails?.flights && (
+                <div className="space-y-4">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <PlaneTakeoff size={20} className="text-brand-600" />
+                    航班資訊
+                  </h3>
+                  
+                  {/* Outbound */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-500"></div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="bg-brand-50 text-brand-700 text-xs font-bold px-2 py-1 rounded">去程</span>
+                        <span className="text-sm font-bold text-gray-800">{tripDetails.flights.outbound.date}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.outbound.dep}</p>
+                          <p className="text-xs text-gray-500">出發</p>
+                        </div>
+                        <div className="flex-1 px-4 flex flex-col items-center">
+                          <p className="text-xs text-gray-400 mb-1">{tripDetails.flights.outbound.airline}</p>
+                          <div className="w-full h-px bg-gray-300 relative flex items-center justify-center">
+                            <PlaneTakeoff size={14} className="text-gray-400 absolute bg-white px-1" />
+                          </div>
+                          <p className="text-xs font-bold text-brand-600 mt-1">{tripDetails.flights.outbound.code}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.outbound.arr}</p>
+                          <p className="text-xs text-gray-500">抵達</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between text-xs text-gray-500">
+                        <span>{tripDetails.flights.outbound.time}</span>
+                        <button 
+                          onClick={() => {
+                            setEditingDetailsType('outbound');
+                            setIsEditDetailsModalOpen(true);
+                          }}
+                          className="text-brand-600 font-medium hover:underline"
+                        >
+                          編輯
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Inbound */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500"></div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2 py-1 rounded">回程</span>
+                        <span className="text-sm font-bold text-gray-800">{tripDetails.flights.inbound.date}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.inbound.dep}</p>
+                          <p className="text-xs text-gray-500">出發</p>
+                        </div>
+                        <div className="flex-1 px-4 flex flex-col items-center">
+                          <p className="text-xs text-gray-400 mb-1">{tripDetails.flights.inbound.airline}</p>
+                          <div className="w-full h-px bg-gray-300 relative flex items-center justify-center">
+                            <PlaneLanding size={14} className="text-gray-400 absolute bg-white px-1" />
+                          </div>
+                          <p className="text-xs font-bold text-orange-600 mt-1">{tripDetails.flights.inbound.code}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.inbound.arr}</p>
+                          <p className="text-xs text-gray-500">抵達</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between text-xs text-gray-500">
+                        <span>{tripDetails.flights.inbound.time}</span>
+                        <button 
+                          onClick={() => {
+                            setEditingDetailsType('inbound');
+                            setIsEditDetailsModalOpen(true);
+                          }}
+                          className="text-brand-600 font-medium hover:underline"
+                        >
+                          編輯
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {tripDetails?.flights && (
-                <>
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-3">✈️ 去程</h3>
-                    <p className="text-sm"><span className="font-bold">{tripDetails.flights.outbound.code}</span> - {tripDetails.flights.outbound.airline}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
+              {/* Accommodation Card */}
+              {tripDetails?.accommodation && (
+                <div className="space-y-2">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <Home size={20} className="text-brand-600" />
+                    住宿資訊
+                  </h3>
+                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-bold text-lg text-gray-800 mb-1">{tripDetails.accommodation.name}</h4>
+                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-4 cursor-pointer hover:text-brand-600 transition-colors"
+                             onClick={() => {
+                               navigator.clipboard.writeText(tripDetails.accommodation.address);
+                               // Optional: Add toast notification here
+                             }}>
+                          <MapPin size={14} />
+                          <span className="line-clamp-1">{tripDetails.accommodation.address}</span>
+                          <Copy size={12} className="text-gray-400" />
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditingDetailsType('accommodation');
+                          setIsEditDetailsModalOpen(true);
+                        }}
+                        className="p-2 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-brand-600 transition-colors"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-lg p-3">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Check-in</p>
+                        <p className="font-bold text-gray-800">{tripDetails.accommodation.checkIn}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Check-out</p>
+                        <p className="font-bold text-gray-800">{tripDetails.accommodation.checkOut}</p>
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => handleOpenGoogleMaps(tripDetails.accommodation.address)}
+                      className="w-full mt-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-bold hover:bg-brand-100 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <MapPin size={16} />
+                      在 Google Maps 查看
+                    </button>
                   </div>
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-3">✈️ 回程</h3>
-                    <p className="text-sm"><span className="font-bold">{tripDetails.flights.inbound.code}</span> - {tripDetails.flights.inbound.airline}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
-                  </div>
-                </>
+                </div>
               )}
-
-              {/* 預算總覽已移至記帳頁面 */}
             </div>
           )}
 
