@@ -15,7 +15,7 @@ import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
 import { fetchJPYRate } from './services/currencyService';
-import { Plus, Edit2, GripVertical, Clock, MapPin, Users, Wallet, PlaneTakeoff, PlaneLanding, Copy, ExternalLink, CalendarDays } from 'lucide-react';
+import { Plus, Edit2, GripVertical, Clock, MapPin, Users, Wallet, PlaneTakeoff, PlaneLanding, Copy, ExternalLink, CalendarDays, Home } from 'lucide-react';
 
 // 預設資料
 const initialTripDetails = {
