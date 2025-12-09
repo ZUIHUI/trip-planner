@@ -7,9 +7,12 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
   const [selectedDay, setSelectedDay] = useState('all');
   
   // 確保至少有一個付款人選項
-  const payerOptions = useMemo(() => 
-    (travelers && travelers.length > 0) ? travelers : ['我'], 
-  [travelers]);
+  const payerOptions = useMemo(() => {
+    if (travelers && travelers.length > 0) {
+      return travelers.map(t => (typeof t === 'object' && t.name) ? t.name : t);
+    }
+    return ['我'];
+  }, [travelers]);
 
   const initialFormState = useMemo(() => ({
     title: '',
