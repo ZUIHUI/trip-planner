@@ -75,6 +75,7 @@ const App = () => {
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false); // 設定面板開啟狀態
   const [draggedEventId, setDraggedEventId] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('app_theme') || 'ocean');
+  const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem('interface_size') || 'medium');
   const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localStorage.getItem('exchange_rate')) || 0.215);
   const [lastRateUpdate, setLastRateUpdate] = useState(() => localStorage.getItem('last_rate_update') || null);
 
@@ -86,6 +87,16 @@ const App = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [currentTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('interface_size', interfaceSize);
+    const sizes = {
+      small: '14px',
+      medium: '16px',
+      large: '18px'
+    };
+    document.documentElement.style.fontSize = sizes[interfaceSize];
+  }, [interfaceSize]);
 
   useEffect(() => {
     localStorage.setItem('exchange_rate', exchangeRate);
@@ -659,10 +670,12 @@ const App = () => {
         onGPSToggle={() => setEnableGPS(!enableGPS)}
         travelers={tripDetails?.travelers || []}
         onUpdateTravelers={(newTravelers) => setTripDetails(prev => ({ ...prev, travelers: newTravelers }))}
-        currentTheme={currentTheme}
-        onThemeChange={setCurrentTheme}
-        exchangeRate={exchangeRate}
-        onExchangeRateChange={setExchangeRate}
+          currentTheme={currentTheme}
+          onThemeChange={setCurrentTheme}
+          interfaceSize={interfaceSize}
+          onInterfaceSizeChange={setInterfaceSize}
+          exchangeRate={exchangeRate}
+          onExchangeRateChange={setExchangeRate}
         onUpdateRate={handleManualRateUpdate}
         lastUpdateDate={lastRateUpdate}
       />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check } from 'lucide-react';
+import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type } from 'lucide-react';
 
-const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange, exchangeRate, onExchangeRateChange, onUpdateRate, lastUpdateDate }) => {
+const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange, interfaceSize, onInterfaceSizeChange, exchangeRate, onExchangeRateChange, onUpdateRate, lastUpdateDate }) => {
   const [newTravelerName, setNewTravelerName] = useState('');
 
   if (!isOpen) return null;
@@ -68,6 +68,38 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
                     {currentTheme === theme.id && <Check size={16} className="text-white" />}
                   </div>
                   <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{theme.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 介面大小設定 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <Type size={20} className="text-brand-600 dark:text-brand-400" />
+              介面大小
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: 'small', name: '精簡 (小)', iconSize: 'text-sm' },
+                { id: 'medium', name: '標準 (中)', iconSize: 'text-base' },
+                { id: 'large', name: '寬鬆 (大)', iconSize: 'text-lg' },
+              ].map((size) => (
+                <button
+                  key={size.id}
+                  onClick={() => onInterfaceSizeChange(size.id)}
+                  className={`
+                    relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all
+                    ${interfaceSize === size.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}
+                  `}
+                >
+                  <span className={`font-bold text-gray-700 dark:text-gray-300 ${size.iconSize}`}>A</span>
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{size.name}</span>
+                  {interfaceSize === size.id && (
+                    <div className="absolute top-2 right-2">
+                      <Check size={14} className="text-brand-500" />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
