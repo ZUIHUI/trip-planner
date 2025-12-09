@@ -2,6 +2,24 @@ import React from 'react';
 import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw, DollarSign } from 'lucide-react';
 
 const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children }) => {
+  // 計算倒數天數
+  const daysUntil = React.useMemo(() => {
+    if (!details?.dates) return 0;
+    try {
+      const startDateStr = details.dates.split(' - ')[0]; // "2026/02/23"
+      const [year, month, day] = startDateStr.split('/').map(Number);
+      const startDate = new Date(year, month - 1, day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const diffTime = startDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    } catch (e) {
+      return 0;
+    }
+  }, [details?.dates]);
+
   const tabs = [
     { id: 'summary', label: '總覽', icon: LayoutDashboard },
     { id: 'itinerary', label: '行程', icon: Map },
@@ -50,9 +68,17 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
 
         {/* Main Title Area */}
         <div className="relative">
-          <h1 className="text-3xl font-bold mb-2 tracking-tight leading-tight drop-shadow-md">
-            {details?.title || '我的旅程'}
-          </h1>
+          <div className="flex justify-between items-end">
+            <h1 className="text-3xl font-bold mb-2 tracking-tight leading-tight drop-shadow-md">
+              {details?.title || '我的旅程'}
+            </h1>
+            {daysUntil > 0 && (
+              <div className="mb-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg text-center border border-white/10 shadow-sm">
+                <p className="text-[10px] text-brand-100 leading-none mb-0.5">倒數</p>
+                <p className="text-xl font-bold leading-none">{daysUntil}<span className="text-xs font-normal ml-0.5">天</span></p>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2 text-brand-100/90 text-sm font-medium">
             <div className="p-1 bg-white/10 rounded-md">
               <Home size={14} className="text-brand-200" />

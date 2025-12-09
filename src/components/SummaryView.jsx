@@ -70,13 +70,6 @@ const SummaryView = ({
 
           <div className="flex items-end gap-2">
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 flex-1">
-              <p className="text-brand-100 text-xs mb-1">距離出發還有</p>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">{daysUntil > 0 ? daysUntil : 0}</span>
-                <span className="text-sm">天</span>
-              </div>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 flex-1">
               <p className="text-brand-100 text-xs mb-1">旅伴人數</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold">{tripDetails?.travelers?.length || 1}</span>
