@@ -102,9 +102,15 @@ const ExpenseTracker = ({ itinerary, expenses = [], setExpenses, exchangeRate = 
   // 開啟編輯
   const handleEdit = (item) => {
     setFormData({
-      ...initialFormState,
-      ...item,
-      involved: item.involved || payerOptions // 兼容舊資料
+      title: item.title || '',
+      amount: item.amount !== undefined ? item.amount : '',
+      currency: item.currency || 'JPY',
+      date: item.date || itinerary[0]?.date || '',
+      category: item.category || 'food',
+      payer: item.payer || payerOptions[0],
+      splitType: item.splitType || 'all',
+      involved: item.involved || payerOptions,
+      isSettled: item.isSettled || false
     });
     setEditingId(item.id);
     setIsFormOpen(true);
