@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2, ArrowRight, Wallet } from 'lucide-react';
 
 const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [] }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSettlementOpen, setIsSettlementOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [selectedDay, setSelectedDay] = useState('all');
   
@@ -45,6 +46,81 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       return total + amountTWD;
     }, 0);
   }, [expenses, exchangeRate]);
+
+  // 計算分帳結果
+  const settlements = useMemo(() => {
+    const balances = {};
+    // 初始化餘額
+    payerOptions.forEach(p => balances[p] = 0);
+
+    expenses.forEach(expense => {
+      // 跳過已結清的項目
+      if (expense.isSettled || expense.splitType === 'settled') return;
+
+      const amount = parseFloat(expense.amount) || 0;
+      const amountTWD = expense.currency === 'JPY' ? Math.round(amount * exchangeRate) : amount;
+      
+      const payer = expense.payer;
+      const involved = expense.involved || [];
+      
+      // 如果沒有分攤人，則跳過
+      if (!involved || involved.length === 0) return;
+
+      const splitAmount = amountTWD / involved.length;
+
+      // 付款人增加債權 (正值)
+      if (payer) {
+        balances[payer] = (balances[payer] || 0) + amountTWD;
+      }
+
+      // 分攤人增加債務 (負值)
+      involved.forEach(person => {
+        balances[person] = (balances[person] || 0) - splitAmount;
+      });
+    });
+
+    // 計算轉帳路徑
+    const debtors = [];
+    const creditors = [];
+
+    Object.entries(balances).forEach(([person, amount]) => {
+      if (amount < -1) debtors.push({ person, amount }); // 使用 -1 避免浮點數誤差
+      else if (amount > 1) creditors.push({ person, amount });
+    });
+
+    debtors.sort((a, b) => a.amount - b.amount); // 升序 (負最多在前)
+    creditors.sort((a, b) => b.amount - a.amount); // 降序 (正最多在前)
+
+    const transfers = [];
+    let i = 0; // debtor index
+    let j = 0; // creditor index
+
+    while (i < debtors.length && j < creditors.length) {
+      const debtor = debtors[i];
+      const creditor = creditors[j];
+
+      // 找出可抵銷的金額
+      const amount = Math.min(Math.abs(debtor.amount), creditor.amount);
+      
+      if (amount > 0) {
+        transfers.push({
+          from: debtor.person,
+          to: creditor.person,
+          amount: Math.round(amount)
+        });
+      }
+
+      // 更新餘額
+      debtor.amount += amount;
+      creditor.amount -= amount;
+
+      // 如果債務/債權已清，移動指標
+      if (Math.abs(debtor.amount) < 1) i++;
+      if (creditor.amount < 1) j++;
+    }
+
+    return transfers;
+  }, [expenses, exchangeRate, payerOptions]);
 
   // 處理表單變更
   const handleChange = (e) => {
@@ -167,9 +243,18 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
             <DollarSign size={24} className="text-white" />
           </div>
         </div>
-        <div className="mt-4 flex items-center text-xs text-emerald-100 bg-white/10 rounded-lg px-3 py-2 w-fit">
-          <span className="mr-2">💱</span>
-          目前匯率: 1 JPY ≈ {exchangeRate} TWD
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex items-center text-xs text-emerald-100 bg-white/10 rounded-lg px-3 py-2 w-fit">
+            <span className="mr-2">💱</span>
+            目前匯率: 1 JPY ≈ {exchangeRate} TWD
+          </div>
+          <button
+            onClick={() => setIsSettlementOpen(true)}
+            className="flex items-center gap-2 bg-white text-emerald-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-50 transition-colors"
+          >
+            <Wallet size={16} />
+            查看分帳
+          </button>
         </div>
       </div>
 
@@ -300,8 +385,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* Add/Edit Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10">
               <h3 className="font-bold text-lg text-gray-800 dark:text-white">
                 {editingId ? '編輯支出' : '新增支出'}
               </h3>
@@ -461,6 +546,61 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                 {editingId ? '更新支出' : '新增支出'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Settlement Modal */}
+      {isSettlementOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
+              <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+                <Wallet size={20} />
+                分帳結算 (TWD)
+              </h3>
+              <button onClick={() => setIsSettlementOpen(false)} className="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full transition-colors">
+                <X size={20} className="text-emerald-600 dark:text-emerald-400" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {settlements.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <CheckCircle2 size={48} className="mx-auto mb-3 text-emerald-500" />
+                  <p className="font-bold">目前沒有需要結算的款項</p>
+                  <p className="text-xs mt-1">所有支出都已結清或無人欠款</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+                    以下是建議的轉帳方式，可將債務最小化
+                  </p>
+                  {settlements.map((transfer, index) => (
+                    <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="font-bold text-gray-800 dark:text-gray-200 w-16 text-center truncate" title={transfer.from}>
+                          {transfer.from}
+                        </div>
+                        <div className="flex flex-col items-center text-gray-400">
+                          <span className="text-[10px] mb-0.5">給</span>
+                          <ArrowRight size={16} />
+                        </div>
+                        <div className="font-bold text-gray-800 dark:text-gray-200 w-16 text-center truncate" title={transfer.to}>
+                          {transfer.to}
+                        </div>
+                      </div>
+                      <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg ml-4">
+                        ${transfer.amount.toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+              * 金額皆以台幣 (TWD) 計算，已包含匯率換算
+            </div>
           </div>
         </div>
       )}
