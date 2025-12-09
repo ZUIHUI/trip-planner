@@ -11,6 +11,7 @@ import SettingsPanel from './components/SettingsPanel';
 import ShoppingListContent from './components/ShoppingListContent';
 import PackingListContent from './components/PackingListContent';
 import ExpenseTracker from './components/ExpenseTracker';
+import SummaryView from './components/SummaryView';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
@@ -381,54 +382,17 @@ const App = () => {
         <div className="pt-2">
           {/* Summary Tab */}
           {activeTab === 'summary' && (
-            <div className="px-6 space-y-4 pb-10">
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">{tripDetails?.title || '旅程概覽'}</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <p className="text-gray-500 text-xs mb-1">旅程期間</p>
-                      <p className="text-lg font-bold text-gray-800">{tripDetails?.dates || '未設定'}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-gray-500 text-xs mb-1">天數</p>
-                      <p className="text-lg font-bold text-gray-800">{itinerary.length} 天</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {tripDetails?.accommodation && (
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="font-bold text-gray-800 mb-3">🏨 住宿</h3>
-                  <p className="font-bold text-gray-800">{tripDetails.accommodation.name}</p>
-                  <p className="text-sm text-gray-500 mb-2">{tripDetails.accommodation.address}</p>
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <p>✓ Check-in: {tripDetails.accommodation.checkIn}</p>
-                    <p>✓ Check-out: {tripDetails.accommodation.checkOut}</p>
-                  </div>
-                </div>
-              )}
-
-              {tripDetails?.flights && (
-                <>
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-3">✈️ 去程</h3>
-                    <p className="text-sm"><span className="font-bold">{tripDetails.flights.outbound.code}</span> - {tripDetails.flights.outbound.airline}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
-                  </div>
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <h3 className="font-bold text-gray-800 mb-3">✈️ 回程</h3>
-                    <p className="text-sm"><span className="font-bold">{tripDetails.flights.inbound.code}</span> - {tripDetails.flights.inbound.airline}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
-                  </div>
-                </>
-              )}
-
-              {/* 預算總覽已移至記帳頁面 */}
-            </div>
+            <SummaryView 
+              tripDetails={tripDetails}
+              itinerary={itinerary}
+              expenses={expenses}
+              checklists={checklists}
+              exchangeRate={exchangeRate}
+              onEditDetails={(type) => {
+                setEditingDetailsType(type);
+                setIsEditDetailsModalOpen(true);
+              }}
+            />
           )}
 
           {/* Expense Tab */}
