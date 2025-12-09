@@ -24,7 +24,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
     payer: payerOptions[0],
     splitType: 'all', // all, specific, settled
     involved: payerOptions, // 預設所有人分攤
-    isSettled: false // 是否已結清
+    isSettled: false, // 是否已結清
+    note: '' // 備註
   }), [itinerary, payerOptions]);
   
   const [formData, setFormData] = useState(initialFormState);
@@ -191,7 +192,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       payer: item.payer || payerOptions[0],
       splitType: item.splitType || 'all',
       involved: item.involved || payerOptions,
-      isSettled: item.isSettled || false
+      isSettled: item.isSettled || false,
+      note: item.note || ''
     });
     setEditingId(item.id);
     setIsFormOpen(true);
@@ -327,10 +329,17 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                         </div>
                       </div>
 
-                      {/* Middle Row: Title */}
-                      <h4 className="font-bold text-gray-800 dark:text-gray-200 text-base mb-3 pr-16 break-words">
-                        {item.title}
-                      </h4>
+                      {/* Middle Row: Title & Note */}
+                      <div className="mb-3 pr-16">
+                        <h4 className="font-bold text-gray-800 dark:text-gray-200 text-base break-words">
+                          {item.title}
+                        </h4>
+                        {item.note && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 break-words bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg inline-block max-w-full">
+                            {item.note}
+                          </p>
+                        )}
+                      </div>
 
                       {/* Bottom Row: Meta Info & Actions */}
                       <div className="flex justify-between items-end">
@@ -484,6 +493,25 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                   >
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">備註</label>
+                <textarea
+                  name="note"
+                  value={formData.note || ''}
+                  onChange={handleChange}
+                  placeholder="選填：詳細說明、地點..."
+                  rows="2"
+                  className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white resize-none"
+                />
+              </div>
+
+              {/* 付款與分帳設定 */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-600 space-y-3">
                     ))}
                   </select>
                 </div>
