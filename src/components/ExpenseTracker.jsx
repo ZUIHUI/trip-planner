@@ -298,58 +298,78 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
         ) : (
           Object.entries(groupedExpenses).map(([date, items]) => (
             <div key={date} className="space-y-3">
-              <h3 className="font-bold text-gray-500 dark:text-gray-400 text-sm sticky top-0 bg-gray-50 dark:bg-gray-900 py-2 z-10 flex items-center">
+              <h3 className="font-bold text-gray-500 dark:text-gray-400 text-sm sticky top-0 bg-gray-50 dark:bg-gray-900 py-2 z-10 flex items-center backdrop-blur-sm bg-opacity-90">
                 <Calendar size={14} className="mr-2" />
                 {date}
               </h3>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden divide-y divide-gray-50 dark:divide-gray-700">
+              
+              <div className="space-y-3">
                 {items.map(item => {
                   const category = categories.find(c => c.id === item.category) || categories[5];
                   return (
-                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
-                      <div className="flex-1 min-w-0 mr-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded ${category.color}`}>
+                    <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 relative group transition-all hover:shadow-md">
+                      {/* Top Row: Category & Amount */}
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${category.color}`}>
                             {category.label}
                           </span>
-                          <p className="font-bold text-gray-800 dark:text-gray-200 truncate">{item.title}</p>
                           {item.isSettled && (
-                            <span className="text-[10px] bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded flex items-center">
+                            <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full flex items-center">
                               <CheckCircle2 size={10} className="mr-1" /> 已結清
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                          <span className="flex items-center">
-                            <Users size={12} className="mr-1" />
-                            {item.payer} 付款
-                          </span>
-                          <span>•</span>
-                          <span>
-                            {item.splitType === 'settled' ? '已分帳' : 
-                             item.splitType === 'all' ? '全員分攤' : 
-                             `分攤: ${item.involved?.join(', ')}`}
+                        <div className="text-right">
+                          <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">
+                            {item.currency === 'TWD' ? 'NT$' : '¥'} {item.amount.toLocaleString()}
                           </span>
                         </div>
                       </div>
-                      <div className="text-right flex items-center gap-3">
-                        <div>
-                          <p className="font-bold text-gray-900 dark:text-gray-100">
-                            {item.currency === 'TWD' ? 'NT$' : '¥'} {item.amount.toLocaleString()}
-                          </p>
-                          {item.currency !== 'TWD' && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500">
-                              ≈ NT$ {Math.round(item.amount * exchangeRate).toLocaleString()}
-                            </p>
-                          )}
+
+                      {/* Middle Row: Title */}
+                      <h4 className="font-bold text-gray-800 dark:text-gray-200 text-base mb-3 pr-16 break-words">
+                        {item.title}
+                      </h4>
+
+                      {/* Bottom Row: Meta Info & Actions */}
+                      <div className="flex justify-between items-end">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <Users size={12} className="text-gray-400" />
+                            <span className="font-medium text-gray-600 dark:text-gray-300">{item.payer}</span>
+                            <span className="text-gray-300">|</span>
+                            <span>
+                              {item.splitType === 'settled' ? '已分帳' : 
+                               item.splitType === 'all' ? '全員分攤' : 
+                               `分攤: ${item.involved?.join(', ')}`}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEdit(item)} className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded">
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => handleDelete(item.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded">
-                            <Trash2 size={16} />
-                          </button>
+
+                        <div className="flex flex-col items-end gap-2">
+                          {item.currency !== 'TWD' && (
+                            <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                              ≈ NT$ {Math.round(item.amount * exchangeRate).toLocaleString()}
+                            </span>
+                          )}
+                          
+                          <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                            <button 
+                              onClick={() => handleEdit(item)} 
+                              className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 rounded-lg transition-colors"
+                              title="編輯"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(item.id)} 
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                              title="刪除"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -357,9 +377,9 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                 })}
                 
                 {/* 當日小計 */}
-                <div className="bg-gray-50 dark:bg-gray-700/30 p-3 flex justify-between items-center text-sm">
-                  <span className="font-medium text-gray-500 dark:text-gray-400">當日小計</span>
-                  <span className="font-bold text-gray-700 dark:text-gray-300">
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-dashed border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                  <span className="font-medium text-gray-500 dark:text-gray-400 text-sm">當日小計</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-300 text-lg">
                     NT$ {Math.round(items.reduce((sum, item) => {
                       const amount = parseFloat(item.amount) || 0;
                       const rate = item.currency === 'JPY' ? exchangeRate : 1;
