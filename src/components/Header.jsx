@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw, DollarSign } from 'lucide-react';
 
-const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) => {
+const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children }) => {
   const tabs = [
     { id: 'summary', label: '總覽', icon: LayoutDashboard },
     { id: 'itinerary', label: '行程', icon: Map },
@@ -87,6 +87,13 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving }) =
           })}
         </div>
       </div>
+
+      {/* Sub-header Content (Sticky) */}
+      {children && (
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
+          {children}
+        </div>
+      )}
     </div>
   );
 };

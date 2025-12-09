@@ -365,7 +365,26 @@ const App = () => {
         onTabChange={setActiveTab}
         onSettingsOpen={() => setIsSettingsPanelOpen(true)}
         isSaving={isSaving}
-      />
+      >
+        {activeTab === 'itinerary' && (
+          <div className="px-4 pb-2">
+            <DaySelector 
+              itinerary={itinerary}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+            />
+            <div className="mt-2">
+              <WeatherWidget 
+                date={currentDayData?.date}
+                currentLocation={currentLocation?.locationName}
+                accommodation={tripDetails?.accommodation?.name || '東京'}
+                firstEventLocation={currentDayData?.events?.[0]?.location}
+                selectedEventLocation={selectedEventLocation}
+              />
+            </div>
+          </div>
+        )}
+      </Header>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="pt-2">
@@ -438,26 +457,6 @@ const App = () => {
           {activeTab === 'itinerary' && (
             <>
               <div className="mt-2">
-                <div className="px-4 sm:px-6 lg:px-8">
-                  {/* Day Selector */}
-                  <div className="mb-4">
-                    <DaySelector 
-                      itinerary={itinerary}
-                      selectedDay={selectedDay}
-                      onSelectDay={setSelectedDay}
-                    />
-                  </div>
-
-                  {/* Weather Widget */}
-                  <WeatherWidget 
-                    date={currentDayData?.date}
-                    currentLocation={currentLocation?.locationName}
-                    accommodation={tripDetails?.accommodation?.name || '東京'}
-                    firstEventLocation={currentDayData?.events?.[0]?.location}
-                    selectedEventLocation={selectedEventLocation}
-                  />
-                </div>
-
                 {/* Events Section */}
                 <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20">
                   {/* Events List */}
