@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Default (Ocean/Blue) - based on Blue-600 */
+    /* Default Light Mode (Ocean/Blue) */
     --color-brand-50: 239 246 255;
     --color-brand-100: 219 234 254;
     --color-brand-200: 191 219 254;
@@ -18,79 +18,21 @@
     --color-brand-950: 23 37 84;
   }
 
-  [data-theme='sakura'] {
-    /* Pink/Rose */
-    --color-brand-50: 255 241 242;
-    --color-brand-100: 255 228 230;
-    --color-brand-200: 254 205 211;
-    --color-brand-300: 253 164 175;
-    --color-brand-400: 251 113 133;
-    --color-brand-500: 244 63 94;
-    --color-brand-600: 225 29 72;
-    --color-brand-700: 190 18 60;
-    --color-brand-800: 159 18 57;
-    --color-brand-900: 136 19 55;
-    --color-brand-950: 76 5 25;
-  }
-
-  [data-theme='forest'] {
-    /* Emerald */
-    --color-brand-50: 236 253 245;
-    --color-brand-100: 209 250 229;
-    --color-brand-200: 167 243 208;
-    --color-brand-300: 110 231 183;
-    --color-brand-400: 52 211 153;
-    --color-brand-500: 16 185 129;
-    --color-brand-600: 5 150 105;
-    --color-brand-700: 4 120 87;
-    --color-brand-800: 6 95 70;
-    --color-brand-900: 6 78 59;
-    --color-brand-950: 2 44 34;
-  }
-
-  [data-theme='sunset'] {
-    /* Orange */
-    --color-brand-50: 255 247 237;
-    --color-brand-100: 255 237 213;
-    --color-brand-200: 254 215 170;
-    --color-brand-300: 253 186 116;
-    --color-brand-400: 251 146 60;
-    --color-brand-500: 249 115 22;
-    --color-brand-600: 234 88 12;
-    --color-brand-700: 194 65 12;
-    --color-brand-800: 154 52 18;
-    --color-brand-900: 124 45 18;
-    --color-brand-950: 67 20 7;
-  }
-
-  [data-theme='lavender'] {
-    /* Violet */
-    --color-brand-50: 245 243 255;
-    --color-brand-100: 237 233 254;
-    --color-brand-200: 221 214 254;
-    --color-brand-300: 196 181 253;
-    --color-brand-400: 167 139 250;
-    --color-brand-500: 139 92 246;
-    --color-brand-600: 124 58 237;
-    --color-brand-700: 109 40 217;
-    --color-brand-800: 91 33 182;
-    --color-brand-900: 76 29 149;
-    --color-brand-950: 46 16 101;
-  }
-
-  [data-theme='midnight'] {
-    /* Zinc/Black */
-    --color-brand-50: 250 250 250;
-    --color-brand-100: 244 244 245;
-    --color-brand-200: 228 228 231;
-    --color-brand-300: 212 212 216;
-    --color-brand-400: 161 161 170;
-    --color-brand-500: 82 82 91;
-    --color-brand-600: 63 63 70;
-    --color-brand-700: 39 39 42;
-    --color-brand-800: 24 24 27;
-    --color-brand-900: 9 9 11;
-    --color-brand-950: 0 0 0;
+  /* Dark Mode Overrides - Softer, Desaturated Blue & Slate */
+  .dark {
+    /* Re-mapping brand colors to be softer in dark mode */
+    /* Using Slate-ish Blue tones */
+    --color-brand-50: 30 41 59;   /* Slate 800 - Used for light backgrounds in dark mode */
+    --color-brand-100: 51 65 85;  /* Slate 700 */
+    --color-brand-200: 71 85 105; /* Slate 600 */
+    --color-brand-300: 100 116 139; /* Slate 500 */
+    --color-brand-400: 148 163 184; /* Slate 400 */
+    --color-brand-500: 96 165 250;  /* Blue 400 - Primary Action Color */
+    --color-brand-600: 59 130 246;  /* Blue 500 - Hover State */
+    --color-brand-700: 37 99 235;   /* Blue 600 */
+    --color-brand-800: 30 58 138;   /* Blue 900 */
+    --color-brand-900: 15 23 42;    /* Slate 900 */
+    --color-brand-950: 2 6 23;      /* Slate 950 */
   }
 }
 

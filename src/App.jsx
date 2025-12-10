@@ -346,7 +346,7 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950">
         <div className="text-center space-y-4">
           <div className="inline-block">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
@@ -358,7 +358,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-20" data-theme={themeMode}>
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 font-sans pb-20" data-theme={themeMode}>
       <Header 
         details={tripDetails} 
         activeTab={activeTab}

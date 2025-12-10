@@ -45,42 +45,36 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               <Palette size={20} className="text-brand-600 dark:text-brand-400" />
               外觀模式
             </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => onThemeChange('light')}
-                className={`
-                  relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
-                  ${currentTheme === 'light' 
-                    ? 'border-brand-500 bg-brand-50 text-brand-700' 
-                    : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}
-                `}
-              >
-                <Sun size={24} className={currentTheme === 'light' ? 'text-brand-500' : 'text-gray-400'} />
-                <span className="font-bold">日間模式</span>
-                {currentTheme === 'light' && (
-                  <div className="absolute top-2 right-2">
-                    <Check size={16} className="text-brand-500" />
+            
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${currentTheme === 'dark' ? 'bg-indigo-900/50 text-indigo-300' : 'bg-amber-100 text-amber-600'}`}>
+                    {currentTheme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
                   </div>
-                )}
-              </button>
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-gray-100">
+                      {currentTheme === 'dark' ? '夜間模式' : '日間模式'}
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">
+                      {currentTheme === 'dark' ? '適合低光環境使用' : '適合明亮環境使用'}
+                    </p>
+                  </div>
+                </div>
 
-              <button
-                onClick={() => onThemeChange('dark')}
-                className={`
-                  relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
-                  ${currentTheme === 'dark' 
-                    ? 'border-brand-500 bg-gray-800 text-white' 
-                    : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}
-                `}
-              >
-                <Moon size={24} className={currentTheme === 'dark' ? 'text-brand-400' : 'text-gray-400'} />
-                <span className="font-bold">夜間模式</span>
-                {currentTheme === 'dark' && (
-                  <div className="absolute top-2 right-2">
-                    <Check size={16} className="text-brand-500" />
-                  </div>
-                )}
-              </button>
+                <button
+                  onClick={() => onThemeChange(currentTheme === 'light' ? 'dark' : 'light')}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors flex-shrink-0 ${
+                    currentTheme === 'dark' ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform shadow-sm ${
+                      currentTheme === 'dark' ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 

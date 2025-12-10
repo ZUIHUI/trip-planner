@@ -266,8 +266,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
           onClick={() => setSelectedDay('all')}
           className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
             selectedDay === 'all'
-              ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900'
-              : 'bg-white text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+              ? 'bg-gray-800 text-white dark:bg-white dark:text-slate-900'
+              : 'bg-white text-gray-600 border border-gray-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
           }`}
         >
           全部
@@ -279,7 +279,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
             className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
               selectedDay === day.day
                 ? 'bg-brand-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+                : 'bg-white text-gray-600 border border-gray-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
             }`}
           >
             Day {day.day} ({day.date})
@@ -290,17 +290,17 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* 支出列表 */}
       <div className="space-y-6">
         {Object.keys(groupedExpenses).length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-            <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <DollarSign size={32} className="text-gray-300 dark:text-gray-500" />
+          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-gray-200 dark:border-slate-800">
+            <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <DollarSign size={32} className="text-gray-300 dark:text-slate-500" />
             </div>
-            <p className="text-gray-500 dark:text-gray-400">尚無支出紀錄</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">點擊右下角按鈕新增第一筆支出</p>
+            <p className="text-gray-500 dark:text-slate-400">尚無支出紀錄</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">點擊右下角按鈕新增第一筆支出</p>
           </div>
         ) : (
           Object.entries(groupedExpenses).map(([date, items]) => (
             <div key={date} className="space-y-3">
-              <h3 className="font-bold text-gray-500 dark:text-gray-400 text-sm sticky top-0 bg-gray-50 dark:bg-gray-900 py-2 z-10 flex items-center backdrop-blur-sm bg-opacity-90">
+              <h3 className="font-bold text-gray-500 dark:text-slate-400 text-sm sticky top-0 bg-gray-50 dark:bg-slate-950 py-2 z-10 flex items-center backdrop-blur-sm bg-opacity-90">
                 <Calendar size={14} className="mr-2" />
                 {date}
               </h3>
@@ -309,7 +309,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                 {items.map(item => {
                   const category = categories.find(c => c.id === item.category) || categories[5];
                   return (
-                    <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 relative group transition-all hover:shadow-md">
+                    <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 relative group transition-all hover:shadow-md">
                       {/* Top Row: Category & Amount */}
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
@@ -317,13 +317,13 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                             {category.label}
                           </span>
                           {item.isSettled && (
-                            <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full flex items-center">
+                            <span className="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-1 rounded-full flex items-center">
                               <CheckCircle2 size={10} className="mr-1" /> 已結清
                             </span>
                           )}
                         </div>
                         <div className="text-right">
-                          <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">
+                          <span className="block font-bold text-gray-900 dark:text-slate-100 text-lg">
                             {item.currency === 'TWD' ? 'NT$' : '¥'} {item.amount.toLocaleString()}
                           </span>
                         </div>
@@ -331,11 +331,11 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
                       {/* Middle Row: Title & Note */}
                       <div className="mb-3 pr-16">
-                        <h4 className="font-bold text-gray-800 dark:text-gray-200 text-base break-words">
+                        <h4 className="font-bold text-gray-800 dark:text-slate-200 text-base break-words">
                           {item.title}
                         </h4>
                         {item.note && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 break-words bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg inline-block max-w-full">
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 break-words bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg inline-block max-w-full">
                             {item.note}
                           </p>
                         )}
@@ -343,10 +343,10 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
                       {/* Bottom Row: Meta Info & Actions */}
                       <div className="flex justify-between items-end">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1.5">
+                        <div className="text-xs text-gray-500 dark:text-slate-400 space-y-1.5">
                           <div className="flex items-center gap-1.5">
                             <Users size={12} className="text-gray-400" />
-                            <span className="font-medium text-gray-600 dark:text-gray-300">{item.payer}</span>
+                            <span className="font-medium text-gray-600 dark:text-slate-300">{item.payer}</span>
                             <span className="text-gray-300">|</span>
                             <span>
                               {item.splitType === 'settled' ? '已分帳' : 
@@ -358,7 +358,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
                         <div className="flex flex-col items-end gap-2">
                           {item.currency !== 'TWD' && (
-                            <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                            <span className="text-xs font-medium text-gray-400 dark:text-slate-500">
                               ≈ NT$ {Math.round(item.amount * exchangeRate).toLocaleString()}
                             </span>
                           )}
@@ -386,9 +386,9 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                 })}
                 
                 {/* 當日小計 */}
-                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-dashed border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                  <span className="font-medium text-gray-500 dark:text-gray-400 text-sm">當日小計</span>
-                  <span className="font-bold text-gray-700 dark:text-gray-300 text-lg">
+                <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-4 border border-dashed border-gray-200 dark:border-slate-800 flex justify-between items-center">
+                  <span className="font-medium text-gray-500 dark:text-slate-400 text-sm">當日小計</span>
+                  <span className="font-bold text-gray-700 dark:text-slate-300 text-lg">
                     NT$ {Math.round(items.reduce((sum, item) => {
                       const amount = parseFloat(item.amount) || 0;
                       const rate = item.currency === 'JPY' ? exchangeRate : 1;
@@ -414,26 +414,26 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* Add/Edit Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
               <h3 className="font-bold text-lg text-gray-800 dark:text-white">
                 {editingId ? '編輯支出' : '新增支出'}
               </h3>
-              <button onClick={handleCloseForm} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+              <button onClick={handleCloseForm} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-full transition-colors">
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">項目名稱</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">項目名稱</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title || ''}
                   onChange={handleChange}
                   placeholder="例如：午餐、紀念品"
-                  className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
                   required
                   autoFocus
                 />
@@ -441,25 +441,25 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">金額</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">金額</label>
                   <input
                     type="number"
                     name="amount"
                     value={formData.amount || ''}
                     onChange={handleChange}
                     placeholder="0"
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
                     required
                     min="0"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">幣別</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">幣別</label>
                   <select
                     name="currency"
                     value={formData.currency}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
                   >
                     <option value="JPY">JPY (日幣)</option>
                     <option value="TWD">TWD (台幣)</option>
@@ -469,12 +469,12 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">日期</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">日期</label>
                   <select
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
                   >
                     {itinerary && itinerary.map(day => (
                       <option key={day.day} value={day.date}>
@@ -484,12 +484,12 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">類別</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">類別</label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
+                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
                   >
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.label}</option>
@@ -499,26 +499,26 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">備註</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">備註</label>
                 <textarea
                   name="note"
                   value={formData.note || ''}
                   onChange={handleChange}
                   placeholder="選填：詳細說明、地點..."
                   rows="2"
-                  className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white resize-none"
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white resize-none"
                 />
               </div>
 
               {/* 付款與分帳設定 */}
-              <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-100 dark:border-gray-600 space-y-3">
+              <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg border border-gray-100 dark:border-slate-700 space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">誰先付款？</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">誰先付款？</label>
                   <select
                     name="payer"
                     value={formData.payer}
                     onChange={handleChange}
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-emerald-500 dark:text-white"
+                    className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-2 text-sm focus:outline-emerald-500 dark:text-white"
                   >
                     {payerOptions.map(p => (
                       <option key={p} value={p}>{p}</option>
@@ -527,7 +527,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">分帳方式</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">分帳方式</label>
                   <div className="flex gap-2 mb-2">
                     <button
                       type="button"
@@ -593,8 +593,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* Settlement Modal */}
       {isSettlementOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
               <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
                 <Wallet size={20} />
                 分帳結算 (TWD)
@@ -606,27 +606,27 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
             
             <div className="p-6">
               {settlements.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="text-center py-8 text-gray-500 dark:text-slate-400">
                   <CheckCircle2 size={48} className="mx-auto mb-3 text-emerald-500" />
                   <p className="font-bold">目前沒有需要結算的款項</p>
                   <p className="text-xs mt-1">所有支出都已結清或無人欠款</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 text-center">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-2 text-center">
                     以下是建議的轉帳方式，可將債務最小化
                   </p>
                   {settlements.map((transfer, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                    <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="font-bold text-gray-800 dark:text-gray-200 w-16 text-center truncate" title={transfer.from}>
+                        <div className="font-bold text-gray-800 dark:text-slate-200 w-16 text-center truncate" title={transfer.from}>
                           {transfer.from}
                         </div>
                         <div className="flex flex-col items-center text-gray-400">
                           <span className="text-[10px] mb-0.5">給</span>
                           <ArrowRight size={16} />
                         </div>
-                        <div className="font-bold text-gray-800 dark:text-gray-200 w-16 text-center truncate" title={transfer.to}>
+                        <div className="font-bold text-gray-800 dark:text-slate-200 w-16 text-center truncate" title={transfer.to}>
                           {transfer.to}
                         </div>
                       </div>
@@ -639,7 +639,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
               )}
             </div>
             
-            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+            <div className="p-4 bg-gray-50 dark:bg-slate-950/50 text-center text-xs text-gray-500 dark:text-slate-400 border-t border-gray-100 dark:border-slate-800">
               * 金額皆以台幣 (TWD) 計算，已包含匯率換算
             </div>
           </div>

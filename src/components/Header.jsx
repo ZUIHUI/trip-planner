@@ -13,9 +13,9 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-900 sticky top-0 z-30 shadow-sm transition-colors duration-300">
+    <div className="bg-white dark:bg-slate-950 sticky top-0 z-30 shadow-sm transition-colors duration-300">
       {/* Main Header Content - Gradient Background */}
-      <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 text-white pt-12 pb-6 px-6 rounded-b-[2rem] shadow-lg relative overflow-hidden transition-colors duration-500">
+      <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white pt-12 pb-6 px-6 rounded-b-[2rem] shadow-lg relative overflow-hidden transition-colors duration-500 border-b-0 dark:border-b dark:border-slate-800">
         {/* Decorative Background Elements */}
         <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 pointer-events-none">
           <Plane size={200} />

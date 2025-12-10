@@ -53,7 +53,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-20 transition-colors duration-300">
+    <div className="bg-white dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800 sticky top-0 z-20 transition-colors duration-300">
       <div
         ref={scrollContainerRef}
         className="flex overflow-x-auto px-3 py-2 space-x-2 no-scrollbar scroll-smooth"
@@ -72,7 +72,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               className={`flex-shrink-0 w-16 px-2 py-2 rounded-lg transition-all duration-200 transform ${
                 isSelected
                   ? 'bg-brand-600 text-white shadow-md scale-100'
-                  : 'bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 shadow-sm'
+                  : 'bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-800 shadow-sm'
               }`}
             >
               <div className="flex flex-col items-center justify-center space-y-0">

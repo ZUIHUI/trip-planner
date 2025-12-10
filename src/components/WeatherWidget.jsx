@@ -110,20 +110,20 @@ const WeatherWidget = ({
   };
 
   return (
-    <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-xl p-4 border border-brand-100 dark:border-brand-800 mb-4">
+    <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-slate-900/50 dark:to-cyan-900/20 rounded-xl p-4 border border-brand-100 dark:border-slate-800 mb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-slate-400">
               {getLocationLabel()} {getSourceBadge()}
             </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{weather.temperature}°C</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{weather.description}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{weather.temperature}°C</p>
+            <p className="text-sm text-gray-600 dark:text-slate-400">{weather.description}</p>
           </div>
         </div>
         {weather.precipitation !== undefined && weather.windSpeed !== undefined && (
-          <div className="text-right text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-right text-sm text-gray-600 dark:text-slate-400">
             {weather.precipitation > 0 && (
               <p className="mb-1">💧 {weather.precipitation}mm</p>
             )}

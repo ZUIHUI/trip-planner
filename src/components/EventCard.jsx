@@ -39,32 +39,32 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   };
 
   return (
-    <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-gray-700 ml-3 group">
-      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white dark:bg-gray-800 ${event.urgent ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-brand-400'}`}></div>
+    <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-slate-800 ml-3 group">
+      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white dark:bg-slate-900 ${event.urgent ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-brand-400'}`}></div>
 
       {prevLocation && (
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all relative">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
             <div className={`p-2.5 rounded-xl flex-shrink-0 ${styleClass}`}>
               <Icon size={20} />
             </div>
-            <span className="font-mono text-lg font-bold text-gray-700 dark:text-gray-200">{event.time}</span>
+            <span className="font-mono text-lg font-bold text-gray-700 dark:text-slate-200">{event.time}</span>
           </div>
 
           <div className="flex items-center space-x-1 flex-shrink-0">
             {event.urgent && <AlertCircle size={18} className="text-red-500" />}
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 transition-colors">
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors">
               <MoreVertical size={18} />
             </button>
             {showMenu && (
-              <div className="absolute right-2 top-12 bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 rounded-lg z-10 w-28 py-1 flex flex-col">
-                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
-                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
+              <div className="absolute right-2 top-12 bg-white dark:bg-slate-900 shadow-xl border border-gray-100 dark:border-slate-800 rounded-lg z-10 w-28 py-1 flex flex-col">
+                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
+                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
               </div>
             )}
           </div>
@@ -73,14 +73,14 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         {/* Content */}
         <div className="mb-4">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words mb-1">{event.title}</h3>
-          {event.desc && <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed break-words whitespace-pre-wrap">{event.desc}</p>}
+          {event.desc && <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed break-words whitespace-pre-wrap">{event.desc}</p>}
         </div>
         
         {/* Info Section - Vertical Stack */}
         <div className="space-y-2.5">
           {/* Location Info */}
           {event.location && (
-            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-300">
               <MapPin size={16} className="mt-0.5 text-brand-500 shrink-0" />
               <span className="font-medium">{event.location}</span>
             </div>
@@ -88,7 +88,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
           {/* Transport Info */}
           {(event.transport?.duration || event.transport?.route) && (
-            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-300">
               {event.transport?.mode === 'flight' ? (
                 <Plane size={16} className="mt-0.5 text-gray-400 shrink-0" />
               ) : (
@@ -96,7 +96,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               )}
               <span>
                 {event.transport.duration && <span className="font-medium mr-1">{event.transport.duration}</span>}
-                {event.transport.route && <span className="text-gray-500 dark:text-gray-400">{event.transport.route}</span>}
+                {event.transport.route && <span className="text-gray-500 dark:text-slate-400">{event.transport.route}</span>}
               </span>
             </div>
           )}
