@@ -358,7 +358,7 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-20" data-theme={currentTheme}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-20" data-theme={themeMode}>
       <Header 
         details={tripDetails} 
         activeTab={activeTab}
