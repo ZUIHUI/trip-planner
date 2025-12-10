@@ -1,19 +1,10 @@
 import React, { useState } from 'react';
-import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type } from 'lucide-react';
+import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon } from 'lucide-react';
 
 const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange, interfaceSize, onInterfaceSizeChange, exchangeRate, onExchangeRateChange, onUpdateRate, lastUpdateDate }) => {
   const [newTravelerName, setNewTravelerName] = useState('');
 
   if (!isOpen) return null;
-
-  const themes = [
-    { id: 'ocean', name: '海洋藍', color: 'bg-blue-500' },
-    { id: 'sakura', name: '櫻花粉', color: 'bg-rose-500' },
-    { id: 'forest', name: '森林綠', color: 'bg-emerald-500' },
-    { id: 'sunset', name: '夕陽橘', color: 'bg-orange-500' },
-    { id: 'lavender', name: '薰衣草', color: 'bg-violet-500' },
-    { id: 'midnight', name: '極夜黑', color: 'bg-gray-800' },
-  ];
 
   const handleAddTraveler = () => {
     if (newTravelerName.trim()) {
@@ -52,24 +43,44 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Palette size={20} className="text-brand-600 dark:text-brand-400" />
-              外觀主題
+              外觀模式
             </h3>
-            <div className="grid grid-cols-3 gap-3">
-              {themes.map((theme) => (
-                <button
-                  key={theme.id}
-                  onClick={() => onThemeChange(theme.id)}
-                  className={`
-                    relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all
-                    ${currentTheme === theme.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-700'}
-                  `}
-                >
-                  <div className={`w-10 h-10 rounded-full ${theme.color} shadow-sm flex items-center justify-center`}>
-                    {currentTheme === theme.id && <Check size={16} className="text-white" />}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => onThemeChange('light')}
+                className={`
+                  relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
+                  ${currentTheme === 'light' 
+                    ? 'border-brand-500 bg-brand-50 text-brand-700' 
+                    : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}
+                `}
+              >
+                <Sun size={24} className={currentTheme === 'light' ? 'text-brand-500' : 'text-gray-400'} />
+                <span className="font-bold">日間模式</span>
+                {currentTheme === 'light' && (
+                  <div className="absolute top-2 right-2">
+                    <Check size={16} className="text-brand-500" />
                   </div>
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{theme.name}</span>
-                </button>
-              ))}
+                )}
+              </button>
+
+              <button
+                onClick={() => onThemeChange('dark')}
+                className={`
+                  relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
+                  ${currentTheme === 'dark' 
+                    ? 'border-brand-500 bg-gray-800 text-white' 
+                    : 'border-transparent bg-gray-50 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}
+                `}
+              >
+                <Moon size={24} className={currentTheme === 'dark' ? 'text-brand-400' : 'text-gray-400'} />
+                <span className="font-bold">夜間模式</span>
+                {currentTheme === 'dark' && (
+                  <div className="absolute top-2 right-2">
+                    <Check size={16} className="text-brand-500" />
+                  </div>
+                )}
+              </button>
             </div>
           </div>
 
