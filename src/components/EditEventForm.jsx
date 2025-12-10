@@ -28,12 +28,12 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">時間</label>
-          <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200" />
+          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">時間</label>
+          <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-slate-200" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">類型</label>
-          <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200">
+          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">類型</label>
+          <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-slate-200">
             <option value="sightseeing">景點</option>
             <option value="food">美食</option>
             <option value="shopping">購物</option>
@@ -45,28 +45,28 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">標題</label>
-        <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200" />
+        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">標題</label>
+        <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-slate-200" />
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">地點 (用於導航)</label>
+        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">地點 (用於導航)</label>
         <div className="relative">
-          <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
-          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-gray-200" />
+          <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
+          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
         </div>
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">描述 / 備註</label>
-        <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-gray-200"></textarea>
+        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">描述 / 備註</label>
+        <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200"></textarea>
       </div>
 
-      <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-lg border border-brand-100 dark:border-brand-900/30">
+      <div className="p-3 bg-brand-50 dark:bg-brand-900/30 rounded-lg border border-brand-100 dark:border-brand-900/50">
         <h4 className="text-xs font-bold text-brand-700 dark:text-brand-400 mb-2 flex items-center"><Navigation size={12} className="mr-1"/> 交通資訊 (選填)</h4>
         <div className="grid grid-cols-2 gap-2 mb-2">
-          <input type="text" name="transport.duration" value={formData.transport?.duration || ""} onChange={handleChange} placeholder="預估時間 (如: 30分)" className="bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-gray-200" />
-          <select name="transport.mode" value={formData.transport?.mode || "train"} onChange={handleChange} className="bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-gray-200">
+          <input type="text" name="transport.duration" value={formData.transport?.duration || ""} onChange={handleChange} placeholder="預估時間 (如: 30分)" className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200" />
+          <select name="transport.mode" value={formData.transport?.mode || "train"} onChange={handleChange} className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200">
             <option value="train">電車/地鐵</option>
             <option value="walk">步行</option>
             <option value="taxi">計程車/Uber</option>
@@ -74,19 +74,19 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
             <option value="flight">飛機</option>
           </select>
         </div>
-        <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white dark:bg-gray-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-gray-200" />
+        <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200" />
       </div>
 
-      <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
+      <div className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold">💰 花費設定</label>
+          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold">💰 花費設定</label>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 dark:text-gray-400">幣別:</label>
+            <label className="text-xs text-gray-500 dark:text-slate-400">幣別:</label>
             <select
               name="currency"
               value={formData.currency || 'JPY'}
               onChange={handleChange}
-              className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-gray-200 focus:outline-none focus:border-brand-500"
+              className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-slate-200 focus:outline-none focus:border-brand-500"
             >
               <option value="JPY">JPY (日幣)</option>
               <option value="TWD">TWD (台幣)</option>
@@ -95,7 +95,7 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
         </div>
         
         <div>
-          <label className="text-xs text-gray-500 dark:text-gray-400 font-bold block mb-1">預估金額 (預算)</label>
+          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">預估金額 (預算)</label>
           <input
             type="number"
             name="cost"

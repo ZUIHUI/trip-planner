@@ -427,35 +427,35 @@ const App = () => {
 
               {/* Quick Stats Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-2 text-orange-600">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-2 text-orange-600 dark:text-orange-400">
                     <CalendarDays size={20} />
                   </div>
-                  <p className="text-xs text-gray-500">總天數</p>
-                  <p className="text-xl font-bold text-gray-800">{itinerary.length} 天</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">總天數</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{itinerary.length} 天</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 text-blue-600">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-blue-600 dark:text-blue-400">
                     <MapPin size={20} />
                   </div>
-                  <p className="text-xs text-gray-500">行程景點</p>
-                  <p className="text-xl font-bold text-gray-800">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">行程景點</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100">
                     {itinerary.reduce((acc, day) => acc + (day.events?.length || 0), 0)} 個
                   </p>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mb-2 text-emerald-600">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-2 text-emerald-600 dark:text-emerald-400">
                     <Users size={20} />
                   </div>
-                  <p className="text-xs text-gray-500">旅伴人數</p>
-                  <p className="text-xl font-bold text-gray-800">{tripDetails.travelers?.length || 1} 人</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">旅伴人數</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{tripDetails.travelers?.length || 1} 人</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-                  <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center mb-2 text-rose-600">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-2 text-rose-600 dark:text-rose-400">
                     <Wallet size={20} />
                   </div>
-                  <p className="text-xs text-gray-500">目前花費</p>
-                  <p className="text-lg font-bold text-gray-800 truncate w-full">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">目前花費</p>
+                  <p className="text-lg font-bold text-gray-800 dark:text-slate-100 truncate w-full">
                     ${Math.round(expenses.reduce((acc, curr) => acc + (curr.currency === 'JPY' ? curr.amount * exchangeRate : curr.amount), 0)).toLocaleString()}
                   </p>
                 </div>
@@ -464,44 +464,44 @@ const App = () => {
               {/* Flight Cards */}
               {tripDetails?.flights && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <PlaneTakeoff size={20} className="text-brand-600" />
+                  <h3 className="font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
+                    <PlaneTakeoff size={20} className="text-brand-600 dark:text-brand-400" />
                     航班資訊
                   </h3>
                   
                   {/* Outbound */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden relative">
                     <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-500"></div>
                     <div className="p-4">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="bg-brand-50 text-brand-700 text-xs font-bold px-2 py-1 rounded">去程</span>
-                        <span className="text-sm font-bold text-gray-800">{tripDetails.flights.outbound.date}</span>
+                        <span className="bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold px-2 py-1 rounded">去程</span>
+                        <span className="text-sm font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.date}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.outbound.dep}</p>
-                          <p className="text-xs text-gray-500">出發</p>
+                          <p className="text-2xl font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.dep}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">出發</p>
                         </div>
                         <div className="flex-1 px-4 flex flex-col items-center">
-                          <p className="text-xs text-gray-400 mb-1">{tripDetails.flights.outbound.airline}</p>
-                          <div className="w-full h-px bg-gray-300 relative flex items-center justify-center">
-                            <PlaneTakeoff size={14} className="text-gray-400 absolute bg-white px-1" />
+                          <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">{tripDetails.flights.outbound.airline}</p>
+                          <div className="w-full h-px bg-gray-300 dark:bg-slate-600 relative flex items-center justify-center">
+                            <PlaneTakeoff size={14} className="text-gray-400 dark:text-slate-500 absolute bg-white dark:bg-slate-800 px-1" />
                           </div>
-                          <p className="text-xs font-bold text-brand-600 mt-1">{tripDetails.flights.outbound.code}</p>
+                          <p className="text-xs font-bold text-brand-600 dark:text-brand-400 mt-1">{tripDetails.flights.outbound.code}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.outbound.arr}</p>
-                          <p className="text-xs text-gray-500">抵達</p>
+                          <p className="text-2xl font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.arr}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">抵達</p>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between text-xs text-gray-500">
+                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-700 flex justify-between text-xs text-gray-500 dark:text-slate-400">
                         <span>{tripDetails.flights.outbound.time}</span>
                         <button 
                           onClick={() => {
                             setEditingDetailsType('outbound');
                             setIsEditDetailsModalOpen(true);
                           }}
-                          className="text-brand-600 font-medium hover:underline"
+                          className="text-brand-600 dark:text-brand-400 font-medium hover:underline"
                         >
                           編輯
                         </button>
@@ -510,38 +510,38 @@ const App = () => {
                   </div>
 
                   {/* Inbound */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden relative">
                     <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500"></div>
                     <div className="p-4">
                       <div className="flex justify-between items-center mb-3">
-                        <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2 py-1 rounded">回程</span>
-                        <span className="text-sm font-bold text-gray-800">{tripDetails.flights.inbound.date}</span>
+                        <span className="bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-bold px-2 py-1 rounded">回程</span>
+                        <span className="text-sm font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.date}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.inbound.dep}</p>
-                          <p className="text-xs text-gray-500">出發</p>
+                          <p className="text-2xl font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.dep}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">出發</p>
                         </div>
                         <div className="flex-1 px-4 flex flex-col items-center">
-                          <p className="text-xs text-gray-400 mb-1">{tripDetails.flights.inbound.airline}</p>
-                          <div className="w-full h-px bg-gray-300 relative flex items-center justify-center">
-                            <PlaneLanding size={14} className="text-gray-400 absolute bg-white px-1" />
+                          <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">{tripDetails.flights.inbound.airline}</p>
+                          <div className="w-full h-px bg-gray-300 dark:bg-slate-600 relative flex items-center justify-center">
+                            <PlaneLanding size={14} className="text-gray-400 dark:text-slate-500 absolute bg-white dark:bg-slate-800 px-1" />
                           </div>
-                          <p className="text-xs font-bold text-orange-600 mt-1">{tripDetails.flights.inbound.code}</p>
+                          <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mt-1">{tripDetails.flights.inbound.code}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-2xl font-bold text-gray-800">{tripDetails.flights.inbound.arr}</p>
-                          <p className="text-xs text-gray-500">抵達</p>
+                          <p className="text-2xl font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.arr}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400">抵達</p>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between text-xs text-gray-500">
+                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-700 flex justify-between text-xs text-gray-500 dark:text-slate-400">
                         <span>{tripDetails.flights.inbound.time}</span>
                         <button 
                           onClick={() => {
                             setEditingDetailsType('inbound');
                             setIsEditDetailsModalOpen(true);
                           }}
-                          className="text-brand-600 font-medium hover:underline"
+                          className="text-brand-600 dark:text-brand-400 font-medium hover:underline"
                         >
                           編輯
                         </button>
@@ -554,22 +554,22 @@ const App = () => {
               {/* Accommodation Card */}
               {tripDetails?.accommodation && (
                 <div className="space-y-2">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <Home size={20} className="text-brand-600" />
+                  <h3 className="font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
+                    <Home size={20} className="text-brand-600 dark:text-brand-400" />
                     住宿資訊
                   </h3>
-                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                  <div className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-lg text-gray-800 mb-1">{tripDetails.accommodation.name}</h4>
-                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-4 cursor-pointer hover:text-brand-600 transition-colors"
+                        <h4 className="font-bold text-lg text-gray-800 dark:text-slate-100 mb-1">{tripDetails.accommodation.name}</h4>
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400 text-sm mb-4 cursor-pointer hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
                              onClick={() => {
                                navigator.clipboard.writeText(tripDetails.accommodation.address);
                                // Optional: Add toast notification here
                              }}>
                           <MapPin size={14} />
                           <span className="line-clamp-1">{tripDetails.accommodation.address}</span>
-                          <Copy size={12} className="text-gray-400" />
+                          <Copy size={12} className="text-gray-400 dark:text-slate-500" />
                         </div>
                       </div>
                       <button
@@ -577,26 +577,26 @@ const App = () => {
                           setEditingDetailsType('accommodation');
                           setIsEditDetailsModalOpen(true);
                         }}
-                        className="p-2 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-brand-600 transition-colors"
+                        className="p-2 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg text-gray-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
                       >
                         <Edit2 size={18} />
                       </button>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-lg p-3">
+                    <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg p-3">
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Check-in</p>
-                        <p className="font-bold text-gray-800">{tripDetails.accommodation.checkIn}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Check-in</p>
+                        <p className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.accommodation.checkIn}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 mb-1">Check-out</p>
-                        <p className="font-bold text-gray-800">{tripDetails.accommodation.checkOut}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Check-out</p>
+                        <p className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.accommodation.checkOut}</p>
                       </div>
                     </div>
                     
                     <button 
                       onClick={() => handleOpenGoogleMaps(tripDetails.accommodation.address)}
-                      className="w-full mt-4 py-2 bg-brand-50 text-brand-600 rounded-lg text-sm font-bold hover:bg-brand-100 transition-colors flex items-center justify-center gap-2"
+                      className="w-full mt-4 py-2 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg text-sm font-bold hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors flex items-center justify-center gap-2"
                     >
                       <MapPin size={16} />
                       在 Google Maps 查看
@@ -637,9 +637,9 @@ const App = () => {
                 {/* Events Section */}
                 <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20">
                   {/* Events List */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
                     {currentDayData?.events?.length > 0 ? (
-                      <div className="divide-y divide-gray-100">
+                      <div className="divide-y divide-gray-100 dark:divide-slate-700">
                         {currentDayData.events.map((event, idx) => (
                           <div 
                             key={event.id} 
@@ -650,14 +650,14 @@ const App = () => {
                             onDrop={(e) => handleDrop(e, event.id)}
                             className={`p-6 cursor-pointer transition-all relative ${
                               selectedEventId === event.id 
-                                ? 'bg-brand-50 border-l-4 border-brand-400' 
-                                : 'hover:bg-gray-50'
-                            } ${draggedEventId === event.id ? 'opacity-50 bg-gray-100' : ''}`}
+                                ? 'bg-brand-50 dark:bg-brand-900/30 border-l-4 border-brand-400 dark:border-brand-500' 
+                                : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                            } ${draggedEventId === event.id ? 'opacity-50 bg-gray-100 dark:bg-slate-700' : ''}`}
                             onClick={() => setSelectedEventId(event.id)}
                           >
                             {/* Drag Handle */}
                             <div 
-                              className="absolute left-2 top-1/2 transform -translate-y-1/2 cursor-grab text-gray-300 hover:text-gray-500 touch-none p-2 z-10"
+                              className="absolute left-2 top-1/2 transform -translate-y-1/2 cursor-grab text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 touch-none p-2 z-10"
                               onTouchStart={(e) => handleTouchStart(e, event.id)}
                               onTouchMove={handleTouchMove}
                               onTouchEnd={handleTouchEnd}
@@ -682,8 +682,8 @@ const App = () => {
                       </div>
                     ) : (
                       <div className="p-12 text-center">
-                        <p className="text-gray-400 text-lg">還沒有行程</p>
-                        <p className="text-gray-400 text-sm mt-2">點擊右下方「+」開始規劃</p>
+                        <p className="text-gray-400 dark:text-slate-500 text-lg">還沒有行程</p>
+                        <p className="text-gray-400 dark:text-slate-500 text-sm mt-2">點擊右下方「+」開始規劃</p>
                       </div>
                     )}
                   </div>
@@ -724,22 +724,22 @@ const App = () => {
             <>
               <div className="px-6 space-y-4 pb-10 mt-4">
               {tripDetails?.accommodation && (
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-bold text-gray-800">🏨 住宿詳情</h3>
+                    <h3 className="font-bold text-gray-800 dark:text-slate-100">🏨 住宿詳情</h3>
                     <button
                       onClick={() => {
                         setEditingDetailsType('accommodation');
                         setIsEditDetailsModalOpen(true);
                       }}
-                      className="p-1 hover:bg-gray-100 rounded text-brand-600"
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-brand-600 dark:text-brand-400"
                     >
                       <Edit2 size={16} />
                     </button>
                   </div>
-                  <p className="font-bold text-gray-800">{tripDetails.accommodation.name}</p>
-                  <p className="text-sm text-gray-500 mb-2">{tripDetails.accommodation.address}</p>
-                  <div className="text-xs text-gray-600 space-y-1">
+                  <p className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.accommodation.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">{tripDetails.accommodation.address}</p>
+                  <div className="text-xs text-gray-600 dark:text-slate-300 space-y-1">
                     <p>✓ Check-in: {tripDetails.accommodation.checkIn}</p>
                     <p>✓ Check-out: {tripDetails.accommodation.checkOut}</p>
                   </div>
@@ -747,39 +747,39 @@ const App = () => {
               )}
               {tripDetails?.flights && (
                 <>
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                  <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-gray-800">✈️ 去程</h3>
+                      <h3 className="font-bold text-gray-800 dark:text-slate-100">✈️ 去程</h3>
                       <button
                         onClick={() => {
                           setEditingDetailsType('outbound');
                           setIsEditDetailsModalOpen(true);
                         }}
-                        className="p-1 hover:bg-gray-100 rounded text-brand-600"
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-brand-600 dark:text-brand-400"
                       >
                         <Edit2 size={16} />
                       </button>
                     </div>
-                    <p className="text-sm"><span className="font-bold">{tripDetails.flights.outbound.code}</span> - {tripDetails.flights.outbound.airline}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
+                    <p className="text-sm"><span className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.code}</span> - <span className="text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.airline}</span></p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
                   </div>
-                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                  <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-gray-800">✈️ 回程</h3>
+                      <h3 className="font-bold text-gray-800 dark:text-slate-100">✈️ 回程</h3>
                       <button
                         onClick={() => {
                           setEditingDetailsType('inbound');
                           setIsEditDetailsModalOpen(true);
                         }}
-                        className="p-1 hover:bg-gray-100 rounded text-brand-600"
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-brand-600 dark:text-brand-400"
                       >
                         <Edit2 size={16} />
                       </button>
                     </div>
-                    <p className="text-sm"><span className="font-bold">{tripDetails.flights.inbound.code}</span> - {tripDetails.flights.inbound.airline}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
-                    <p className="text-xs text-gray-500">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
+                    <p className="text-sm"><span className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.code}</span> - <span className="text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.airline}</span></p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
                   </div>
                 </>
               )}

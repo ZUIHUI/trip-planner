@@ -8,10 +8,10 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   const [draggedItemId, setDraggedItemId] = useState(null);
 
   const categories = [
-    { id: 'suitcase', name: '行李箱', icon: <Luggage size={20} />, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/20', border: 'border-brand-200 dark:border-brand-800' },
-    { id: 'carryOn', name: '隨身包', icon: <Briefcase size={20} />, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800' },
-    { id: 'clothing', name: '每日衣服', icon: <Shirt size={20} />, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800' },
-    { id: 'other', name: '其他', icon: <Package size={20} />, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800', border: 'border-gray-200 dark:border-gray-700' }
+    { id: 'suitcase', name: '行李箱', icon: <Luggage size={20} />, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/30', border: 'border-brand-200 dark:border-brand-800' },
+    { id: 'carryOn', name: '隨身包', icon: <Briefcase size={20} />, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-200 dark:border-amber-800' },
+    { id: 'clothing', name: '每日衣服', icon: <Shirt size={20} />, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30', border: 'border-purple-200 dark:border-purple-800' },
+    { id: 'other', name: '其他', icon: <Package size={20} />, color: 'text-gray-600 dark:text-slate-400', bg: 'bg-gray-50 dark:bg-slate-800', border: 'border-gray-200 dark:border-slate-700' }
   ];
 
   const handleAddItem = (text, assignedTo = null) => {
@@ -142,7 +142,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold whitespace-nowrap transition-colors ${
               activeCategory === cat.id 
                 ? `${cat.bg} ${cat.color} border ${cat.border}` 
-                : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-transparent'
+                : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 border border-transparent'
             }`}
           >
             {cat.icon}
@@ -163,7 +163,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
       )}
 
       {/* Content Area */}
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border ${currentCategory.border} overflow-hidden`}>
+      <div className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border ${currentCategory.border} overflow-hidden`}>
         <div className={`${currentCategory.bg} p-4 border-b ${currentCategory.border} flex items-center justify-between`}>
           <div className="flex items-center gap-2">
             <span className={currentCategory.color}>{currentCategory.icon}</span>
@@ -172,7 +172,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               {activeCategory === 'clothing' && ` (Day ${selectedDay})`}
             </h3>
           </div>
-          <span className="text-xs font-medium px-2 py-1 bg-white/50 dark:bg-gray-700/50 rounded-full text-gray-600 dark:text-gray-300">
+          <span className="text-xs font-medium px-2 py-1 bg-white/50 dark:bg-slate-700/50 rounded-full text-gray-600 dark:text-slate-300">
             {filteredItems.filter(i => i.done).length} / {filteredItems.length}
           </span>
         </div>
@@ -190,9 +190,9 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
             return (
               <div key={group.id || 'shared'} className="mb-8 last:mb-0">
-                <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
+                <h4 className="font-bold text-gray-700 dark:text-slate-300 mb-3 flex items-center gap-2 text-sm uppercase tracking-wider">
                   {group.isShared ? (
-                    <span className="bg-gray-100 dark:bg-gray-700 p-1 rounded-full"><User size={14} /></span>
+                    <span className="bg-gray-100 dark:bg-slate-700 p-1 rounded-full"><User size={14} /></span>
                   ) : (
                     <span className="bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 p-1 rounded-full"><User size={14} /></span>
                   )}
@@ -201,7 +201,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
                 <div className="space-y-2 mb-3">
                   {groupItems.length === 0 ? (
-                    <p className="text-sm text-gray-400 dark:text-gray-500 italic pl-2 border-l-2 border-gray-100 dark:border-gray-700">
+                    <p className="text-sm text-gray-400 dark:text-slate-500 italic pl-2 border-l-2 border-gray-100 dark:border-slate-700">
                       尚無項目
                     </p>
                   ) : (
@@ -213,12 +213,12 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                         onDragStart={(e) => handleDragStart(e, item.id)}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, item.id)}
-                        className={`flex items-center gap-3 group hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                          draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-gray-700' : ''
+                        className={`flex items-center gap-3 group hover:bg-gray-50 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors ${
+                          draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-slate-700' : ''
                         }`}
                       >
                         <div 
-                          className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 flex-shrink-0 touch-none p-2 -ml-2"
+                          className="cursor-grab text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 flex-shrink-0 touch-none p-2 -ml-2"
                           onTouchStart={(e) => handleTouchStart(e, item.id)}
                           onTouchMove={handleTouchMove}
                           onTouchEnd={handleTouchEnd}
@@ -229,21 +229,21 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                           type="checkbox"
                           checked={item.done || false}
                           onChange={() => handleToggleItem(item.id)}
-                          className={`w-5 h-5 rounded border-gray-300 dark:border-gray-600 focus:ring-offset-0 cursor-pointer bg-white dark:bg-gray-700 ${
+                          className={`w-5 h-5 rounded border-gray-300 dark:border-slate-600 focus:ring-offset-0 cursor-pointer bg-white dark:bg-slate-700 ${
                             activeCategory === 'suitcase' ? 'text-brand-600 focus:ring-brand-500' :
                             activeCategory === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
                             activeCategory === 'clothing' ? 'text-purple-600 focus:ring-purple-500' :
-                            'text-gray-600 dark:text-gray-400 focus:ring-gray-500'
+                            'text-gray-600 dark:text-slate-400 focus:ring-gray-500'
                           }`}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-200'}`}>
+                          <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-700 dark:text-slate-200'}`}>
                             <span className="truncate">{item.text}</span>
                           </div>
                         </div>
                         <button
                           onClick={() => handleDeleteItem(item.id)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all p-1"
+                          className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all p-1"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -256,7 +256,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                   <input
                     type="text"
                     placeholder={`+ 新增至${group.name}...`}
-                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
+                    className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-900 dark:text-slate-100 rounded-lg pl-3 pr-10 py-2 text-sm focus:outline-none focus:border-brand-400 transition-colors"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleAddItem(e.target.value, group.id);
@@ -264,7 +264,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                       }
                     }}
                   />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none">
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none">
                     <Plus size={16} />
                   </div>
                 </div>
