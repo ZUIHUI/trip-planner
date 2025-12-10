@@ -15,10 +15,13 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   }[event.type] || MapPin;
 
   const styleClass = {
-    flight: 'bg-brand-100 text-brand-600', transport: 'bg-gray-100 text-gray-600',
-    sightseeing: 'bg-pink-100 text-pink-600', food: 'bg-orange-100 text-orange-600',
-    shopping: 'bg-emerald-100 text-emerald-600', hotel: 'bg-brand-100 text-brand-600'
-  }[event.type] || 'bg-gray-100 text-gray-600';
+    flight: 'bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400',
+    transport: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
+    sightseeing: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',
+    food: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+    shopping: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+    hotel: 'bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400'
+  }[event.type] || 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400';
 
   const handleToggleMemo = (id) => {
     const newMemos = event.memos.map(m => m.id === id ? { ...m, done: !m.done } : m);
@@ -40,7 +43,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
   return (
     <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-slate-800 ml-3 group">
-      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 bg-white dark:bg-slate-900 ${event.urgent ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-brand-400'}`}></div>
+      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${event.urgent ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-brand-400 bg-white dark:bg-slate-900'}`}></div>
 
       {prevLocation && (
         <div className="absolute -left-3 -top-8 w-px h-8"></div>

@@ -532,21 +532,21 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, splitType: 'all' }))}
-                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'all' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600'}`}
+                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'all' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-400' : 'bg-white border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}
                     >
                       全員均分
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, splitType: 'specific' }))}
-                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'specific' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600'}`}
+                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'specific' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-400' : 'bg-white border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}
                     >
                       指定分攤
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, splitType: 'settled' }))}
-                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'settled' ? 'bg-emerald-100 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600'}`}
+                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'settled' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-400' : 'bg-white border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}
                     >
                       已結清
                     </button>
@@ -562,7 +562,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
                           className={`px-2 py-1 text-xs rounded-full border transition-colors ${
                             formData.involved?.includes(person)
                               ? 'bg-emerald-500 text-white border-emerald-600'
-                              : 'bg-white text-gray-500 border-gray-200'
+                              : 'bg-white text-gray-500 border-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                           }`}
                         >
                           {person}
