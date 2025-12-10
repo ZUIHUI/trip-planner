@@ -38,7 +38,6 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
   };
 
   return (
-  return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {detailsType === 'accommodation' && (
         <>
