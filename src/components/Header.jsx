@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw, DollarSign } from 'lucide-react';
 
 const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const tabs = [
     { id: 'summary', label: '總覽', icon: LayoutDashboard },
     { id: 'itinerary', label: '行程', icon: Map },
@@ -15,17 +25,21 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
   return (
     <div className="bg-white dark:bg-slate-950 sticky top-0 z-30 shadow-sm transition-colors duration-300">
       {/* Main Header Content - Gradient Background */}
-      <div className="bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white pt-12 pb-6 px-6 rounded-b-[2rem] shadow-lg relative overflow-hidden transition-colors duration-500 border-b-0 dark:border-b dark:border-slate-800">
+      <div className={`
+        bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white 
+        shadow-lg relative overflow-hidden transition-all duration-500 ease-in-out border-b-0 dark:border-b dark:border-slate-800
+        ${isScrolled ? 'pt-4 pb-2 px-4 rounded-b-xl' : 'pt-12 pb-6 px-6 rounded-b-[2rem]'}
+      `}>
         {/* Decorative Background Elements */}
-        <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 pointer-events-none">
+        <div className={`absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-10'}`}>
           <Plane size={200} />
         </div>
-        <div className="absolute bottom-0 left-0 opacity-5 transform -translate-x-1/4 translate-y-1/4 pointer-events-none">
+        <div className={`absolute bottom-0 left-0 transform -translate-x-1/4 translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-5'}`}>
           <Map size={150} />
         </div>
 
         {/* Top Bar: Date & Actions */}
-        <div className="relative flex justify-between items-center mb-4">
+        <div className={`relative flex justify-between items-center transition-all duration-300 ${isScrolled ? 'mb-0' : 'mb-4'}`}>
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-sm">
             <Calendar size={14} className="text-brand-100" />
             <span className="text-xs font-medium text-brand-50 tracking-wide">{details?.dates || '未設定日期'}</span>
@@ -49,7 +63,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
         </div>
 
         {/* Main Title Area */}
-        <div className="relative">
+        <div className={`relative transition-all duration-500 ease-in-out overflow-hidden ${isScrolled ? 'max-h-0 opacity-0' : 'max-h-40 opacity-100'}`}>
           <h1 className="text-3xl font-bold mb-2 tracking-tight leading-tight drop-shadow-md">
             {details?.title || '我的旅程'}
           </h1>
