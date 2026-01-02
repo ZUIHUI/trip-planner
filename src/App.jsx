@@ -78,6 +78,11 @@ const App = () => {
   const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem('interface_size') || 'medium');
   const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localStorage.getItem('exchange_rate')) || 0.215);
   const [lastRateUpdate, setLastRateUpdate] = useState(() => localStorage.getItem('last_rate_update') || null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const handleScroll = (e) => {
+    setIsScrolled(e.target.scrollTop > 20);
+  };
 
   useEffect(() => {
     localStorage.setItem('theme_mode', themeMode);
@@ -358,13 +363,18 @@ const App = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 font-sans pb-20" data-theme={themeMode}>
+    <div 
+      className="h-screen overflow-y-auto bg-gray-50 dark:bg-slate-950 font-sans pb-20" 
+      data-theme={themeMode}
+      onScroll={handleScroll}
+    >
       <Header 
         details={tripDetails} 
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onSettingsOpen={() => setIsSettingsPanelOpen(true)}
         isSaving={isSaving}
+        isScrolled={isScrolled}
       >
         {activeTab === 'itinerary' && (
           <div className="px-4 pb-2">

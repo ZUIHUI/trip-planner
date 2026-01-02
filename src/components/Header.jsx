@@ -1,28 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw, DollarSign } from 'lucide-react';
 
-const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const scrollContainer = document.getElementById('root');
-    
-    const handleScroll = () => {
-      if (scrollContainer) {
-        setIsScrolled(scrollContainer.scrollTop > 20);
-      }
-    };
-
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-    }
-
-    return () => {
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, []);
+const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children, isScrolled }) => {
+  // Internal scroll logic removed, now controlled by parent
 
   const tabs = [
     { id: 'summary', label: '總覽', icon: LayoutDashboard },
