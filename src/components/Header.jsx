@@ -5,11 +5,23 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    const scrollContainer = document.getElementById('root');
+    
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (scrollContainer) {
+        setIsScrolled(scrollContainer.scrollTop > 20);
+      }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+    }
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      }
+    };
   }, []);
 
   const tabs = [
