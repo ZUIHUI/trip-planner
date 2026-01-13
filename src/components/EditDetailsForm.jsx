@@ -123,16 +123,29 @@ const EditDetailsForm = ({ tripDetails, detailsType, onSave, onCancel }) => {
               placeholder="例：2/23"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">時間</label>
-            <input
-              type="text"
-              name="time"
-              value={formData.time || ''}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
-              placeholder="例：14:40 抵達"
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">起飛時間</label>
+              <input
+                type="text"
+                name="departureTime"
+                value={formData.departureTime || ''}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
+                placeholder="例：14:40"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">抵達時間</label>
+              <input
+                type="text"
+                name="arrivalTime"
+                value={formData.arrivalTime || ''}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600"
+                placeholder="例：19:15"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>

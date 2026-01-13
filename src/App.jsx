@@ -28,8 +28,8 @@ const initialTripDetails = {
     checkOut: "2/28 10:00"
   },
   flights: {
-    outbound: { code: "JX802", airline: "星宇航空", date: "2/23", time: "14:40 抵達", dep: "TPE", arr: "NRT" },
-    inbound: { code: "CX451", airline: "國泰航空", date: "2/28", time: "15:25 起飛", dep: "NRT", arr: "TPE" }
+    outbound: { code: "JX802", airline: "星宇航空", date: "2/23", departureTime: "14:40", arrivalTime: "", dep: "TPE", arr: "NRT" },
+    inbound: { code: "CX451", airline: "國泰航空", date: "2/28", departureTime: "15:25", arrivalTime: "", dep: "NRT", arr: "TPE" }
   }
 };
 
@@ -563,8 +563,15 @@ const App = () => {
                           <p className="text-xs text-gray-500 dark:text-slate-400">抵達</p>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-700 flex justify-between text-xs text-gray-500 dark:text-slate-400">
-                        <span>{tripDetails.flights.outbound.time}</span>
+                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-700 flex justify-between items-center text-xs text-gray-500 dark:text-slate-400">
+                        <div className="flex gap-4">
+                          {tripDetails.flights.outbound.departureTime && (
+                            <span className="font-medium text-gray-600 dark:text-slate-300">起飛: {tripDetails.flights.outbound.departureTime}</span>
+                          )}
+                          {tripDetails.flights.outbound.arrivalTime && (
+                            <span className="font-medium text-gray-600 dark:text-slate-300">抵達: {tripDetails.flights.outbound.arrivalTime}</span>
+                          )}
+                        </div>
                         <button 
                           onClick={() => {
                             setEditingDetailsType('outbound');
@@ -603,8 +610,15 @@ const App = () => {
                           <p className="text-xs text-gray-500 dark:text-slate-400">抵達</p>
                         </div>
                       </div>
-                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-700 flex justify-between text-xs text-gray-500 dark:text-slate-400">
-                        <span>{tripDetails.flights.inbound.time}</span>
+                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-slate-700 flex justify-between items-center text-xs text-gray-500 dark:text-slate-400">
+                        <div className="flex gap-4">
+                          {tripDetails.flights.inbound.departureTime && (
+                            <span className="font-medium text-gray-600 dark:text-slate-300">起飛: {tripDetails.flights.inbound.departureTime}</span>
+                          )}
+                          {tripDetails.flights.inbound.arrivalTime && (
+                            <span className="font-medium text-gray-600 dark:text-slate-300">抵達: {tripDetails.flights.inbound.arrivalTime}</span>
+                          )}
+                        </div>
                         <button 
                           onClick={() => {
                             setEditingDetailsType('inbound');
@@ -830,7 +844,11 @@ const App = () => {
                       </button>
                     </div>
                     <p className="text-sm"><span className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.code}</span> - <span className="text-gray-800 dark:text-slate-100">{tripDetails.flights.outbound.airline}</span></p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      {tripDetails.flights.outbound.date}
+                      {tripDetails.flights.outbound.departureTime && ` 起飛: ${tripDetails.flights.outbound.departureTime}`}
+                      {tripDetails.flights.outbound.arrivalTime && ` 抵達: ${tripDetails.flights.outbound.arrivalTime}`}
+                    </p>
                     <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.outbound.dep} → {tripDetails.flights.outbound.arr}</p>
                   </div>
                   <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
@@ -847,7 +865,11 @@ const App = () => {
                       </button>
                     </div>
                     <p className="text-sm"><span className="font-bold text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.code}</span> - <span className="text-gray-800 dark:text-slate-100">{tripDetails.flights.inbound.airline}</span></p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      {tripDetails.flights.inbound.date}
+                      {tripDetails.flights.inbound.departureTime && ` 起飛: ${tripDetails.flights.inbound.departureTime}`}
+                      {tripDetails.flights.inbound.arrivalTime && ` 抵達: ${tripDetails.flights.inbound.arrivalTime}`}
+                    </p>
                     <p className="text-xs text-gray-500 dark:text-slate-400">{tripDetails.flights.inbound.dep} → {tripDetails.flights.inbound.arr}</p>
                   </div>
                 </>

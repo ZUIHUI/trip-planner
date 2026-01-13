@@ -231,7 +231,9 @@ const TripDetailPage = () => {
                     </div>
                     <p className="text-sm text-gray-600">{tripDetails.flights.outbound.airline}</p>
                     <p className="text-xs text-gray-500">
-                      {tripDetails.flights.outbound.date} {tripDetails.flights.outbound.time}
+                      {tripDetails.flights.outbound.date}
+                      {tripDetails.flights.outbound.departureTime && ` 起飛: ${tripDetails.flights.outbound.departureTime}`}
+                      {tripDetails.flights.outbound.arrivalTime && ` 抵達: ${tripDetails.flights.outbound.arrivalTime}`}
                     </p>
                   </div>
                 ) : (
@@ -250,7 +252,9 @@ const TripDetailPage = () => {
                     </div>
                     <p className="text-sm text-gray-600">{tripDetails.flights.inbound.airline}</p>
                     <p className="text-xs text-gray-500">
-                      {tripDetails.flights.inbound.date} {tripDetails.flights.inbound.time}
+                      {tripDetails.flights.inbound.date}
+                      {tripDetails.flights.inbound.departureTime && ` 起飛: ${tripDetails.flights.inbound.departureTime}`}
+                      {tripDetails.flights.inbound.arrivalTime && ` 抵達: ${tripDetails.flights.inbound.arrivalTime}`}
                     </p>
                   </div>
                 ) : (
