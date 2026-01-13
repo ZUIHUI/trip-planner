@@ -354,14 +354,17 @@ const App = () => {
   const touchStartY = useRef(null);
   const touchEndX = useRef(null);
   const touchEndY = useRef(null);
+  const touchStartElement = useRef(null);
   const minSwipeDistance = 50;
   const tabsOrder = ['summary', 'itinerary', 'expenses', 'shopping', 'preTrip', 'packing', 'flights'];
+  const headerRef = useRef(null);
 
   const onMainTouchStart = (e) => {
     touchEndX.current = null;
     touchEndY.current = null;
     touchStartX.current = e.targetTouches[0].clientX;
     touchStartY.current = e.targetTouches[0].clientY;
+    touchStartElement.current = e.target;
   };
 
   const onMainTouchMove = (e) => {
@@ -372,6 +375,12 @@ const App = () => {
   const onMainTouchEnd = () => {
     if (!touchStartX.current || !touchEndX.current) return;
     if (draggedEventId) return; // Don't switch if dragging an item
+
+    // Check if touch started on Header or its children
+    if (touchStartElement.current && headerRef.current) {
+      const isHeaderOrChild = headerRef.current.contains(touchStartElement.current);
+      if (isHeaderOrChild) return; // Ignore swipes on header navigation
+    }
 
     const diffX = touchStartX.current - touchEndX.current;
     const diffY = touchStartY.current - touchEndY.current;
@@ -418,6 +427,7 @@ const App = () => {
       onTouchEnd={onMainTouchEnd}
     >
       <Header 
+        ref={headerRef}
         details={tripDetails} 
         activeTab={activeTab}
         onTabChange={setActiveTab}

@@ -1,8 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useRef } from 'react';
 import { Plane, Home, Settings, ShoppingCart, Calendar, Map, CheckSquare, Luggage, Ticket, LayoutDashboard, RefreshCw, DollarSign } from 'lucide-react';
 
-const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children, isScrolled }) => {
+const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children, isScrolled }, ref) => {
   // Internal scroll logic removed, now controlled by parent
+  const tabsContainerRef = useRef(null);
+  const tabButtonsRef = useRef({});
+
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    if (tabsContainerRef.current && tabButtonsRef.current[activeTab]) {
+      const container = tabsContainerRef.current;
+      const activeButton = tabButtonsRef.current[activeTab];
+      
+      const containerRect = container.getBoundingClientRect();
+      const buttonRect = activeButton.getBoundingClientRect();
+      
+      // Check if button is outside the visible area
+      if (buttonRect.right > containerRect.right) {
+        // Button is cut off on the right, scroll right
+        container.scrollLeft += buttonRect.right - containerRect.right + 16;
+      } else if (buttonRect.left < containerRect.left) {
+        // Button is cut off on the left, scroll left
+        container.scrollLeft -= containerRect.left - buttonRect.left + 16;
+      }
+    }
+  }, [activeTab]);
 
   const tabs = [
     { id: 'summary', label: '總覽', icon: LayoutDashboard },
@@ -15,7 +37,7 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-950 sticky top-0 z-30 shadow-sm transition-colors duration-300">
+    <div ref={ref} className="bg-white dark:bg-slate-950 sticky top-0 z-30 shadow-sm transition-colors duration-300">
       {/* Main Header Content - Gradient Background */}
       <div className={`
         bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white 
@@ -70,13 +92,16 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
 
       {/* Scrollable Tab Navigation */}
       <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
-        <div className="flex overflow-x-auto px-4 py-2 gap-2 no-scrollbar snap-x">
+        <div ref={tabsContainerRef} className="flex overflow-x-auto px-4 py-2 gap-2 no-scrollbar snap-x scroll-smooth">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                ref={(el) => {
+                  if (el) tabButtonsRef.current[tab.id] = el;
+                }}
                 onClick={() => onTabChange(tab.id)}
                 className={`
                   flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all snap-start
@@ -102,8 +127,9 @@ const Header = ({ details, activeTab, onTabChange, onSettingsOpen, isSaving, chi
       )}
     </div>
   );
-};
+});
 
+Header.displayName = 'Header';
 export default Header;
 
 
