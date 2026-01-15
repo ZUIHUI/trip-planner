@@ -349,60 +349,7 @@ const App = () => {
     setDraggedEventId(null);
   };
 
-  // Swipe Logic for Tab Switching
-  const touchStartX = useRef(null);
-  const touchStartY = useRef(null);
-  const touchEndX = useRef(null);
-  const touchEndY = useRef(null);
-  const touchStartElement = useRef(null);
-  const minSwipeDistance = 50;
-  const tabsOrder = ['summary', 'itinerary', 'expenses', 'shopping', 'preTrip', 'packing', 'flights'];
   const headerRef = useRef(null);
-
-  const onMainTouchStart = (e) => {
-    touchEndX.current = null;
-    touchEndY.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-    touchStartY.current = e.targetTouches[0].clientY;
-    touchStartElement.current = e.target;
-  };
-
-  const onMainTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-    touchEndY.current = e.targetTouches[0].clientY;
-  };
-
-  const onMainTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    if (draggedEventId) return; // Don't switch if dragging an item
-
-    // Check if touch started on Header or its children
-    if (touchStartElement.current && headerRef.current) {
-      const isHeaderOrChild = headerRef.current.contains(touchStartElement.current);
-      if (isHeaderOrChild) return; // Ignore swipes on header navigation
-    }
-
-    const diffX = touchStartX.current - touchEndX.current;
-    const diffY = touchStartY.current - touchEndY.current;
-
-    // Ensure it's a horizontal swipe (X diff > Y diff)
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (Math.abs(diffX) > minSwipeDistance) {
-        const currentIndex = tabsOrder.indexOf(activeTab);
-        if (diffX > 0) {
-          // Swipe Left -> Next Tab
-          if (currentIndex < tabsOrder.length - 1) {
-            setActiveTab(tabsOrder[currentIndex + 1]);
-          }
-        } else {
-          // Swipe Right -> Prev Tab
-          if (currentIndex > 0) {
-            setActiveTab(tabsOrder[currentIndex - 1]);
-          }
-        }
-      }
-    }
-  };
 
   if (isLoading) {
     return (
@@ -422,9 +369,6 @@ const App = () => {
       className="h-screen overflow-y-auto bg-gray-50 dark:bg-slate-950 font-sans pb-20" 
       data-theme={themeMode}
       onScroll={handleScroll}
-      onTouchStart={onMainTouchStart}
-      onTouchMove={onMainTouchMove}
-      onTouchEnd={onMainTouchEnd}
     >
       <Header 
         ref={headerRef}
