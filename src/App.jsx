@@ -15,7 +15,7 @@ import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
 import { fetchJPYRate } from './services/currencyService';
-import { Plus, Edit2, GripVertical, Clock, MapPin, Users, Wallet, PlaneTakeoff, PlaneLanding, Copy, ExternalLink, CalendarDays, Home } from 'lucide-react';
+import { Plus, Edit2, GripVertical, Clock, MapPin, Users, Wallet, PlaneTakeoff, PlaneLanding, Copy, ExternalLink, CalendarDays, Home, Plane, Train, Camera, Coffee, ShoppingBag, AlertCircle, CheckSquare, Square } from 'lucide-react';
 
 // 預設資料
 const initialTripDetails = {
@@ -69,6 +69,8 @@ const App = () => {
   const [selectedEventId, setSelectedEventId] = useState(null); // 追踪選中的行程
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [viewingEvent, setViewingEvent] = useState(null); // 詳細檢視的行程
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false); // 詳細檢視模態框
   const [isEditDetailsModalOpen, setIsEditDetailsModalOpen] = useState(false);
   const [editingDetailsType, setEditingDetailsType] = useState(null); // 'accommodation', 'outbound', 'inbound'
   const [enableGPS, setEnableGPS] = useState(false); // GPS 開關狀態
@@ -241,6 +243,11 @@ const App = () => {
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(startPoint || '')}&destination=${encodeURIComponent(destination)}`;
       window.open(mapsUrl, '_blank');
     }
+  };
+
+  const handleViewEventDetails = (event) => {
+    setViewingEvent(event);
+    setIsViewModalOpen(true);
   };
 
   // 編輯詳情處理
@@ -701,6 +708,7 @@ const App = () => {
                                 onDelete={handleDeleteEvent}
                                 onUpdateMemos={handleUpdateMemos}
                                 onOpenGoogleMaps={handleOpenGoogleMaps}
+                                onViewDetails={handleViewEventDetails}
                                 exchangeRate={exchangeRate}
                               />
                             </div>
@@ -853,6 +861,119 @@ const App = () => {
           onSave={handleSaveEvent}
           onCancel={() => { setIsEditModalOpen(false); setEditingEvent(null); }}
         />
+      </Modal>
+
+      {/* Event Details View Modal */}
+      <Modal
+        isOpen={isViewModalOpen}
+        onClose={() => { setIsViewModalOpen(false); setViewingEvent(null); }}
+        title="行程詳情"
+      >
+        {viewingEvent && (
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center gap-3 pb-3 border-b border-gray-200 dark:border-slate-700">
+              <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex-shrink-0">
+                {/* Event Type Icon */}
+                {viewingEvent.type === 'flight' && <Plane size={20} />}
+                {viewingEvent.type === 'transport' && <Train size={20} />}
+                {viewingEvent.type === 'sightseeing' && <Camera size={20} />}
+                {viewingEvent.type === 'food' && <Coffee size={20} />}
+                {viewingEvent.type === 'shopping' && <ShoppingBag size={20} />}
+                {viewingEvent.type === 'hotel' && <Home size={20} />}
+                {!['flight', 'transport', 'sightseeing', 'food', 'shopping', 'hotel'].includes(viewingEvent.type) && <MapPin size={20} />}
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400 font-mono">{viewingEvent.time}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{viewingEvent.title}</h3>
+              </div>
+            </div>
+
+            {/* Description */}
+            {viewingEvent.desc && (
+              <div>
+                <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">備註</p>
+                <p className="text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">{viewingEvent.desc}</p>
+              </div>
+            )}
+
+            {/* Location */}
+            {viewingEvent.location && (
+              <div className="flex items-start gap-2">
+                <MapPin size={16} className="mt-0.5 text-brand-500 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-slate-400">位置</p>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">{viewingEvent.location}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Transport Info */}
+            {(viewingEvent.transport?.duration || viewingEvent.transport?.route) && (
+              <div>
+                <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">交通</p>
+                <p className="text-sm text-gray-700 dark:text-slate-300">
+                  {viewingEvent.transport.duration && <span>{viewingEvent.transport.duration}</span>}
+                  {viewingEvent.transport.duration && viewingEvent.transport.route && <span> - </span>}
+                  {viewingEvent.transport.route && <span>{viewingEvent.transport.route}</span>}
+                </p>
+              </div>
+            )}
+
+            {/* Cost */}
+            {viewingEvent.cost && (
+              <div>
+                <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">預算</p>
+                <p className="text-sm font-mono font-bold text-brand-600 dark:text-brand-400">
+                  {viewingEvent.currency === 'TWD' ? 'NT$' : '¥'}{viewingEvent.cost}
+                </p>
+              </div>
+            )}
+
+            {/* Urgent Flag */}
+            {viewingEvent.urgent && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/30">
+                <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
+                <p className="text-xs font-semibold text-red-600 dark:text-red-400">重要</p>
+              </div>
+            )}
+
+            {/* Memos */}
+            {viewingEvent.memos && viewingEvent.memos.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-2">備忘錄</p>
+                <ul className="space-y-1 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-lg border border-yellow-200 dark:border-yellow-900/30">
+                  {viewingEvent.memos.map(memo => (
+                    <li key={memo.id} className="flex items-start gap-2">
+                      <span className="text-xs mt-0.5">
+                        {memo.done ? <CheckSquare size={14} className="text-brand-500" /> : <Square size={14} />}
+                      </span>
+                      <span className={`text-xs flex-1 ${memo.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                        {memo.text}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-slate-700">
+              <button
+                onClick={() => { setIsViewModalOpen(false); setEditingEvent(viewingEvent); setIsEditModalOpen(true); }}
+                className="flex-1 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2 rounded-lg transition-colors"
+              >
+                編輯
+              </button>
+              <button
+                onClick={() => { setIsViewModalOpen(false); setViewingEvent(null); }}
+                className="flex-1 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-200 font-semibold py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
+              >
+                關閉
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Details Edit Modal */}

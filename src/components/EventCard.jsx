@@ -5,7 +5,7 @@ import {
   Navigation, Map, ChevronRight
 } from 'lucide-react';
 
-const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, exchangeRate = 0.21 }) => {
+const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, onViewDetails, exchangeRate = 0.21 }) => {
   const [showMemos, setShowMemos] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -49,7 +49,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative cursor-pointer group" onClick={() => onViewDetails && onViewDetails(event)}>
         {/* Header Section */}
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
@@ -61,13 +61,13 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
           <div className="flex items-center space-x-1 flex-shrink-0">
             {event.urgent && <AlertCircle size={18} className="text-red-500" />}
-            <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors">
+            <button onClick={(e) => {e.stopPropagation(); setShowMenu(!showMenu)}} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors">
               <MoreVertical size={18} />
             </button>
             {showMenu && (
               <div className="absolute right-2 top-12 bg-white dark:bg-slate-900 shadow-xl border border-gray-100 dark:border-slate-800 rounded-lg z-10 w-28 py-1 flex flex-col">
-                <button onClick={() => {onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
-                <button onClick={() => {onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
+                <button onClick={(e) => {e.stopPropagation(); onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
+                <button onClick={(e) => {e.stopPropagation(); onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
               </div>
             )}
           </div>
@@ -118,7 +118,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         {/* Footer Actions */}
         <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
           <button
-            onClick={() => setShowMemos(!showMemos)}
+            onClick={(e) => {e.stopPropagation(); setShowMemos(!showMemos)}}
             className={`flex items-center text-xs font-medium transition-colors ${
               (event.memos?.length > 0) ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
@@ -129,7 +129,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           </button>
 
           <button
-            onClick={() => onOpenGoogleMaps(prevLocation, event.location)}
+            onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.location)}}
             className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
           >
             <Map size={14} className="mr-1.5" />
@@ -139,7 +139,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
         {/* Memos Section */}
         {showMemos && (
-          <div className="mt-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-100 dark:border-yellow-900/30 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="mt-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-100 dark:border-yellow-900/30 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
               <ul className="space-y-1 mb-2">
                 {event.memos?.map(memo => (
                   <li key={memo.id} className="flex items-start group/item gap-2">
