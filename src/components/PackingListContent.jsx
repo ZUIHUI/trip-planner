@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Briefcase, Luggage, Shirt, Package, User, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Briefcase, Luggage, Shirt, Package, User, GripVertical, Pencil, X, Check } from 'lucide-react';
 import DaySelector from './DaySelector';
 
 const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [] }) => {
   const [activeCategory, setActiveCategory] = useState('suitcase');
   const [selectedDay, setSelectedDay] = useState(1);
   const [draggedItemId, setDraggedItemId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editingText, setEditingText] = useState('');
 
   const categories = [
     { id: 'suitcase', name: '行李箱', icon: <Luggage size={20} />, color: 'text-brand-600 dark:text-brand-400', bg: 'bg-brand-50 dark:bg-brand-900/30', border: 'border-brand-200 dark:border-brand-800' },
@@ -41,6 +43,29 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
       const newItems = items.filter(item => item.id !== id);
       onUpdate(newItems);
     }
+  };
+
+  const handleStartEdit = (item) => {
+    setEditingId(item.id);
+    setEditingText(item.text);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingText.trim()) {
+      alert('項目不能為空');
+      return;
+    }
+    const newItems = items.map(item =>
+      item.id === editingId ? { ...item, text: editingText.trim() } : item
+    );
+    onUpdate(newItems);
+    setEditingId(null);
+    setEditingText('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingText('');
   };
 
   const handleDragStart = (e, id) => {
@@ -209,7 +234,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                       <div 
                         key={item.id} 
                         data-item-id={item.id}
-                        draggable
+                        draggable={editingId !== item.id}
                         onDragStart={(e) => handleDragStart(e, item.id)}
                         onDragOver={handleDragOver}
                         onDrop={(e) => handleDrop(e, item.id)}
@@ -217,18 +242,21 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                           draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-slate-700' : ''
                         }`}
                       >
-                        <div 
-                          className="cursor-grab text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 flex-shrink-0 touch-none p-2 -ml-2"
-                          onTouchStart={(e) => handleTouchStart(e, item.id)}
-                          onTouchMove={handleTouchMove}
-                          onTouchEnd={handleTouchEnd}
-                        >
-                          <GripVertical size={16} />
-                        </div>
+                        {editingId !== item.id && (
+                          <div 
+                            className="cursor-grab text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 flex-shrink-0 touch-none p-2 -ml-2"
+                            onTouchStart={(e) => handleTouchStart(e, item.id)}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                          >
+                            <GripVertical size={16} />
+                          </div>
+                        )}
                         <input
                           type="checkbox"
                           checked={item.done || false}
                           onChange={() => handleToggleItem(item.id)}
+                          disabled={editingId === item.id}
                           className={`w-5 h-5 rounded border-gray-300 dark:border-slate-600 focus:ring-offset-0 cursor-pointer bg-white dark:bg-slate-700 ${
                             activeCategory === 'suitcase' ? 'text-brand-600 focus:ring-brand-500' :
                             activeCategory === 'carryOn' ? 'text-amber-600 focus:ring-amber-500' :
@@ -236,17 +264,54 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                             'text-gray-600 dark:text-slate-400 focus:ring-gray-500'
                           }`}
                         />
-                        <div className="flex-1 min-w-0">
-                          <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-700 dark:text-slate-200'}`}>
-                            <span className="truncate">{item.text}</span>
+                        
+                        {editingId === item.id ? (
+                          <div className="flex-1 flex items-center gap-2">
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editingText}
+                              onChange={(e) => setEditingText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveEdit();
+                                if (e.key === 'Escape') handleCancelEdit();
+                              }}
+                              className="flex-1 bg-white dark:bg-slate-700 border border-brand-400 dark:border-brand-500 rounded px-2 py-1 text-sm text-gray-900 dark:text-slate-100 focus:outline-none"
+                            />
+                            <button
+                              onClick={handleSaveEdit}
+                              className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 p-1 flex-shrink-0"
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-400 p-1 flex-shrink-0"
+                            >
+                              <X size={16} />
+                            </button>
                           </div>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all p-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        ) : (
+                          <>
+                            <div className="flex-1 min-w-0">
+                              <div className={`flex items-center gap-2 ${item.done ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-700 dark:text-slate-200'}`}>
+                                <span className="truncate">{item.text}</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleStartEdit(item)}
+                              className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-all p-1 flex-shrink-0"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all p-1 flex-shrink-0"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     ))
                   )}
