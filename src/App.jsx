@@ -930,6 +930,22 @@ const App = () => {
               </div>
             )}
 
+            {/* URL */}
+            {viewingEvent.url && (
+              <div>
+                <p className="text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">相關連結</p>
+                <a 
+                  href={viewingEvent.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline break-all flex items-center gap-1 group"
+                >
+                  {viewingEvent.url}
+                  <ExternalLink size={12} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+              </div>
+            )}
+
             {/* Urgent Flag */}
             {viewingEvent.urgent && (
               <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/30">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Navigation, Save } from 'lucide-react';
+import { MapPin, Navigation, Save, Link as LinkIcon } from 'lucide-react';
 
 const EditEventForm = ({ event, onSave, onCancel }) => {
   const [formData, setFormData] = useState(event || {
@@ -60,6 +60,15 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
       <div>
         <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">描述 / 備註</label>
         <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200"></textarea>
+      </div>
+
+      <div>
+        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">相關連結 (URL)</label>
+        <div className="relative">
+          <LinkIcon size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
+          <input type="url" name="url" value={formData.url || ""} onChange={handleChange} placeholder="https://example.com" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
+        </div>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">例如: 官方網站、購票連結、預約確認等</p>
       </div>
 
       <div className="p-3 bg-brand-50 dark:bg-brand-900/30 rounded-lg border border-brand-100 dark:border-brand-900/50">

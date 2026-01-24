@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Plane, Train, Camera, Coffee, ShoppingBag, Home, MapPin,
   AlertCircle, MoreVertical, Edit2, Trash2, X, CheckSquare, Square,
-  Navigation, Map, ChevronRight
+  Navigation, Map, ChevronRight, Link as LinkIcon, ExternalLink
 } from 'lucide-react';
 
 const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, onViewDetails, exchangeRate = 0.21 }) => {
@@ -111,6 +111,23 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
                 <span className="mr-1.5">預算</span>
                 <span className="font-mono font-medium">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
               </div>
+            </div>
+          )}
+
+          {/* URL Info */}
+          {event.url && (
+            <div className="flex items-start gap-2 text-sm">
+              <LinkIcon size={16} className="mt-0.5 text-blue-500 shrink-0" />
+              <a 
+                href={event.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-blue-600 dark:text-blue-400 hover:underline truncate font-medium flex items-center gap-1 group/link"
+              >
+                {event.url.replace(/^https?:\/\//, '').split('/')[0]}
+                <ExternalLink size={12} className="opacity-0 group-hover/link:opacity-100 transition-opacity" />
+              </a>
             </div>
           )}
         </div>
