@@ -259,7 +259,10 @@ const App = () => {
     setIsViewModalOpen(true);
   };
 
-
+  // 導航到位置（用於 NextEventWidget）
+  const handleNavigateToLocation = (destination) => {
+    handleOpenGoogleMaps(tripDetails?.accommodation?.address || '起點', destination);
+  };
 
   // 一鍵記帳
   const handleQuickAddExpense = useCallback((expenseData) => {
@@ -694,7 +697,7 @@ const App = () => {
                   selectedDay={selectedDay}
                   enableGPS={enableGPS}
                   currentLocation={currentLocation}
-                  onNavigate={handleOpenGoogleMaps}
+                  onNavigate={handleNavigateToLocation}
                 />
 
                 {/* Events Section */}
