@@ -59,10 +59,9 @@ const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, is
       </div>
 
       {/* Sub-header Content (Sticky) - Used for DaySelector */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
-          {children}
-        </div>
-      )}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
+        {children}
+      </div>
     </div>
   );
 });
