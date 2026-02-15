@@ -83,9 +83,16 @@ const App = () => {
   const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localStorage.getItem('exchange_rate')) || 0.215);
   const [lastRateUpdate, setLastRateUpdate] = useState(() => localStorage.getItem('last_rate_update') || null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const scrollTimeoutRef = useRef(null);
 
   const handleScroll = (e) => {
-    setIsScrolled(e.target.scrollTop > 20);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolled(e.target.scrollTop > 20);
+    }, 100);
   };
 
   useEffect(() => {
