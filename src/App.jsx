@@ -11,6 +11,9 @@ import SettingsPanel from './components/SettingsPanel';
 import ShoppingListContent from './components/ShoppingListContent';
 import PackingListContent from './components/PackingListContent';
 import ExpenseTracker from './components/ExpenseTracker';
+import BottomNavigation from './components/BottomNavigation';
+import NextEventWidget from './components/NextEventWidget';
+import QuickAddEventForm from './components/QuickAddEventForm';
 import { useTrip } from './hooks/useTrip';
 import { useBudget } from './hooks/useBudget';
 import { useDeviceLocation } from './hooks/useDeviceLocation';
@@ -81,6 +84,7 @@ const App = () => {
   const [exchangeRate, setExchangeRate] = useState(() => parseFloat(localStorage.getItem('exchange_rate')) || 0.215);
   const [lastRateUpdate, setLastRateUpdate] = useState(() => localStorage.getItem('last_rate_update') || null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false); // 快速新增行程
 
   const handleScroll = (e) => {
     setIsScrolled(e.target.scrollTop > 20);
@@ -250,6 +254,35 @@ const App = () => {
     setIsViewModalOpen(true);
   };
 
+  // 快速新增行程
+  const handleQuickAddEvent = useCallback((eventData) => {
+    setItinerary(prev => prev.map(day => {
+      if (day.day === selectedDay) {
+        const newEvents = [...(day.events || []), eventData];
+        // 根據時間排序
+        newEvents.sort((a, b) => {
+          const timeA = a.time || '';
+          const timeB = b.time || '';
+          return timeA.localeCompare(timeB);
+        });
+        return {
+          ...day,
+          events: newEvents
+        };
+      }
+      return day;
+    }));
+  }, [selectedDay, setItinerary]);
+
+  // 一鍵記帳
+  const handleQuickAddExpense = useCallback((expenseData) => {
+    setExpenses(prev => [...prev, {
+      ...expenseData,
+      id: Date.now(),
+      date: currentDayData?.date || new Date().toISOString().split('T')[0]
+    }]);
+  }, [currentDayData?.date, setExpenses]);
+
   // 編輯詳情處理
   const handleSaveDetails = useCallback((updatedData) => {
     setTripDetails(prev => ({
@@ -373,7 +406,7 @@ const App = () => {
 
   return (
     <div 
-      className="h-screen overflow-y-auto bg-gray-50 dark:bg-slate-950 font-sans pb-20" 
+      className="h-screen overflow-y-auto bg-gray-50 dark:bg-slate-950 font-sans pb-24" 
       data-theme={themeMode}
       onScroll={handleScroll}
     >
@@ -668,6 +701,15 @@ const App = () => {
                   />
                 </div>
 
+                {/* Next Event Widget */}
+                <NextEventWidget
+                  itinerary={itinerary}
+                  selectedDay={selectedDay}
+                  enableGPS={enableGPS}
+                  currentLocation={currentLocation}
+                  onNavigate={handleOpenGoogleMaps}
+                />
+
                 {/* Events Section */}
                 <div className="px-4 sm:px-6 lg:px-8 space-y-6 pb-20">
                   {/* Events List */}
@@ -709,6 +751,7 @@ const App = () => {
                                 onUpdateMemos={handleUpdateMemos}
                                 onOpenGoogleMaps={handleOpenGoogleMaps}
                                 onViewDetails={handleViewEventDetails}
+                                onAddExpense={handleQuickAddExpense}
                                 exchangeRate={exchangeRate}
                               />
                             </div>
@@ -1027,6 +1070,30 @@ const App = () => {
         onUpdateRate={handleManualRateUpdate}
         lastUpdateDate={lastRateUpdate}
       />
+
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+
+      {/* Quick Add Event Form */}
+      <QuickAddEventForm
+        isOpen={isQuickAddOpen}
+        onClose={() => setIsQuickAddOpen(false)}
+        onSubmit={handleQuickAddEvent}
+      />
+
+      {/* Floating Action Button - 快速新增按鈕 */}
+      {activeTab === 'itinerary' && (
+        <button
+          onClick={() => setIsQuickAddOpen(true)}
+          className="fixed bottom-24 right-6 w-14 h-14 bg-brand-600 hover:bg-brand-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 z-30 border-2 border-brand-500 animate-pulse"
+          title="快速新增行程"
+        >
+          <Plus size={28} strokeWidth={3} />
+        </button>
+      )}
     </div>
   );
 };

@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import {
   Plane, Train, Camera, Coffee, ShoppingBag, Home, MapPin,
   AlertCircle, MoreVertical, Edit2, Trash2, X, CheckSquare, Square,
-  Navigation, Map, ChevronRight, Link as LinkIcon, ExternalLink
+  Navigation, Map, ChevronRight, Link as LinkIcon, ExternalLink, DollarSign
 } from 'lucide-react';
 
-const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, onViewDetails, exchangeRate = 0.21 }) => {
+const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, onViewDetails, onAddExpense, exchangeRate = 0.21 }) => {
   const [showMemos, setShowMemos] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showQuickExpense, setShowQuickExpense] = useState(false);
+  const [expenseAmount, setExpenseAmount] = useState('');
 
   const Icon = {
     flight: Plane, transport: Train, sightseeing: Camera,
@@ -65,8 +67,9 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               <MoreVertical size={18} />
             </button>
             {showMenu && (
-              <div className="absolute right-2 top-12 bg-white dark:bg-slate-900 shadow-xl border border-gray-100 dark:border-slate-800 rounded-lg z-10 w-28 py-1 flex flex-col">
+              <div className="absolute right-2 top-12 bg-white dark:bg-slate-900 shadow-xl border border-gray-100 dark:border-slate-800 rounded-lg z-10 w-32 py-1 flex flex-col">
                 <button onClick={(e) => {e.stopPropagation(); onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
+                <button onClick={(e) => {e.stopPropagation(); setShowQuickExpense(true); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center"><DollarSign size={14} className="mr-2"/> 記帳</button>
                 <button onClick={(e) => {e.stopPropagation(); onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
               </div>
             )}
@@ -178,6 +181,63 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               />
             </div>
           )}
+
+        {/* Quick Expense Form */}
+        {showQuickExpense && (
+          <div className="mt-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-900/30 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign size={16} className="text-emerald-600 dark:text-emerald-400" />
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">快速記帳</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                placeholder="金額"
+                value={expenseAmount}
+                onChange={(e) => setExpenseAmount(e.target.value)}
+                className="flex-1 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-emerald-400 dark:text-gray-200"
+                step="0.01"
+              />
+              <select
+                id="expense-currency"
+                defaultValue="JPY"
+                className="px-2 py-1.5 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 rounded text-xs font-medium focus:outline-none focus:border-emerald-400 dark:text-gray-200"
+              >
+                <option value="JPY">¥</option>
+                <option value="TWD">NT$</option>
+              </select>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (expenseAmount && onAddExpense) {
+                    const currencySelect = document.getElementById('expense-currency');
+                    onAddExpense({
+                      eventId: event.id,
+                      eventTitle: event.title,
+                      date: `${event.date || ''}`,
+                      amount: parseFloat(expenseAmount),
+                      currency: currencySelect?.value || 'JPY',
+                      description: event.title,
+                      category: event.type,
+                      travelers: []
+                    });
+                    setExpenseAmount('');
+                    setShowQuickExpense(false);
+                  }
+                }}
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold text-xs transition-colors"
+              >
+                記帳
+              </button>
+              <button
+                onClick={(e) => {e.stopPropagation(); setShowQuickExpense(false); setExpenseAmount('')}}
+                className="p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded text-gray-400 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
         </div>
       </div>
   );
