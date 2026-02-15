@@ -866,7 +866,7 @@ const App = () => {
       {activeTab === 'itinerary' && (
         <button
           onClick={() => { setEditingEvent(null); setIsEditModalOpen(true); }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg hover:bg-brand-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
+          className="fixed bottom-20 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg hover:bg-brand-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
           title="新增行程"
         >
           <Plus size={28} />
