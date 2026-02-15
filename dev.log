@@ -22,3 +22,6 @@ Port 5173 is in use, trying another one...
   Plugin: vite:esbuild
   File: /workspaces/trip-planner/src/components/Header.jsx
 3:37:42 PM [vite] page reload public/recovery.html
+3:52:39 PM [vite] hmr update /src/App.jsx, /src/styles/index.css
+3:53:49 PM [vite] hmr update /src/components/QuickAddEventForm.jsx, /src/styles/index.css
+3:54:25 PM [vite] hmr update /src/App.jsx, /src/styles/index.css
