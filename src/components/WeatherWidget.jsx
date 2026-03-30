@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { getWeatherForDate } from '../services/weatherService';
 import CuteWeatherIcon from './CuteWeatherIcon';
 
@@ -11,10 +11,16 @@ const WeatherWidget = ({
 }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
+  const lastRequestKeyRef = useRef(null);
+  const inFlightRequestKeyRef = useRef(null);
   
-  // 提取 GPS 坐標和位置名稱
-  const gpsCoords = (currentLocation?.latitude && currentLocation?.longitude) ? 
-    { lat: currentLocation.latitude, lon: currentLocation.longitude } : null;
+  // 提取 GPS primitive 座標，避免 object 依賴造成重複請求
+  const lat = currentLocation?.latitude ?? null;
+  const lon = currentLocation?.longitude ?? null;
+  const gpsCoords = useMemo(() => {
+    if (lat === null || lon === null) return null;
+    return { lat, lon };
+  }, [lat, lon]);
   const gpsLocationName = currentLocation?.locationName || null;
   
   // 優先級邏輯：
@@ -22,7 +28,14 @@ const WeatherWidget = ({
   // 2. 第一個行程的地點（次優先級，但如果為空則跳過）
   // 3. 當前GPS位置（第三優先級）
   // 4. 住宿地點（預設備用位置）
-  const displayLocation = (selectedEventLocation?.trim() || firstEventLocation?.trim() || gpsLocationName || accommodation || '東京');
+  const displayLocation = useMemo(
+    () => (selectedEventLocation?.trim() || firstEventLocation?.trim() || gpsLocationName || accommodation || '東京'),
+    [selectedEventLocation, firstEventLocation, gpsLocationName, accommodation]
+  );
+  const requestKey = useMemo(
+    () => `${date || ''}_${displayLocation || ''}_${lat ?? 'no-lat'}_${lon ?? 'no-lon'}`,
+    [date, displayLocation, lat, lon]
+  );
 
   console.log('🌤️ WeatherWidget Props:', { 
     date, 
@@ -43,21 +56,36 @@ const WeatherWidget = ({
       return;
     }
 
+    if (requestKey === lastRequestKeyRef.current || requestKey === inFlightRequestKeyRef.current) {
+      console.log('⏭️ 跳過重複天氣請求:', { requestKey });
+      return;
+    }
+
+    inFlightRequestKeyRef.current = requestKey;
     setLoading(true);
     setWeather(null); // 立即清空舊天氣資料
+    let isActive = true;
     
     const fetchWeather = async () => {
       try {
-        console.log('📡 開始獲取天氣:', { date, displayLocation, hasGPS: !!gpsCoords });
+        console.log('📡 開始獲取天氣:', { date, displayLocation, hasGPS: !!gpsCoords, requestKey });
         // 如果有 GPS 坐標，傳遞給 API；否則使用地點名稱
         const result = await getWeatherForDate(date, displayLocation, gpsCoords);
-        console.log('✅ 天氣數據已取得:', { date, displayLocation, result });
+        if (!isActive) return;
+        console.log('✅ 天氣數據已取得:', { date, displayLocation, requestKey, result });
         setWeather(result);
+        lastRequestKeyRef.current = requestKey;
       } catch (error) {
+        if (!isActive) return;
         console.error('❌ 天氣獲取錯誤:', error);
         setWeather(null);
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
+        if (inFlightRequestKeyRef.current === requestKey) {
+          inFlightRequestKeyRef.current = null;
+        }
       }
     };
 
@@ -66,8 +94,11 @@ const WeatherWidget = ({
       fetchWeather();
     }, 100);
 
-    return () => clearTimeout(timer);
-  }, [date, displayLocation, gpsCoords]);
+    return () => {
+      isActive = false;
+      clearTimeout(timer);
+    };
+  }, [date, displayLocation, lat, lon, requestKey]);
 
   if (loading) {
     return (
@@ -136,4 +167,3 @@ const WeatherWidget = ({
 };
 
 export default WeatherWidget;
-
