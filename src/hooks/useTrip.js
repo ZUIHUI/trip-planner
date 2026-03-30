@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { loadTrip, saveTrip } from '../services/tripService';
 
-const STORAGE_KEY = 'trip_planner_data';
+const LEGACY_STORAGE_KEY = 'trip_planner_data';
+const STORAGE_KEY_PREFIX = 'trip_planner_data_';
 const FIREBASE_TIMEOUT = 3000; // 3 秒超時
+
+const getStorageKey = (tripId) => `${STORAGE_KEY_PREFIX}${tripId}`;
 
 // 確保 itinerary 有完整的日期資訊
 const ensureItineraryComplete = (itinerary) => {
   if (!itinerary || itinerary.length === 0) return itinerary;
-  
+
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
+
   return itinerary.map((day, index) => {
     // 如果缺少 weekday，從 date 計算
     if (!day.weekday && day.date) {
@@ -28,10 +31,40 @@ const ensureItineraryComplete = (itinerary) => {
   });
 };
 
+const buildFallbackData = (initialTripDetails, initialItinerary) => ({
+  tripDetails: initialTripDetails,
+  itinerary: initialItinerary,
+  checklists: { preTrip: [], packing: [] },
+  expenses: []
+});
+
+const migrateLegacyDataIfNeeded = (tripId) => {
+  const currentKey = getStorageKey(tripId);
+
+  try {
+    if (localStorage.getItem(currentKey)) {
+      return;
+    }
+
+    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!legacyRaw) {
+      return;
+    }
+
+    localStorage.setItem(currentKey, legacyRaw);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    console.log(`✅ 已將舊資料遷移至 ${currentKey}`);
+  } catch (error) {
+    console.warn('⚠️ 舊資料遷移失敗：', error);
+  }
+};
+
 /**
  * useTrip Hook - 管理旅程狀態，支持 Firebase 和 localStorage 同步，協作編輯
  */
 export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
+  const safeTripId = typeof tripId === 'string' ? tripId.trim() : '';
+  const storageKey = safeTripId ? getStorageKey(safeTripId) : null;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -44,34 +77,50 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
 
   // 初始化：優先使用 localStorage，背景嘗試更新 Firebase 資料
   useEffect(() => {
+    if (!safeTripId || !storageKey) {
+      setTripDetails(initialTripDetails);
+      setItinerary(initialItinerary);
+      setChecklists({ preTrip: [], packing: [] });
+      setExpenses([]);
+      setSaveError('無效的旅程 ID');
+      setIsLoading(false);
+      return;
+    }
+
     const initializeData = async () => {
       try {
         setIsLoading(true);
+        setSaveError(null);
+
+        migrateLegacyDataIfNeeded(safeTripId);
 
         // 第一步：立即從 localStorage 載入（快速）
         let localData = null;
         try {
-          const savedData = localStorage.getItem(STORAGE_KEY);
+          const savedData = localStorage.getItem(storageKey);
           if (savedData) {
             localData = JSON.parse(savedData);
             console.log('✅ 從 localStorage 載入資料成功');
-            setTripDetails(localData.tripDetails || initialTripDetails);
-            setItinerary(ensureItineraryComplete(localData.itinerary || initialItinerary));
-            setChecklists(localData.checklists || { preTrip: [], packing: [] });
-            setExpenses(localData.expenses || []);
           }
         } catch (err) {
           console.error('❌ localStorage 載入失敗:', err);
         }
 
+        const fallbackData = buildFallbackData(initialTripDetails, initialItinerary);
+        const localOrFallback = localData || fallbackData;
+        setTripDetails(localOrFallback.tripDetails || initialTripDetails);
+        setItinerary(ensureItineraryComplete(localOrFallback.itinerary || initialItinerary));
+        setChecklists(localOrFallback.checklists || { preTrip: [], packing: [] });
+        setExpenses(localOrFallback.expenses || []);
+
         // 標記初始加載完成
         setIsLoading(false);
 
         // 第二步：背景嘗試從 Firebase 載入（含超時）
-        console.log('📝 背景從 Firebase 載入旅程:', tripId);
+        console.log('📝 背景從 Firebase 載入旅程:', safeTripId);
         const firebasePromise = (async () => {
           try {
-            const firebaseData = await loadTrip(tripId);
+            const firebaseData = await loadTrip(safeTripId);
             if (firebaseData) {
               console.log('✅ 從 Firebase 載入資料成功');
               setTripDetails(firebaseData.tripDetails || initialTripDetails);
@@ -112,10 +161,14 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         clearTimeout(loadingTimeoutRef.current);
       }
     };
-  }, [tripId]);
+  }, [safeTripId, storageKey, initialTripDetails, initialItinerary]);
 
   // 自動儲存到 localStorage 和 Firebase（防抖 1 秒）
   useEffect(() => {
+    if (!safeTripId || !storageKey || isLoading) {
+      return;
+    }
+
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
@@ -124,7 +177,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       try {
         setIsSaving(true);
         setSaveError(null);
-        
+
         const dataToSave = {
           tripDetails,
           itinerary,
@@ -135,7 +188,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
 
         // 優先儲存到 localStorage（立即）
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+          localStorage.setItem(storageKey, JSON.stringify(dataToSave));
           console.log('💾 自動儲存到 localStorage 成功');
         } catch (localErr) {
           console.error('❌ localStorage 儲存失敗:', localErr);
@@ -144,7 +197,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
 
         // 背景儲存到 Firebase（含超時）
         try {
-          const savePromise = saveTrip(tripId, dataToSave);
+          const savePromise = saveTrip(safeTripId, dataToSave);
           const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Firebase 儲存超時')), FIREBASE_TIMEOUT);
           });
@@ -169,14 +222,19 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [tripDetails, itinerary, checklists, expenses, tripId]);
+  }, [tripDetails, itinerary, checklists, expenses, safeTripId, storageKey, isLoading]);
 
   // 手動從 Firebase 更新資料
   const manualRefresh = async () => {
+    if (!safeTripId) {
+      setSaveError('無效的旅程 ID');
+      return false;
+    }
+
     try {
       setIsLoading(true);
       console.log('🔄 手動從 Firebase 更新資料...');
-      const firebaseData = await loadTrip(tripId);
+      const firebaseData = await loadTrip(safeTripId);
       if (firebaseData) {
         console.log('✅ 手動更新成功');
         setTripDetails(firebaseData.tripDetails || initialTripDetails);
@@ -192,6 +250,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     } finally {
       setIsLoading(false);
     }
+
+    return false;
   };
 
   return {
