@@ -10,6 +10,7 @@ import DaySelector from '../components/DaySelector';
 import SettingsPanel from '../components/SettingsPanel';
 import ShoppingListContent from '../components/ShoppingListContent';
 import PackingListContent from '../components/PackingListContent';
+import ExpenseTracker from '../components/ExpenseTracker';
 import BottomNavigation from '../components/BottomNavigation';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
@@ -85,7 +86,9 @@ const TripDetailPage = () => {
     itinerary, 
     setItinerary, 
     checklists, 
-    setChecklists 
+    setChecklists,
+    expenses,
+    setExpenses
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
   const budgetInfo = useBudget(itinerary);
@@ -557,6 +560,17 @@ const TripDetailPage = () => {
           {activeTab === 'shopping' && (
             <div className="mt-4 pb-10">
               <ShoppingListContent tripId={tripId} />
+            </div>
+          )}
+
+          {activeTab === 'expenses' && (
+            <div className="px-6 mt-6 pb-10">
+              <ExpenseTracker
+                itinerary={itinerary}
+                expenses={expenses}
+                setExpenses={setExpenses}
+                travelers={tripDetails?.travelers || []}
+              />
             </div>
           )}
         </div>
