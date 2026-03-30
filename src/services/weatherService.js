@@ -189,29 +189,87 @@ const resolveCoordinates = async (locationName) => {
   return LOCATION_COORDS['東京'];
 };
 
+const parseDateWithOptionalYear = (input) => {
+  if (!input) return null;
+  const normalized = String(input).trim();
+  const fullMatch = normalized.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+  if (!fullMatch) return null;
+
+  const year = Number(fullMatch[1]);
+  const month = Number(fullMatch[2]);
+  const day = Number(fullMatch[3]);
+  if (!year || month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  return { year, month, day };
+};
+
+const parseMonthDay = (dateStr) => {
+  if (!dateStr) return null;
+  const match = String(dateStr).trim().match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (!match) return null;
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return { month, day };
+};
+
+const parseTripDateRange = (tripDatesText) => {
+  if (!tripDatesText) return null;
+  const matches = String(tripDatesText).match(/\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2}/g);
+  if (!matches || matches.length === 0) return null;
+  const parsed = matches.map(parseDateWithOptionalYear).filter(Boolean);
+  if (parsed.length === 0) return null;
+  return {
+    start: parsed[0],
+    end: parsed[parsed.length - 1]
+  };
+};
+
+const resolveYearFromTripDetails = (month, day, tripDetails) => {
+  const dateRange = parseTripDateRange(tripDetails?.dates);
+  if (!dateRange?.start) return null;
+
+  const { start, end } = dateRange;
+  if (!end || start.year === end.year) return start.year;
+
+  // 跨年行程：優先挑選落在行程範圍內的年份
+  const startCandidate = new Date(start.year, month - 1, day);
+  const endCandidate = new Date(end.year, month - 1, day);
+  const tripStart = new Date(start.year, start.month - 1, start.day);
+  const tripEnd = new Date(end.year, end.month - 1, end.day);
+
+  if (startCandidate >= tripStart && startCandidate <= tripEnd) return start.year;
+  if (endCandidate >= tripStart && endCandidate <= tripEnd) return end.year;
+
+  // 若無法精準匹配，跨年時以月份分界
+  return month >= start.month ? start.year : end.year;
+};
+
 /**
  * 從 Open-Meteo API 獲取天氣數據（真實數據 - 支援歷史和預報）
  * @param {number} lat - 緯度
  * @param {number} lon - 經度
  * @param {string} dateStr - 日期字符串，格式 "MM/DD"
+ * @param {object|null} tripDetails - 旅程資訊（可選，用於推導年份）
  * @returns {Promise<object>} 天氣數據
  */
-const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
+const fetchWeatherFromAPI = async (lat, lon, dateStr, tripDetails = null) => {
   try {
     // 轉換日期格式為 YYYY-MM-DD
     const today = new Date();
     today.setHours(0, 0, 0, 0); // 設置為今天的開始
-    
-    const [month, day] = dateStr.split('/').map(Number);
-    const year = today.getFullYear();
-    
-    // 建立目標日期
-    const date = new Date(year, month - 1, day);
-    
-    // 處理年份邊界（如果月份/日期是過去的，使用下一年）
-    if (date < today) {
-      date.setFullYear(year + 1);
+
+    const explicitDate = parseDateWithOptionalYear(dateStr);
+    const monthDay = explicitDate ? { month: explicitDate.month, day: explicitDate.day } : parseMonthDay(dateStr);
+    if (!monthDay) {
+      throw new Error(`無效日期格式: ${dateStr}`);
     }
+
+    const inferredYear = explicitDate?.year || resolveYearFromTripDetails(monthDay.month, monthDay.day, tripDetails);
+    const targetYear = inferredYear || today.getFullYear();
+
+    // 建立目標日期（若無年份則允許今年過去日期，供 archive API 使用）
+    const date = new Date(targetYear, monthDay.month - 1, monthDay.day);
     
     const formattedDate = date.toISOString().split('T')[0];
     const daysFromToday = Math.floor((date - today) / (1000 * 60 * 60 * 24));
@@ -223,9 +281,22 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
       formattedDate,
       daysFromToday,
       isHistorical: daysFromToday < 0,
-      isFuture: daysFromToday > 0
+      isFuture: daysFromToday > 0,
+      targetYear,
+      hasTripYear: Boolean(inferredYear)
     });
-    
+
+    if (daysFromToday > 15) {
+      return {
+        success: false,
+        status: 'out_of_range',
+        date: dateStr,
+        requestedDate: formattedDate,
+        source: 'open-meteo-forecast',
+        message: '超出 Open-Meteo Forecast 可查詢範圍（16 天）'
+      };
+    }
+
     let apiUrl;
     
     // 根據日期選擇適當的 API
@@ -284,6 +355,7 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr) => {
     
     return {
       success: true,
+      status: 'ok',
       temperature: avgTemp,
       weatherCode,
       icon: WEATHER_ICON_MAP[weatherCode] || '🌤️',
@@ -368,9 +440,10 @@ const fetchCurrentWeather = async (lat, lon) => {
  * @param {string} dateStr - 日期字符串，格式 "MM/DD"
  * @param {string} locationName - 位置名稱
  * @param {object} gpsCoords - GPS 坐標 (可選，優先使用)
+ * @param {object|null} tripDetails - 旅程資訊（可選，用於推導年份）
  * @returns {Promise<object>} 天氣數據
  */
-export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoords = null) => {
+export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoords = null, tripDetails = null) => {
   try {
     if (!dateStr) {
       return {
@@ -388,11 +461,24 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
     console.log('🌍 開始獲取天氣:', { dateStr, locationName, hasGPS: !!gpsCoords, coords });
     
     // 嘗試從 Open-Meteo API 獲取真實天氣數據
-    let result = await fetchWeatherFromAPI(coords.lat, coords.lon, dateStr);
+    let result = await fetchWeatherFromAPI(coords.lat, coords.lon, dateStr, tripDetails);
+
+    // 超出預報能力範圍時，明確回傳 out_of_range，避免誤導成 current weather
+    if (result?.status === 'out_of_range') {
+      return {
+        ...result,
+        icon: '📅',
+        temperature: '?',
+        weatherCode: null,
+        description: '超出可預報日期範圍',
+        date: dateStr,
+        location: locationName,
+      };
+    }
     
-    // 如果獲取失敗（可能是因為日期太遠），嘗試獲取「當前」天氣作為參考
+    // 一般 API 失敗時，改為獲取當前實時天氣作為參考
     if (!result) {
-      console.log('⚠️ 無法獲取目標日期天氣（可能太遠），改為獲取當前實時天氣...');
+      console.log('⚠️ 無法獲取目標日期天氣（API 失敗），改為獲取當前實時天氣...');
       result = await fetchCurrentWeather(coords.lat, coords.lon);
     }
     
