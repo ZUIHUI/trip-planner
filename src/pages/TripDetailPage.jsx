@@ -58,21 +58,24 @@ const TripDetailPage = () => {
   const [enableGPS, setEnableGPS] = useState(false);
 
   // 初始旅程資料結構
-  const defaultTripDetails = {
+  const defaultTripDetails = useMemo(() => ({
     title: '',
     dates: '',
     status: 'planning',
     coverImage: '',
     accommodation: {},
     flights: {}
-  };
+  }), []);
 
-  const defaultItinerary = Array.from({ length: 6 }, (_, i) => ({
-    day: i + 1,
-    date: `Day ${i + 1}`,
-    title: `Day ${i + 1}`,
-    events: []
-  }));
+  const defaultItinerary = useMemo(
+    () => Array.from({ length: 6 }, (_, i) => ({
+      day: i + 1,
+      date: `Day ${i + 1}`,
+      title: `Day ${i + 1}`,
+      events: []
+    })),
+    []
+  );
 
   const { 
     isLoading, 
@@ -482,7 +485,7 @@ const TripDetailPage = () => {
                   onChange={(e) =>
                     setTripDetails(prev => ({
                       ...prev,
-                      accommodation: { ...prev.accommodation, name: e.target.value }
+                      accommodation: { ...(prev?.accommodation || {}), name: e.target.value }
                     }))
                   }
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
@@ -494,7 +497,7 @@ const TripDetailPage = () => {
                   onChange={(e) =>
                     setTripDetails(prev => ({
                       ...prev,
-                      accommodation: { ...prev.accommodation, address: e.target.value }
+                      accommodation: { ...(prev?.accommodation || {}), address: e.target.value }
                     }))
                   }
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
@@ -513,8 +516,11 @@ const TripDetailPage = () => {
                       setTripDetails(prev => ({
                         ...prev,
                         flights: {
-                          ...prev.flights,
-                          outbound: { ...prev.flights.outbound, code: e.target.value }
+                          ...(prev?.flights || {}),
+                          outbound: {
+                            ...((prev?.flights && prev.flights.outbound) || {}),
+                            code: e.target.value
+                          }
                         }
                       }))
                     }
@@ -532,8 +538,11 @@ const TripDetailPage = () => {
                       setTripDetails(prev => ({
                         ...prev,
                         flights: {
-                          ...prev.flights,
-                          inbound: { ...prev.flights.inbound, code: e.target.value }
+                          ...(prev?.flights || {}),
+                          inbound: {
+                            ...((prev?.flights && prev.flights.inbound) || {}),
+                            code: e.target.value
+                          }
                         }
                       }))
                     }

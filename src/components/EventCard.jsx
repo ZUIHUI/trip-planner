@@ -10,6 +10,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   const [showMenu, setShowMenu] = useState(false);
   const [showQuickExpense, setShowQuickExpense] = useState(false);
   const [expenseAmount, setExpenseAmount] = useState('');
+  const memos = event.memos || [];
 
   const Icon = {
     flight: Plane, transport: Train, sightseeing: Camera,
@@ -26,7 +27,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   }[event.type] || 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400';
 
   const handleToggleMemo = (id) => {
-    const newMemos = event.memos.map(m => m.id === id ? { ...m, done: !m.done } : m);
+    const newMemos = memos.map(m => m.id === id ? { ...m, done: !m.done } : m);
     onUpdateMemos(event.id, newMemos);
   };
 
@@ -39,7 +40,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   };
 
   const deleteMemo = (id) => {
-    const newMemos = event.memos.filter(m => m.id !== id);
+    const newMemos = memos.filter(m => m.id !== id);
     onUpdateMemos(event.id, newMemos);
   };
 
@@ -148,20 +149,22 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
             <ChevronRight size={14} className={`ml-1 transform transition-transform ${showMemos ? 'rotate-90' : ''}`} />
           </button>
 
-          <button
-            onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.location)}}
-            className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
-          >
-            <Map size={14} className="mr-1.5" />
-            規劃路線
-          </button>
+          {onOpenGoogleMaps && (
+            <button
+              onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.location)}}
+              className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
+            >
+              <Map size={14} className="mr-1.5" />
+              規劃路線
+            </button>
+          )}
         </div>
 
         {/* Memos Section */}
         {showMemos && (
           <div className="mt-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 border border-yellow-100 dark:border-yellow-900/30 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
               <ul className="space-y-1 mb-2">
-                {event.memos?.map(memo => (
+                {memos.map(memo => (
                   <li key={memo.id} className="flex items-start group/item gap-2">
                     <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 flex-shrink-0">
                       {memo.done ? <CheckSquare size={14} className="text-brand-500" /> : <Square size={14} />}
