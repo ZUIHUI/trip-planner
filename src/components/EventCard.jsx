@@ -10,6 +10,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
   const [showMenu, setShowMenu] = useState(false);
   const [showQuickExpense, setShowQuickExpense] = useState(false);
   const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseCurrency, setExpenseCurrency] = useState('JPY');
   const memos = event.memos || [];
 
   const Icon = {
@@ -202,8 +203,8 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
                 step="0.01"
               />
               <select
-                id="expense-currency"
-                defaultValue="JPY"
+                value={expenseCurrency}
+                onChange={(e) => setExpenseCurrency(e.target.value)}
                 className="px-2 py-1.5 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 rounded text-xs font-medium focus:outline-none focus:border-emerald-400 dark:text-gray-200"
               >
                 <option value="JPY">¥</option>
@@ -213,13 +214,12 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
                 onClick={(e) => {
                   e.stopPropagation();
                   if (expenseAmount && onAddExpense) {
-                    const currencySelect = document.getElementById('expense-currency');
                     onAddExpense({
                       eventId: event.id,
                       eventTitle: event.title,
                       date: `${event.date || ''}`,
                       amount: parseFloat(expenseAmount),
-                      currency: currencySelect?.value || 'JPY',
+                      currency: expenseCurrency,
                       description: event.title,
                       category: event.type,
                       travelers: []
