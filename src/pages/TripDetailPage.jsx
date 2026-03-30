@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, ArrowLeft, Settings } from 'lucide-react';
 import Header from '../components/Header';
@@ -13,18 +13,47 @@ import PackingListContent from '../components/PackingListContent';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
-import { loadTrip } from '../services/tripService';
+
+const TRIP_INDEX_KEY = 'trip_planner_trip_index';
+
+const syncTripMetaToLocalIndex = (tripId, patch) => {
+  try {
+    const raw = localStorage.getItem(TRIP_INDEX_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    const safeList = Array.isArray(list) ? list : [];
+    const targetIndex = safeList.findIndex((trip) => trip.id === tripId);
+
+    if (targetIndex >= 0) {
+      safeList[targetIndex] = {
+        ...safeList[targetIndex],
+        ...patch,
+        updatedAt: new Date().toISOString()
+      };
+    } else {
+      safeList.push({
+        id: tripId,
+        title: patch.title || '未命名旅程',
+        status: patch.status || 'planning',
+        coverImage: patch.coverImage || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    localStorage.setItem(TRIP_INDEX_KEY, JSON.stringify(safeList));
+  } catch (error) {
+    console.warn('⚠️ 更新旅程索引失敗:', error);
+  }
+};
 
 const TripDetailPage = () => {
   const { tripId: paramTripId } = useParams();
-  const tripId = paramTripId || 'default-trip';
+  const tripId = typeof paramTripId === 'string' ? paramTripId.trim() : '';
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [tripData, setTripData] = useState(null);
-  const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [enableGPS, setEnableGPS] = useState(false);
 
@@ -32,6 +61,8 @@ const TripDetailPage = () => {
   const defaultTripDetails = {
     title: '',
     dates: '',
+    status: 'planning',
+    coverImage: '',
     accommodation: {},
     flights: {}
   };
@@ -54,24 +85,39 @@ const TripDetailPage = () => {
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
   const budgetInfo = useBudget(itinerary);
+  const totalEvents = useMemo(
+    () => itinerary.reduce((acc, day) => acc + day.events.length, 0),
+    [itinerary]
+  );
 
   // 使用 GPS Hook 獲取設備位置
   const { currentLocation, isLocating, locationError } = useDeviceLocation(enableGPS);
 
   useEffect(() => {
-    const initTrip = async () => {
-      try {
-        const data = await loadTrip(tripId);
-        setTripData(data);
-        setIsLoadingData(false);
-      } catch (err) {
-        console.error('❌ 載入旅程失敗:', err);
-        setIsLoadingData(false);
-      }
-    };
+    if (!tripId) {
+      navigate('/', { replace: true });
+    }
+  }, [tripId, navigate]);
 
-    initTrip();
+  useEffect(() => {
+    if (!tripId) return;
+
+    syncTripMetaToLocalIndex(tripId, {
+      title: tripDetails?.title || '未命名旅程',
+      status: tripDetails?.status || 'planning',
+      coverImage: tripDetails?.coverImage || ''
+    });
   }, [tripId]);
+
+  useEffect(() => {
+    if (!tripId) return;
+    syncTripMetaToLocalIndex(tripId, {
+      title: tripDetails?.title || '未命名旅程',
+      status: tripDetails?.status || 'planning',
+      coverImage: tripDetails?.coverImage || '',
+      eventCount: totalEvents
+    });
+  }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents]);
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
 
@@ -137,7 +183,7 @@ const TripDetailPage = () => {
     setIsEditModalOpen(true);
   };
 
-  if (isLoading || isLoadingData) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -153,6 +199,13 @@ const TripDetailPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="relative">
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
+          title="返回旅程列表"
+        >
+          <ArrowLeft size={22} />
+        </button>
         <Header 
           details={tripDetails} 
           activeTab={activeTab}
@@ -376,6 +429,50 @@ const TripDetailPage = () => {
 
           {activeTab === 'flights' && (
             <div className="px-6 mt-6 pb-10">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">🧭 旅程資訊</h3>
+                <input
+                  type="text"
+                  placeholder="旅程名稱"
+                  value={tripDetails?.title || ''}
+                  onChange={(e) =>
+                    setTripDetails((prev) => ({
+                      ...prev,
+                      title: e.target.value
+                    }))
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                />
+                <label className="block text-xs text-gray-500 mb-1">封面圖網址（選填）</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/cover.jpg"
+                  value={tripDetails?.coverImage || ''}
+                  onChange={(e) =>
+                    setTripDetails((prev) => ({
+                      ...prev,
+                      coverImage: e.target.value
+                    }))
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                />
+                <label className="block text-xs text-gray-500 mb-1">旅行狀態</label>
+                <select
+                  value={tripDetails?.status || 'planning'}
+                  onChange={(e) =>
+                    setTripDetails((prev) => ({
+                      ...prev,
+                      status: e.target.value
+                    }))
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                >
+                  <option value="planning">planning</option>
+                  <option value="ongoing">ongoing</option>
+                  <option value="done">done</option>
+                </select>
+              </div>
+
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">🏨 住宿資訊</h3>
                 <input
