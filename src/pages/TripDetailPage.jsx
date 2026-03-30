@@ -10,6 +10,7 @@ import DaySelector from '../components/DaySelector';
 import SettingsPanel from '../components/SettingsPanel';
 import ShoppingListContent from '../components/ShoppingListContent';
 import PackingListContent from '../components/PackingListContent';
+import BottomNavigation from '../components/BottomNavigation';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
@@ -225,7 +226,7 @@ const TripDetailPage = () => {
         </button>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="pt-4">
           {activeTab === 'summary' && (
             <div className="px-6 space-y-4 pb-10">
@@ -586,6 +587,8 @@ const TripDetailPage = () => {
         enableGPS={enableGPS}
         onGPSToggle={() => setEnableGPS(!enableGPS)}
       />
+
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* GPS 位置監視 - 當啟用 GPS 時顯示狀態 */}
       {enableGPS && (
