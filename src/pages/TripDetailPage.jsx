@@ -12,6 +12,7 @@ import ShoppingListContent from '../components/ShoppingListContent';
 import PackingListContent from '../components/PackingListContent';
 import ExpenseTracker from '../components/ExpenseTracker';
 import BottomNavigation from '../components/BottomNavigation';
+import WeatherWidget from '../components/WeatherWidget';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
@@ -58,6 +59,7 @@ const TripDetailPage = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [enableGPS, setEnableGPS] = useState(false);
+  const [selectedEventLocation, setSelectedEventLocation] = useState(null);
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -127,6 +129,10 @@ const TripDetailPage = () => {
   }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents]);
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
+
+  useEffect(() => {
+    setSelectedEventLocation(null);
+  }, [selectedDay]);
 
   const handleSaveEvent = (eventData) => {
     if (editingEvent) {
@@ -333,6 +339,14 @@ const TripDetailPage = () => {
               />
 
               <div className="px-6 mt-4 pb-20">
+                <WeatherWidget
+                  date={currentDayData?.date}
+                  currentLocation={currentLocation}
+                  accommodation={tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京'}
+                  firstEventLocation={currentDayData?.events?.[0]?.location || null}
+                  selectedEventLocation={selectedEventLocation}
+                />
+
                 <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
                   <div>
                     {currentDayData ? (
@@ -372,6 +386,7 @@ const TripDetailPage = () => {
                           onEdit={openEditModal}
                           onDelete={handleDeleteEvent}
                           onUpdateMemos={handleUpdateMemos}
+                          onViewDetails={(selectedEvent) => setSelectedEventLocation(selectedEvent?.location || null)}
                         />
                       );
                     })
