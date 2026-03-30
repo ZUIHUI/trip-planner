@@ -7,17 +7,45 @@ const FIREBASE_TIMEOUT = 3000; // 3 秒超時
 
 const getStorageKey = (tripId) => `${STORAGE_KEY_PREFIX}${tripId}`;
 
+const extractTripYear = (datesText) => {
+  if (typeof datesText !== 'string') return null;
+  const matchedYear = datesText.match(/\b(19|20)\d{2}\b/);
+  return matchedYear ? Number(matchedYear[0]) : null;
+};
+
+const parseMonthDay = (dateText) => {
+  if (typeof dateText !== 'string') return null;
+  const matchedDate = dateText.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (!matchedDate) return null;
+
+  const month = Number(matchedDate[1]);
+  const day = Number(matchedDate[2]);
+  const isValidMonth = Number.isInteger(month) && month >= 1 && month <= 12;
+  const isValidDay = Number.isInteger(day) && day >= 1 && day <= 31;
+
+  if (!isValidMonth || !isValidDay) return null;
+  return { month, day };
+};
+
 // 確保 itinerary 有完整的日期資訊
-const ensureItineraryComplete = (itinerary) => {
+const ensureItineraryComplete = (itinerary, tripDetails) => {
   if (!itinerary || itinerary.length === 0) return itinerary;
 
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const tripYear = extractTripYear(tripDetails?.dates) || new Date().getFullYear();
 
   return itinerary.map((day, index) => {
     // 如果缺少 weekday，從 date 計算
     if (!day.weekday && day.date) {
-      const [month, dayNum] = day.date.split('/').map(Number);
-      const date = new Date(2026, month - 1, dayNum);
+      const parsedMonthDay = parseMonthDay(day.date);
+      if (!parsedMonthDay) {
+        return {
+          ...day,
+          day: day.day || index + 1
+        };
+      }
+
+      const date = new Date(tripYear, parsedMonthDay.month - 1, parsedMonthDay.day);
       return {
         ...day,
         day: day.day || index + 1,
@@ -109,7 +137,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         const fallbackData = buildFallbackData(initialTripDetails, initialItinerary);
         const localOrFallback = localData || fallbackData;
         setTripDetails(localOrFallback.tripDetails || initialTripDetails);
-        setItinerary(ensureItineraryComplete(localOrFallback.itinerary || initialItinerary));
+        setItinerary(
+          ensureItineraryComplete(
+            localOrFallback.itinerary || initialItinerary,
+            localOrFallback.tripDetails || initialTripDetails
+          )
+        );
         setChecklists(localOrFallback.checklists || { preTrip: [], packing: [] });
         setExpenses(localOrFallback.expenses || []);
 
@@ -124,7 +157,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
             if (firebaseData) {
               console.log('✅ 從 Firebase 載入資料成功');
               setTripDetails(firebaseData.tripDetails || initialTripDetails);
-              setItinerary(ensureItineraryComplete(firebaseData.itinerary || initialItinerary));
+              setItinerary(
+                ensureItineraryComplete(
+                  firebaseData.itinerary || initialItinerary,
+                  firebaseData.tripDetails || initialTripDetails
+                )
+              );
               setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
               setExpenses(firebaseData.expenses || []);
             }
@@ -238,7 +276,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       if (firebaseData) {
         console.log('✅ 手動更新成功');
         setTripDetails(firebaseData.tripDetails || initialTripDetails);
-        setItinerary(ensureItineraryComplete(firebaseData.itinerary || initialItinerary));
+        setItinerary(
+          ensureItineraryComplete(
+            firebaseData.itinerary || initialItinerary,
+            firebaseData.tripDetails || initialTripDetails
+          )
+        );
         setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
         setExpenses(firebaseData.expenses || []);
         return true;
