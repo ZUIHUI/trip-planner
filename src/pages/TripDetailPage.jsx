@@ -331,8 +331,8 @@ const TripDetailPage = () => {
         className={`pointer-events-none absolute inset-0 transition-colors ${
           shouldShowCoverBackground
             ? currentTheme === 'dark'
-              ? 'bg-black/55'
-              : 'bg-white/45'
+              ? 'bg-black/60'
+              : 'bg-white/55'
             : currentTheme === 'dark'
               ? 'bg-slate-900/25'
               : 'bg-transparent'
