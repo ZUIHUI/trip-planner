@@ -639,15 +639,20 @@ const ShoppingListContent = ({ tripId }) => {
          )}
        </div>
 
-       {/* Floating Action Button */}
-       <button
-         onClick={() => setShowAddForm(true)}
-         className="touch-target fixed bottom-24 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-700 transition-colors z-40"
-         title="新增購物項目"
-         aria-label="新增購物項目"
-       >
-         <Plus size={32} />
-       </button>
+       {/* Bottom Action Bar */}
+       <div className="fixed bottom-[72px] left-0 right-0 z-40 px-4 pb-2">
+         <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
+           <button
+             onClick={() => setShowAddForm(true)}
+             className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold py-3 hover:bg-brand-700 transition-colors"
+             title="新增購物項目"
+             aria-label="新增購物項目"
+           >
+             <Plus size={16} />
+             新增購物項目
+           </button>
+         </div>
+       </div>
     </div>
   );
 };
