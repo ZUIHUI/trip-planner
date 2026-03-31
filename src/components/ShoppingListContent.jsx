@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn, Pencil, GripVertical } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -40,6 +41,11 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [draggedItemId, setDraggedItemId] = useState(null);
+
+  const renderToBody = (node) => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(node, document.body);
+  };
   
   // Load from Firestore
   useEffect(() => {
@@ -351,7 +357,7 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
 
        {/* Manage Categories Modal */}
        {isManageCategoriesOpen && (
-         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4">
+         renderToBody(<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4">
            <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-sm p-6 shadow-2xl max-h-[90svh] overflow-y-auto">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">管理分類</h3>
@@ -393,12 +399,12 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
                ))}
              </div>
            </div>
-         </div>
+         </div>)
        )}
 
        {/* Image Zoom Modal */}
        {zoomedImage && (
-         <div 
+         renderToBody(<div 
            className="fixed inset-0 bg-black/90 z-[130] flex items-center justify-center p-4 cursor-pointer"
            onClick={() => setZoomedImage(null)}
          >
@@ -416,12 +422,12 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
                <X size={24} />
              </button>
            </div>
-         </div>
+         </div>)
        )}
 
        {/* Add Form Modal/Panel */}
        {showAddForm && (
-         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[120] p-0 sm:p-4">
+         renderToBody(<div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[120] p-0 sm:p-4">
            <div className="bg-white dark:bg-slate-800 w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-t-2xl sm:rounded-xl overflow-y-auto p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
@@ -526,7 +532,7 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
                </button>
              </div>
            </div>
-         </div>
+         </div>)
        )}
 
        {/* List */}
