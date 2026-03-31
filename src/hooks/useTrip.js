@@ -111,6 +111,23 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
   const autoSaveTimeoutRef = useRef(null);
   const loadingTimeoutRef = useRef(null);
 
+  const persistTripData = async (payload) => {
+    if (!safeTripId || !storageKey) {
+      throw new Error('無效的旅程 ID');
+    }
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(payload));
+      console.log('💾 手動儲存到 localStorage 成功');
+    } catch (localErr) {
+      console.error('❌ localStorage 儲存失敗:', localErr);
+      throw localErr;
+    }
+
+    await saveTrip(safeTripId, payload);
+    console.log('🔥 手動儲存到 Firebase 成功');
+  };
+
   // 初始化：優先使用 localStorage，背景嘗試更新 Firebase 資料
   useEffect(() => {
     if (!safeTripId || !storageKey) {
@@ -310,6 +327,38 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     return false;
   };
 
+  const saveNow = async () => {
+    if (!safeTripId || !storageKey) {
+      setSaveError('無效的旅程 ID');
+      return false;
+    }
+
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+      const normalizedTripDetails = normalizeTripDateFields(tripDetails);
+      const dataToSave = {
+        tripDetails: normalizedTripDetails,
+        itinerary,
+        checklists,
+        expenses,
+        savedAt: new Date().toISOString()
+      };
+      await persistTripData(dataToSave);
+      return true;
+    } catch (err) {
+      console.error('❌ 手動儲存失敗:', err);
+      setSaveError('手動儲存失敗');
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return {
     isLoading,
     isSaving,
@@ -322,6 +371,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     setChecklists,
     expenses,
     setExpenses,
-    manualRefresh
+    manualRefresh,
+    saveNow
   };
 };

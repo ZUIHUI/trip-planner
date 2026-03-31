@@ -328,12 +328,14 @@ const ShoppingListContent = ({ tripId }) => {
              </select>
            </div>
 
-           <button
-             onClick={() => setIsManageCategoriesOpen(true)}
-             className="bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center"
-             title="管理分類"
-           >
+             <button
+               onClick={() => setIsManageCategoriesOpen(true)}
+               className="touch-target bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors inline-flex items-center justify-center gap-1.5"
+               title="管理分類"
+               aria-label="管理分類"
+             >
              <Settings size={20} />
+             <span className="text-sm font-medium sm:hidden">分類</span>
            </button>
          </div>
        </div>
@@ -344,7 +346,7 @@ const ShoppingListContent = ({ tripId }) => {
            <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-sm p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">管理分類</h3>
-               <button onClick={() => setIsManageCategoriesOpen(false)}><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
+               <button onClick={() => setIsManageCategoriesOpen(false)} className="touch-target" title="關閉"><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
              </div>
              
              <div className="flex gap-2 mb-4">
@@ -359,7 +361,7 @@ const ShoppingListContent = ({ tripId }) => {
                <button 
                  onClick={handleAddCategory}
                  disabled={!newCategoryName.trim()}
-                 className="bg-brand-600 text-white px-3 py-2 rounded-lg hover:bg-brand-700 disabled:opacity-50"
+                 className="touch-target bg-brand-600 text-white px-3 py-2 rounded-lg hover:bg-brand-700 disabled:opacity-50"
                >
                  <Plus size={18} />
                </button>
@@ -372,7 +374,8 @@ const ShoppingListContent = ({ tripId }) => {
                    {!defaultCategories.includes(cat) && (
                      <button 
                        onClick={() => handleDeleteCategory(cat)}
-                       className="text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400"
+                       className="touch-target text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400"
+                       title={`刪除分類 ${cat}`}
                      >
                        <Trash2 size={16} />
                      </button>
@@ -398,7 +401,8 @@ const ShoppingListContent = ({ tripId }) => {
              />
              <button 
                onClick={() => setZoomedImage(null)}
-               className="absolute -top-4 -right-4 bg-white dark:bg-slate-800 text-black dark:text-slate-100 rounded-full p-2 shadow-lg hover:bg-gray-200 dark:hover:bg-slate-700"
+               className="touch-target absolute -top-4 -right-4 bg-white dark:bg-slate-800 text-black dark:text-slate-100 rounded-full p-2 shadow-lg hover:bg-gray-200 dark:hover:bg-slate-700"
+               title="關閉圖片預覽"
              >
                <X size={24} />
              </button>
@@ -412,7 +416,7 @@ const ShoppingListContent = ({ tripId }) => {
            <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
-               <button onClick={resetForm}><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
+               <button onClick={resetForm} className="touch-target" title="關閉編輯表單"><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
              </div>
              
              <div className="space-y-4">
@@ -583,13 +587,15 @@ const ShoppingListContent = ({ tripId }) => {
                      <div className="flex gap-1 flex-shrink-0">
                        <button 
                          onClick={() => handleEditItem(item)}
-                         className="p-1.5 text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                         className="touch-target p-1.5 text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                         title={`編輯 ${item.name}`}
                        >
                          <Pencil size={16} />
                        </button>
                        <button 
                          onClick={() => deleteItem(item.id)}
-                         className="p-1.5 text-gray-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400 rounded-full transition-colors"
+                         className="touch-target p-1.5 text-gray-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400 rounded-full transition-colors"
+                         title={`刪除 ${item.name}`}
                        >
                          <Trash2 size={16} />
                        </button>
@@ -636,7 +642,9 @@ const ShoppingListContent = ({ tripId }) => {
        {/* Floating Action Button */}
        <button
          onClick={() => setShowAddForm(true)}
-         className="fixed bottom-24 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-700 transition-colors z-40"
+         className="touch-target fixed bottom-24 right-6 w-14 h-14 bg-brand-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-brand-700 transition-colors z-40"
+         title="新增購物項目"
+         aria-label="新增購物項目"
        >
          <Plus size={32} />
        </button>

@@ -31,7 +31,7 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
     <>
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-2xl z-40 pb-2">
-        <div className="flex justify-between items-center h-16 px-1">
+        <div className="flex justify-between items-center h-16 px-2 gap-2">
           {mainTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -39,7 +39,7 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-all active:scale-95 min-h-16 ${
+                className={`touch-target flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-all active:scale-95 min-h-16 ${
                   isActive
                     ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30'
                     : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
@@ -55,7 +55,7 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
           {/* Menu Button */}
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-all active:scale-95 min-h-16 ${
+            className={`touch-target flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-all active:scale-95 min-h-16 ${
               showMenu
                 ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30'
                 : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'
@@ -74,7 +74,9 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
               <h3 className="font-bold text-gray-800 dark:text-white">更多選項</h3>
               <button
                 onClick={() => setShowMenu(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-400"
+                className="touch-target p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded text-gray-400"
+                aria-label="關閉更多選單"
+                title="關閉"
               >
                 <X size={18} />
               </button>
@@ -88,7 +90,7 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
+                    className={`touch-target w-full flex items-center gap-3 px-4 py-3 transition-colors ${
                       isActive
                         ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400'
                         : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50'

@@ -65,7 +65,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
           <div className="flex items-center space-x-1 flex-shrink-0">
             {event.urgent && <AlertCircle size={18} className="text-red-500" />}
-            <button onClick={(e) => {e.stopPropagation(); setShowMenu(!showMenu)}} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors">
+            <button onClick={(e) => {e.stopPropagation(); setShowMenu(!showMenu)}} className="touch-target p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors" title="更多操作" aria-label="更多操作">
               <MoreVertical size={18} />
             </button>
             {showMenu && (
@@ -141,7 +141,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
           <button
             onClick={(e) => {e.stopPropagation(); setShowMemos(!showMemos)}}
-            className={`flex items-center text-xs font-medium transition-colors ${
+            className={`touch-target flex items-center text-xs font-medium transition-colors px-2 ${
               (event.memos?.length > 0) ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
@@ -153,7 +153,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
           {onOpenGoogleMaps && (
             <button
               onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.location)}}
-              className="flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
+              className="touch-target flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
             >
               <Map size={14} className="mr-1.5" />
               規劃路線
@@ -167,11 +167,11 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               <ul className="space-y-1 mb-2">
                 {memos.map(memo => (
                   <li key={memo.id} className="flex items-start group/item gap-2">
-                    <button onClick={() => handleToggleMemo(memo.id)} className="mt-0.5 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 flex-shrink-0">
+                    <button onClick={() => handleToggleMemo(memo.id)} className="touch-target mt-0.5 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 flex-shrink-0" title="切換待辦狀態">
                       {memo.done ? <CheckSquare size={14} className="text-brand-500" /> : <Square size={14} />}
                     </button>
                     <span className={`text-xs flex-1 break-words word-wrap overflow-wrap-break-word ${memo.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-300'}`}>{memo.text}</span>
-                    <button onClick={() => deleteMemo(memo.id)} className="opacity-0 group-hover/item:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0">
+                    <button onClick={() => deleteMemo(memo.id)} className="touch-target opacity-0 group-hover/item:opacity-100 text-gray-400 hover:text-red-500 flex-shrink-0" title="刪除備忘錄">
                       <X size={12} />
                     </button>
                   </li>
@@ -234,7 +234,8 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               </button>
               <button
                 onClick={(e) => {e.stopPropagation(); setShowQuickExpense(false); setExpenseAmount('')}}
-                className="p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded text-gray-400 transition-colors"
+                className="touch-target p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded text-gray-400 transition-colors"
+                title="取消快速記帳"
               >
                 <X size={14} />
               </button>

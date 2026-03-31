@@ -32,8 +32,9 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
           <div className="flex items-center gap-2">
             <button
               onClick={onGoToTrips}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white/15 hover:bg-white/25 rounded-full transition-all active:scale-95 border border-white/20 text-xs sm:text-sm font-medium"
+              className="touch-target inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white/15 hover:bg-white/25 rounded-full transition-all active:scale-95 border border-white/20 text-xs sm:text-sm font-medium"
               title="回旅程列表"
+              aria-label="回旅程列表"
             >
               <ArrowLeft size={14} />
               <span>回旅程列表</span>
@@ -46,10 +47,12 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
             )}
             <button
               onClick={onSettingsOpen}
-              className="p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all active:scale-95 border border-white/10 shadow-sm"
+              className="touch-target px-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all active:scale-95 border border-white/10 shadow-sm inline-flex items-center justify-center gap-1"
               title="設定"
+              aria-label="開啟設定"
             >
               <Settings size={20} />
+              <span className="text-xs font-medium hidden sm:inline">設定</span>
             </button>
           </div>
         </div>
@@ -78,4 +81,3 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
 
 Header.displayName = 'Header';
 export default Header;
-
