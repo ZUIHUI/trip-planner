@@ -1004,7 +1004,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'shopping' && (
-            <div className="mt-4 pb-10">
+            <div className="px-6 mt-2 pb-20">
               <ShoppingListContent tripId={tripId} onModalOpenChange={setIsShoppingModalOpen} />
             </div>
           )}
