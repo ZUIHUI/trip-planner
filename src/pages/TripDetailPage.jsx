@@ -155,7 +155,7 @@ const TripDetailPage = () => {
     saveNow
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
-  const budgetInfo = useBudget(itinerary);
+  const budgetInfo = useBudget(itinerary, expenses, exchangeRate);
   const totalEvents = useMemo(
     () => itinerary.reduce((acc, day) => acc + day.events.length, 0),
     [itinerary]
