@@ -24,6 +24,7 @@ const SettingsPanel = ({
 }) => {
   const [newTravelerName, setNewTravelerName] = useState('');
   const [coverImageError, setCoverImageError] = useState('');
+  const [coverImagePreview, setCoverImagePreview] = useState('');
   const coverFileInputRef = useRef(null);
   const coverImagePreviewUrl = normalizeCoverImageUrl(coverImage);
   const MAX_COVER_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -76,6 +77,7 @@ const SettingsPanel = ({
     const reader = new FileReader();
     reader.onload = () => {
       onCoverImageChange(reader.result);
+      setCoverImagePreview(reader.result);
       setCoverImageError('');
     };
     reader.onerror = () => {
@@ -217,69 +219,48 @@ const SettingsPanel = ({
             </h3>
 
             <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600 space-y-3">
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={coverImage || ''}
-                  onChange={(e) => {
-                    setCoverImageError('');
-                    onCoverImageChange(e.target.value);
-                  }}
-                  placeholder="https://example.com/cover.jpg"
-                  className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    onCoverImageChange('');
-                    setCoverImageError('');
-                    if (coverFileInputRef.current) {
-                      coverFileInputRef.current.value = '';
-                    }
-                  }}
-                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-500 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                >
-                  清除
-                </button>
-              </div>
-
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:bg-gray-100/60 dark:hover:bg-gray-600/40 transition-colors cursor-pointer relative">
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors cursor-pointer relative">
                 <input
                   ref={coverFileInputRef}
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={handleCoverImageFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="hidden"
+                  id="coverImageInput"
                 />
-                <div className="flex flex-col items-center text-gray-500 dark:text-gray-300">
-                  <Upload size={24} className="mb-2" />
-                  <p className="text-sm font-medium">點擊上傳背景圖（可拍照）</p>
-                  <p className="tp-caption-text mt-1 text-gray-400 dark:text-gray-400">支援 JPG / PNG / WEBP / GIF / AVIF，最多 2MB</p>
-                </div>
+                <label htmlFor="coverImageInput" className="flex flex-col items-center gap-2 cursor-pointer text-gray-500 dark:text-gray-300">
+                  <Upload size={24} className="text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm">點擊上傳背景圖片</span>
+                  <p className="tp-caption-text text-gray-400 dark:text-gray-400">支援 JPG / PNG / WEBP / GIF / AVIF，最多 2MB</p>
+                </label>
               </div>
 
               {coverImageError && (
                 <p className="text-sm text-red-500 dark:text-red-400">{coverImageError}</p>
               )}
 
-              {coverImage ? (
-                <div className="space-y-2">
-                  <p className="tp-caption-text text-gray-500 dark:text-gray-400">即時預覽</p>
-                  <div className="h-28 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    {coverImagePreviewUrl ? (
-                      <img
-                        src={coverImagePreviewUrl}
-                        alt="背景圖片預覽"
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 px-3 text-center">
-                        圖片連結格式無效，請輸入 http(s) 網址或上傳圖片。
-                      </div>
-                    )}
-                  </div>
+              {(coverImagePreview || coverImage) ? (
+                <div className="mt-3 relative">
+                  <img
+                    src={coverImagePreview || coverImagePreviewUrl}
+                    alt="背景圖片預覽"
+                    className="max-h-40 rounded-lg"
+                    loading="lazy"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCoverImagePreview('');
+                      onCoverImageChange('');
+                      setCoverImageError('');
+                      if (coverFileInputRef.current) {
+                        coverFileInputRef.current.value = '';
+                      }
+                    }}
+                    className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               ) : (
                 <p className="tp-caption-text text-gray-500 dark:text-gray-400">尚未設定背景圖片。</p>

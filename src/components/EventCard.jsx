@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Plane, Train, Camera, Coffee, ShoppingBag, Home, MapPin,
   AlertCircle, MoreVertical, Edit2, Trash2, X, CheckSquare, Square,
-  Navigation, Map, ChevronRight, Link as LinkIcon, ExternalLink, DollarSign, ChevronDown
+  Navigation, Map, ChevronRight, Link as LinkIcon, ExternalLink, DollarSign
 } from 'lucide-react';
 
 const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpenGoogleMaps, onViewDetails, onAddExpense }) => {
@@ -46,11 +46,12 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
     onUpdateMemos(event.id, newMemos);
   };
 
-  const summaryParts = [
-    event.location,
-    event.transport?.duration,
-    event.cost ? `${event.currency === 'TWD' ? 'NT$' : '¥'}${event.cost}` : ''
-  ].filter(Boolean);
+  const handleCardClick = () => {
+    setIsExpanded((prev) => !prev);
+    if (onViewDetails) {
+      onViewDetails(event);
+    }
+  };
 
   return (
     <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-slate-800 ml-3 group">
@@ -60,7 +61,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl tp-card-padding shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative cursor-pointer group" onClick={() => onViewDetails && onViewDetails(event)}>
+      <div className="bg-white dark:bg-slate-900 rounded-xl tp-card-padding shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative cursor-pointer group" onClick={handleCardClick}>
         {/* Header Section */}
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
@@ -143,13 +144,13 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <button
-            onClick={(e) => {e.stopPropagation(); setShowMemos(!showMemos)}}
+            onClick={(e) => {e.stopPropagation(); setIsExpanded((prev) => !prev)}}
             className={`touch-target flex items-center text-xs font-medium transition-colors px-2 ${
               (event.memos?.length > 0) ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
             }`}
           >
-            查看詳情
-            <ChevronRight size={16} className="ml-1" />
+            {isExpanded ? '收合詳情' : '查看詳情'}
+            <ChevronRight size={16} className={`ml-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
           </button>
 
           {onOpenGoogleMaps && (

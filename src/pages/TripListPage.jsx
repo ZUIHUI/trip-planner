@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, Plus, Search, Trash2, MapPinned, ChevronDown } from 'lucide-react';
+import { CalendarDays, Plus, Search, Trash2, ChevronDown, Sparkles, Compass } from 'lucide-react';
 import { createTrip, deleteTrip, listTrips } from '../services/tripService';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 
@@ -212,26 +212,42 @@ const TripListPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
-        <h1 className="text-3xl font-bold text-gray-900">Trip Planner</h1>
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-blue-50 to-white">
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+        <section className="rounded-3xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 text-white p-6 sm:p-8 shadow-lg">
+          <div className="flex flex-wrap items-start justify-between gap-6">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold tracking-wide">
+                <Sparkles size={14} />
+                TRIP DASHBOARD
+              </div>
+              <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold">打造你的下一趟完美旅程</h1>
+              <p className="mt-2 text-sm sm:text-base text-blue-100">從建立行程、查看狀態到快速返回最近旅程，一頁完成。</p>
+            </div>
+            <div className="rounded-2xl bg-white/10 border border-white/30 p-4 min-w-[220px]">
+              <p className="text-xs text-blue-100">目前旅程總數</p>
+              <p className="text-3xl font-black mt-1">{sortedAndFilteredTrips.length}</p>
+              <p className="text-xs text-blue-100 mt-1">可使用下方搜尋快速篩選</p>
+            </div>
+          </div>
 
-        <div className="mt-6 grid gap-3">
-          <input
-            type="text"
-            value={newTripTitle}
-            onChange={(event) => setNewTripTitle(event.target.value)}
-            placeholder="輸入新的旅程名稱"
-            className="w-full rounded-xl border border-gray-300 tp-form-control"
-          />
-          <button
-            onClick={handleCreateTrip}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 tp-body-text font-semibold text-white"
-          >
-            <Plus size={18} />
-            開始規劃
-          </button>
-        </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+            <input
+              type="text"
+              value={newTripTitle}
+              onChange={(event) => setNewTripTitle(event.target.value)}
+              placeholder="輸入新的旅程名稱（例如：2026 東京賞櫻）"
+              className="w-full rounded-xl border border-white/30 bg-white/95 text-gray-900 placeholder:text-gray-500 tp-form-control"
+            />
+            <button
+              onClick={handleCreateTrip}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900/90 px-5 py-3 tp-body-text font-semibold text-white hover:bg-gray-900"
+            >
+              <Plus size={18} />
+              開始規劃
+            </button>
+          </div>
+        </section>
 
         <div className="mt-4 relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -240,7 +256,7 @@ const TripListPage = () => {
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="搜尋旅程關鍵字"
-            className="w-full rounded-xl border border-gray-300 py-2 pl-9 pr-4"
+            className="w-full rounded-xl border border-blue-100 bg-white py-3 pl-9 pr-4 shadow-sm"
           />
         </div>
 
@@ -248,18 +264,18 @@ const TripListPage = () => {
           {isLoading ? (
             <p className="tp-caption-text text-gray-500">讀取旅程中...</p>
           ) : sortedAndFilteredTrips.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center tp-body-text text-gray-500">
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center tp-body-text text-gray-500">
               尚無符合條件的旅程
             </div>
           ) : (
             visibleTrips.map((trip) => (
-              <article key={trip.id} className="rounded-xl bg-white p-4 shadow-sm border border-gray-200">
+              <article key={trip.id} className="rounded-2xl bg-white p-4 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
                 <button onClick={() => openTripDetail(trip.id)} className="w-full text-left">
                   {normalizeCoverImageUrl(trip.coverImage) && !failedCoverImages[trip.id] ? (
                     <img
                       src={normalizeCoverImageUrl(trip.coverImage)}
                       alt={`${trip.title} cover`}
-                      className="h-24 w-full rounded-lg object-cover mb-3"
+                      className="h-28 w-full rounded-xl object-cover mb-3"
                       onError={() =>
                         setFailedCoverImages((prev) => ({
                           ...prev,
@@ -268,8 +284,8 @@ const TripListPage = () => {
                       }
                     />
                   ) : (
-                    <div className="mb-3 h-20 w-full rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500">
-                      <MapPinned size={24} />
+                    <div className="mb-3 h-24 w-full rounded-xl bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500">
+                      <Compass size={26} />
                     </div>
                   )}
 
