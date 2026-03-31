@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, Settings } from 'lucide-react';
+import { Plus, ArrowLeft, Home } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
@@ -269,25 +269,17 @@ const TripDetailPage = () => {
       <div className="relative">
         <button
           onClick={handleBackToTrips}
-          className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
+          className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20 text-sm font-medium"
           title="返回旅程列表"
         >
           <ArrowLeft size={22} />
+          <span>回旅程列表</span>
         </button>
         <Header 
           details={tripDetails} 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onGoToTrips={handleBackToTrips}
           onSettingsOpen={() => setIsSettingsOpen(true)}
         />
-        {/* 設定按鈕 */}
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
-          title="打開設定"
-        >
-          <Settings size={24} />
-        </button>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -773,6 +765,15 @@ const TripDetailPage = () => {
         interfaceSize={interfaceSize}
         onInterfaceSizeChange={setInterfaceSize}
       />
+
+      <button
+        onClick={() => navigate('/')}
+        className="fixed right-4 bottom-24 z-40 md:hidden inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-full shadow-lg active:scale-95"
+        title="回旅程列表"
+      >
+        <Home size={16} />
+        <span className="text-sm font-semibold">回旅程列表</span>
+      </button>
 
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 

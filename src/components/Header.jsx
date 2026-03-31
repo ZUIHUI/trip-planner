@@ -1,8 +1,8 @@
-import React, { useState, useEffect, forwardRef, useRef } from 'react';
-import { Plane, Home, Settings, Calendar, RefreshCw } from 'lucide-react';
+import React, { forwardRef } from 'react';
+import { Plane, Home, Settings, Calendar, RefreshCw, ArrowLeft } from 'lucide-react';
 import { getTripDisplayDates } from '../utils/tripDates';
 
-const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children, isScrolled }, ref) => {
+const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, children, isScrolled }, ref) => {
   // Tab 導航已移至 BottomNavigation 組件
   const displayDates = getTripDisplayDates(details);
 
@@ -29,7 +29,15 @@ const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, is
             <span className="text-xs font-medium text-brand-50 tracking-wide">{displayDates || '未設定日期'}</span>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onGoToTrips}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white/15 hover:bg-white/25 rounded-full transition-all active:scale-95 border border-white/20 text-xs sm:text-sm font-medium"
+              title="回旅程列表"
+            >
+              <ArrowLeft size={14} />
+              <span>回旅程列表</span>
+            </button>
             {isSaving && (
               <div className="flex items-center gap-1.5 text-xs font-medium text-brand-200 bg-black/20 px-3 py-1 rounded-full animate-pulse">
                 <RefreshCw size={12} className="animate-spin" />
@@ -70,5 +78,4 @@ const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, is
 
 Header.displayName = 'Header';
 export default Header;
-
 
