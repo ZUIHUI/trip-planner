@@ -17,6 +17,7 @@ import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { fetchJPYRate } from '../services/currencyService';
+import { lookupFlightByCode } from '../services/flightService';
 import { getTripDisplayDates, normalizeTripDateFields, formatDateRangeText } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 
@@ -112,6 +113,8 @@ const TripDetailPage = () => {
   const [lastUpdateDate, setLastUpdateDate] = useState('');
   const [isRateUpdating, setIsRateUpdating] = useState(false);
   const [rateUpdateError, setRateUpdateError] = useState('');
+  const [isLookingUpFlight, setIsLookingUpFlight] = useState({ outbound: false, inbound: false });
+  const [flightLookupError, setFlightLookupError] = useState({ outbound: '', inbound: '' });
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -120,6 +123,9 @@ const TripDetailPage = () => {
     dateRange: { start: '', end: '' },
     status: 'planning',
     coverImage: '',
+    budget: {
+      total: ''
+    },
     accommodation: {},
     flights: {},
     travelers: []
@@ -324,6 +330,11 @@ const TripDetailPage = () => {
   const currentDayTitle = currentDayData?.title?.trim() || `Day ${selectedDay}`;
   const currentDayDate = currentDayData?.date?.trim() || `Day ${selectedDay}`;
   const tripDisplayDates = getTripDisplayDates(tripDetails);
+  const budgetTarget = Number(tripDetails?.budget?.total || 0);
+  const remainingBudget = budgetTarget - budgetInfo.totalCost;
+  const budgetProgress = budgetTarget > 0
+    ? Math.min(100, Math.round((budgetInfo.totalCost / budgetTarget) * 100))
+    : 0;
 
   const coverImageUrl = useMemo(
     () => normalizeCoverImageUrl(tripDetails?.coverImage),
@@ -450,6 +461,33 @@ const TripDetailPage = () => {
     navigate('/');
   };
 
+  const handleLookupFlight = async (direction) => {
+    const code = tripDetails?.flights?.[direction]?.code || '';
+    setFlightLookupError((prev) => ({ ...prev, [direction]: '' }));
+    setIsLookingUpFlight((prev) => ({ ...prev, [direction]: true }));
+
+    try {
+      const flightInfo = await lookupFlightByCode(code);
+      setTripDetails((prev) => ({
+        ...prev,
+        flights: {
+          ...(prev?.flights || {}),
+          [direction]: {
+            ...((prev?.flights && prev.flights[direction]) || {}),
+            ...flightInfo
+          }
+        }
+      }));
+    } catch (error) {
+      setFlightLookupError((prev) => ({
+        ...prev,
+        [direction]: error.message || '查詢失敗'
+      }));
+    } finally {
+      setIsLookingUpFlight((prev) => ({ ...prev, [direction]: false }));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
@@ -494,7 +532,7 @@ const TripDetailPage = () => {
                 </div>
               </div>
 
-              {budgetInfo.totalCost > 0 && (
+              {(budgetInfo.totalCost > 0 || budgetTarget > 0) && (
                 <div className="bg-gradient-to-r from-blue-100 to-indigo-100 p-4 rounded-xl border border-blue-200">
                   <h3 className="text-lg font-bold text-blue-800 mb-3">💰 旅程預算概覽</h3>
                   <div className="space-y-2">
@@ -509,6 +547,29 @@ const TripDetailPage = () => {
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 mt-2">共 {budgetInfo.totalEvents} 個活動記錄花費</p>
+                    {budgetTarget > 0 && (
+                      <>
+                        <div className="mt-2 flex justify-between items-center text-sm">
+                          <span className="text-gray-600">預算上限</span>
+                          <span className="font-bold text-gray-700">{budgetTarget.toLocaleString()} 元</span>
+                        </div>
+                        <div className="mt-1 flex justify-between items-center text-sm">
+                          <span className="text-gray-600">剩餘預算</span>
+                          <span className={`font-bold ${remainingBudget < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                            {remainingBudget.toLocaleString()} 元
+                          </span>
+                        </div>
+                        <div className="mt-2">
+                          <div className="w-full h-2 rounded-full bg-white/80">
+                            <div
+                              className={`h-2 rounded-full ${remainingBudget < 0 ? 'bg-red-500' : 'bg-blue-500'}`}
+                              style={{ width: `${budgetProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">已使用 {budgetProgress}%</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -821,6 +882,23 @@ const TripDetailPage = () => {
                   <option value="ongoing">ongoing</option>
                   <option value="done">done</option>
                 </select>
+                <label className="block tp-caption-text text-gray-500 mt-3 mb-1">旅程總預算（元）</label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="例如：30000"
+                  value={tripDetails?.budget?.total || ''}
+                  onChange={(e) =>
+                    setTripDetails((prev) => ({
+                      ...prev,
+                      budget: {
+                        ...(prev?.budget || {}),
+                        total: e.target.value
+                      }
+                    }))
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
+                />
               </div>
 
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
@@ -873,6 +951,17 @@ const TripDetailPage = () => {
                     }
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                   />
+                  <button
+                    type="button"
+                    onClick={() => handleLookupFlight('outbound')}
+                    disabled={isLookingUpFlight.outbound || !(tripDetails?.flights?.outbound?.code || '').trim()}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isLookingUpFlight.outbound ? '查詢中...' : '自動帶入去程資訊'}
+                  </button>
+                  {flightLookupError.outbound && (
+                    <p className="mt-2 text-xs text-red-500">{flightLookupError.outbound}</p>
+                  )}
                 </div>
 
                 <div>
@@ -895,7 +984,21 @@ const TripDetailPage = () => {
                     }
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                   />
+                  <button
+                    type="button"
+                    onClick={() => handleLookupFlight('inbound')}
+                    disabled={isLookingUpFlight.inbound || !(tripDetails?.flights?.inbound?.code || '').trim()}
+                    className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isLookingUpFlight.inbound ? '查詢中...' : '自動帶入回程資訊'}
+                  </button>
+                  {flightLookupError.inbound && (
+                    <p className="mt-2 text-xs text-red-500">{flightLookupError.inbound}</p>
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  提示：需先設定 <code>VITE_AVIATIONSTACK_API_KEY</code> 才能使用自動查詢。
+                </p>
               </div>
             </div>
           )}
