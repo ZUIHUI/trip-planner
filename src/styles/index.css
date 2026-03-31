@@ -25,6 +25,11 @@
     --space-section-mobile: 16px;
     --space-card-mobile: 16px;
     --space-form-control-mobile: 12px;
+
+    /* Semantic z-index tokens */
+    --z-bottom-nav: 40;
+    --z-sticky-cta: 45;
+    --z-modal: 50;
   }
 
   /* Dark Mode Overrides - Softer, Desaturated Blue & Slate */
