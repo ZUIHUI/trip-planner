@@ -462,7 +462,7 @@ const TripDetailPage = () => {
   }
 
   return (
-    <div className={`min-h-screen font-sans interface-size-${interfaceSize} bg-gray-50 dark:bg-slate-950 transition-colors`}>
+    <div className={`min-h-screen font-sans interface-size-${interfaceSize} bg-gray-50 dark:bg-slate-950 transition-colors`} style={{ "--footer-nav-height": "72px" }}>
       <Header 
         details={tripDetails}
         onGoToTrips={handleBackToTrips}
@@ -966,7 +966,7 @@ const TripDetailPage = () => {
       />
 
       {activeTab === 'itinerary' && (
-        <div className="fixed bottom-[72px] left-0 right-0 z-40 px-4 pb-2">
+        <div className="fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2">
           <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
             <div className="grid grid-cols-3 gap-2">
               <button
