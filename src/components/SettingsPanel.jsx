@@ -149,15 +149,19 @@ const SettingsPanel = ({
                 
                 <button 
                   onClick={onUpdateRate}
-                  className="ml-auto px-3 py-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold rounded-lg hover:bg-brand-200 dark:hover:bg-brand-900/50 transition-colors flex items-center gap-1"
+                  disabled={isRateUpdating}
+                  className="ml-auto px-3 py-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold rounded-lg hover:bg-brand-200 dark:hover:bg-brand-900/50 transition-colors flex items-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <span className="text-lg">↻</span> 更新
+                  <span className="text-lg">↻</span> {isRateUpdating ? '更新中...' : '更新'}
                 </button>
               </div>
               <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                 <span>此匯率將用於計算預算總覽及顯示換算金額。</span>
                 {lastUpdateDate && <span>更新於: {lastUpdateDate}</span>}
               </div>
+              {rateUpdateError && (
+                <p className="mt-2 text-xs text-red-500 dark:text-red-400">{rateUpdateError}</p>
+              )}
             </div>
           </div>
 

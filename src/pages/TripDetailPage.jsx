@@ -16,11 +16,15 @@ import WeatherWidget from '../components/WeatherWidget';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
+import { fetchJPYRate } from '../services/currencyService';
 import { getTripDisplayDates, normalizeTripDateFields, formatDateRangeText } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
+const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
+const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
+const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 
 const syncTripMetaToLocalIndex = (tripId, patch) => {
   try {
@@ -70,6 +74,10 @@ const TripDetailPage = () => {
   const [coverImageLoadFailed, setCoverImageLoadFailed] = useState(false);
   const [showSecondaryModules, setShowSecondaryModules] = useState(false);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState(0.215);
+  const [lastUpdateDate, setLastUpdateDate] = useState('');
+  const [isRateUpdating, setIsRateUpdating] = useState(false);
+  const [rateUpdateError, setRateUpdateError] = useState('');
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -156,6 +164,104 @@ const TripDetailPage = () => {
   useEffect(() => {
     localStorage.setItem('trip_planner_interface_size', interfaceSize);
   }, [interfaceSize]);
+
+  useEffect(() => {
+    const readRateCache = () => {
+      try {
+        const raw = localStorage.getItem(RATE_CACHE_KEY);
+        if (!raw) return null;
+        const cache = JSON.parse(raw);
+
+        if (!cache || typeof cache.rate !== 'number' || !cache.updatedAt) {
+          return null;
+        }
+
+        return cache;
+      } catch (error) {
+        console.warn('⚠️ 讀取匯率快取失敗:', error);
+        return null;
+      }
+    };
+
+    const persistRateCache = (rate, updatedAt) => {
+      try {
+        localStorage.setItem(
+          RATE_CACHE_KEY,
+          JSON.stringify({
+            rate,
+            updatedAt
+          })
+        );
+      } catch (error) {
+        console.warn('⚠️ 寫入匯率快取失敗:', error);
+      }
+    };
+
+    const syncRate = async ({ silent = false } = {}) => {
+      if (!silent) {
+        setIsRateUpdating(true);
+      }
+      setRateUpdateError('');
+
+      const result = await fetchJPYRate();
+      if (result?.success && typeof result.rate === 'number') {
+        const updatedAt = new Date().toISOString();
+        setExchangeRate(result.rate);
+        setLastUpdateDate(updatedAt);
+        persistRateCache(result.rate, updatedAt);
+      } else {
+        setRateUpdateError('匯率更新失敗，已保留上次成功資料。');
+      }
+
+      if (!silent) {
+        setIsRateUpdating(false);
+      }
+    };
+
+    const cached = readRateCache();
+    let shouldRefresh = true;
+
+    if (cached) {
+      setExchangeRate(cached.rate);
+      setLastUpdateDate(cached.updatedAt);
+      shouldRefresh = Date.now() - new Date(cached.updatedAt).getTime() > RATE_CACHE_TTL_MS;
+    }
+
+    if (!cached || shouldRefresh) {
+      void syncRate({ silent: true });
+    }
+
+    const intervalId = window.setInterval(() => {
+      void syncRate({ silent: true });
+    }, RATE_REFRESH_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const handleManualRateUpdate = async () => {
+    setIsRateUpdating(true);
+    setRateUpdateError('');
+
+    const result = await fetchJPYRate();
+    if (result?.success && typeof result.rate === 'number') {
+      const updatedAt = new Date().toISOString();
+      setExchangeRate(result.rate);
+      setLastUpdateDate(updatedAt);
+      localStorage.setItem(
+        RATE_CACHE_KEY,
+        JSON.stringify({
+          rate: result.rate,
+          updatedAt
+        })
+      );
+    } else {
+      setRateUpdateError('匯率更新失敗，已保留上次成功資料。');
+    }
+
+    setIsRateUpdating(false);
+  };
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const currentDayTitle = currentDayData?.title?.trim() || `Day ${selectedDay}`;
@@ -806,6 +912,7 @@ const TripDetailPage = () => {
                 expenses={expenses}
                 setExpenses={setExpenses}
                 travelers={tripDetails?.travelers || []}
+                exchangeRate={exchangeRate}
               />
             </div>
           )}
