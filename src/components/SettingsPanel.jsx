@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon, Upload } from 'lucide-react';
+import { normalizeCoverImageUrl } from '../utils/coverImage';
 
 const SettingsPanel = ({
   isOpen,
@@ -22,6 +23,18 @@ const SettingsPanel = ({
   onCoverImageChange
 }) => {
   const [newTravelerName, setNewTravelerName] = useState('');
+  const [coverImageError, setCoverImageError] = useState('');
+  const coverFileInputRef = useRef(null);
+  const coverImagePreviewUrl = normalizeCoverImageUrl(coverImage);
+  const MAX_COVER_IMAGE_SIZE = 2 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/avif'
+  ]);
 
   if (!isOpen) return null;
 
@@ -40,6 +53,35 @@ const SettingsPanel = ({
     if (window.confirm('確定要刪除此成員嗎？')) {
       onUpdateTravelers(travelers.filter(t => t.id !== id));
     }
+  };
+
+  const handleCoverImageFileChange = (event) => {
+    const file = event.target.files?.[0];
+    setCoverImageError('');
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/') || !ALLOWED_IMAGE_TYPES.has(file.type.toLowerCase())) {
+      setCoverImageError('僅支援 JPG、PNG、WEBP、GIF、AVIF 圖片格式。');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_COVER_IMAGE_SIZE) {
+      setCoverImageError('圖片大小不可超過 2MB，請壓縮後再上傳。');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      onCoverImageChange(reader.result);
+      setCoverImageError('');
+    };
+    reader.onerror = () => {
+      setCoverImageError('讀取圖片失敗，請重試。');
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -179,29 +221,64 @@ const SettingsPanel = ({
                 <input
                   type="url"
                   value={coverImage || ''}
-                  onChange={(e) => onCoverImageChange(e.target.value)}
+                  onChange={(e) => {
+                    setCoverImageError('');
+                    onCoverImageChange(e.target.value);
+                  }}
                   placeholder="https://example.com/cover.jpg"
                   className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-500"
                 />
                 <button
                   type="button"
-                  onClick={() => onCoverImageChange('')}
+                  onClick={() => {
+                    onCoverImageChange('');
+                    setCoverImageError('');
+                    if (coverFileInputRef.current) {
+                      coverFileInputRef.current.value = '';
+                    }
+                  }}
                   className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-500 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                 >
                   清除
                 </button>
               </div>
 
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:bg-gray-100/60 dark:hover:bg-gray-600/40 transition-colors cursor-pointer relative">
+                <input
+                  ref={coverFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleCoverImageFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex flex-col items-center text-gray-500 dark:text-gray-300">
+                  <Upload size={24} className="mb-2" />
+                  <p className="text-sm font-medium">點擊上傳背景圖（可拍照）</p>
+                  <p className="tp-caption-text mt-1 text-gray-400 dark:text-gray-400">支援 JPG / PNG / WEBP / GIF / AVIF，最多 2MB</p>
+                </div>
+              </div>
+
+              {coverImageError && (
+                <p className="text-sm text-red-500 dark:text-red-400">{coverImageError}</p>
+              )}
+
               {coverImage ? (
                 <div className="space-y-2">
                   <p className="tp-caption-text text-gray-500 dark:text-gray-400">即時預覽</p>
                   <div className="h-28 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    <img
-                      src={coverImage}
-                      alt="背景圖片預覽"
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    {coverImagePreviewUrl ? (
+                      <img
+                        src={coverImagePreviewUrl}
+                        alt="背景圖片預覽"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 px-3 text-center">
+                        圖片連結格式無效，請輸入 http(s) 網址或上傳圖片。
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
