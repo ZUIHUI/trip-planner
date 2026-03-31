@@ -476,37 +476,15 @@ const TripDetailPage = () => {
   }
 
   return (
-    <div
-      className={`relative min-h-screen font-sans interface-size-${interfaceSize} ${shouldShowCoverBackground ? '' : 'bg-gray-50'}`}
-      style={
-        shouldShowCoverBackground
-          ? {
-              backgroundImage: `url(${coverImageUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }
-          : undefined
-      }
-    >
-      <div
-        className={`pointer-events-none absolute inset-0 transition-colors ${
-          shouldShowCoverBackground
-            ? currentTheme === 'dark'
-              ? 'bg-black/60'
-              : 'bg-white/55'
-            : currentTheme === 'dark'
-              ? 'bg-slate-900/25'
-              : 'bg-transparent'
-        }`}
+    <div className={`min-h-screen font-sans interface-size-${interfaceSize} bg-gray-50 dark:bg-slate-950 transition-colors`}>
+      <Header 
+        details={tripDetails}
+        onGoToTrips={handleBackToTrips}
+        onSettingsOpen={() => setIsSettingsOpen(true)}
+        isSaving={isSaving}
+        coverImageUrl={coverImageUrl}
+        shouldShowCoverBackground={shouldShowCoverBackground}
       />
-      <div className="relative z-10">
-        <Header 
-          details={tripDetails} 
-          onGoToTrips={handleBackToTrips}
-          onSettingsOpen={() => setIsSettingsOpen(true)}
-          isSaving={isSaving}
-        />
-      </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="pt-4 rounded-2xl bg-white/80 supports-[backdrop-filter]:bg-white/70 backdrop-blur-sm shadow-sm">
