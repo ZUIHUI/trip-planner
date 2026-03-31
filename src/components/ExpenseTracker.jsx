@@ -405,7 +405,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* Floating Action Button */}
       <button
         onClick={() => setIsFormOpen(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
+        className="fixed bottom-[86px] left-1/2 -translate-x-1/2 w-14 h-14 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
         title="新增支出"
       >
         <Plus size={28} />
