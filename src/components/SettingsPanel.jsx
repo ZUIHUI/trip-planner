@@ -25,9 +25,9 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto tp-body-text">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">設定</h2>
           <button
             onClick={onClose}
@@ -38,7 +38,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
         </div>
 
         {/* Settings Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-5 space-y-5">
           {/* 主題設定 */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
@@ -84,7 +84,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               <Type size={20} className="text-brand-600 dark:text-brand-400" />
               介面大小
             </h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2.5">
               {[
                 { id: 'small', name: '精簡 (小)', iconSize: 'text-sm' },
                 { id: 'medium', name: '標準 (中)', iconSize: 'text-base' },
@@ -99,7 +99,7 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
                   `}
                 >
                   <span className={`font-bold text-gray-700 dark:text-gray-300 ${size.iconSize}`}>A</span>
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{size.name}</span>
+                  <span className="tp-caption-text font-medium text-gray-600 dark:text-gray-400">{size.name}</span>
                   {interfaceSize === size.id && (
                     <div className="absolute top-2 right-2">
                       <Check size={14} className="text-brand-500" />

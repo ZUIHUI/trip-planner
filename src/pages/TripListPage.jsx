@@ -219,58 +219,58 @@ const TripListPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         <h1 className="text-3xl font-bold text-gray-900">Trip Planner</h1>
 
         {lastOpenedTrip && (
-          <div className="mt-4">
+          <div className="tp-section-gap">
             <button
               onClick={() => openTripDetail(lastOpenedTrip.id)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 tp-caption-text font-medium text-blue-700 hover:bg-blue-100"
             >
               返回目前旅程：{lastOpenedTrip.title}
             </button>
           </div>
         )}
 
-        <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
+        <div className="tp-section-gap grid gap-3 md:grid-cols-[1fr_auto]">
           <input
             type="text"
             value={newTripTitle}
             onChange={(event) => setNewTripTitle(event.target.value)}
             placeholder="輸入新的旅程名稱"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3"
+            className="w-full rounded-xl border border-gray-300 tp-form-control"
           />
           <button
             onClick={handleCreateTrip}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-white"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 tp-body-text font-semibold text-white"
           >
             <Plus size={18} />
             建立新旅程
           </button>
         </div>
 
-        <div className="mt-4 relative">
+        <div className="tp-section-gap relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="搜尋旅程關鍵字"
-            className="w-full rounded-xl border border-gray-300 py-2 pl-9 pr-4"
+            className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 tp-body-text"
           />
         </div>
 
-        <div className="mt-6 space-y-3">
+        <div className="tp-section-gap space-y-3">
           {isLoading ? (
-            <p className="text-sm text-gray-500">讀取旅程中...</p>
+            <p className="tp-caption-text text-gray-500">讀取旅程中...</p>
           ) : sortedAndFilteredTrips.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
+            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center tp-body-text text-gray-500">
               尚無符合條件的旅程
             </div>
           ) : (
             sortedAndFilteredTrips.map((trip) => (
-              <div key={trip.id} className="rounded-xl bg-white p-4 shadow-sm border border-gray-200">
+              <div key={trip.id} className="rounded-xl bg-white tp-card-padding shadow-sm border border-gray-200">
                 <div className="flex items-start justify-between gap-4">
                   <button
                     onClick={() => openTripDetail(trip.id)}
@@ -293,8 +293,8 @@ const TripListPage = () => {
                         <MapPinned size={24} />
                       </div>
                     )}
-                    <p className="text-lg font-semibold text-gray-900">{trip.title}</p>
-                    <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
+                    <p className="text-lg font-semibold text-gray-900 leading-snug">{trip.title}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 tp-caption-text text-gray-500">
                       <span className="inline-flex items-center gap-1">
                         <CalendarDays size={14} />
                         更新於 {new Date(trip.updatedAt).toLocaleString()}
