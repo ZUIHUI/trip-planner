@@ -80,6 +80,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               </div>
             )}
           </div>
+        </div>
 
         {/* Content */}
         <div className="mb-4">
@@ -121,7 +122,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               </div>
             </div>
           )}
-        </header>
+        </div>
 
           {/* URL Info */}
           {event.url && (
@@ -139,7 +140,6 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
               </a>
             </div>
           )}
-        </div>
 
         <div className="mt-4 flex items-center justify-between gap-4">
           <button
@@ -306,7 +306,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
             </div>
           </div>
         )}
-      </article>
+      </div>
     </div>
   );
 };
