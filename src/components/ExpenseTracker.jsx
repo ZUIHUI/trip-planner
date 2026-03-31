@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2, ArrowRight, Wallet } from 'lucide-react';
+import { Edit2, Trash2, DollarSign, Calendar, X, Save, Users, CheckCircle2, ArrowRight, Wallet } from 'lucide-react';
 
-const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [], onModalOpenChange }) => {
+const ExpenseTracker = forwardRef(({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [], onModalOpenChange }, ref) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSettlementOpen, setIsSettlementOpen] = useState(false);
 
@@ -241,6 +241,14 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
 
+  useImperativeHandle(ref, () => ({
+    openAddForm: () => {
+      setEditingId(null);
+      setFormData(initialFormState);
+      setIsFormOpen(true);
+    }
+  }), [initialFormState]);
+
   return (
     <div className="space-y-6 pb-24 relative">
       {/* 總覽卡片 */}
@@ -411,19 +419,6 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
             </div>
           ))
         )}
-      </div>
-
-      <div className="fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-[var(--z-sticky-cta)] px-4 pb-2">
-        <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
-            title="新增支出"
-          >
-            <Plus size={16} />
-            新增支出
-          </button>
-        </div>
       </div>
 
       {/* Add/Edit Modal */}
@@ -662,6 +657,6 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       , modalRoot)}
     </div>
   );
-};
+});
 
 export default ExpenseTracker;

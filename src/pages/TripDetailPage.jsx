@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, ChevronDown, ChevronUp, Save, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
@@ -115,6 +115,8 @@ const TripDetailPage = () => {
   const [rateUpdateError, setRateUpdateError] = useState('');
   const [isLookingUpFlight, setIsLookingUpFlight] = useState({ outbound: false, inbound: false });
   const [flightLookupError, setFlightLookupError] = useState({ outbound: '', inbound: '' });
+  const shoppingListRef = useRef(null);
+  const expenseTrackerRef = useRef(null);
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -1005,13 +1007,14 @@ const TripDetailPage = () => {
 
           {activeTab === 'shopping' && (
             <div className="mt-2 pb-20">
-              <ShoppingListContent tripId={tripId} onModalOpenChange={setIsShoppingModalOpen} />
+              <ShoppingListContent ref={shoppingListRef} tripId={tripId} onModalOpenChange={setIsShoppingModalOpen} />
             </div>
           )}
 
           {activeTab === 'expenses' && (
             <div className="mt-2 pb-20">
               <ExpenseTracker
+                ref={expenseTrackerRef}
                 itinerary={itinerary}
                 expenses={expenses}
                 setExpenses={setExpenses}
@@ -1099,6 +1102,34 @@ const TripDetailPage = () => {
                 <ChevronRight size={16} />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'shopping' && (
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
+            <button
+              onClick={() => shoppingListRef.current?.openAddForm?.()}
+              className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+            >
+              <Plus size={16} />
+              新增購物項目
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'expenses' && (
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
+            <button
+              onClick={() => expenseTrackerRef.current?.openAddForm?.()}
+              className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+            >
+              <Plus size={16} />
+              新增支出
+            </button>
           </div>
         </div>
       )}
