@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, Plus, Search, Trash2, MapPinned } from 'lucide-react';
 import { createTrip, deleteTrip, listTrips } from '../services/tripService';
+import { normalizeCoverImageUrl } from '../utils/coverImage';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
@@ -66,6 +67,7 @@ const TripListPage = () => {
   const [keyword, setKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastOpenedTripId, setLastOpenedTripIdState] = useState(() => getLastOpenedTripId());
+  const [failedCoverImages, setFailedCoverImages] = useState({});
 
   useEffect(() => {
     const init = async () => {
@@ -274,11 +276,17 @@ const TripListPage = () => {
                     onClick={() => openTripDetail(trip.id)}
                     className="text-left flex-1"
                   >
-                    {trip.coverImage ? (
+                    {normalizeCoverImageUrl(trip.coverImage) && !failedCoverImages[trip.id] ? (
                       <img
-                        src={trip.coverImage}
+                        src={normalizeCoverImageUrl(trip.coverImage)}
                         alt={`${trip.title} cover`}
                         className="h-28 w-full rounded-lg object-cover mb-3"
+                        onError={() =>
+                          setFailedCoverImages((prev) => ({
+                            ...prev,
+                            [trip.id]: true
+                          }))
+                        }
                       />
                     ) : (
                       <div className="mb-3 h-20 w-full rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500">
