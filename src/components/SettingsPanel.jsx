@@ -1,7 +1,24 @@
 import React, { useState } from 'react';
 import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon } from 'lucide-react';
 
-const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = [], onUpdateTravelers, currentTheme, onThemeChange, interfaceSize, onInterfaceSizeChange, exchangeRate, onExchangeRateChange, onUpdateRate, lastUpdateDate, isRateUpdating = false, rateUpdateError = '' }) => {
+const SettingsPanel = ({
+  isOpen,
+  onClose,
+  enableGPS,
+  onGPSToggle,
+  travelers = [],
+  onUpdateTravelers,
+  currentTheme,
+  onThemeChange,
+  interfaceSize,
+  onInterfaceSizeChange,
+  exchangeRate,
+  onExchangeRateChange,
+  onUpdateRate,
+  lastUpdateDate,
+  coverImage,
+  onCoverImageChange
+}) => {
   const [newTravelerName, setNewTravelerName] = useState('');
 
   if (!isOpen) return null;
@@ -144,6 +161,49 @@ const SettingsPanel = ({ isOpen, onClose, enableGPS, onGPSToggle, travelers = []
               </div>
               {rateUpdateError && (
                 <p className="mt-2 text-xs text-red-500 dark:text-red-400">{rateUpdateError}</p>
+              )}
+            </div>
+          </div>
+
+          {/* 背景圖片設定 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <span className="text-xl">🖼️</span>
+              背景圖片
+            </h3>
+
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600 space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={coverImage || ''}
+                  onChange={(e) => onCoverImageChange(e.target.value)}
+                  placeholder="https://example.com/cover.jpg"
+                  className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:border-brand-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => onCoverImageChange('')}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-500 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >
+                  清除
+                </button>
+              </div>
+
+              {coverImage ? (
+                <div className="space-y-2">
+                  <p className="tp-caption-text text-gray-500 dark:text-gray-400">即時預覽</p>
+                  <div className="h-28 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <img
+                      src={coverImage}
+                      alt="背景圖片預覽"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="tp-caption-text text-gray-500 dark:text-gray-400">尚未設定背景圖片。</p>
               )}
             </div>
           </div>
