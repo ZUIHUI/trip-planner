@@ -53,7 +53,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         <div className="absolute -left-3 -top-8 w-px h-8"></div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative cursor-pointer group" onClick={() => onViewDetails && onViewDetails(event)}>
+      <div className="bg-white dark:bg-slate-900 rounded-xl tp-card-padding shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative cursor-pointer group" onClick={() => onViewDetails && onViewDetails(event)}>
         {/* Header Section */}
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-3">
@@ -81,14 +81,14 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
         {/* Content */}
         <div className="mb-4">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words mb-1">{event.title}</h3>
-          {event.desc && <p className="text-sm text-gray-500 dark:text-slate-400 leading-relaxed break-words whitespace-pre-wrap">{event.desc}</p>}
+          {event.desc && <p className="tp-caption-text text-gray-500 dark:text-slate-400 break-words whitespace-pre-wrap">{event.desc}</p>}
         </div>
         
         {/* Info Section - Vertical Stack */}
         <div className="space-y-2.5">
           {/* Location Info */}
           {event.location && (
-            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-300">
+            <div className="flex items-start gap-2 tp-caption-text text-gray-600 dark:text-slate-300">
               <MapPin size={16} className="mt-0.5 text-brand-500 shrink-0" />
               <span className="font-medium">{event.location}</span>
             </div>
@@ -96,7 +96,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
           {/* Transport Info */}
           {(event.transport?.duration || event.transport?.route) && (
-            <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-300">
+            <div className="flex items-start gap-2 tp-caption-text text-gray-600 dark:text-slate-300">
               {event.transport?.mode === 'flight' ? (
                 <Plane size={16} className="mt-0.5 text-gray-400 shrink-0" />
               ) : (
@@ -121,7 +121,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onUpdateMemos, onOpe
 
           {/* URL Info */}
           {event.url && (
-            <div className="flex items-start gap-2 text-sm">
+            <div className="flex items-start gap-2 tp-caption-text">
               <LinkIcon size={16} className="mt-0.5 text-blue-500 shrink-0" />
               <a 
                 href={event.url} 
