@@ -12,7 +12,7 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
       <div className={`
         bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white 
         shadow-lg relative overflow-hidden transition-all duration-300 ease-out border-b-0 dark:border-b dark:border-slate-800 will-change-transform
-        ${isScrolled ? 'pt-4 pb-2 px-4 rounded-b-xl' : 'pt-12 pb-6 px-6 rounded-b-[2rem]'}
+        ${isScrolled ? 'pt-4 pb-3 px-4 rounded-b-xl' : 'pt-12 pb-6 px-6 rounded-b-[2rem]'}
       `}>
         {/* Decorative Background Elements */}
         <div className={`absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-10'}`}>
@@ -23,35 +23,43 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
         </div>
 
         {/* Top Bar: Date & Actions */}
-        <div className={`relative flex justify-between items-center transition-all duration-300 ${isScrolled ? 'mb-0' : 'mb-4'}`}>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-sm">
-            <Calendar size={14} className="text-brand-100" />
-            <span className="text-xs font-medium text-brand-50 tracking-wide">{displayDates || '未設定日期'}</span>
+        <div className={`relative flex flex-wrap items-center justify-between gap-2 sm:gap-3 transition-all duration-300 ${isScrolled ? 'mb-1' : 'mb-4'}`}>
+          <div className="flex min-w-0 max-w-full items-center gap-2 bg-white/25 supports-[backdrop-filter]:bg-white/20 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/30 shadow-sm">
+            <Calendar size={15} className="text-brand-100 shrink-0" />
+            <span className="truncate text-sm font-semibold text-white tracking-wide">{displayDates || '未設定日期'}</span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
             <button
               onClick={onGoToTrips}
-              className="touch-target inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white/15 hover:bg-white/25 rounded-full transition-all active:scale-95 border border-white/20 text-xs sm:text-sm font-medium"
+              className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/35 bg-white/25 supports-[backdrop-filter]:bg-white/20 backdrop-blur-md transition-all hover:bg-white/30 active:scale-95 sm:hidden"
               title="回旅程列表"
               aria-label="回旅程列表"
             >
-              <ArrowLeft size={14} />
-              <span>回旅程列表</span>
+              <ArrowLeft size={16} />
+            </button>
+            <button
+              onClick={onGoToTrips}
+              className="touch-target hidden h-9 items-center gap-1.5 rounded-xl border border-white/35 bg-white/25 px-3 text-sm font-medium transition-all hover:bg-white/30 active:scale-95 sm:inline-flex"
+              title="回旅程列表"
+              aria-label="回旅程列表"
+            >
+              <ArrowLeft size={15} />
+              <span>回列表</span>
             </button>
             {isSaving && (
-              <div className="flex items-center gap-1.5 text-xs font-medium text-brand-200 bg-black/20 px-3 py-1 rounded-full animate-pulse">
+              <div className="flex h-9 items-center gap-1.5 rounded-xl border border-black/20 bg-black/25 px-3 text-xs font-semibold text-brand-100 animate-pulse">
                 <RefreshCw size={12} className="animate-spin" />
                 儲存中
               </div>
             )}
             <button
               onClick={onSettingsOpen}
-              className="touch-target px-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all active:scale-95 border border-white/10 shadow-sm inline-flex items-center justify-center gap-1"
+              className="touch-target inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-white/35 bg-white/25 px-2.5 backdrop-blur-md shadow-sm transition-all hover:bg-white/30 active:scale-95"
               title="設定"
               aria-label="開啟設定"
             >
-              <Settings size={20} />
+              <Settings size={18} />
               <span className="text-xs font-medium hidden sm:inline">設定</span>
             </button>
           </div>
