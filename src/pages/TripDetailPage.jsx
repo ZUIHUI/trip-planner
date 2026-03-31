@@ -1004,13 +1004,13 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'shopping' && (
-            <div className="px-6 mt-2 pb-20">
+            <div className="mt-2 pb-20">
               <ShoppingListContent tripId={tripId} onModalOpenChange={setIsShoppingModalOpen} />
             </div>
           )}
 
           {activeTab === 'expenses' && (
-            <div className="px-6 mt-2 pb-20">
+            <div className="mt-2 pb-20">
               <ExpenseTracker
                 itinerary={itinerary}
                 expenses={expenses}
