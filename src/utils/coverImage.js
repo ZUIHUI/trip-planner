@@ -7,7 +7,11 @@ const ALLOWED_DATA_IMAGE_MIME_TYPES = new Set([
   'image/avif'
 ]);
 
-const MAX_DATA_IMAGE_URL_LENGTH = 3 * 1024 * 1024;
+// Firestore 單一文件限制約 1 MiB。
+// 背景圖會以 base64 data URL 形式儲存於 trip 文件內，因此需保留充足空間給其他欄位。
+// 這裡採用保守上限，避免「本地可見但雲端儲存失敗」。
+export const MAX_COVER_IMAGE_FILE_SIZE_BYTES = 450 * 1024;
+const MAX_DATA_IMAGE_URL_LENGTH = 700 * 1024;
 
 const normalizeDataImageUrl = (value) => {
   if (!value.startsWith('data:image/')) return '';
