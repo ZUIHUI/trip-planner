@@ -12,18 +12,18 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
       <div className={`
         bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-white 
         shadow-lg relative overflow-hidden transition-all duration-300 ease-out border-b-0 dark:border-b dark:border-slate-800 will-change-transform
-        ${isScrolled ? 'pt-4 pb-3 px-4 rounded-b-xl' : 'pt-12 pb-6 px-6 rounded-b-[2rem]'}
+        ${isScrolled ? 'pt-4 pb-3 px-4 rounded-b-xl' : 'pt-7 pb-4 px-4 rounded-b-[2rem]'}
       `}>
         {/* Decorative Background Elements */}
-        <div className={`absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-10'}`}>
-          <Plane size={200} />
+        <div className={`absolute top-0 right-0 hidden sm:block transform translate-x-1/4 -translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-10'}`}>
+          <Plane size={160} />
         </div>
-        <div className={`absolute bottom-0 left-0 transform -translate-x-1/4 translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-5'}`}>
-          <Plane size={150} />
+        <div className={`absolute bottom-0 left-0 hidden sm:block transform -translate-x-1/4 translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-5'}`}>
+          <Plane size={120} />
         </div>
 
         {/* Top Bar: Date & Actions */}
-        <div className={`relative flex flex-wrap items-center justify-between gap-2 sm:gap-3 transition-all duration-300 ${isScrolled ? 'mb-1' : 'mb-4'}`}>
+        <div className={`relative flex min-h-[52px] flex-wrap items-center justify-between gap-2 sm:gap-3 transition-all duration-300 ${isScrolled ? 'mb-1' : 'mb-4'}`}>
           <div className="flex min-w-0 max-w-full items-center gap-2 bg-white/25 supports-[backdrop-filter]:bg-white/20 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/30 shadow-sm">
             <Calendar size={15} className="text-brand-100 shrink-0" />
             <span className="truncate text-sm font-semibold text-white tracking-wide">{displayDates || '未設定日期'}</span>
@@ -67,7 +67,7 @@ const Header = forwardRef(({ details, onSettingsOpen, onGoToTrips, isSaving, chi
 
         {/* Main Title Area */}
         <div className={`relative transition-all duration-500 ease-in-out overflow-hidden ${isScrolled ? 'max-h-0 opacity-0' : 'max-h-40 opacity-100'}`}>
-          <h1 className="text-3xl font-bold mb-2 tracking-tight leading-tight drop-shadow-md">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 tracking-tight leading-tight drop-shadow-md">
             {details?.title || '我的旅程'}
           </h1>
           <div className="flex items-center gap-2 text-brand-100/90 text-sm font-medium">
