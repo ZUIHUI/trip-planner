@@ -96,6 +96,7 @@ const TripDetailPage = () => {
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [isEventViewMode, setIsEventViewMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('trip_planner_theme') || 'light');
   const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem('trip_planner_interface_size') || 'medium');
@@ -413,18 +414,6 @@ const TripDetailPage = () => {
     }
   };
 
-  const handleUpdateMemos = (eventId, newMemos) => {
-    setItinerary(prev => prev.map(day => {
-      if (day.day === selectedDay) {
-        return {
-          ...day,
-          events: day.events.map(e => e.id === eventId ? { ...e, memos: newMemos } : e)
-        };
-      }
-      return day;
-    }));
-  };
-
   const handleUpdateDayMeta = (dayNumber, patch) => {
     setItinerary(prev => prev.map(day => (
       day.day === dayNumber ? { ...day, ...patch } : day
@@ -433,11 +422,14 @@ const TripDetailPage = () => {
 
   const openAddModal = () => {
     setEditingEvent(null);
+    setIsEventViewMode(false);
     setIsEditModalOpen(true);
   };
 
-  const openEditModal = (event) => {
+  const openEditModal = (event, viewMode = false) => {
     setEditingEvent(event);
+    setIsEventViewMode(viewMode);
+    setSelectedEventLocation(event?.location || null);
     setIsEditModalOpen(true);
   };
 
@@ -702,8 +694,6 @@ const TripDetailPage = () => {
                           prevLocation={prevLocation}
                           onEdit={openEditModal}
                           onDelete={handleDeleteEvent}
-                          onUpdateMemos={handleUpdateMemos}
-                          onViewDetails={(selectedEvent) => setSelectedEventLocation(selectedEvent?.location || null)}
                         />
                       );
                     })
@@ -957,15 +947,19 @@ const TripDetailPage = () => {
         onClose={() => {
           setIsEditModalOpen(false);
           setEditingEvent(null);
+          setIsEventViewMode(false);
         }}
-        title={editingEvent ? '編輯行程' : '新增行程'}
+        title={editingEvent ? (isEventViewMode ? '行程詳情' : '編輯行程') : '新增行程'}
       >
         <EditEventForm
           event={editingEvent}
+          readOnly={isEventViewMode}
+          onRequestEdit={() => setIsEventViewMode(false)}
           onSave={handleSaveEvent}
           onCancel={() => {
             setIsEditModalOpen(false);
             setEditingEvent(null);
+            setIsEventViewMode(false);
           }}
         />
       </Modal>

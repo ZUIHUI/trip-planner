@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Save, Link as LinkIcon } from 'lucide-react';
 
-const EditEventForm = ({ event, onSave, onCancel }) => {
+const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdit }) => {
   const [formData, setFormData] = useState(event || {
     time: "", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
     transport: { mode: "train", duration: "", route: "" },
@@ -42,11 +42,11 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">時間</label>
-          <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200" />
+          <input type="time" name="time" value={formData.time} onChange={handleChange} disabled={readOnly} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
         </div>
         <div>
           <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">類型</label>
-          <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200">
+          <select name="type" value={formData.type} onChange={handleChange} disabled={readOnly} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed">
             <option value="sightseeing">景點</option>
             <option value="food">美食</option>
             <option value="shopping">購物</option>
@@ -59,14 +59,14 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
 
       <div>
         <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">標題</label>
-        <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200" />
+        <input type="text" name="title" value={formData.title} onChange={handleChange} disabled={readOnly} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
       </div>
 
       <div>
         <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">地點 (用於導航)</label>
         <div className="relative">
           <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
+          <input type="text" name="location" value={formData.location} onChange={handleChange} disabled={readOnly} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
         </div>
         {trimmedLocation && (
           <div className="mt-3 space-y-2">
@@ -99,14 +99,14 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
 
       <div>
         <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">描述 / 備註</label>
-        <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200"></textarea>
+        <textarea name="desc" value={formData.desc} onChange={handleChange} disabled={readOnly} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed"></textarea>
       </div>
 
       <div>
         <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">相關連結 (URL)</label>
         <div className="relative">
           <LinkIcon size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <input type="url" name="url" value={formData.url || ""} onChange={handleChange} placeholder="https://example.com" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
+          <input type="url" name="url" value={formData.url || ""} onChange={handleChange} disabled={readOnly} placeholder="https://example.com" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
         </div>
         <p className="tp-caption-text text-gray-400 dark:text-slate-500 mt-1">例如: 官方網站、購票連結、預約確認等</p>
       </div>
@@ -114,8 +114,8 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
       <div className="p-3 bg-brand-50 dark:bg-brand-900/30 rounded-lg border border-brand-100 dark:border-brand-900/50">
         <h4 className="text-xs font-bold text-brand-700 dark:text-brand-400 mb-2 flex items-center"><Navigation size={12} className="mr-1"/> 交通資訊 (選填)</h4>
         <div className="grid grid-cols-2 gap-2 mb-2">
-          <input type="text" name="transport.duration" value={formData.transport?.duration || ""} onChange={handleChange} placeholder="預估時間 (如: 30分)" className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200" />
-          <select name="transport.mode" value={formData.transport?.mode || "train"} onChange={handleChange} className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200">
+          <input type="text" name="transport.duration" value={formData.transport?.duration || ""} onChange={handleChange} disabled={readOnly} placeholder="預估時間 (如: 30分)" className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
+          <select name="transport.mode" value={formData.transport?.mode || "train"} onChange={handleChange} disabled={readOnly} className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed">
             <option value="train">電車/地鐵</option>
             <option value="walk">步行</option>
             <option value="taxi">計程車/Uber</option>
@@ -123,7 +123,7 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
             <option value="flight">飛機</option>
           </select>
         </div>
-        <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200" />
+        <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} disabled={readOnly} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
       </div>
 
       <div className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700">
@@ -135,7 +135,8 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
               name="currency"
               value={formData.currency || 'JPY'}
               onChange={handleChange}
-              className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-slate-200 focus:outline-none focus:border-brand-500"
+              disabled={readOnly}
+              className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-slate-200 focus:outline-none focus:border-brand-500 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <option value="JPY">JPY (日幣)</option>
               <option value="TWD">TWD (台幣)</option>
@@ -150,21 +151,33 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
             name="cost"
             value={formData.cost || ""}
             onChange={handleChange}
+            disabled={readOnly}
             placeholder="輸入預算"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200"
+            className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200 disabled:opacity-70 disabled:cursor-not-allowed"
           />
         </div>
       </div>
 
       <div className="flex items-center space-x-2">
-        <input type="checkbox" id="urgent" name="urgent" checked={formData.urgent} onChange={handleChange} className="rounded text-brand-600 focus:ring-brand-500" />
+        <input type="checkbox" id="urgent" name="urgent" checked={formData.urgent} onChange={handleChange} disabled={readOnly} className="rounded text-brand-600 focus:ring-brand-500 disabled:opacity-70 disabled:cursor-not-allowed" />
         <label htmlFor="urgent" className="text-sm text-gray-700 dark:text-gray-300 font-medium">標記為重要 (需預約/必去)</label>
       </div>
 
-      <button onClick={() => onSave(formData)} className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md mt-2 flex items-center justify-center">
-        <Save size={18} className="mr-2" />
-        儲存行程
-      </button>
+      {readOnly ? (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button onClick={onCancel} className="w-full border border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+            關閉
+          </button>
+          <button onClick={onRequestEdit} className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md">
+            編輯行程
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => onSave(formData)} className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md mt-2 flex items-center justify-center">
+          <Save size={18} className="mr-2" />
+          儲存行程
+        </button>
+      )}
     </div>
   );
 };
