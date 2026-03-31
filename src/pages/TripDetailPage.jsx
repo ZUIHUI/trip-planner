@@ -60,6 +60,8 @@ const TripDetailPage = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [enableGPS, setEnableGPS] = useState(false);
   const [selectedEventLocation, setSelectedEventLocation] = useState(null);
+  const [isEditingDayMeta, setIsEditingDayMeta] = useState(false);
+  const [dayMetaDraft, setDayMetaDraft] = useState({ title: '', date: '' });
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -129,10 +131,20 @@ const TripDetailPage = () => {
   }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents]);
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
+  const currentDayTitle = currentDayData?.title?.trim() || `Day ${selectedDay}`;
+  const currentDayDate = currentDayData?.date?.trim() || `Day ${selectedDay}`;
 
   useEffect(() => {
     setSelectedEventLocation(null);
   }, [selectedDay]);
+
+  useEffect(() => {
+    setIsEditingDayMeta(false);
+    setDayMetaDraft({
+      title: currentDayTitle,
+      date: currentDayDate
+    });
+  }, [selectedDay, currentDayTitle, currentDayDate]);
 
   const handleSaveEvent = (eventData) => {
     if (editingEvent) {
@@ -184,6 +196,12 @@ const TripDetailPage = () => {
       }
       return day;
     }));
+  };
+
+  const handleUpdateDayMeta = (dayNumber, patch) => {
+    setItinerary(prev => prev.map(day => (
+      day.day === dayNumber ? { ...day, ...patch } : day
+    )));
   };
 
   const openAddModal = () => {
@@ -340,24 +358,78 @@ const TripDetailPage = () => {
 
               <div className="px-6 mt-4 pb-20">
                 <WeatherWidget
-                  date={currentDayData?.date}
+                  date={currentDayDate}
                   currentLocation={currentLocation}
                   accommodation={tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京'}
                   firstEventLocation={currentDayData?.events?.[0]?.location || null}
                   selectedEventLocation={selectedEventLocation}
                 />
 
-                <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2">
-                  <div>
+                <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2 gap-3">
+                  <div className="flex-1">
                     {currentDayData ? (
-                      <>
-                        <h2 className="text-xl font-bold text-gray-800">{currentDayData.title}</h2>
-                        <p className="text-sm text-gray-500">{currentDayData.date}</p>
-                      </>
+                      isEditingDayMeta ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={dayMetaDraft.title}
+                            onChange={(e) => setDayMetaDraft((prev) => ({ ...prev, title: e.target.value }))}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-base font-bold text-gray-800"
+                            placeholder={`Day ${selectedDay}`}
+                          />
+                          <input
+                            type="text"
+                            value={dayMetaDraft.date}
+                            onChange={(e) => setDayMetaDraft((prev) => ({ ...prev, date: e.target.value }))}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600"
+                            placeholder={`Day ${selectedDay}`}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                handleUpdateDayMeta(selectedDay, {
+                                  title: dayMetaDraft.title.trim() || `Day ${selectedDay}`,
+                                  date: dayMetaDraft.date.trim() || `Day ${selectedDay}`
+                                });
+                                setIsEditingDayMeta(false);
+                              }}
+                              className="text-sm px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                            >
+                              儲存
+                            </button>
+                            <button
+                              onClick={() => {
+                                setDayMetaDraft({ title: currentDayTitle, date: currentDayDate });
+                                setIsEditingDayMeta(false);
+                              }}
+                              className="text-sm px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                            >
+                              取消
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <h2 className="text-xl font-bold text-gray-800">{currentDayTitle}</h2>
+                          <p className="text-sm text-gray-500">{currentDayDate}</p>
+                        </>
+                      )
                     ) : (
                       <p className="text-gray-500">載入中...</p>
                     )}
                   </div>
+
+                  {currentDayData && !isEditingDayMeta && (
+                    <button
+                      onClick={() => {
+                        setDayMetaDraft({ title: currentDayTitle, date: currentDayDate });
+                        setIsEditingDayMeta(true);
+                      }}
+                      className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                    >
+                      編輯 Day
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-4">
