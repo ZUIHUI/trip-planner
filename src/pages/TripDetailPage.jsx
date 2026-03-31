@@ -710,19 +710,9 @@ const TripDetailPage = () => {
                   </div>
                 </div>
                 <p className="tp-caption-text text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
-                <label className="block tp-caption-text text-gray-500 mb-1">封面圖網址（選填）</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/cover.jpg"
-                  value={tripDetails?.coverImage || ''}
-                  onChange={(e) =>
-                    setTripDetails((prev) => ({
-                      ...prev,
-                      coverImage: e.target.value.trim()
-                    }))
-                  }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
-                />
+                <p className="tp-caption-text text-gray-500 mb-2">
+                  背景圖片請至右上角「設定」面板中的「背景圖片」區塊調整，避免重複設定入口造成混淆。
+                </p>
                 <label className="block tp-caption-text text-gray-500 mb-1">旅行狀態</label>
                 <select
                   value={tripDetails?.status || 'planning'}
@@ -866,6 +856,13 @@ const TripDetailPage = () => {
         onThemeChange={setCurrentTheme}
         interfaceSize={interfaceSize}
         onInterfaceSizeChange={setInterfaceSize}
+        coverImage={tripDetails?.coverImage || ''}
+        onCoverImageChange={(nextCoverImage) =>
+          setTripDetails((prev) => ({
+            ...prev,
+            coverImage: nextCoverImage
+          }))
+        }
       />
 
       {activeTab === 'itinerary' && (
