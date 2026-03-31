@@ -36,7 +36,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-2xl z-[var(--z-bottom-nav)] pb-2">
+      <div className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-2xl z-[var(--z-bottom-nav)] pb-2 transition-all duration-200 ${isModalOpen ? 'opacity-0 pointer-events-none translate-y-full' : 'opacity-100 pointer-events-auto translate-y-0'}`}>
         <div className="flex justify-between items-center h-16 px-2 gap-2">
           {mainTabs.map((tab) => {
             const Icon = tab.icon;
