@@ -239,7 +239,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
   }, [filteredExpenses]);
 
   return (
-    <div className="space-y-6 pb-24 relative min-h-[500px]">
+    <div className="space-y-6 pb-24 relative">
       {/* 總覽卡片 */}
       <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
         <div className="flex justify-between items-start">
