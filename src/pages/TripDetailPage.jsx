@@ -59,6 +59,8 @@ const TripDetailPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('trip_planner_theme') || 'light');
+  const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem('trip_planner_interface_size') || 'medium');
   const [enableGPS, setEnableGPS] = useState(false);
   const [selectedEventLocation, setSelectedEventLocation] = useState(null);
   const [isEditingDayMeta, setIsEditingDayMeta] = useState(false);
@@ -71,7 +73,8 @@ const TripDetailPage = () => {
     status: 'planning',
     coverImage: '',
     accommodation: {},
-    flights: {}
+    flights: {},
+    travelers: []
   }), []);
 
   const defaultItinerary = useMemo(
@@ -135,6 +138,16 @@ const TripDetailPage = () => {
       eventCount: totalEvents
     });
   }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents]);
+
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+    localStorage.setItem('trip_planner_theme', currentTheme);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    localStorage.setItem('trip_planner_interface_size', interfaceSize);
+  }, [interfaceSize]);
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const currentDayTitle = currentDayData?.title?.trim() || `Day ${selectedDay}`;
@@ -249,7 +262,7 @@ const TripDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className={`min-h-screen bg-gray-50 font-sans interface-size-${interfaceSize}`}>
       <div className="relative">
         <button
           onClick={handleBackToTrips}
@@ -722,6 +735,12 @@ const TripDetailPage = () => {
         onClose={() => setIsSettingsOpen(false)}
         enableGPS={enableGPS}
         onGPSToggle={() => setEnableGPS(!enableGPS)}
+        travelers={tripDetails?.travelers || []}
+        onUpdateTravelers={(next) => setTripDetails((prev) => ({ ...prev, travelers: next }))}
+        currentTheme={currentTheme}
+        onThemeChange={setCurrentTheme}
+        interfaceSize={interfaceSize}
+        onInterfaceSizeChange={setInterfaceSize}
       />
 
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
