@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Map, Home, DollarSign, ShoppingCart, CheckSquare, 
   Luggage, Ticket, Menu, X, LayoutDashboard 
 } from 'lucide-react';
 
-const BottomNavigation = ({ activeTab, onTabChange }) => {
+const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   // 主要導航（底部顯示）
@@ -26,6 +26,12 @@ const BottomNavigation = ({ activeTab, onTabChange }) => {
     onTabChange(tabId);
     setShowMenu(false);
   };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setShowMenu(false);
+    }
+  }, [isModalOpen]);
 
   return (
     <>

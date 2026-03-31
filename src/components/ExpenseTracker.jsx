@@ -1,9 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2, ArrowRight, Wallet } from 'lucide-react';
 
-const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [] }) => {
+const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [], onModalOpenChange }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSettlementOpen, setIsSettlementOpen] = useState(false);
+
+  useEffect(() => {
+    onModalOpenChange?.(isFormOpen || isSettlementOpen);
+
+    return () => {
+      onModalOpenChange?.(false);
+    };
+  }, [isFormOpen, isSettlementOpen, onModalOpenChange]);
   const [editingId, setEditingId] = useState(null);
   const [selectedDay, setSelectedDay] = useState('all');
   
@@ -417,7 +425,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
       {/* Add/Edit Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
               <h3 className="font-bold text-lg text-gray-800 dark:text-white">
@@ -596,7 +604,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       )}
       {/* Settlement Modal */}
       {isSettlementOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
               <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">

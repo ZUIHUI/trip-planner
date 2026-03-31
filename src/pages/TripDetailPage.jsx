@@ -98,6 +98,8 @@ const TripDetailPage = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [isEventViewMode, setIsEventViewMode] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('trip_planner_theme') || 'light');
   const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem('trip_planner_interface_size') || 'medium');
   const [enableGPS, setEnableGPS] = useState(false);
@@ -460,6 +462,8 @@ const TripDetailPage = () => {
       </div>
     );
   }
+
+  const isAnyModalOpen = isEditModalOpen || isSettingsOpen || isExpenseModalOpen || isShoppingModalOpen;
 
   return (
     <div className={`min-h-screen font-sans interface-size-${interfaceSize} bg-gray-50 dark:bg-slate-950 transition-colors`} style={{ "--footer-nav-height": "72px" }}>
@@ -898,7 +902,7 @@ const TripDetailPage = () => {
 
           {activeTab === 'shopping' && (
             <div className="mt-4 pb-10">
-              <ShoppingListContent tripId={tripId} />
+              <ShoppingListContent tripId={tripId} onModalOpenChange={setIsShoppingModalOpen} />
             </div>
           )}
 
@@ -910,6 +914,7 @@ const TripDetailPage = () => {
                 setExpenses={setExpenses}
                 travelers={tripDetails?.travelers || []}
                 exchangeRate={exchangeRate}
+                onModalOpenChange={setIsExpenseModalOpen}
               />
             </div>
           )}
@@ -966,7 +971,7 @@ const TripDetailPage = () => {
       />
 
       {activeTab === 'itinerary' && (
-        <div className="fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2">
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
             <div className="grid grid-cols-3 gap-2">
               <button
@@ -995,11 +1000,11 @@ const TripDetailPage = () => {
         </div>
       )}
 
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} isModalOpen={isAnyModalOpen} />
 
       {/* GPS 位置監視 - 當啟用 GPS 時顯示狀態 */}
       {enableGPS && (
-        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 text-sm z-40 max-w-xs">
+        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 text-sm z-30 max-w-xs">
           {isLocating ? (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
