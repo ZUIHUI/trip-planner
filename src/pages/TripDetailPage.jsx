@@ -465,6 +465,20 @@ const TripDetailPage = () => {
                   }
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
                 />
+                <label className="block text-xs text-gray-500 mb-1">旅程期間</label>
+                <input
+                  type="text"
+                  placeholder="2026/04/10 - 2026/04/15"
+                  value={tripDetails?.dates || ''}
+                  onChange={(e) =>
+                    setTripDetails((prev) => ({
+                      ...prev,
+                      dates: e.target.value
+                    }))
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-1"
+                />
+                <p className="text-xs text-gray-500 mb-2">建議格式：YYYY/MM/DD - YYYY/MM/DD</p>
                 <label className="block text-xs text-gray-500 mb-1">封面圖網址（選填）</label>
                 <input
                   type="url"
