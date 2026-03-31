@@ -967,7 +967,7 @@ const TripDetailPage = () => {
 
       {activeTab === 'itinerary' && (
         <div className="fixed bottom-[72px] left-0 right-0 z-40 px-4 pb-2">
-          <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur border border-gray-200 rounded-2xl shadow-lg p-2">
+          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={openAddModal}
