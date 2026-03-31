@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { X, MapPin, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon, Upload } from 'lucide-react';
-import { normalizeCoverImageUrl } from '../utils/coverImage';
+import { MAX_COVER_IMAGE_FILE_SIZE_BYTES, normalizeCoverImageUrl } from '../utils/coverImage';
 
 const SettingsPanel = ({
   isOpen,
@@ -27,7 +27,6 @@ const SettingsPanel = ({
   const [coverImagePreview, setCoverImagePreview] = useState('');
   const coverFileInputRef = useRef(null);
   const coverImagePreviewUrl = normalizeCoverImageUrl(coverImage);
-  const MAX_COVER_IMAGE_SIZE = 2 * 1024 * 1024;
   const ALLOWED_IMAGE_TYPES = new Set([
     'image/jpeg',
     'image/jpg',
@@ -68,8 +67,8 @@ const SettingsPanel = ({
       return;
     }
 
-    if (file.size > MAX_COVER_IMAGE_SIZE) {
-      setCoverImageError('圖片大小不可超過 2MB，請壓縮後再上傳。');
+    if (file.size > MAX_COVER_IMAGE_FILE_SIZE_BYTES) {
+      setCoverImageError('圖片大小不可超過 450KB，避免雲端儲存失敗。請壓縮後再上傳。');
       event.target.value = '';
       return;
     }
