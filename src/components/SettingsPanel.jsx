@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { X, MapPin, Zap, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon, Upload } from 'lucide-react';
+import { X, MapPin, Users, Plus, Trash2, Palette, Check, Type, Sun, Moon, Upload } from 'lucide-react';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 
 const SettingsPanel = ({
@@ -346,48 +346,6 @@ const SettingsPanel = ({
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                 {enableGPS ? '✓ GPS 已啟用' : '✗ GPS 已禁用'}
               </p>
-            </div>
-          </div>
-
-          {/* 天氣優先級說明 */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <Zap size={20} className="text-amber-600" />
-              天氣資訊優先級
-            </h3>
-
-            <div className="bg-brand-50 dark:bg-brand-900/20 rounded-xl p-4 border border-brand-200 dark:border-brand-900/30 space-y-3">
-              <div className="flex gap-3">
-                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">1</span>
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-gray-100">選中的行程地點</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">點擊行程卡片時顯示該地點的天氣</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">2</span>
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-gray-100">第一個行程的地點</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">未選中時顯示當天第一個行程的天氣</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">3</span>
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-gray-100">當前 GPS 位置</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">GPS 啟用時顯示設備當前位置的天氣</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <span className="font-bold text-brand-700 dark:text-brand-400 text-lg flex-shrink-0">4</span>
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-gray-100">住宿地點</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">最終備用位置，顯示住宿地點的天氣</p>
-                </div>
-              </div>
             </div>
           </div>
 

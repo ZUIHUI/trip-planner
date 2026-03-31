@@ -74,6 +74,21 @@ const buildFallbackData = (initialTripDetails, initialItinerary) => ({
   expenses: []
 });
 
+const mergeTripDetailsForSync = (localTripDetails, firebaseTripDetails, fallbackTripDetails) => {
+  const localDetails = localTripDetails || fallbackTripDetails;
+  const remoteDetails = firebaseTripDetails || fallbackTripDetails;
+
+  const localCoverImage = typeof localDetails?.coverImage === 'string' ? localDetails.coverImage : '';
+  const remoteCoverImage = typeof remoteDetails?.coverImage === 'string' ? remoteDetails.coverImage : '';
+
+  return {
+    ...localDetails,
+    ...remoteDetails,
+    // Firebase 可能因文件大小限制而無法保存 base64 圖片，避免覆蓋掉本地已成功儲存的背景圖
+    coverImage: remoteCoverImage || localCoverImage || ''
+  };
+};
+
 const migrateLegacyDataIfNeeded = (tripId) => {
   const currentKey = getStorageKey(tripId);
 
@@ -182,7 +197,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
             const firebaseData = await loadTrip(safeTripId);
             if (firebaseData) {
               console.log('✅ 從 Firebase 載入資料成功');
-              const normalizedFirebaseTripDetails = normalizeTripDateFields(firebaseData.tripDetails || initialTripDetails);
+              const mergedTripDetails = mergeTripDetailsForSync(
+                normalizedLocalTripDetails,
+                firebaseData.tripDetails || initialTripDetails,
+                initialTripDetails
+              );
+              const normalizedFirebaseTripDetails = normalizeTripDateFields(mergedTripDetails);
               setTripDetails(normalizedFirebaseTripDetails);
               setItinerary(
                 ensureItineraryComplete(

@@ -106,7 +106,6 @@ const TripDetailPage = () => {
   const [dayMetaDraft, setDayMetaDraft] = useState({ title: '', date: '' });
   const [coverImageLoadFailed, setCoverImageLoadFailed] = useState(false);
   const [showSecondaryModules, setShowSecondaryModules] = useState(false);
-  const [showAllEvents, setShowAllEvents] = useState(false);
   const [exchangeRate, setExchangeRate] = useState(0.215);
   const [lastUpdateDate, setLastUpdateDate] = useState('');
   const [isRateUpdating, setIsRateUpdating] = useState(false);
@@ -329,14 +328,9 @@ const TripDetailPage = () => {
     [tripDetails?.coverImage]
   );
   const shouldShowCoverBackground = Boolean(coverImageUrl && !coverImageLoadFailed);
-  const eventsToDisplay = showAllEvents
-    ? currentDayData?.events || []
-    : (currentDayData?.events || []).slice(0, 2);
-  const hiddenEventsCount = Math.max((currentDayData?.events?.length || 0) - eventsToDisplay.length, 0);
 
   useEffect(() => {
     setSelectedEventLocation(null);
-    setShowAllEvents(false);
   }, [selectedDay]);
 
   useEffect(() => {
@@ -681,7 +675,7 @@ const TripDetailPage = () => {
                       </button>
                     </div>
                   ) : (
-                    eventsToDisplay.map((event, index) => {
+                    (currentDayData?.events || []).map((event, index) => {
                       const prevEvent = index > 0 ? currentDayData.events[index - 1] : null;
                       const prevLocation = prevEvent
                         ? prevEvent.location
@@ -700,22 +694,6 @@ const TripDetailPage = () => {
                   )}
                 </div>
 
-                {hiddenEventsCount > 0 && (
-                  <button
-                    onClick={() => setShowAllEvents(true)}
-                    className="mt-3 w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    查看更多行程（+{hiddenEventsCount}）
-                  </button>
-                )}
-                {showAllEvents && (currentDayData?.events?.length || 0) > 2 && (
-                  <button
-                    onClick={() => setShowAllEvents(false)}
-                    className="mt-3 w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    收合行程列表
-                  </button>
-                )}
 
                 {showSecondaryModules && currentDayData && currentDayData.events.length > 0 && (
                   <div className="mt-6 p-4 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-xl border border-orange-200">
@@ -824,10 +802,6 @@ const TripDetailPage = () => {
                     />
                   </div>
                 </div>
-                <p className="tp-caption-text text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
-                <p className="tp-caption-text text-gray-500 mb-2">
-                  背景圖片請至右上角「設定」面板中的「背景圖片」區塊調整，避免重複設定入口造成混淆。
-                </p>
                 <label className="block tp-caption-text text-gray-500 mb-1">旅行狀態</label>
                 <select
                   value={tripDetails?.status || 'planning'}
