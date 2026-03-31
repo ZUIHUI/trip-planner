@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, Home } from 'lucide-react';
+import { Plus, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
@@ -68,6 +68,8 @@ const TripDetailPage = () => {
   const [isEditingDayMeta, setIsEditingDayMeta] = useState(false);
   const [dayMetaDraft, setDayMetaDraft] = useState({ title: '', date: '' });
   const [coverImageLoadFailed, setCoverImageLoadFailed] = useState(false);
+  const [showSecondaryModules, setShowSecondaryModules] = useState(false);
+  const [showAllEvents, setShowAllEvents] = useState(false);
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -100,7 +102,9 @@ const TripDetailPage = () => {
     checklists, 
     setChecklists,
     expenses,
-    setExpenses
+    setExpenses,
+    isSaving,
+    saveNow
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
   const budgetInfo = useBudget(itinerary);
@@ -163,9 +167,14 @@ const TripDetailPage = () => {
     [tripDetails?.coverImage]
   );
   const shouldShowCoverBackground = Boolean(coverImageUrl && !coverImageLoadFailed);
+  const eventsToDisplay = showAllEvents
+    ? currentDayData?.events || []
+    : (currentDayData?.events || []).slice(0, 2);
+  const hiddenEventsCount = Math.max((currentDayData?.events?.length || 0) - eventsToDisplay.length, 0);
 
   useEffect(() => {
     setSelectedEventLocation(null);
+    setShowAllEvents(false);
   }, [selectedDay]);
 
   useEffect(() => {
@@ -271,6 +280,12 @@ const TripDetailPage = () => {
     setIsEditModalOpen(true);
   };
 
+  const goToNextDay = () => {
+    if (!itinerary.length) return;
+    const nextDay = selectedDay >= itinerary.length ? 1 : selectedDay + 1;
+    setSelectedDay(nextDay);
+  };
+
   const handleBackToTrips = () => {
     const hasHistory =
       typeof window !== 'undefined' &&
@@ -326,8 +341,9 @@ const TripDetailPage = () => {
       <div className="relative z-10">
         <button
           onClick={handleBackToTrips}
-          className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20 text-sm font-medium"
+          className="touch-target absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20 text-sm font-medium"
           title="返回旅程列表"
+          aria-label="返回旅程列表"
         >
           <ArrowLeft size={22} />
           <span>回旅程列表</span>
@@ -336,16 +352,17 @@ const TripDetailPage = () => {
           details={tripDetails} 
           onGoToTrips={handleBackToTrips}
           onSettingsOpen={() => setIsSettingsOpen(true)}
+          isSaving={isSaving}
         />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="pt-4 rounded-2xl bg-white/80 supports-[backdrop-filter]:bg-white/70 backdrop-blur-sm shadow-sm">
           {activeTab === 'summary' && (
-            <div className="px-6 space-y-4 pb-10">
+            <div className="px-4 sm:px-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">旅程概覽</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="text-center">
                     <p className="text-gray-500 text-xs mb-1">旅程期間</p>
                     <p className="text-lg font-bold text-gray-800">{tripDisplayDates || '未設定'}</p>
@@ -443,13 +460,39 @@ const TripDetailPage = () => {
               />
 
               <div className="px-6 mt-4 pb-20">
-                <WeatherWidget
-                  date={currentDayDate}
-                  currentLocation={currentLocation}
-                  accommodation={tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京'}
-                  firstEventLocation={currentDayData?.events?.[0]?.location || null}
-                  selectedEventLocation={selectedEventLocation}
-                />
+                <div className="rounded-xl border border-gray-200 bg-white p-4">
+                  <h3 className="text-sm font-bold text-gray-800">行程頁首屏模組盤點</h3>
+                  <div className="mt-3 space-y-2 text-sm">
+                    <div className="flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2">
+                      <span>Day 切換 + 今日行程列表 + 新增行程</span>
+                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">主要任務</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                      <span>天氣、花費統計、補充資訊</span>
+                      <span className="rounded-full bg-gray-600 px-2 py-0.5 text-xs text-white">次要資訊</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowSecondaryModules((prev) => !prev)}
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-gray-600"
+                >
+                  {showSecondaryModules ? '收合次要資訊' : '查看更多次要資訊'}
+                  {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+
+                {showSecondaryModules && (
+                  <div className="mt-3">
+                    <WeatherWidget
+                      date={currentDayDate}
+                      currentLocation={currentLocation}
+                      accommodation={tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京'}
+                      firstEventLocation={currentDayData?.events?.[0]?.location || null}
+                      selectedEventLocation={selectedEventLocation}
+                    />
+                  </div>
+                )}
 
                 <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-2 gap-3">
                   <div className="flex-1">
@@ -470,7 +513,7 @@ const TripDetailPage = () => {
                             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600"
                             placeholder={`Day ${selectedDay}`}
                           />
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 touch-row">
                             <button
                               onClick={() => {
                                 handleUpdateDayMeta(selectedDay, {
@@ -479,7 +522,7 @@ const TripDetailPage = () => {
                                 });
                                 setIsEditingDayMeta(false);
                               }}
-                              className="text-sm px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                              className="touch-target text-sm px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
                             >
                               儲存
                             </button>
@@ -488,7 +531,7 @@ const TripDetailPage = () => {
                                 setDayMetaDraft({ title: currentDayTitle, date: currentDayDate });
                                 setIsEditingDayMeta(false);
                               }}
-                              className="text-sm px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                              className="touch-target text-sm px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
                             >
                               取消
                             </button>
@@ -497,7 +540,7 @@ const TripDetailPage = () => {
                       ) : (
                         <>
                           <h2 className="text-xl font-bold text-gray-800">{currentDayTitle}</h2>
-                          <p className="text-sm text-gray-500">{currentDayDate}</p>
+                          <p className="tp-caption-text text-gray-500">{currentDayDate}</p>
                         </>
                       )
                     ) : (
@@ -511,7 +554,7 @@ const TripDetailPage = () => {
                         setDayMetaDraft({ title: currentDayTitle, date: currentDayDate });
                         setIsEditingDayMeta(true);
                       }}
-                      className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                      className="text-sm px-2 py-1 text-gray-500 underline underline-offset-2"
                     >
                       編輯 Day
                     </button>
@@ -524,13 +567,13 @@ const TripDetailPage = () => {
                       <p>尚無行程</p>
                       <button
                         onClick={openAddModal}
-                        className="mt-2 text-blue-500 font-bold text-sm"
+                        className="touch-target mt-2 text-blue-500 font-bold text-sm px-2"
                       >
                         + 新增第一個行程
                       </button>
                     </div>
                   ) : (
-                    currentDayData.events.map((event, index) => {
+                    eventsToDisplay.map((event, index) => {
                       const prevEvent = index > 0 ? currentDayData.events[index - 1] : null;
                       const prevLocation = prevEvent
                         ? prevEvent.location
@@ -551,7 +594,24 @@ const TripDetailPage = () => {
                   )}
                 </div>
 
-                {currentDayData && currentDayData.events.length > 0 && (
+                {hiddenEventsCount > 0 && (
+                  <button
+                    onClick={() => setShowAllEvents(true)}
+                    className="mt-3 w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    查看更多行程（+{hiddenEventsCount}）
+                  </button>
+                )}
+                {showAllEvents && (currentDayData?.events?.length || 0) > 2 && (
+                  <button
+                    onClick={() => setShowAllEvents(false)}
+                    className="mt-3 w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    收合行程列表
+                  </button>
+                )}
+
+                {showSecondaryModules && currentDayData && currentDayData.events.length > 0 && (
                   <div className="mt-6 p-4 bg-gradient-to-r from-orange-100 to-yellow-100 rounded-xl border border-orange-200">
                     <h3 className="font-bold text-orange-800 mb-2">💰 今日預估花費</h3>
                     <div className="text-2xl font-bold text-orange-600">
@@ -566,19 +626,13 @@ const TripDetailPage = () => {
                   </div>
                 )}
 
-                <button
-                  onClick={openAddModal}
-                  className="w-full mt-6 py-3 border-2 border-dashed border-blue-300 text-blue-500 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center justify-center"
-                >
-                  <Plus size={20} className="mr-2" />
-                  新增行程
-                </button>
+                
               </div>
             </>
           )}
 
           {activeTab === 'preTrip' && (
-            <div className="px-6 mt-6 space-y-4 pb-10">
+            <div className="px-4 sm:px-6 mt-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">📋 出國前待辦</h3>
                 <Checklist
@@ -592,7 +646,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'packing' && (
-            <div className="px-6 mt-6 space-y-4 pb-10">
+            <div className="px-4 sm:px-6 mt-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">🎒 打包清單</h3>
                 <PackingListContent
@@ -608,7 +662,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'flights' && (
-            <div className="px-6 mt-6 pb-10">
+            <div className="px-4 sm:px-6 mt-6 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">🧭 旅程資訊</h3>
                 <input
@@ -621,12 +675,12 @@ const TripDetailPage = () => {
                       title: e.target.value
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                 />
-                <label className="block text-xs text-gray-500 mb-1">旅程期間</label>
+                <label className="block tp-caption-text text-gray-500 mb-1">旅程期間</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-1">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">開始日期</label>
+                    <label className="block tp-caption-text text-gray-400 mb-1">開始日期</label>
                     <input
                       type="date"
                       value={tripDetails?.dateRange?.start || ''}
@@ -641,11 +695,11 @@ const TripDetailPage = () => {
                           });
                         })
                       }
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">結束日期</label>
+                    <label className="block tp-caption-text text-gray-400 mb-1">結束日期</label>
                     <input
                       type="date"
                       value={tripDetails?.dateRange?.end || ''}
@@ -660,12 +714,12 @@ const TripDetailPage = () => {
                           });
                         })
                       }
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                     />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
-                <label className="block text-xs text-gray-500 mb-1">封面圖網址（選填）</label>
+                <p className="tp-caption-text text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
+                <label className="block tp-caption-text text-gray-500 mb-1">封面圖網址（選填）</label>
                 <input
                   type="url"
                   placeholder="https://example.com/cover.jpg"
@@ -676,9 +730,9 @@ const TripDetailPage = () => {
                       coverImage: e.target.value.trim()
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                 />
-                <label className="block text-xs text-gray-500 mb-1">旅行狀態</label>
+                <label className="block tp-caption-text text-gray-500 mb-1">旅行狀態</label>
                 <select
                   value={tripDetails?.status || 'planning'}
                   onChange={(e) =>
@@ -687,7 +741,7 @@ const TripDetailPage = () => {
                       status: e.target.value
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                 >
                   <option value="planning">planning</option>
                   <option value="ongoing">ongoing</option>
@@ -707,7 +761,7 @@ const TripDetailPage = () => {
                       accommodation: { ...(prev?.accommodation || {}), name: e.target.value }
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                 />
                 <input
                   type="text"
@@ -719,7 +773,7 @@ const TripDetailPage = () => {
                       accommodation: { ...(prev?.accommodation || {}), address: e.target.value }
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                 />
               </div>
 
@@ -743,7 +797,7 @@ const TripDetailPage = () => {
                         }
                       }))
                     }
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                   />
                 </div>
 
@@ -765,7 +819,7 @@ const TripDetailPage = () => {
                         }
                       }))
                     }
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                   />
                 </div>
               </div>
@@ -779,7 +833,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'expenses' && (
-            <div className="px-6 mt-6 pb-10">
+            <div className="px-4 sm:px-6 mt-6 pb-10">
               <ExpenseTracker
                 itinerary={itinerary}
                 expenses={expenses}
@@ -823,14 +877,35 @@ const TripDetailPage = () => {
         onInterfaceSizeChange={setInterfaceSize}
       />
 
-      <button
-        onClick={() => navigate('/')}
-        className="fixed right-4 bottom-24 z-40 md:hidden inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-full shadow-lg active:scale-95"
-        title="回旅程列表"
-      >
-        <Home size={16} />
-        <span className="text-sm font-semibold">回旅程列表</span>
-      </button>
+      {activeTab === 'itinerary' && (
+        <div className="fixed bottom-[72px] left-0 right-0 z-40 px-4 pb-2">
+          <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur border border-gray-200 rounded-2xl shadow-lg p-2">
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={openAddModal}
+                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+              >
+                <Plus size={16} />
+                新增景點
+              </button>
+              <button
+                onClick={saveNow}
+                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-200 text-brand-700 text-sm font-semibold bg-brand-50"
+              >
+                <Save size={16} />
+                儲存
+              </button>
+              <button
+                onClick={goToNextDay}
+                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold"
+              >
+                下一步
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 

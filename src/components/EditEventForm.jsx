@@ -25,15 +25,15 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 tp-body-text">
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">時間</label>
-          <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-slate-200" />
+          <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">時間</label>
+          <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200" />
         </div>
         <div>
-          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">類型</label>
-          <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-slate-200">
+          <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">類型</label>
+          <select name="type" value={formData.type} onChange={handleChange} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200">
             <option value="sightseeing">景點</option>
             <option value="food">美食</option>
             <option value="shopping">購物</option>
@@ -45,30 +45,30 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">標題</label>
-        <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-slate-200" />
+        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">標題</label>
+        <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200" />
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">地點 (用於導航)</label>
+        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">地點 (用於導航)</label>
         <div className="relative">
           <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
+          <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
         </div>
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">描述 / 備註</label>
-        <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200"></textarea>
+        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">描述 / 備註</label>
+        <textarea name="desc" value={formData.desc} onChange={handleChange} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200"></textarea>
       </div>
 
       <div>
-        <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">相關連結 (URL)</label>
+        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">相關連結 (URL)</label>
         <div className="relative">
           <LinkIcon size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <input type="url" name="url" value={formData.url || ""} onChange={handleChange} placeholder="https://example.com" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
+          <input type="url" name="url" value={formData.url || ""} onChange={handleChange} placeholder="https://example.com" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
         </div>
-        <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">例如: 官方網站、購票連結、預約確認等</p>
+        <p className="tp-caption-text text-gray-400 dark:text-slate-500 mt-1">例如: 官方網站、購票連結、預約確認等</p>
       </div>
 
       <div className="p-3 bg-brand-50 dark:bg-brand-900/30 rounded-lg border border-brand-100 dark:border-brand-900/50">

@@ -28,7 +28,8 @@ const Checklist = ({ items = [], onAddItem, onToggleItem, onDeleteItem, title = 
             </span>
             <button
               onClick={() => onDeleteItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all"
+              className="touch-target opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all"
+              title={`刪除 ${item.text}`}
             >
               ✕
             </button>

@@ -16,6 +16,15 @@
     --color-brand-800: 30 64 175;
     --color-brand-900: 30 58 138;
     --color-brand-950: 23 37 84;
+
+    /* Mobile typography & spacing tokens */
+    --font-size-body-mobile: 16px;
+    --font-size-caption-mobile: 14px;
+    --line-height-body: 1.5;
+    --line-height-title: 1.25;
+    --space-section-mobile: 16px;
+    --space-card-mobile: 16px;
+    --space-form-control-mobile: 12px;
   }
 
   /* Dark Mode Overrides - Softer, Desaturated Blue & Slate */
@@ -33,6 +42,43 @@
     --color-brand-800: 30 58 138;   /* Blue 900 */
     --color-brand-900: 15 23 42;    /* Slate 900 */
     --color-brand-950: 2 6 23;      /* Slate 950 */
+  }
+}
+
+@layer base {
+  p {
+    line-height: var(--line-height-body);
+  }
+
+  h1, h2, h3, h4 {
+    line-height: var(--line-height-title);
+  }
+}
+
+@layer components {
+  .tp-body-text {
+    font-size: var(--font-size-body-mobile);
+    line-height: var(--line-height-body);
+  }
+
+  .tp-caption-text {
+    font-size: var(--font-size-caption-mobile);
+    line-height: 1.45;
+  }
+
+  .tp-section-gap {
+    margin-top: var(--space-section-mobile);
+  }
+
+  .tp-card-padding {
+    padding: var(--space-card-mobile);
+  }
+
+  .tp-form-control {
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: var(--font-size-body-mobile);
+    line-height: var(--line-height-body);
   }
 }
 
@@ -77,4 +123,19 @@ html, body {
 
 .interface-size-large {
   font-size: 18px;
+}
+
+@layer components {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .touch-stack > * + * {
+    margin-top: 8px;
+  }
+
+  .touch-row > * + * {
+    margin-left: 8px;
+  }
 }
