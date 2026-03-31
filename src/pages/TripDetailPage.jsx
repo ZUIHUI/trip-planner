@@ -18,6 +18,7 @@ import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
+const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 
 const syncTripMetaToLocalIndex = (tripId, patch) => {
   try {
@@ -122,6 +123,11 @@ const TripDetailPage = () => {
 
   useEffect(() => {
     if (!tripId) return;
+    localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
+  }, [tripId]);
+
+  useEffect(() => {
+    if (!tripId) return;
     syncTripMetaToLocalIndex(tripId, {
       title: tripDetails?.title || '未命名旅程',
       status: tripDetails?.status || 'planning',
@@ -214,6 +220,21 @@ const TripDetailPage = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleBackToTrips = () => {
+    const hasHistory =
+      typeof window !== 'undefined' &&
+      window.history &&
+      window.history.length > 1 &&
+      (typeof window.history.state?.idx !== 'number' || window.history.state.idx > 0);
+
+    if (hasHistory) {
+      navigate(-1);
+      return;
+    }
+
+    navigate('/');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
@@ -231,7 +252,7 @@ const TripDetailPage = () => {
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="relative">
         <button
-          onClick={() => navigate('/')}
+          onClick={handleBackToTrips}
           className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
           title="返回旅程列表"
         >

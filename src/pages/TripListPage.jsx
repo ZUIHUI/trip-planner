@@ -4,6 +4,7 @@ import { CalendarDays, Plus, Search, Trash2, MapPinned } from 'lucide-react';
 import { createTrip, deleteTrip, listTrips } from '../services/tripService';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
+const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 
 const createEmptyItinerary = (days = 6) => {
   return Array.from({ length: days }, (_, i) => ({
@@ -45,6 +46,13 @@ const saveLocalTrips = (trips) => {
   localStorage.setItem(TRIP_INDEX_KEY, JSON.stringify(trips));
 };
 
+const getLastOpenedTripId = () => localStorage.getItem(LAST_OPENED_TRIP_KEY) || '';
+
+const setLastOpenedTripId = (tripId) => {
+  if (!tripId) return;
+  localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
+};
+
 const statusLabel = {
   planning: '規劃中',
   ongoing: '進行中',
@@ -57,6 +65,7 @@ const TripListPage = () => {
   const [newTripTitle, setNewTripTitle] = useState('');
   const [keyword, setKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [lastOpenedTripId, setLastOpenedTripIdState] = useState(() => getLastOpenedTripId());
 
   useEffect(() => {
     const init = async () => {
@@ -107,6 +116,11 @@ const TripListPage = () => {
       .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
   }, [trips, keyword]);
 
+  const lastOpenedTrip = useMemo(
+    () => trips.find((trip) => trip.id === lastOpenedTripId),
+    [trips, lastOpenedTripId]
+  );
+
   const handleCreateTrip = async () => {
     const title = newTripTitle.trim();
     if (!title) {
@@ -146,6 +160,8 @@ const TripListPage = () => {
         updatedAt: now
       });
       setNewTripTitle('');
+      setLastOpenedTripId(tripId);
+      setLastOpenedTripIdState(tripId);
       navigate(`/trip/${tripId}`);
     } catch (error) {
       setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
@@ -171,6 +187,10 @@ const TripListPage = () => {
 
     const localTripRaw = localStorage.getItem(getStorageKey(tripId));
     localStorage.removeItem(getStorageKey(tripId));
+    if (tripId === lastOpenedTripId) {
+      localStorage.removeItem(LAST_OPENED_TRIP_KEY);
+      setLastOpenedTripIdState('');
+    }
 
     try {
       await deleteTrip(tripId);
@@ -180,15 +200,36 @@ const TripListPage = () => {
       if (localTripRaw) {
         localStorage.setItem(getStorageKey(tripId), localTripRaw);
       }
+      if (tripId === lastOpenedTripId) {
+        setLastOpenedTripId(tripId);
+        setLastOpenedTripIdState(tripId);
+      }
       alert('刪除失敗，已回復原始資料');
       console.error(error);
     }
+  };
+
+  const openTripDetail = (tripId) => {
+    setLastOpenedTripId(tripId);
+    setLastOpenedTripIdState(tripId);
+    navigate(`/trip/${tripId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900">Trip Planner</h1>
+
+        {lastOpenedTrip && (
+          <div className="mt-4">
+            <button
+              onClick={() => openTripDetail(lastOpenedTrip.id)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+            >
+              返回目前旅程：{lastOpenedTrip.title}
+            </button>
+          </div>
+        )}
 
         <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
           <input
@@ -230,7 +271,7 @@ const TripListPage = () => {
               <div key={trip.id} className="rounded-xl bg-white p-4 shadow-sm border border-gray-200">
                 <div className="flex items-start justify-between gap-4">
                   <button
-                    onClick={() => navigate(`/trip/${trip.id}`)}
+                    onClick={() => openTripDetail(trip.id)}
                     className="text-left flex-1"
                   >
                     {trip.coverImage ? (
