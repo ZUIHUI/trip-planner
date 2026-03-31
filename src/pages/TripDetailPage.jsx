@@ -16,6 +16,7 @@ import WeatherWidget from '../components/WeatherWidget';
 import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
+import { getTripDisplayDates, normalizeTripDateFields, formatDateRangeText } from '../utils/tripDates';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
@@ -68,6 +69,7 @@ const TripDetailPage = () => {
   const defaultTripDetails = useMemo(() => ({
     title: '',
     dates: '',
+    dateRange: { start: '', end: '' },
     status: 'planning',
     coverImage: '',
     accommodation: {},
@@ -139,6 +141,7 @@ const TripDetailPage = () => {
   const currentDayData = itinerary.find(d => d.day === selectedDay);
   const currentDayTitle = currentDayData?.title?.trim() || `Day ${selectedDay}`;
   const currentDayDate = currentDayData?.date?.trim() || `Day ${selectedDay}`;
+  const tripDisplayDates = getTripDisplayDates(tripDetails);
 
   useEffect(() => {
     setSelectedEventLocation(null);
@@ -283,7 +286,7 @@ const TripDetailPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
                     <p className="text-gray-500 text-xs mb-1">旅程期間</p>
-                    <p className="text-lg font-bold text-gray-800">{tripDetails?.dates || '未設定'}</p>
+                    <p className="text-lg font-bold text-gray-800">{tripDisplayDates || '未設定'}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-gray-500 text-xs mb-1">天數</p>
@@ -559,19 +562,47 @@ const TripDetailPage = () => {
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
                 />
                 <label className="block text-xs text-gray-500 mb-1">旅程期間</label>
-                <input
-                  type="text"
-                  placeholder="2026/04/10 - 2026/04/15"
-                  value={tripDetails?.dates || ''}
-                  onChange={(e) =>
-                    setTripDetails((prev) => ({
-                      ...prev,
-                      dates: e.target.value
-                    }))
-                  }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-1"
-                />
-                <p className="text-xs text-gray-500 mb-2">建議格式：YYYY/MM/DD - YYYY/MM/DD</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-1">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">開始日期</label>
+                    <input
+                      type="date"
+                      value={tripDetails?.dateRange?.start || ''}
+                      onChange={(e) =>
+                        setTripDetails((prev) => {
+                          const start = e.target.value;
+                          const end = prev?.dateRange?.end || '';
+                          return normalizeTripDateFields({
+                            ...prev,
+                            dateRange: { ...(prev?.dateRange || {}), start },
+                            dates: formatDateRangeText(start, end)
+                          });
+                        })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">結束日期</label>
+                    <input
+                      type="date"
+                      value={tripDetails?.dateRange?.end || ''}
+                      onChange={(e) =>
+                        setTripDetails((prev) => {
+                          const end = e.target.value;
+                          const start = prev?.dateRange?.start || '';
+                          return normalizeTripDateFields({
+                            ...prev,
+                            dateRange: { ...(prev?.dateRange || {}), end },
+                            dates: formatDateRangeText(start, end)
+                          });
+                        })
+                      }
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
                 <label className="block text-xs text-gray-500 mb-1">封面圖網址（選填）</label>
                 <input
                   type="url"

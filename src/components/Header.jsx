@@ -1,9 +1,11 @@
 import React, { useState, useEffect, forwardRef, useRef } from 'react';
 import { Plane, Home, Settings, Calendar, RefreshCw } from 'lucide-react';
+import { getTripDisplayDates } from '../utils/tripDates';
 
 const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, isSaving, children, isScrolled }, ref) => {
   // Tab 導航已移至 BottomNavigation 組件
-  
+  const displayDates = getTripDisplayDates(details);
+
   return (
     <div ref={ref} className="bg-white dark:bg-slate-950 sticky top-0 z-30 shadow-sm transition-colors duration-300 will-change-transform">
       {/* Main Header Content - Gradient Background */}
@@ -24,7 +26,7 @@ const Header = forwardRef(({ details, activeTab, onTabChange, onSettingsOpen, is
         <div className={`relative flex justify-between items-center transition-all duration-300 ${isScrolled ? 'mb-0' : 'mb-4'}`}>
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-sm">
             <Calendar size={14} className="text-brand-100" />
-            <span className="text-xs font-medium text-brand-50 tracking-wide">{details?.dates || '未設定日期'}</span>
+            <span className="text-xs font-medium text-brand-50 tracking-wide">{displayDates || '未設定日期'}</span>
           </div>
           
           <div className="flex items-center gap-3">
