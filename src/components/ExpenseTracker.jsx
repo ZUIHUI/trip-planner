@@ -241,6 +241,21 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
 
+  const stickyAddExpenseButton = (
+    <div className="fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-[var(--z-sticky-cta)] px-4 pb-2">
+      <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+          title="新增支出"
+        >
+          <Plus size={16} />
+          新增支出
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 pb-24 relative">
       {/* 總覽卡片 */}
@@ -413,18 +428,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
         )}
       </div>
 
-      <div className="fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-[var(--z-sticky-cta)] px-4 pb-2">
-        <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
-            title="新增支出"
-          >
-            <Plus size={16} />
-            新增支出
-          </button>
-        </div>
-      </div>
+      {modalRoot ? createPortal(stickyAddExpenseButton, modalRoot) : stickyAddExpenseButton}
 
       {/* Add/Edit Modal */}
       {isFormOpen && modalRoot && createPortal(
