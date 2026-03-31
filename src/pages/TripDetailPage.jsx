@@ -25,6 +25,38 @@ const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
 const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
+const MAX_AUTO_GENERATED_DAYS = 30;
+
+const getDateRangeDays = (startDate, endDate) => {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return 0;
+  const diffMs = end.getTime() - start.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+};
+
+const buildAutoItineraryFromDateRange = (existingItinerary, startDate, endDate) => {
+  const dayCount = Math.min(getDateRangeDays(startDate, endDate), MAX_AUTO_GENERATED_DAYS);
+  if (dayCount <= 0) return existingItinerary;
+
+  const start = new Date(`${startDate}T00:00:00`);
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return Array.from({ length: dayCount }, (_, index) => {
+    const currentDate = new Date(start);
+    currentDate.setDate(start.getDate() + index);
+    const legacyDay = existingItinerary[index];
+
+    return {
+      day: index + 1,
+      date: `${currentDate.getMonth() + 1}/${currentDate.getDate()}`,
+      weekday: weekdays[currentDate.getDay()],
+      title: legacyDay?.title || `Day ${index + 1}`,
+      events: legacyDay?.events || []
+    };
+  });
+};
 
 const syncTripMetaToLocalIndex = (tripId, patch) => {
   try {
@@ -154,6 +186,29 @@ const TripDetailPage = () => {
       eventCount: totalEvents
     });
   }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents]);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const startDate = tripDetails?.dateRange?.start || '';
+    const endDate = tripDetails?.dateRange?.end || '';
+    const computedDays = getDateRangeDays(startDate, endDate);
+
+    if (!computedDays) return;
+
+    setItinerary((prev) => {
+      if (!Array.isArray(prev)) return prev;
+
+      const next = buildAutoItineraryFromDateRange(prev, startDate, endDate);
+      if (next.length === prev.length) {
+        const hasAnyDateMismatch = next.some((day, index) => day.date !== prev[index]?.date || day.weekday !== prev[index]?.weekday);
+        if (!hasAnyDateMismatch) return prev;
+      }
+      return next;
+    });
+
+    setSelectedDay((prevSelectedDay) => Math.min(Math.max(prevSelectedDay, 1), computedDays));
+  }, [tripDetails?.dateRange?.start, tripDetails?.dateRange?.end, isLoading, setItinerary]);
 
 
   useEffect(() => {
@@ -949,6 +1004,12 @@ const TripDetailPage = () => {
         onThemeChange={setCurrentTheme}
         interfaceSize={interfaceSize}
         onInterfaceSizeChange={setInterfaceSize}
+        exchangeRate={exchangeRate}
+        onExchangeRateChange={setExchangeRate}
+        onUpdateRate={handleManualRateUpdate}
+        lastUpdateDate={lastUpdateDate}
+        isRateUpdating={isRateUpdating}
+        rateUpdateError={rateUpdateError}
         coverImage={tripDetails?.coverImage || ''}
         onCoverImageChange={(nextCoverImage) =>
           setTripDetails((prev) => ({

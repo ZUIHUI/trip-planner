@@ -24,6 +24,19 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
     }
   };
 
+  const trimmedLocation = (formData.location || '').trim();
+  const mapEmbedUrl = trimmedLocation
+    ? `https://www.google.com/maps?q=${encodeURIComponent(trimmedLocation)}&output=embed`
+    : '';
+  const mapSearchRecommendations = trimmedLocation
+    ? [
+        { label: '附近景點', keyword: '景點' },
+        { label: '附近餐廳', keyword: '餐廳' },
+        { label: '附近咖啡', keyword: '咖啡' },
+        { label: '附近購物', keyword: '購物' }
+      ]
+    : [];
+
   return (
     <div className="space-y-4 tp-body-text">
       <div className="grid grid-cols-2 gap-2">
@@ -55,6 +68,33 @@ const EditEventForm = ({ event, onSave, onCancel }) => {
           <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
           <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200" />
         </div>
+        {trimmedLocation && (
+          <div className="mt-3 space-y-2">
+            <p className="tp-caption-text text-gray-500 dark:text-slate-400">Google Maps 預覽</p>
+            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-600">
+              <iframe
+                title="location-map-preview"
+                src={mapEmbedUrl}
+                className="h-44 w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {mapSearchRecommendations.map((item) => (
+                <a
+                  key={item.keyword}
+                  href={`https://www.google.com/maps/search/${encodeURIComponent(`${trimmedLocation} ${item.keyword}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
