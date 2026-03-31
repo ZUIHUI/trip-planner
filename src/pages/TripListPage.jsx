@@ -221,6 +221,13 @@ const TripListPage = () => {
     navigate(`/trip/${tripId}`);
   };
 
+  const toggleExpandedCard = (tripId) => {
+    setExpandedCards((prev) => ({
+      ...prev,
+      [tripId]: !prev[tripId]
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
@@ -328,6 +335,9 @@ const TripListPage = () => {
                         <MapPinned size={24} />
                       </div>
                     )}
+                  </div>
+
+                  <div>
                     <p className="text-lg font-semibold text-gray-900">{trip.title}</p>
                     <div className="mt-1 flex flex-col items-start gap-1 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-3">
                       <span className="inline-flex items-center gap-1">
@@ -339,15 +349,37 @@ const TripListPage = () => {
                       </span>
                     </div>
                   </button>
+
                   <button
-                    onClick={() => handleDeleteTrip(trip.id)}
-                    className="rounded-lg border border-red-200 p-2 text-red-500 hover:bg-red-50"
-                    title="刪除旅程"
+                    onClick={() => toggleExpandedCard(trip.id)}
+                    className="inline-flex items-center text-xs text-gray-500 hover:text-gray-700"
                   >
-                    <Trash2 size={16} />
+                    {expandedCards[trip.id] ? '收合次要資訊' : '展開次要資訊'}
+                    <ChevronDown size={14} className={`ml-1 transition-transform ${expandedCards[trip.id] ? 'rotate-180' : ''}`} />
                   </button>
+
+                  {expandedCards[trip.id] && (
+                    <div className="pt-3 border-t border-gray-100 space-y-3">
+                      <div className="inline-flex items-center gap-1 text-xs text-gray-500">
+                        <CalendarDays size={14} />
+                        建立於 {new Date(trip.createdAt || trip.updatedAt).toLocaleString()}
+                      </div>
+                      <div>
+                        <button
+                          onClick={() => handleDeleteTrip(trip.id)}
+                          className="rounded-lg px-3 py-2 text-sm text-red-500 hover:bg-red-50"
+                          title="刪除旅程"
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            <Trash2 size={14} />
+                            刪除旅程
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              </article>
             ))
           )}
 
