@@ -17,6 +17,7 @@ import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { getTripDisplayDates, normalizeTripDateFields, formatDateRangeText } from '../utils/tripDates';
+import { normalizeCoverImageUrl } from '../utils/coverImage';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
@@ -66,6 +67,7 @@ const TripDetailPage = () => {
   const [selectedEventLocation, setSelectedEventLocation] = useState(null);
   const [isEditingDayMeta, setIsEditingDayMeta] = useState(false);
   const [dayMetaDraft, setDayMetaDraft] = useState({ title: '', date: '' });
+  const [coverImageLoadFailed, setCoverImageLoadFailed] = useState(false);
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -156,6 +158,12 @@ const TripDetailPage = () => {
   const currentDayDate = currentDayData?.date?.trim() || `Day ${selectedDay}`;
   const tripDisplayDates = getTripDisplayDates(tripDetails);
 
+  const coverImageUrl = useMemo(
+    () => normalizeCoverImageUrl(tripDetails?.coverImage),
+    [tripDetails?.coverImage]
+  );
+  const shouldShowCoverBackground = Boolean(coverImageUrl && !coverImageLoadFailed);
+
   useEffect(() => {
     setSelectedEventLocation(null);
   }, [selectedDay]);
@@ -167,6 +175,33 @@ const TripDetailPage = () => {
       date: currentDayDate
     });
   }, [selectedDay, currentDayTitle, currentDayDate]);
+
+  useEffect(() => {
+    setCoverImageLoadFailed(false);
+
+    if (!coverImageUrl) return;
+
+    let cancelled = false;
+    const image = new Image();
+
+    image.onload = () => {
+      if (!cancelled) {
+        setCoverImageLoadFailed(false);
+      }
+    };
+
+    image.onerror = () => {
+      if (!cancelled) {
+        setCoverImageLoadFailed(true);
+      }
+    };
+
+    image.src = coverImageUrl;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverImageUrl]);
 
   const handleSaveEvent = (eventData) => {
     if (editingEvent) {
@@ -265,8 +300,30 @@ const TripDetailPage = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 font-sans interface-size-${interfaceSize}`}>
-      <div className="relative">
+    <div
+      className={`relative min-h-screen font-sans interface-size-${interfaceSize} ${shouldShowCoverBackground ? '' : 'bg-gray-50'}`}
+      style={
+        shouldShowCoverBackground
+          ? {
+              backgroundImage: `url(${coverImageUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }
+          : undefined
+      }
+    >
+      <div
+        className={`pointer-events-none absolute inset-0 transition-colors ${
+          shouldShowCoverBackground
+            ? currentTheme === 'dark'
+              ? 'bg-black/55'
+              : 'bg-white/45'
+            : currentTheme === 'dark'
+              ? 'bg-slate-900/25'
+              : 'bg-transparent'
+        }`}
+      />
+      <div className="relative z-10">
         <button
           onClick={handleBackToTrips}
           className="absolute top-4 left-4 p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20"
@@ -291,7 +348,7 @@ const TripDetailPage = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="pt-4">
+        <div className="pt-4 rounded-2xl bg-white/80 supports-[backdrop-filter]:bg-white/70 backdrop-blur-sm shadow-sm">
           {activeTab === 'summary' && (
             <div className="px-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -624,7 +681,7 @@ const TripDetailPage = () => {
                   onChange={(e) =>
                     setTripDetails((prev) => ({
                       ...prev,
-                      coverImage: e.target.value
+                      coverImage: e.target.value.trim()
                     }))
                   }
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
