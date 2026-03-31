@@ -223,7 +223,7 @@ const TripListPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         <h1 className="text-3xl font-bold text-gray-900">Trip Planner</h1>
         <p className="mt-2 text-sm text-gray-600">主要任務：建立或繼續旅程，下一步是點「開始規劃」。</p>
 
@@ -285,11 +285,11 @@ const TripListPage = () => {
             value={newTripTitle}
             onChange={(event) => setNewTripTitle(event.target.value)}
             placeholder="輸入新的旅程名稱"
-            className="w-full rounded-xl border border-gray-300 px-4 py-3"
+            className="w-full rounded-xl border border-gray-300 tp-form-control"
           />
           <button
             onClick={handleCreateTrip}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-white"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 tp-body-text font-semibold text-white"
           >
             <Plus size={18} />
             開始規劃
@@ -298,9 +298,9 @@ const TripListPage = () => {
 
         <div className="mt-6 space-y-3">
           {isLoading ? (
-            <p className="text-sm text-gray-500">讀取旅程中...</p>
+            <p className="tp-caption-text text-gray-500">讀取旅程中...</p>
           ) : sortedAndFilteredTrips.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-gray-500">
+            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center tp-body-text text-gray-500">
               尚無符合條件的旅程
             </div>
           ) : (

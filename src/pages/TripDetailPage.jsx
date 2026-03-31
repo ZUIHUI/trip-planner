@@ -349,7 +349,7 @@ const TripDetailPage = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="pt-4 rounded-2xl bg-white/80 supports-[backdrop-filter]:bg-white/70 backdrop-blur-sm shadow-sm">
           {activeTab === 'summary' && (
-            <div className="px-6 space-y-4 pb-10">
+            <div className="px-4 sm:px-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">旅程概覽</h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -530,7 +530,7 @@ const TripDetailPage = () => {
                       ) : (
                         <>
                           <h2 className="text-xl font-bold text-gray-800">{currentDayTitle}</h2>
-                          <p className="text-sm text-gray-500">{currentDayDate}</p>
+                          <p className="tp-caption-text text-gray-500">{currentDayDate}</p>
                         </>
                       )
                     ) : (
@@ -628,7 +628,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'preTrip' && (
-            <div className="px-6 mt-6 space-y-4 pb-10">
+            <div className="px-4 sm:px-6 mt-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">📋 出國前待辦</h3>
                 <Checklist
@@ -642,7 +642,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'packing' && (
-            <div className="px-6 mt-6 space-y-4 pb-10">
+            <div className="px-4 sm:px-6 mt-6 space-y-4 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">🎒 打包清單</h3>
                 <PackingListContent
@@ -658,7 +658,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'flights' && (
-            <div className="px-6 mt-6 pb-10">
+            <div className="px-4 sm:px-6 mt-6 pb-10">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">🧭 旅程資訊</h3>
                 <input
@@ -671,12 +671,12 @@ const TripDetailPage = () => {
                       title: e.target.value
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                 />
-                <label className="block text-xs text-gray-500 mb-1">旅程期間</label>
+                <label className="block tp-caption-text text-gray-500 mb-1">旅程期間</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-1">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">開始日期</label>
+                    <label className="block tp-caption-text text-gray-400 mb-1">開始日期</label>
                     <input
                       type="date"
                       value={tripDetails?.dateRange?.start || ''}
@@ -691,11 +691,11 @@ const TripDetailPage = () => {
                           });
                         })
                       }
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">結束日期</label>
+                    <label className="block tp-caption-text text-gray-400 mb-1">結束日期</label>
                     <input
                       type="date"
                       value={tripDetails?.dateRange?.end || ''}
@@ -710,12 +710,12 @@ const TripDetailPage = () => {
                           });
                         })
                       }
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                     />
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
-                <label className="block text-xs text-gray-500 mb-1">封面圖網址（選填）</label>
+                <p className="tp-caption-text text-gray-500 mb-2">儲存時會同步寫入新欄位與舊版 dates 字串</p>
+                <label className="block tp-caption-text text-gray-500 mb-1">封面圖網址（選填）</label>
                 <input
                   type="url"
                   placeholder="https://example.com/cover.jpg"
@@ -726,9 +726,9 @@ const TripDetailPage = () => {
                       coverImage: e.target.value.trim()
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                 />
-                <label className="block text-xs text-gray-500 mb-1">旅行狀態</label>
+                <label className="block tp-caption-text text-gray-500 mb-1">旅行狀態</label>
                 <select
                   value={tripDetails?.status || 'planning'}
                   onChange={(e) =>
@@ -737,7 +737,7 @@ const TripDetailPage = () => {
                       status: e.target.value
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                 >
                   <option value="planning">planning</option>
                   <option value="ongoing">ongoing</option>
@@ -757,7 +757,7 @@ const TripDetailPage = () => {
                       accommodation: { ...(prev?.accommodation || {}), name: e.target.value }
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                 />
                 <input
                   type="text"
@@ -769,7 +769,7 @@ const TripDetailPage = () => {
                       accommodation: { ...(prev?.accommodation || {}), address: e.target.value }
                     }))
                   }
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                 />
               </div>
 
@@ -793,7 +793,7 @@ const TripDetailPage = () => {
                         }
                       }))
                     }
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mb-2"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control mb-2"
                   />
                 </div>
 
@@ -815,7 +815,7 @@ const TripDetailPage = () => {
                         }
                       }))
                     }
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg tp-form-control"
                   />
                 </div>
               </div>
@@ -829,7 +829,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'expenses' && (
-            <div className="px-6 mt-6 pb-10">
+            <div className="px-4 sm:px-6 mt-6 pb-10">
               <ExpenseTracker
                 itinerary={itinerary}
                 expenses={expenses}
