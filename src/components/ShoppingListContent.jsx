@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn, Pencil, GripVertical } from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { updateShoppingList, updateShoppingCategories } from '../services/tripService';
 
-const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
+const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,6 +41,13 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [draggedItemId, setDraggedItemId] = useState(null);
+
+  useImperativeHandle(ref, () => ({
+    openAddForm: () => {
+      setEditingId(null);
+      setShowAddForm(true);
+    }
+  }), []);
 
   const renderToBody = (node) => {
     if (typeof document === 'undefined') return null;
@@ -654,21 +661,8 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
          )}
        </div>
 
-       <div className="fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-[var(--z-sticky-cta)] px-4 pb-2">
-         <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
-           <button
-             onClick={() => setShowAddForm(true)}
-             className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
-             title="新增購物項目"
-             aria-label="新增購物項目"
-           >
-             <Plus size={16} />
-             新增購物項目
-           </button>
-         </div>
-       </div>
     </div>
   );
-};
+});
 
 export default ShoppingListContent;
