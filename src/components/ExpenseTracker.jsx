@@ -402,14 +402,18 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
         )}
       </div>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setIsFormOpen(true)}
-        className="fixed bottom-[86px] left-1/2 -translate-x-1/2 w-14 h-14 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 flex items-center justify-center transition-all duration-200 hover:scale-110 z-40"
-        title="新增支出"
-      >
-        <Plus size={28} />
-      </button>
+      <div className="fixed bottom-[72px] left-0 right-0 z-40 px-4 pb-2">
+        <div className="mx-auto max-w-3xl bg-white/70 dark:bg-slate-900/70 supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60 backdrop-blur border border-gray-200/80 dark:border-slate-700/80 rounded-2xl shadow-lg p-2">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+            title="新增支出"
+          >
+            <Plus size={16} />
+            新增支出
+          </button>
+        </div>
+      </div>
 
       {/* Add/Edit Modal */}
       {isFormOpen && (
