@@ -450,24 +450,10 @@ const TripDetailPage = () => {
                 onSelectDay={setSelectedDay}
               />
 
-              <div className="px-6 mt-4 pb-20">
-                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                  <h3 className="text-sm font-bold text-gray-800">行程頁首屏模組盤點</h3>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <div className="flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2">
-                      <span>Day 切換 + 今日行程列表 + 新增行程</span>
-                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">主要任務</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                      <span>天氣、花費統計、補充資訊</span>
-                      <span className="rounded-full bg-gray-600 px-2 py-0.5 text-xs text-white">次要資訊</span>
-                    </div>
-                  </div>
-                </div>
-
+              <div className="px-6 mt-2 pb-20">
                 <button
                   onClick={() => setShowSecondaryModules((prev) => !prev)}
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-gray-600"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-gray-600"
                 >
                   {showSecondaryModules ? '收合次要資訊' : '查看更多次要資訊'}
                   {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
