@@ -16,6 +16,8 @@ const SettingsPanel = ({
   onExchangeRateChange,
   onUpdateRate,
   lastUpdateDate,
+  isRateUpdating = false,
+  rateUpdateError = '',
   coverImage,
   onCoverImageChange
 }) => {
