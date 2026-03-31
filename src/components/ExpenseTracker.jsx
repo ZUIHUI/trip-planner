@@ -425,8 +425,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
       {/* Add/Edit Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 w-full h-[92dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 overflow-y-auto">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
               <h3 className="font-bold text-lg text-gray-800 dark:text-white">
                 {editingId ? '編輯支出' : '新增支出'}

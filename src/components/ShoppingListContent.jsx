@@ -421,8 +421,8 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
 
        {/* Add Form Modal/Panel */}
        {showAddForm && (
-         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-           <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4">
+           <div className="bg-white dark:bg-slate-800 w-full h-[92dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-t-2xl sm:rounded-xl overflow-y-auto p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
                <button onClick={resetForm} className="touch-target" title="關閉編輯表單"><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
