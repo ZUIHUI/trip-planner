@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Edit2, Trash2, DollarSign, Calendar, X, Save, Tag, Users, CheckCircle2, ArrowRight, Wallet } from 'lucide-react';
 
 const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [], onModalOpenChange }) => {
@@ -238,6 +239,8 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
     }, {});
   }, [filteredExpenses]);
 
+  const modalRoot = typeof document !== 'undefined' ? document.body : null;
+
   return (
     <div className="space-y-6 pb-24 relative">
       {/* 總覽卡片 */}
@@ -424,7 +427,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       </div>
 
       {/* Add/Edit Modal */}
-      {isFormOpen && (
+      {isFormOpen && modalRoot && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-none sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 overflow-y-auto">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
@@ -601,9 +604,9 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
             </form>
           </div>
         </div>
-      )}
+      , modalRoot)}
       {/* Settlement Modal */}
-      {isSettlementOpen && (
+      {isSettlementOpen && modalRoot && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-2xl w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
@@ -656,7 +659,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
             </div>
           </div>
         </div>
-      )}
+      , modalRoot)}
     </div>
   );
 };
