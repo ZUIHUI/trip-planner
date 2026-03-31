@@ -102,7 +102,9 @@ const TripDetailPage = () => {
     checklists, 
     setChecklists,
     expenses,
-    setExpenses
+    setExpenses,
+    isSaving,
+    saveNow
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
 
   const budgetInfo = useBudget(itinerary);
@@ -278,6 +280,12 @@ const TripDetailPage = () => {
     setIsEditModalOpen(true);
   };
 
+  const goToNextDay = () => {
+    if (!itinerary.length) return;
+    const nextDay = selectedDay >= itinerary.length ? 1 : selectedDay + 1;
+    setSelectedDay(nextDay);
+  };
+
   const handleBackToTrips = () => {
     const hasHistory =
       typeof window !== 'undefined' &&
@@ -333,8 +341,9 @@ const TripDetailPage = () => {
       <div className="relative z-10">
         <button
           onClick={handleBackToTrips}
-          className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20 text-sm font-medium"
+          className="touch-target absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20 text-sm font-medium"
           title="返回旅程列表"
+          aria-label="返回旅程列表"
         >
           <ArrowLeft size={22} />
           <span>回旅程列表</span>
@@ -343,6 +352,7 @@ const TripDetailPage = () => {
           details={tripDetails} 
           onGoToTrips={handleBackToTrips}
           onSettingsOpen={() => setIsSettingsOpen(true)}
+          isSaving={isSaving}
         />
       </div>
 
@@ -503,7 +513,7 @@ const TripDetailPage = () => {
                             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600"
                             placeholder={`Day ${selectedDay}`}
                           />
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 touch-row">
                             <button
                               onClick={() => {
                                 handleUpdateDayMeta(selectedDay, {
@@ -512,7 +522,7 @@ const TripDetailPage = () => {
                                 });
                                 setIsEditingDayMeta(false);
                               }}
-                              className="text-sm px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+                              className="touch-target text-sm px-3 py-1 rounded-lg bg-blue-500 text-white hover:bg-blue-600"
                             >
                               儲存
                             </button>
@@ -521,7 +531,7 @@ const TripDetailPage = () => {
                                 setDayMetaDraft({ title: currentDayTitle, date: currentDayDate });
                                 setIsEditingDayMeta(false);
                               }}
-                              className="text-sm px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                              className="touch-target text-sm px-3 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
                             >
                               取消
                             </button>
@@ -557,7 +567,7 @@ const TripDetailPage = () => {
                       <p>尚無行程</p>
                       <button
                         onClick={openAddModal}
-                        className="mt-2 text-blue-500 font-bold text-sm"
+                        className="touch-target mt-2 text-blue-500 font-bold text-sm px-2"
                       >
                         + 新增第一個行程
                       </button>
@@ -616,13 +626,7 @@ const TripDetailPage = () => {
                   </div>
                 )}
 
-                <button
-                  onClick={openAddModal}
-                  className="w-full mt-6 py-3 border-2 border-dashed border-blue-300 text-blue-500 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center justify-center"
-                >
-                  <Plus size={20} className="mr-2" />
-                  新增行程
-                </button>
+                
               </div>
             </>
           )}
@@ -873,14 +877,35 @@ const TripDetailPage = () => {
         onInterfaceSizeChange={setInterfaceSize}
       />
 
-      <button
-        onClick={() => navigate('/')}
-        className="fixed right-4 bottom-24 z-40 md:hidden inline-flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-full shadow-lg active:scale-95"
-        title="回旅程列表"
-      >
-        <Home size={16} />
-        <span className="text-sm font-semibold">回旅程列表</span>
-      </button>
+      {activeTab === 'itinerary' && (
+        <div className="fixed bottom-[72px] left-0 right-0 z-40 px-4 pb-2">
+          <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur border border-gray-200 rounded-2xl shadow-lg p-2">
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={openAddModal}
+                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+              >
+                <Plus size={16} />
+                新增景點
+              </button>
+              <button
+                onClick={saveNow}
+                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-200 text-brand-700 text-sm font-semibold bg-brand-50"
+              >
+                <Save size={16} />
+                儲存
+              </button>
+              <button
+                onClick={goToNextDay}
+                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold"
+              >
+                下一步
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 

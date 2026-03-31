@@ -124,3 +124,18 @@ html, body {
 .interface-size-large {
   font-size: 18px;
 }
+
+@layer components {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .touch-stack > * + * {
+    margin-top: 8px;
+  }
+
+  .touch-row > * + * {
+    margin-left: 8px;
+  }
+}
