@@ -4,7 +4,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { updateShoppingList, updateShoppingCategories } from '../services/tripService';
 
-const ShoppingListContent = ({ tripId }) => {
+const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,12 +12,21 @@ const ShoppingListContent = ({ tripId }) => {
   const [filterCategory, setFilterCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [zoomedImage, setZoomedImage] = useState(null);
-  
+
   // Categories State
   const defaultCategories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
   const [categories, setCategories] = useState(defaultCategories);
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+
+  useEffect(() => {
+    const hasModalOpen = showAddForm || isManageCategoriesOpen || Boolean(zoomedImage);
+    onModalOpenChange?.(hasModalOpen);
+
+    return () => {
+      onModalOpenChange?.(false);
+    };
+  }, [showAddForm, isManageCategoriesOpen, zoomedImage, onModalOpenChange]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -342,7 +351,7 @@ const ShoppingListContent = ({ tripId }) => {
 
        {/* Manage Categories Modal */}
        {isManageCategoriesOpen && (
-         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
            <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-sm p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">管理分類</h3>
@@ -390,7 +399,7 @@ const ShoppingListContent = ({ tripId }) => {
        {/* Image Zoom Modal */}
        {zoomedImage && (
          <div 
-           className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4 cursor-pointer"
+           className="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 cursor-pointer"
            onClick={() => setZoomedImage(null)}
          >
            <div className="relative max-w-4xl max-h-[90vh]">
@@ -412,7 +421,7 @@ const ShoppingListContent = ({ tripId }) => {
 
        {/* Add Form Modal/Panel */}
        {showAddForm && (
-         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
            <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
@@ -639,7 +648,7 @@ const ShoppingListContent = ({ tripId }) => {
          )}
        </div>
 
-       <div className="fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-40 px-4 pb-2">
+       <div className={`fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${showAddForm ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
            <button
              onClick={() => setShowAddForm(true)}
