@@ -410,7 +410,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
         )}
       </div>
 
-      <div className={`fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isFormOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+      <div className="fixed bottom-[var(--footer-nav-height,72px)] left-0 right-0 z-[var(--z-sticky-cta)] px-4 pb-2">
         <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
           <button
             onClick={() => setIsFormOpen(true)}

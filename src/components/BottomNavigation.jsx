@@ -36,7 +36,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <div className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-2xl z-30 pb-2 transition-all duration-200 ${isModalOpen ? 'opacity-0 pointer-events-none translate-y-2' : 'opacity-100 pointer-events-auto translate-y-0'}`}>
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shadow-2xl z-[var(--z-bottom-nav)] pb-2">
         <div className="flex justify-between items-center h-16 px-2 gap-2">
           {mainTabs.map((tab) => {
             const Icon = tab.icon;
@@ -75,7 +75,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
 
         {/* Menu Popup */}
         {showMenu && (
-          <div className="absolute bottom-full right-0 mb-2 mr-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden w-52 z-[35]">
+          <div className="absolute bottom-full right-0 mb-2 mr-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden w-52 z-[var(--z-modal)]">
             <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-700">
               <h3 className="font-bold text-gray-800 dark:text-white">更多選項</h3>
               <button
