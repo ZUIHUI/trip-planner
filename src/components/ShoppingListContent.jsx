@@ -351,7 +351,7 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
 
        {/* Manage Categories Modal */}
        {isManageCategoriesOpen && (
-         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4">
            <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-sm p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">管理分類</h3>
@@ -399,7 +399,7 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
        {/* Image Zoom Modal */}
        {zoomedImage && (
          <div 
-           className="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 cursor-pointer"
+           className="fixed inset-0 bg-black/90 z-[130] flex items-center justify-center p-4 cursor-pointer"
            onClick={() => setZoomedImage(null)}
          >
            <div className="relative max-w-4xl max-h-[90vh]">
@@ -421,7 +421,7 @@ const ShoppingListContent = ({ tripId, onModalOpenChange }) => {
 
        {/* Add Form Modal/Panel */}
        {showAddForm && (
-         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4">
+         <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[120] p-0 sm:p-4">
            <div className="bg-white dark:bg-slate-800 w-full h-[92dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-t-2xl sm:rounded-xl overflow-y-auto p-6 shadow-2xl">
              <div className="flex justify-between items-center mb-4">
                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>

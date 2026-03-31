@@ -239,7 +239,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
   }, [filteredExpenses]);
 
   return (
-    <div className="space-y-6 pb-24 relative min-h-[500px]">
+    <div className="space-y-6 pb-24 relative">
       {/* 總覽卡片 */}
       <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
         <div className="flex justify-between items-start">
@@ -425,7 +425,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
 
       {/* Add/Edit Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[var(--z-modal)] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-none sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 overflow-y-auto">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
               <h3 className="font-bold text-lg text-gray-800 dark:text-white">
@@ -604,7 +604,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       )}
       {/* Settlement Modal */}
       {isSettlementOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[var(--z-modal)] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-2xl w-full h-[100dvh] sm:h-auto sm:max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
               <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
