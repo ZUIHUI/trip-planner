@@ -616,7 +616,7 @@ const TripDetailPage = () => {
                   onClick={() => setShowSecondaryModules((prev) => !prev)}
                   className="inline-flex items-center gap-1 text-sm font-medium text-gray-600"
                 >
-                  {showSecondaryModules ? '收合次要資訊' : '查看更多次要資訊'}
+                  {showSecondaryModules ? '收合次要資訊' : '查看更多資訊'}
                   {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
 
