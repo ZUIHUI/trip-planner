@@ -42,7 +42,7 @@ const Header = forwardRef(({
           <Plane size={120} />
         </div>
 
-        <div className={`relative rounded-2xl border border-white/30 bg-white/15 supports-[backdrop-filter]:bg-white/12 backdrop-blur-md shadow-lg px-4 sm:px-5 py-3 sm:py-4 transition-all duration-300 ${isScrolled ? 'mb-2' : 'mb-4'}`}>
+        <div className={`relative rounded-2xl border border-white/20 bg-white/10 supports-[backdrop-filter]:bg-white/5 backdrop-blur-sm shadow-lg px-4 sm:px-5 py-3 sm:py-4 transition-all duration-300 ${isScrolled ? 'mb-2' : 'mb-4'}`}>
           <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <div className="min-w-0 flex-1 space-y-2">
               <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/40 bg-black/20 px-3 py-1.5">
@@ -84,7 +84,7 @@ const Header = forwardRef(({
               )}
               <button
                 onClick={onSettingsOpen}
-                className="touch-target inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-white/35 bg-white/20 px-2.5 backdrop-blur-md shadow-sm transition-all hover:bg-white/30 active:scale-95"
+                className="touch-target inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-white/20 bg-white/10 px-2.5 backdrop-blur-sm shadow-sm transition-all hover:bg-white/20 active:scale-95"
                 title="設定"
                 aria-label="開啟設定"
               >
