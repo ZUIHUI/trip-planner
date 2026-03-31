@@ -426,7 +426,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* Add/Edit Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-none sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-none sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 overflow-y-auto">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
               <h3 className="font-bold text-lg text-gray-800 dark:text-white">
                 {editingId ? '編輯支出' : '新增支出'}
@@ -436,7 +436,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">項目名稱</label>
                 <input
@@ -605,7 +605,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
       {/* Settlement Modal */}
       {isSettlementOpen && (
         <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-2xl w-full h-[100dvh] sm:h-auto sm:max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-2xl w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
             <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
               <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
                 <Wallet size={20} />
@@ -616,7 +616,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
               </button>
             </div>
             
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto">
               {settlements.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-slate-400">
                   <CheckCircle2 size={48} className="mx-auto mb-3 text-emerald-500" />
@@ -651,7 +651,7 @@ const ExpenseTracker = ({ itinerary = [], expenses = [], setExpenses, exchangeRa
               )}
             </div>
             
-            <div className="p-4 bg-gray-50 dark:bg-slate-950/50 text-center text-xs text-gray-500 dark:text-slate-400 border-t border-gray-100 dark:border-slate-800">
+            <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gray-50 dark:bg-slate-950/50 text-center text-xs text-gray-500 dark:text-slate-400 border-t border-gray-100 dark:border-slate-800">
               * 金額皆以台幣 (TWD) 計算，已包含匯率換算
             </div>
           </div>
