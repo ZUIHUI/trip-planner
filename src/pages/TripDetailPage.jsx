@@ -1010,7 +1010,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'expenses' && (
-            <div className="px-4 sm:px-6 mt-6 pb-10">
+            <div className="px-6 mt-2 pb-20">
               <ExpenseTracker
                 itinerary={itinerary}
                 expenses={expenses}
