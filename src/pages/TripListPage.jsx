@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, Plus, Search, Trash2, MapPinned, ChevronDown, ChevronUp } from 'lucide-react';
+import { CalendarDays, Plus, Search, Trash2, MapPinned, ChevronDown } from 'lucide-react';
 import { createTrip, deleteTrip, listTrips } from '../services/tripService';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 
@@ -47,8 +47,6 @@ const saveLocalTrips = (trips) => {
   localStorage.setItem(TRIP_INDEX_KEY, JSON.stringify(trips));
 };
 
-const getLastOpenedTripId = () => localStorage.getItem(LAST_OPENED_TRIP_KEY) || '';
-
 const setLastOpenedTripId = (tripId) => {
   if (!tripId) return;
   localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
@@ -66,10 +64,9 @@ const TripListPage = () => {
   const [newTripTitle, setNewTripTitle] = useState('');
   const [keyword, setKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [lastOpenedTripId, setLastOpenedTripIdState] = useState(() => getLastOpenedTripId());
   const [failedCoverImages, setFailedCoverImages] = useState({});
-  const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
   const [showAllTrips, setShowAllTrips] = useState(false);
+  const [expandedCards, setExpandedCards] = useState({});
 
   useEffect(() => {
     const init = async () => {
@@ -120,10 +117,6 @@ const TripListPage = () => {
       .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
   }, [trips, keyword]);
 
-  const lastOpenedTrip = useMemo(
-    () => trips.find((trip) => trip.id === lastOpenedTripId),
-    [trips, lastOpenedTripId]
-  );
   const visibleTrips = showAllTrips ? sortedAndFilteredTrips : sortedAndFilteredTrips.slice(0, 3);
   const hiddenTripCount = Math.max(sortedAndFilteredTrips.length - visibleTrips.length, 0);
 
@@ -167,7 +160,6 @@ const TripListPage = () => {
       });
       setNewTripTitle('');
       setLastOpenedTripId(tripId);
-      setLastOpenedTripIdState(tripId);
       navigate(`/trip/${tripId}`);
     } catch (error) {
       setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
@@ -193,10 +185,6 @@ const TripListPage = () => {
 
     const localTripRaw = localStorage.getItem(getStorageKey(tripId));
     localStorage.removeItem(getStorageKey(tripId));
-    if (tripId === lastOpenedTripId) {
-      localStorage.removeItem(LAST_OPENED_TRIP_KEY);
-      setLastOpenedTripIdState('');
-    }
 
     try {
       await deleteTrip(tripId);
@@ -206,10 +194,6 @@ const TripListPage = () => {
       if (localTripRaw) {
         localStorage.setItem(getStorageKey(tripId), localTripRaw);
       }
-      if (tripId === lastOpenedTripId) {
-        setLastOpenedTripId(tripId);
-        setLastOpenedTripIdState(tripId);
-      }
       alert('刪除失敗，已回復原始資料');
       console.error(error);
     }
@@ -217,7 +201,6 @@ const TripListPage = () => {
 
   const openTripDetail = (tripId) => {
     setLastOpenedTripId(tripId);
-    setLastOpenedTripIdState(tripId);
     navigate(`/trip/${tripId}`);
   };
 
@@ -232,59 +215,6 @@ const TripListPage = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         <h1 className="text-3xl font-bold text-gray-900">Trip Planner</h1>
-        <p className="mt-2 text-sm text-gray-600">主要任務：建立或繼續旅程，下一步是點「開始規劃」。</p>
-
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
-          <h2 className="text-sm font-bold text-gray-800">首頁首屏模組盤點</h2>
-          <div className="mt-3 space-y-2 text-sm">
-            <div className="flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2">
-              <span>建立旅程輸入框 + 開始規劃 CTA</span>
-              <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">主要任務</span>
-            </div>
-            <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-              <span>返回目前旅程</span>
-              <span className="rounded-full bg-gray-600 px-2 py-0.5 text-xs text-white">次要資訊</span>
-            </div>
-            <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-              <span>旅程搜尋</span>
-              <span className="rounded-full bg-gray-600 px-2 py-0.5 text-xs text-white">次要資訊</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <button
-            onClick={() => setShowSecondaryInfo((prev) => !prev)}
-            className="inline-flex items-center gap-1 text-sm font-medium text-gray-600"
-          >
-            {showSecondaryInfo ? '收合次要資訊' : '展開次要資訊'}
-            {showSecondaryInfo ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
-
-          {showSecondaryInfo && (
-            <div className="mt-3 space-y-3 rounded-xl border border-gray-200 bg-white p-3">
-              {lastOpenedTrip && (
-                <button
-                  onClick={() => openTripDetail(lastOpenedTrip.id)}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
-                >
-                  返回目前旅程：{lastOpenedTrip.title}
-                </button>
-              )}
-
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={keyword}
-                  onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="搜尋旅程關鍵字"
-                  className="w-full rounded-xl border border-gray-300 py-2 pl-9 pr-4"
-                />
-              </div>
-            </div>
-          )}
-        </div>
 
         <div className="mt-6 grid gap-3">
           <input
@@ -303,6 +233,17 @@ const TripListPage = () => {
           </button>
         </div>
 
+        <div className="mt-4 relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="搜尋旅程關鍵字"
+            className="w-full rounded-xl border border-gray-300 py-2 pl-9 pr-4"
+          />
+        </div>
+
         <div className="mt-6 space-y-3">
           {isLoading ? (
             <p className="tp-caption-text text-gray-500">讀取旅程中...</p>
@@ -312,73 +253,66 @@ const TripListPage = () => {
             </div>
           ) : (
             visibleTrips.map((trip) => (
-              <div key={trip.id} className="rounded-xl bg-white p-4 shadow-sm border border-gray-200">
-                <div className="flex items-start justify-between gap-4">
-                  <button
-                    onClick={() => openTripDetail(trip.id)}
-                    className="text-left flex-1"
-                  >
-                    {normalizeCoverImageUrl(trip.coverImage) && !failedCoverImages[trip.id] ? (
-                      <img
-                        src={normalizeCoverImageUrl(trip.coverImage)}
-                        alt={`${trip.title} cover`}
-                        className="h-24 w-full rounded-lg object-cover mb-3"
-                        onError={() =>
-                          setFailedCoverImages((prev) => ({
-                            ...prev,
-                            [trip.id]: true
-                          }))
-                        }
-                      />
-                    ) : (
-                      <div className="mb-3 h-20 w-full rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500">
-                        <MapPinned size={24} />
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-lg font-semibold text-gray-900">{trip.title}</p>
-                    <div className="mt-1 flex flex-col items-start gap-1 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-3">
-                      <span className="inline-flex items-center gap-1">
-                        <CalendarDays size={14} />
-                        更新於 {new Date(trip.updatedAt).toLocaleString()}
-                      </span>
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                        {statusLabel[trip.status] || '規劃中'}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => toggleExpandedCard(trip.id)}
-                    className="inline-flex items-center text-xs text-gray-500 hover:text-gray-700"
-                  >
-                    {expandedCards[trip.id] ? '收合次要資訊' : '展開次要資訊'}
-                    <ChevronDown size={14} className={`ml-1 transition-transform ${expandedCards[trip.id] ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {expandedCards[trip.id] && (
-                    <div className="pt-3 border-t border-gray-100 space-y-3">
-                      <div className="inline-flex items-center gap-1 text-xs text-gray-500">
-                        <CalendarDays size={14} />
-                        建立於 {new Date(trip.createdAt || trip.updatedAt).toLocaleString()}
-                      </div>
-                      <div>
-                        <button
-                          onClick={() => handleDeleteTrip(trip.id)}
-                          className="rounded-lg px-3 py-2 text-sm text-red-500 hover:bg-red-50"
-                          title="刪除旅程"
-                        >
-                          <span className="inline-flex items-center gap-1">
-                            <Trash2 size={14} />
-                            刪除旅程
-                          </span>
-                        </button>
-                      </div>
+              <article key={trip.id} className="rounded-xl bg-white p-4 shadow-sm border border-gray-200">
+                <button onClick={() => openTripDetail(trip.id)} className="w-full text-left">
+                  {normalizeCoverImageUrl(trip.coverImage) && !failedCoverImages[trip.id] ? (
+                    <img
+                      src={normalizeCoverImageUrl(trip.coverImage)}
+                      alt={`${trip.title} cover`}
+                      className="h-24 w-full rounded-lg object-cover mb-3"
+                      onError={() =>
+                        setFailedCoverImages((prev) => ({
+                          ...prev,
+                          [trip.id]: true
+                        }))
+                      }
+                    />
+                  ) : (
+                    <div className="mb-3 h-20 w-full rounded-lg bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center text-blue-500">
+                      <MapPinned size={24} />
                     </div>
                   )}
-                </div>
+
+                  <p className="text-lg font-semibold text-gray-900">{trip.title}</p>
+                  <div className="mt-1 flex flex-col items-start gap-1 text-sm text-gray-500 sm:flex-row sm:items-center sm:gap-3">
+                    <span className="inline-flex items-center gap-1">
+                      <CalendarDays size={14} />
+                      更新於 {new Date(trip.updatedAt).toLocaleString()}
+                    </span>
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                      {statusLabel[trip.status] || '規劃中'}
+                    </span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleExpandedCard(trip.id)}
+                  className="mt-3 inline-flex items-center text-xs text-gray-500 hover:text-gray-700"
+                >
+                  {expandedCards[trip.id] ? '收合詳細資訊' : '展開詳細資訊'}
+                  <ChevronDown size={14} className={`ml-1 transition-transform ${expandedCards[trip.id] ? 'rotate-180' : ''}`} />
+                </button>
+
+                {expandedCards[trip.id] && (
+                  <div className="pt-3 border-t border-gray-100 space-y-3 mt-3">
+                    <div className="inline-flex items-center gap-1 text-xs text-gray-500">
+                      <CalendarDays size={14} />
+                      建立於 {new Date(trip.createdAt || trip.updatedAt).toLocaleString()}
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => handleDeleteTrip(trip.id)}
+                        className="rounded-lg px-3 py-2 text-sm text-red-500 hover:bg-red-50"
+                        title="刪除旅程"
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          <Trash2 size={14} />
+                          刪除旅程
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </article>
             ))
           )}

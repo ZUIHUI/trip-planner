@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
@@ -339,15 +339,6 @@ const TripDetailPage = () => {
         }`}
       />
       <div className="relative z-10">
-        <button
-          onClick={handleBackToTrips}
-          className="touch-target absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors z-20 text-sm font-medium"
-          title="返回旅程列表"
-          aria-label="返回旅程列表"
-        >
-          <ArrowLeft size={22} />
-          <span>回旅程列表</span>
-        </button>
         <Header 
           details={tripDetails} 
           onGoToTrips={handleBackToTrips}
