@@ -1010,9 +1010,6 @@ const TripDetailPage = () => {
                     <p className="mt-2 text-xs text-red-500">{flightLookupError.inbound}</p>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-3">
-                  提示：需先設定 <code>VITE_AVIATIONSTACK_API_KEY</code> 才能使用自動查詢。
-                </p>
               </div>
             </div>
           )}
