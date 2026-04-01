@@ -465,11 +465,23 @@ const TripDetailPage = () => {
 
   const handleLookupFlight = async (direction) => {
     const code = tripDetails?.flights?.[direction]?.code || '';
+    const departureDate = direction === 'outbound'
+      ? (tripDetails?.dateRange?.start || '')
+      : (tripDetails?.dateRange?.end || '');
+
+    if (!departureDate) {
+      setFlightLookupError((prev) => ({
+        ...prev,
+        [direction]: direction === 'outbound' ? '請先設定出發日期' : '請先設定結束日期'
+      }));
+      return;
+    }
+
     setFlightLookupError((prev) => ({ ...prev, [direction]: '' }));
     setIsLookingUpFlight((prev) => ({ ...prev, [direction]: true }));
 
     try {
-      const flightInfo = await lookupFlightByCode(code);
+      const flightInfo = await lookupFlightByCode(code, departureDate);
       setTripDetails((prev) => ({
         ...prev,
         flights: {
@@ -998,9 +1010,6 @@ const TripDetailPage = () => {
                     <p className="mt-2 text-xs text-red-500">{flightLookupError.inbound}</p>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-3">
-                  提示：需先設定 <code>VITE_AVIATIONSTACK_API_KEY</code> 才能使用自動查詢。
-                </p>
               </div>
             </div>
           )}
