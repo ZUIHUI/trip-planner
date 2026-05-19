@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,6 +13,20 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
+
+export const getFirebaseAnalytics = async () => {
+  try {
+    if (!firebaseConfig.measurementId || typeof window === 'undefined') {
+      return null;
+    }
+
+    const { getAnalytics, isSupported } = await import('firebase/analytics');
+    const supported = await isSupported();
+    return supported ? getAnalytics(app) : null;
+  } catch (error) {
+    console.warn('Firebase Analytics 初始化略過:', error);
+    return null;
+  }
+};
 
 export default app;

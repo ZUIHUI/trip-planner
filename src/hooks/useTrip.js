@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { loadTrip, saveTrip } from '../services/tripService';
 import { normalizeTripDateFields } from '../utils/tripDates';
+import { buildTripDocumentFromAppState, normalizeTripDocumentForApp } from '../domain/tripSchema';
 
 const LEGACY_STORAGE_KEY = 'trip_planner_data';
 const STORAGE_KEY_PREFIX = 'trip_planner_data_';
@@ -175,7 +176,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         }
 
         const fallbackData = buildFallbackData(initialTripDetails, initialItinerary);
-        const localOrFallback = localData || fallbackData;
+        const localOrFallback = normalizeTripDocumentForApp(localData || fallbackData, fallbackData);
         const normalizedLocalTripDetails = normalizeTripDateFields(localOrFallback.tripDetails || initialTripDetails);
         setTripDetails(normalizedLocalTripDetails);
         setItinerary(
@@ -197,21 +198,22 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
             const firebaseData = await loadTrip(safeTripId);
             if (firebaseData) {
               console.log('✅ 從 Firebase 載入資料成功');
+              const normalizedFirebaseData = normalizeTripDocumentForApp(firebaseData, fallbackData);
               const mergedTripDetails = mergeTripDetailsForSync(
                 normalizedLocalTripDetails,
-                firebaseData.tripDetails || initialTripDetails,
+                normalizedFirebaseData.tripDetails || initialTripDetails,
                 initialTripDetails
               );
               const normalizedFirebaseTripDetails = normalizeTripDateFields(mergedTripDetails);
               setTripDetails(normalizedFirebaseTripDetails);
               setItinerary(
                 ensureItineraryComplete(
-                  firebaseData.itinerary || initialItinerary,
+                  normalizedFirebaseData.itinerary || initialItinerary,
                   normalizedFirebaseTripDetails
                 )
               );
-              setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
-              setExpenses(firebaseData.expenses || []);
+              setChecklists(normalizedFirebaseData.checklists || { preTrip: [], packing: [] });
+              setExpenses(normalizedFirebaseData.expenses || []);
             }
           } catch (err) {
             console.warn('⚠️ Firebase 載入失敗:', err.message);
@@ -265,13 +267,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
 
         const normalizedTripDetails = normalizeTripDateFields(tripDetails);
 
-        const dataToSave = {
+        const dataToSave = buildTripDocumentFromAppState(safeTripId, {
           tripDetails: normalizedTripDetails,
           itinerary,
           checklists,
-          expenses,
-          savedAt: new Date().toISOString()
-        };
+          expenses
+        });
 
         // 優先儲存到 localStorage（立即）
         try {
@@ -324,16 +325,18 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       const firebaseData = await loadTrip(safeTripId);
       if (firebaseData) {
         console.log('✅ 手動更新成功');
-        const normalizedFirebaseTripDetails = normalizeTripDateFields(firebaseData.tripDetails || initialTripDetails);
+        const fallbackData = buildFallbackData(initialTripDetails, initialItinerary);
+        const normalizedFirebaseData = normalizeTripDocumentForApp(firebaseData, fallbackData);
+        const normalizedFirebaseTripDetails = normalizeTripDateFields(normalizedFirebaseData.tripDetails || initialTripDetails);
         setTripDetails(normalizedFirebaseTripDetails);
         setItinerary(
           ensureItineraryComplete(
-            firebaseData.itinerary || initialItinerary,
+            normalizedFirebaseData.itinerary || initialItinerary,
             normalizedFirebaseTripDetails
           )
         );
-        setChecklists(firebaseData.checklists || { preTrip: [], packing: [] });
-        setExpenses(firebaseData.expenses || []);
+        setChecklists(normalizedFirebaseData.checklists || { preTrip: [], packing: [] });
+        setExpenses(normalizedFirebaseData.expenses || []);
         return true;
       }
     } catch (err) {
@@ -361,13 +364,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       setIsSaving(true);
       setSaveError(null);
       const normalizedTripDetails = normalizeTripDateFields(tripDetails);
-      const dataToSave = {
+      const dataToSave = buildTripDocumentFromAppState(safeTripId, {
         tripDetails: normalizedTripDetails,
         itinerary,
         checklists,
-        expenses,
-        savedAt: new Date().toISOString()
-      };
+        expenses
+      });
       await persistTripData(dataToSave);
       return true;
     } catch (err) {

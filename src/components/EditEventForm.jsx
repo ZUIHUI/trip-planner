@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Save, Link as LinkIcon } from 'lucide-react';
+import GooglePlaceInput from './GooglePlaceInput';
 
 const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdit }) => {
   const [formData, setFormData] = useState(event || {
     time: "", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
+    locationPlace: null,
     transport: { mode: "train", duration: "", route: "" },
     cost: ""
   });
@@ -22,6 +24,24 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         [name]: type === 'checkbox' ? checked : value
       }));
     }
+  };
+
+  const handleLocationTextChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      location: value,
+      locationPlace: null
+    }));
+  };
+
+  const handleLocationPlaceSelect = (place) => {
+    const nextLocation = place.address || place.name || '';
+    setFormData((prev) => ({
+      ...prev,
+      title: prev.title || place.name || nextLocation,
+      location: nextLocation,
+      locationPlace: place
+    }));
   };
 
   const trimmedLocation = (formData.location || '').trim();
@@ -66,7 +86,15 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">地點 (用於導航)</label>
         <div className="relative">
           <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <input type="text" name="location" value={formData.location} onChange={handleChange} disabled={readOnly} placeholder="輸入Google Maps地點名稱" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
+          <GooglePlaceInput
+            name="location"
+            value={formData.location}
+            onTextChange={handleLocationTextChange}
+            onPlaceSelect={handleLocationPlaceSelect}
+            disabled={readOnly}
+            placeholder="輸入Google Maps地點名稱"
+            className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed"
+          />
         </div>
         {trimmedLocation && (
           <div className="mt-3 space-y-2">

@@ -3,32 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarDays, Plus, Search, Trash2, ChevronDown, Sparkles, Compass } from 'lucide-react';
 import { createTrip, deleteTrip, listTrips } from '../services/tripService';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
+import { createTripAppData } from '../domain/tripSchema';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
-
-const createEmptyItinerary = (days = 6) => {
-  return Array.from({ length: days }, (_, i) => ({
-    day: i + 1,
-    date: `Day ${i + 1}`,
-    title: `Day ${i + 1}`,
-    events: []
-  }));
-};
-
-const createTripTemplate = (title) => ({
-  tripDetails: {
-    title,
-    dates: '',
-    status: 'planning',
-    coverImage: '',
-    accommodation: {},
-    flights: {}
-  },
-  itinerary: createEmptyItinerary(),
-  checklists: { preTrip: [], packing: [] },
-  expenses: []
-});
 
 const getStorageKey = (tripId) => `trip_planner_data_${tripId}`;
 
@@ -88,9 +66,11 @@ const TripListPage = () => {
             const localTrip = mergedMap.get(trip.id);
             mergedMap.set(trip.id, {
               id: trip.id,
-              title: trip.tripDetails?.title || localTrip?.title || '未命名旅程',
-              status: trip.tripDetails?.status || localTrip?.status || 'planning',
-              coverImage: trip.tripDetails?.coverImage || localTrip?.coverImage || '',
+              title: trip.title || localTrip?.title || '未命名旅程',
+              status: trip.status || localTrip?.status || 'planning',
+              coverImage: trip.coverImage || localTrip?.coverImage || '',
+              dateRange: trip.dateRange || localTrip?.dateRange || { start: '', end: '' },
+              eventCount: trip.eventCount ?? localTrip?.eventCount ?? 0,
               updatedAt,
               createdAt: trip.createdAt || localTrip?.createdAt || updatedAt
             });
@@ -129,7 +109,7 @@ const TripListPage = () => {
 
     const tripId = `trip-${Date.now()}`;
     const now = new Date().toISOString();
-    const template = createTripTemplate(title);
+    const template = createTripAppData(title);
 
     const nextTripMeta = {
       id: tripId,

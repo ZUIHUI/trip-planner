@@ -45,7 +45,7 @@ const NextEventWidget = ({ itinerary, selectedDay, enableGPS, currentLocation, o
         {/* Navigation Button */}
         {nextEvent.location && (
           <button
-            onClick={() => onNavigate?.(nextEvent.location)}
+            onClick={() => onNavigate?.(nextEvent.locationPlace || nextEvent.location)}
             className="flex-shrink-0 p-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all active:scale-95 border border-white/30"
             title="導航到此地點"
           >

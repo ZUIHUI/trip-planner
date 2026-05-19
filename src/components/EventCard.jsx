@@ -117,7 +117,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
         <div className="mt-4 flex items-center justify-end gap-4">
           {onOpenGoogleMaps && (
             <button
-              onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.location)}}
+              onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.locationPlace || event.location)}}
               className="touch-target flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
             >
               <Map size={14} className="mr-1.5" />
