@@ -1,131 +1,208 @@
 import React, { useState } from 'react';
 import {
-  Plane, Train, Camera, Coffee, ShoppingBag, Home, MapPin,
-  AlertCircle, MoreVertical, Edit2, Trash2,
-  Navigation, Map, Link as LinkIcon, ExternalLink
+  AlertCircle,
+  Camera,
+  Coffee,
+  Edit2,
+  ExternalLink,
+  Home,
+  Link as LinkIcon,
+  Map,
+  MapPin,
+  MoreVertical,
+  Navigation,
+  Plane,
+  ShoppingBag,
+  Train,
+  Trash2,
+  Wallet
 } from 'lucide-react';
+import { Badge, Button, Card } from './ui';
+
+const eventTypeMeta = {
+  flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
+  transport: { label: '交通', icon: Train, className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
+  sightseeing: { label: '景點', icon: Camera, className: 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300' },
+  food: { label: '餐廳', icon: Coffee, className: 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300' },
+  shopping: { label: '購物', icon: ShoppingBag, className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300' },
+  hotel: { label: '住宿', icon: Home, className: 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300' }
+};
+
+const getEventMeta = (type) => eventTypeMeta[type] || { label: '行程', icon: MapPin, className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' };
+
+const readCost = (event) => {
+  const rawAmount = event?.cost?.amount ?? event?.cost;
+  const amount = Number(rawAmount);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return {
+    amount,
+    currency: event?.cost?.currency || event?.currency || 'JPY'
+  };
+};
+
+const formatCost = (event) => {
+  const cost = readCost(event);
+  if (!cost) return null;
+  const symbol = cost.currency === 'TWD' ? 'NT$' : '¥';
+  return `${symbol}${cost.amount.toLocaleString()}`;
+};
+
+const getLocationText = (event) => {
+  if (!event) return '';
+  if (typeof event.location === 'string') return event.location;
+  return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
+};
 
 const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) => {
   const [showMenu, setShowMenu] = useState(false);
-
-  const Icon = {
-    flight: Plane, transport: Train, sightseeing: Camera,
-    food: Coffee, shopping: ShoppingBag, hotel: Home
-  }[event.type] || MapPin;
-
-  const styleClass = {
-    flight: 'bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400',
-    transport: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
-    sightseeing: 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',
-    food: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
-    shopping: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
-    hotel: 'bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400'
-  }[event.type] || 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400';
+  const meta = getEventMeta(event.type);
+  const Icon = meta.icon;
+  const locationText = getLocationText(event);
+  const costText = formatCost(event);
 
   const handleCardClick = () => {
     onEdit(event, true);
   };
 
+  const handleRouteClick = (clickEvent) => {
+    clickEvent.stopPropagation();
+    if (!locationText || !onOpenGoogleMaps) return;
+    onOpenGoogleMaps(prevLocation, event.locationPlace || event.location);
+  };
+
   return (
-    <div className="relative pl-6 pb-8 last:pb-0 border-l-2 border-gray-200 dark:border-slate-800 ml-3 group">
-      <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${event.urgent ? 'border-red-500 bg-red-50 dark:bg-red-900/20' : 'border-brand-400 bg-white dark:bg-slate-900'}`}></div>
+    <div className="relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800">
+      <span className={`absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
+        event.urgent ? 'border-red-500' : 'border-brand-400'
+      }`} />
 
-      {prevLocation && (
-        <div className="absolute -left-3 -top-8 w-px h-8"></div>
-      )}
-
-      <div className="bg-white dark:bg-slate-900 rounded-xl tp-card-padding shadow-sm border border-gray-100 dark:border-slate-800 hover:shadow-md transition-all relative cursor-pointer group" onClick={handleCardClick}>
-        {/* Header Section */}
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl flex-shrink-0 ${styleClass}`}>
-              <Icon size={20} />
+      <Card interactive className="relative cursor-pointer p-4" onClick={handleCardClick}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${meta.className}`}>
+              <Icon size={21} />
             </div>
-            <span className="font-mono text-lg font-bold text-gray-700 dark:text-slate-200">{event.time}</span>
-            {event.urgent && <AlertCircle size={18} className="text-red-500" />}
-            <button onClick={(e) => {e.stopPropagation(); setShowMenu(!showMenu)}} className="touch-target p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 transition-colors" title="更多操作" aria-label="更多操作">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-base font-black text-slate-800 dark:text-slate-100">{event.time || '--:--'}</span>
+                <Badge variant="muted">{meta.label}</Badge>
+                {event.urgent && (
+                  <Badge variant="warning">
+                    <AlertCircle size={13} />
+                    重要
+                  </Badge>
+                )}
+              </div>
+              <h3 className="mt-2 break-words text-xl font-black leading-tight text-slate-950 dark:text-white">
+                {event.title || '未命名行程'}
+              </h3>
+            </div>
+          </div>
+
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={(clickEvent) => {
+                clickEvent.stopPropagation();
+                setShowMenu((prev) => !prev);
+              }}
+              className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              title="更多操作"
+              aria-label="更多操作"
+              aria-expanded={showMenu}
+            >
               <MoreVertical size={18} />
             </button>
+
             {showMenu && (
-              <div className="absolute right-2 top-12 bg-white dark:bg-slate-900 shadow-xl border border-gray-100 dark:border-slate-800 rounded-lg z-10 w-32 py-1 flex flex-col">
-                <button onClick={(e) => {e.stopPropagation(); onEdit(event); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 flex items-center"><Edit2 size={14} className="mr-2"/> 編輯</button>
-                <button onClick={(e) => {e.stopPropagation(); onDelete(event.id); setShowMenu(false)}} className="px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800 text-red-500 flex items-center"><Trash2 size={14} className="mr-2"/> 刪除</button>
+              <div className="absolute right-0 top-11 z-20 w-36 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                <button
+                  type="button"
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onEdit(event);
+                    setShowMenu(false);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <Edit2 size={14} />
+                  編輯
+                </button>
+                <button
+                  type="button"
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onDelete(event.id);
+                    setShowMenu(false);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/30"
+                >
+                  <Trash2 size={14} />
+                  刪除
+                </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Content */}
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight break-words mb-1">{event.title}</h3>
-          {event.desc && <p className="tp-caption-text text-gray-500 dark:text-slate-400 break-words whitespace-pre-wrap">{event.desc}</p>}
-        </div>
-        
-        {/* Info Section - Vertical Stack */}
-        <div className="space-y-2.5">
-          {/* Location Info */}
-          {event.location && (
-            <div className="flex items-start gap-2 tp-caption-text text-gray-600 dark:text-slate-300">
-              <MapPin size={16} className="mt-0.5 text-brand-500 shrink-0" />
-              <span className="font-medium">{event.location}</span>
+        {event.desc && (
+          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600 dark:text-slate-300">
+            {event.desc}
+          </p>
+        )}
+
+        <div className="mt-4 grid gap-2">
+          {locationText && (
+            <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <MapPin size={16} className="mt-0.5 shrink-0 text-brand-600 dark:text-brand-300" />
+              <span className="font-semibold">{locationText}</span>
             </div>
           )}
 
-          {/* Transport Info */}
           {(event.transport?.duration || event.transport?.route) && (
-            <div className="flex items-start gap-2 tp-caption-text text-gray-600 dark:text-slate-300">
-              {event.transport?.mode === 'flight' ? (
-                <Plane size={16} className="mt-0.5 text-gray-400 shrink-0" />
-              ) : (
-                <Navigation size={16} className="mt-0.5 text-gray-400 shrink-0" />
-              )}
+            <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <Navigation size={16} className="mt-0.5 shrink-0 text-slate-400" />
               <span>
-                {event.transport.duration && <span className="font-medium mr-1">{event.transport.duration}</span>}
-                {event.transport.route && <span className="text-gray-500 dark:text-slate-400">{event.transport.route}</span>}
+                {event.transport.duration && <span className="font-semibold">{event.transport.duration}</span>}
+                {event.transport.duration && event.transport.route && <span className="mx-1 text-slate-300">/</span>}
+                {event.transport.route && <span>{event.transport.route}</span>}
               </span>
             </div>
           )}
 
-          {/* Cost Info */}
-          {event.cost && (
-            <div className="flex items-center gap-3 pt-1">
-              <div className="flex items-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md" title="預估預算">
-                <span className="mr-1.5">預算</span>
-                <span className="font-mono font-medium">{event.currency === 'TWD' ? 'NT$' : '¥'}{event.cost}</span>
-              </div>
+          {costText && (
+            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <Wallet size={16} className="shrink-0 text-amber-600 dark:text-amber-300" />
+              <span className="font-semibold">{costText}</span>
             </div>
           )}
-        </div>
 
-          {/* URL Info */}
           {event.url && (
-            <div className="flex items-start gap-2 tp-caption-text">
-              <LinkIcon size={16} className="mt-0.5 text-blue-500 shrink-0" />
-              <a 
-                href={event.url} 
-                target="_blank" 
+            <div className="flex items-start gap-2 text-sm">
+              <LinkIcon size={16} className="mt-0.5 shrink-0 text-sky-600 dark:text-sky-300" />
+              <a
+                href={event.url}
+                target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="text-blue-600 dark:text-blue-400 hover:underline truncate font-medium flex items-center gap-1 group/link"
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
+                className="inline-flex min-w-0 items-center gap-1 font-semibold text-sky-700 hover:underline dark:text-sky-300"
               >
-                {event.url.replace(/^https?:\/\//, '').split('/')[0]}
-                <ExternalLink size={12} className="opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                <span className="truncate">{event.url.replace(/^https?:\/\//, '').split('/')[0]}</span>
+                <ExternalLink size={12} className="shrink-0" />
               </a>
             </div>
           )}
+        </div>
 
-        <div className="mt-4 flex items-center justify-end gap-4">
-          {onOpenGoogleMaps && (
-            <button
-              onClick={(e) => {e.stopPropagation(); onOpenGoogleMaps(prevLocation, event.locationPlace || event.location)}}
-              className="touch-target flex items-center text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 px-3 py-1.5 rounded-full transition-colors"
-            >
-              <Map size={14} className="mr-1.5" />
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+          {onOpenGoogleMaps && locationText && (
+            <Button variant="secondary" size="sm" onClick={handleRouteClick}>
+              <Map size={14} />
               規劃路線
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

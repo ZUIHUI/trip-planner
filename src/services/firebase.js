@@ -20,6 +20,11 @@ export const getFirebaseAnalytics = async () => {
       return null;
     }
 
+    const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+    if (import.meta.env.DEV || isLocalHost) {
+      return null;
+    }
+
     const { getAnalytics, isSupported } = await import('firebase/analytics');
     const supported = await isSupported();
     return supported ? getAnalytics(app) : null;

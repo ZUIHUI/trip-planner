@@ -23,6 +23,7 @@ import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../servi
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
+import { Button, LoadingState, PageContainer } from '../components/ui';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
@@ -478,7 +479,10 @@ const TripDetailPage = () => {
 
   const openMapsUrl = (url) => {
     if (!url) return;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    const openedWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!openedWindow) {
+      window.location.href = url;
+    }
   };
 
   const handleOpenGoogleMaps = (origin, destination) => {
@@ -602,13 +606,8 @@ const TripDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="inline-block">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-          <p className="text-gray-600 font-medium">正在載入旅程...</p>
-        </div>
+      <div className="tp-page-shell flex min-h-screen items-center justify-center p-4 font-sans">
+        <LoadingState label="讀取旅程中..." className="w-full max-w-sm" />
       </div>
     );
   }
@@ -617,7 +616,7 @@ const TripDetailPage = () => {
 
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
-    <div className={`min-h-screen font-sans interface-size-${interfaceSize} bg-gray-50 dark:bg-slate-950 transition-colors`} style={{ "--footer-nav-height": "72px" }}>
+    <div className={`tp-page-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "72px" }}>
       <Header 
         details={tripDetails}
         onGoToTrips={handleBackToTrips}
@@ -627,8 +626,8 @@ const TripDetailPage = () => {
         shouldShowCoverBackground={shouldShowCoverBackground}
       />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="pt-4 rounded-2xl bg-white/80 supports-[backdrop-filter]:bg-white/70 backdrop-blur-sm shadow-sm">
+      <PageContainer className="pb-24">
+        <div className="pt-4">
           {activeTab === 'summary' && (
             <SummaryTab />
           )}
@@ -657,7 +656,7 @@ const TripDetailPage = () => {
             <ExpensesTab />
           )}
         </div>
-      </div>
+      </PageContainer>
 
       <Modal
         isOpen={isEditModalOpen}
@@ -709,59 +708,63 @@ const TripDetailPage = () => {
       />
 
       {activeTab === 'itinerary' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
-            <div className="grid grid-cols-3 gap-2">
-              <button
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+          <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
+            <div className="tp-mobile-action-grid gap-2">
+              <Button
                 onClick={openAddModal}
-                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+                className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
               >
                 <Plus size={16} />
-                新增景點
-              </button>
-              <button
+                新增
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={saveNow}
-                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-brand-200 text-brand-700 text-sm font-semibold bg-brand-50"
+                className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
               >
                 <Save size={16} />
                 儲存
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={goToNextDay}
-                className="touch-target inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold"
+                className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
+                aria-label="前往下一天"
+                title="前往下一天"
               >
-                下一步
+                <span className="hidden sm:inline">下一天</span>
                 <ChevronRight size={16} />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       {activeTab === 'shopping' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
-            <button
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+          <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
+            <Button
               onClick={() => shoppingListRef.current?.openAddForm?.()}
-              className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+              className="w-full"
             >
               <Plus size={16} />
               新增購物項目
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {activeTab === 'expenses' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-          <div className="mx-auto max-w-3xl bg-white/70 supports-[backdrop-filter]:bg-white/60 backdrop-blur border border-gray-200/80 rounded-2xl shadow-lg p-2">
-            <button
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+          <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
+            <Button
               onClick={() => expenseTrackerRef.current?.openAddForm?.()}
-              className="touch-target w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-600 text-white text-sm font-semibold"
+              className="w-full"
             >
               <Plus size={16} />
               新增支出
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -770,22 +773,22 @@ const TripDetailPage = () => {
 
       {/* GPS 位置監視 - 當啟用 GPS 時顯示狀態 */}
       {enableGPS && (
-        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 text-sm z-30 max-w-xs">
+        <div className="fixed bottom-4 right-4 z-30 max-w-xs rounded-lg border border-slate-200 bg-white p-3 text-sm shadow-lg dark:border-slate-800 dark:bg-slate-900">
           {isLocating ? (
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-gray-600">正在定位中...</span>
+              <div className="h-2 w-2 animate-pulse rounded-full bg-brand-500"></div>
+              <span className="text-slate-600 dark:text-slate-300">定位中...</span>
             </div>
           ) : locationError ? (
             <div className="flex items-center gap-2">
-              <span className="text-red-600">❌ {locationError}</span>
+              <span className="text-red-600">定位失敗：{locationError}</span>
             </div>
           ) : currentLocation ? (
             <div className="flex items-center gap-2">
-              <span className="text-green-600">✓</span>
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">GPS</span>
               <div>
-                <p className="font-bold text-gray-900">{currentLocation.locationName}</p>
-                <p className="text-xs text-gray-500">精度: {Math.round(currentLocation.accuracy)}m</p>
+                <p className="font-bold text-slate-900 dark:text-white">{currentLocation.locationName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">精準度：{Math.round(currentLocation.accuracy)}m</p>
               </div>
             </div>
           ) : null}

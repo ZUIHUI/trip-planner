@@ -7,7 +7,8 @@ const WeatherWidget = ({
   currentLocation = null,  // 現在可能是 GPS 對象 { latitude, longitude, locationName }
   accommodation = '東京', 
   firstEventLocation = null,
-  selectedEventLocation = null
+  selectedEventLocation = null,
+  variant = 'full'
 }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,17 +38,6 @@ const WeatherWidget = ({
     [date, displayLocation, lat, lon]
   );
 
-  console.log('🌤️ WeatherWidget Props:', { 
-    date, 
-    selectedEventLocation,
-    firstEventLocation,
-    gpsLocationName,
-    gpsCoords,
-    accommodation,
-    displayLocation,
-    timestamp: new Date().toLocaleTimeString()
-  });
-
   useEffect(() => {
     // 如果沒有日期或地點，清空天氣
     if (!date || !displayLocation) {
@@ -57,7 +47,6 @@ const WeatherWidget = ({
     }
 
     if (requestKey === lastRequestKeyRef.current || requestKey === inFlightRequestKeyRef.current) {
-      console.log('⏭️ 跳過重複天氣請求:', { requestKey });
       return;
     }
 
@@ -68,11 +57,9 @@ const WeatherWidget = ({
     
     const fetchWeather = async () => {
       try {
-        console.log('📡 開始獲取天氣:', { date, displayLocation, hasGPS: !!gpsCoords, requestKey });
         // 如果有 GPS 坐標，傳遞給 API；否則使用地點名稱
         const result = await getWeatherForDate(date, displayLocation, gpsCoords);
         if (!isActive) return;
-        console.log('✅ 天氣數據已取得:', { date, displayLocation, requestKey, result });
         setWeather(result);
         lastRequestKeyRef.current = requestKey;
       } catch (error) {
@@ -101,8 +88,19 @@ const WeatherWidget = ({
   }, [date, displayLocation, lat, lon, requestKey]);
 
   if (loading) {
+    if (variant === 'compact') {
+      return (
+        <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/90">
+          <div className="flex items-center gap-2">
+            <span className="text-lg animate-pulse">☁️</span>
+            <span>天氣載入中</span>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-xl p-4 border border-brand-100 dark:border-brand-800 mb-4">
+      <div className="mb-4 rounded-lg border border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50 p-4 dark:border-brand-800 dark:from-brand-900/20 dark:to-cyan-900/20">
         <div className="flex items-center gap-3">
           <div className="text-3xl animate-pulse">⏳</div>
           <p className="text-sm text-gray-600 dark:text-gray-400">正在載入 {displayLocation} 的天氣...</p>
@@ -112,6 +110,14 @@ const WeatherWidget = ({
   }
 
   if (!weather) {
+    if (variant === 'compact') {
+      return (
+        <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80">
+          天氣暫不可用
+        </div>
+      );
+    }
+
     return null;
   }
 
@@ -140,8 +146,26 @@ const WeatherWidget = ({
     return '';
   };
 
+  if (variant === 'compact') {
+    return (
+      <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <CuteWeatherIcon code={weather.weatherCode} size="text-2xl" />
+          <div className="min-w-0">
+            <p className="text-[11px] text-white/70 truncate">
+              {displayLocation} {getSourceBadge()}
+            </p>
+            <p className="text-sm font-semibold text-white">
+              {weather.temperature}°C · {weather.description}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-slate-900/50 dark:to-cyan-900/20 rounded-xl p-4 border border-brand-100 dark:border-slate-800 mb-4">
+    <div className="mb-4 rounded-lg border border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50 p-4 dark:border-slate-800 dark:from-slate-900/50 dark:to-cyan-900/20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />

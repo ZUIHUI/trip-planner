@@ -5,15 +5,20 @@ const Modal = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-up">
-        <div className="flex justify-between items-center tp-card-padding border-b border-gray-100 dark:border-slate-700">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-2xl animate-fade-in-up dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            aria-label="關閉視窗"
+          >
             <X size={24} />
           </button>
         </div>
-        <div className="tp-card-padding">
+        <div className="p-4">
           {children}
         </div>
       </div>

@@ -1,6 +1,13 @@
 import React, { forwardRef } from 'react';
-import { Plane, Home, Settings, Calendar, RefreshCw, ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, Home, MapPin, RefreshCw, Settings } from 'lucide-react';
 import { getTripDisplayDates } from '../utils/tripDates';
+import { Badge, Button, PageContainer } from './ui';
+
+const statusConfig = {
+  planning: { label: '規劃中', variant: 'warning' },
+  ongoing: { label: '旅途中', variant: 'success' },
+  done: { label: '已完成', variant: 'muted' }
+};
 
 const Header = forwardRef(({
   details,
@@ -8,15 +15,15 @@ const Header = forwardRef(({
   onGoToTrips,
   isSaving,
   children,
-  isScrolled,
   coverImageUrl,
   shouldShowCoverBackground
 }, ref) => {
   const displayDates = getTripDisplayDates(details);
+  const status = statusConfig[details?.status] || statusConfig.planning;
 
-  const heroBackgroundStyle = shouldShowCoverBackground
+  const headerStyle = shouldShowCoverBackground
     ? {
-        backgroundImage: `linear-gradient(120deg, rgba(15, 23, 42, 0.55), rgba(30, 41, 59, 0.32), rgba(8, 47, 73, 0.5)), url(${coverImageUrl})`,
+        backgroundImage: `linear-gradient(120deg, rgba(15, 23, 42, 0.70), rgba(15, 118, 110, 0.44)), url(${coverImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
@@ -24,91 +31,83 @@ const Header = forwardRef(({
     : undefined;
 
   return (
-    <div ref={ref} className="bg-white dark:bg-slate-950 sticky top-0 z-30 shadow-sm transition-colors duration-300 will-change-transform">
+    <header ref={ref} className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
       <div
-        style={heroBackgroundStyle}
-        className={`
-          relative overflow-hidden text-white shadow-lg transition-all duration-300 ease-out border-b-0 dark:border-b dark:border-slate-800 will-change-transform
-          ${shouldShowCoverBackground
-            ? 'bg-slate-800'
-            : 'bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900'}
-          ${isScrolled ? 'pt-4 pb-3 px-4 rounded-b-xl' : 'pt-7 pb-4 px-4 rounded-b-[2rem]'}
-        `}
+        style={headerStyle}
+        className={shouldShowCoverBackground
+          ? 'text-white'
+          : 'bg-gradient-to-br from-white via-brand-50 to-sky-50 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-brand-950/30 dark:text-white'}
       >
-        <div className={`absolute top-0 right-0 hidden sm:block transform translate-x-1/4 -translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-10'}`}>
-          <Plane size={160} />
-        </div>
-        <div className={`absolute bottom-0 left-0 hidden sm:block transform -translate-x-1/4 translate-y-1/4 pointer-events-none transition-opacity duration-300 ${isScrolled ? 'opacity-0' : 'opacity-5'}`}>
-          <Plane size={120} />
-        </div>
+        <PageContainer className="py-3 sm:py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <Button
+                variant={shouldShowCoverBackground ? 'ghost' : 'secondary'}
+                size="icon"
+                onClick={onGoToTrips}
+                aria-label="回旅程列表"
+                title="回旅程列表"
+                className={shouldShowCoverBackground ? 'border border-white/25 bg-white/15 text-white hover:bg-white/25' : ''}
+              >
+                <ArrowLeft size={18} />
+              </Button>
 
-        <div className={`relative rounded-2xl border border-white/20 bg-white/10 supports-[backdrop-filter]:bg-white/5 backdrop-blur-sm shadow-lg px-4 sm:px-5 py-3 sm:py-4 transition-all duration-300 ${isScrolled ? 'mb-2' : 'mb-4'}`}>
-          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/40 bg-black/20 px-3 py-1.5">
-                <Calendar size={14} className="shrink-0 text-blue-100" />
-                <span className="truncate text-xs sm:text-sm font-semibold tracking-wide">{displayDates || '未設定日期'}</span>
-              </div>
-              <h1 className="truncate text-xl sm:text-2xl font-bold tracking-tight leading-tight drop-shadow-md">
-                {details?.title || '我的旅程'}
-              </h1>
-              <div className="flex items-center gap-2 text-blue-100/95 text-xs sm:text-sm font-medium">
-                <MapPin size={14} className="shrink-0" />
-                <span className="truncate">{details?.accommodation?.name || '尚未設定住宿'}</span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant={status.variant} className={shouldShowCoverBackground ? 'border-white/30 bg-white/15 text-white' : ''}>
+                    {status.label}
+                  </Badge>
+                  <span className={`inline-flex items-center gap-1 text-xs font-semibold ${shouldShowCoverBackground ? 'text-white/85' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <Calendar size={14} />
+                    {displayDates || '未設定日期'}
+                  </span>
+                </div>
+
+                <h1 className="mt-2 truncate text-2xl font-black tracking-tight sm:text-3xl">
+                  {details?.title || '我的旅程'}
+                </h1>
+
+                <div className={`mt-2 grid gap-1 text-sm sm:flex sm:items-center sm:gap-4 ${shouldShowCoverBackground ? 'text-white/85' : 'text-slate-600 dark:text-slate-300'}`}>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Home size={15} className="shrink-0" />
+                    <span className="truncate">{details?.accommodation?.name || '尚未設定住宿'}</span>
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <MapPin size={15} className="shrink-0" />
+                    <span className="truncate">{details?.accommodation?.address || '可在資訊頁補上地址'}</span>
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex w-full sm:w-auto items-center justify-end gap-2">
-              <button
-                onClick={onGoToTrips}
-                className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/35 bg-white/20 backdrop-blur-md transition-all hover:bg-white/30 active:scale-95 sm:hidden"
-                title="回旅程列表"
-                aria-label="回旅程列表"
-              >
-                <ArrowLeft size={16} />
-              </button>
-              <button
-                onClick={onGoToTrips}
-                className="touch-target hidden h-9 items-center gap-1.5 rounded-xl border border-white/35 bg-white/20 px-3 text-sm font-medium transition-all hover:bg-white/30 active:scale-95 sm:inline-flex"
-                title="回旅程列表"
-                aria-label="回旅程列表"
-              >
-                <ArrowLeft size={15} />
-                <span>回列表</span>
-              </button>
+            <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
               {isSaving && (
-                <div className="flex h-9 items-center gap-1.5 rounded-xl border border-black/20 bg-black/30 px-3 text-xs font-semibold text-brand-100 animate-pulse">
-                  <RefreshCw size={12} className="animate-spin" />
+                <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-200'}`}>
+                  <RefreshCw size={13} className="animate-spin" />
                   儲存中
-                </div>
+                </span>
               )}
-              <button
+              <Button
+                variant={shouldShowCoverBackground ? 'ghost' : 'secondary'}
                 onClick={onSettingsOpen}
-                className="touch-target inline-flex h-9 items-center justify-center gap-1 rounded-xl border border-white/20 bg-white/10 px-2.5 backdrop-blur-sm shadow-sm transition-all hover:bg-white/20 active:scale-95"
-                title="設定"
                 aria-label="開啟設定"
+                title="設定"
+                className={shouldShowCoverBackground ? 'w-full border border-white/25 bg-white/15 text-white hover:bg-white/25 sm:w-auto' : 'w-full sm:w-auto'}
               >
                 <Settings size={18} />
-                <span className="text-xs font-medium hidden sm:inline">設定</span>
-              </button>
+                設定
+              </Button>
             </div>
           </div>
-        </div>
-
-        <div className={`relative transition-all duration-500 ease-in-out overflow-hidden ${isScrolled ? 'max-h-0 opacity-0' : 'max-h-16 opacity-100'}`}>
-          <div className="flex items-center gap-2 text-brand-100/90 text-sm font-medium">
-            <div className="p-1 bg-white/10 rounded-md">
-              <Home size={14} className="text-brand-200" />
-            </div>
-            <span className="truncate max-w-[250px]">{details?.accommodation?.address || '可在設定補上住宿地址與資訊'}</span>
-          </div>
-        </div>
+        </PageContainer>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
-        {children}
-      </div>
-    </div>
+      {children && (
+        <div className="border-t border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <PageContainer>{children}</PageContainer>
+        </div>
+      )}
+    </header>
   );
 });
 

@@ -4,18 +4,18 @@
 
 @layer base {
   :root {
-    /* Default Light Mode (Ocean/Blue) */
-    --color-brand-50: 239 246 255;
-    --color-brand-100: 219 234 254;
-    --color-brand-200: 191 219 254;
-    --color-brand-300: 147 197 253;
-    --color-brand-400: 96 165 250;
-    --color-brand-500: 59 130 246;
-    --color-brand-600: 37 99 235;
-    --color-brand-700: 29 78 216;
-    --color-brand-800: 30 64 175;
-    --color-brand-900: 30 58 138;
-    --color-brand-950: 23 37 84;
+    /* Default Light Mode (Travel Teal/Sky) */
+    --color-brand-50: 240 253 250;
+    --color-brand-100: 204 251 241;
+    --color-brand-200: 153 246 228;
+    --color-brand-300: 94 234 212;
+    --color-brand-400: 45 212 191;
+    --color-brand-500: 20 184 166;
+    --color-brand-600: 13 148 136;
+    --color-brand-700: 15 118 110;
+    --color-brand-800: 17 94 89;
+    --color-brand-900: 19 78 74;
+    --color-brand-950: 4 47 46;
 
     /* Mobile typography & spacing tokens */
     --font-size-body-mobile: 16px;
@@ -26,27 +26,37 @@
     --space-card-mobile: 16px;
     --space-form-control-mobile: 12px;
 
+    /* Surface tokens */
+    --surface-page: 248 250 252;
+    --surface-card: 255 255 255;
+    --surface-muted: 241 245 249;
+    --border-soft: 226 232 240;
+    --radius-card: 8px;
+    --shadow-card: 0 16px 40px -28px rgba(15, 23, 42, 0.55);
+
     /* Semantic z-index tokens */
     --z-bottom-nav: 40;
     --z-sticky-cta: 45;
     --z-modal: 50;
   }
 
-  /* Dark Mode Overrides - Softer, Desaturated Blue & Slate */
+  /* Dark Mode Overrides - muted teal surfaces */
   .dark {
-    /* Re-mapping brand colors to be softer in dark mode */
-    /* Using Slate-ish Blue tones */
-    --color-brand-50: 30 41 59;   /* Slate 800 - Used for light backgrounds in dark mode */
-    --color-brand-100: 51 65 85;  /* Slate 700 */
-    --color-brand-200: 71 85 105; /* Slate 600 */
-    --color-brand-300: 100 116 139; /* Slate 500 */
-    --color-brand-400: 148 163 184; /* Slate 400 */
-    --color-brand-500: 96 165 250;  /* Blue 400 - Primary Action Color */
-    --color-brand-600: 59 130 246;  /* Blue 500 - Hover State */
-    --color-brand-700: 37 99 235;   /* Blue 600 */
-    --color-brand-800: 30 58 138;   /* Blue 900 */
-    --color-brand-900: 15 23 42;    /* Slate 900 */
-    --color-brand-950: 2 6 23;      /* Slate 950 */
+    --color-brand-50: 20 48 48;
+    --color-brand-100: 24 64 64;
+    --color-brand-200: 27 79 79;
+    --color-brand-300: 32 111 108;
+    --color-brand-400: 45 148 140;
+    --color-brand-500: 64 201 190;
+    --color-brand-600: 45 212 191;
+    --color-brand-700: 94 234 212;
+    --color-brand-800: 153 246 228;
+    --color-brand-900: 204 251 241;
+    --color-brand-950: 236 253 245;
+    --surface-page: 2 6 23;
+    --surface-card: 15 23 42;
+    --surface-muted: 30 41 59;
+    --border-soft: 51 65 85;
   }
 }
 
@@ -58,9 +68,143 @@
   h1, h2, h3, h4 {
     line-height: var(--line-height-title);
   }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-brand-400 dark:ring-offset-slate-950;
+  }
 }
 
 @layer components {
+  .tp-page-shell {
+    @apply min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(20,184,166,0.14),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ecfeff_44%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)];
+  }
+
+  .tp-page-container {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .tp-card {
+    @apply rounded-lg border border-slate-200 bg-white shadow-sm transition-shadow dark:border-slate-800 dark:bg-slate-900;
+    box-shadow: var(--shadow-card);
+  }
+
+  .tp-card-hover {
+    @apply hover:border-brand-200 hover:shadow-md dark:hover:border-brand-800;
+  }
+
+  .tp-panel {
+    @apply rounded-lg border border-slate-200 bg-white/[0.88] shadow-sm supports-[backdrop-filter]:bg-white/[0.78] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-900/[0.88];
+  }
+
+  .tp-button-base {
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .tp-button-primary {
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:text-slate-950 dark:hover:bg-brand-400;
+  }
+
+  .tp-button-secondary {
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:bg-brand-900/30;
+  }
+
+  .tp-button-ghost {
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white;
+  }
+
+  .tp-button-danger {
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/70 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/30;
+  }
+
+  .tp-input {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
+    min-height: 44px;
+  }
+
+  .tp-select {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-8 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
+    min-height: 44px;
+  }
+
+  .tp-label {
+    @apply mb-1.5 block text-sm font-semibold text-slate-600 dark:text-slate-300;
+  }
+
+  .tp-section-title {
+    @apply text-base font-bold text-slate-900 sm:text-lg dark:text-white;
+  }
+
+  .tp-section-subtitle {
+    @apply text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  .tp-badge {
+    @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .tp-badge-success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300;
+  }
+
+  .tp-badge-warning {
+    @apply border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-300;
+  }
+
+  .tp-badge-muted {
+    @apply border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300;
+  }
+
+  .tp-badge-info {
+    @apply border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300;
+  }
+
+  .tp-empty-state,
+  .tp-loading-state,
+  .tp-error-state {
+    @apply rounded-lg border border-dashed border-slate-300 bg-white/80 px-5 py-10 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900/80;
+  }
+
+  .tp-empty-state {
+    @apply text-slate-500 dark:text-slate-400;
+  }
+
+  .tp-loading-state {
+    @apply text-slate-600 dark:text-slate-300;
+  }
+
+  .tp-error-state {
+    @apply border-red-200 bg-red-50 text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300;
+  }
+
+  .tp-icon-chip {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300;
+  }
+
+  .tp-mobile-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tp-mobile-action-grid > * {
+    width: 100%;
+    min-width: 0;
+  }
+
   .tp-body-text {
     font-size: var(--font-size-body-mobile);
     line-height: var(--line-height-body);
@@ -116,6 +260,14 @@ html, body {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.3s ease-out;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .interface-size-small {
