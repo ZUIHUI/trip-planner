@@ -1,29 +1,114 @@
-import React, { useState } from 'react';
-import { MapPin, Navigation, Save, Link as LinkIcon } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AlertCircle, ExternalLink, Link as LinkIcon, MapPin, Navigation, Save, Wallet } from 'lucide-react';
 import GooglePlaceInput from './GooglePlaceInput';
+import { Button, Field, Input, Select, Textarea } from './ui';
+
+const DEFAULT_EVENT = {
+  time: '',
+  title: '',
+  type: 'sightseeing',
+  location: '',
+  desc: '',
+  urgent: false,
+  url: '',
+  currency: 'JPY',
+  locationPlace: null,
+  transport: { mode: 'train', duration: '', route: '' },
+  cost: ''
+};
+
+const EVENT_TYPES = [
+  { value: 'sightseeing', label: '景點' },
+  { value: 'food', label: '美食' },
+  { value: 'shopping', label: '購物' },
+  { value: 'transport', label: '交通' },
+  { value: 'hotel', label: '住宿' },
+  { value: 'flight', label: '航班' }
+];
+
+const TRANSPORT_MODES = [
+  { value: 'train', label: '電車 / 地鐵' },
+  { value: 'walk', label: '步行' },
+  { value: 'taxi', label: '計程車 / Uber' },
+  { value: 'bus', label: '巴士' },
+  { value: 'flight', label: '飛機' }
+];
+
+const MAP_SEARCH_RECOMMENDATIONS = [
+  { label: '附近景點', keyword: '景點' },
+  { label: '附近餐廳', keyword: '餐廳' },
+  { label: '附近咖啡', keyword: '咖啡' },
+  { label: '附近購物', keyword: '購物' }
+];
+
+const getInitialFormState = (event) => ({
+  ...DEFAULT_EVENT,
+  ...(event || {}),
+  time: event?.time || '',
+  title: event?.title || '',
+  type: event?.type || DEFAULT_EVENT.type,
+  location: typeof event?.location === 'string'
+    ? event.location
+    : event?.location?.address || event?.location?.name || event?.locationPlace?.address || event?.locationPlace?.name || '',
+  desc: event?.desc || '',
+  url: event?.url || '',
+  currency: event?.cost?.currency || event?.currency || DEFAULT_EVENT.currency,
+  cost: event?.cost?.amount ?? event?.cost ?? '',
+  locationPlace: event?.locationPlace || null,
+  transport: {
+    ...DEFAULT_EVENT.transport,
+    ...(event?.transport || {})
+  },
+  urgent: Boolean(event?.urgent)
+});
+
+const FormSection = ({ title, description, icon: Icon, children }) => (
+  <section className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
+    <div className="mb-3 flex items-start gap-2">
+      {Icon && (
+        <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm dark:bg-slate-900 dark:text-brand-300">
+          <Icon size={17} />
+        </span>
+      )}
+      <div>
+        <h4 className="text-sm font-black text-slate-900 dark:text-white">{title}</h4>
+        {description && <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{description}</p>}
+      </div>
+    </div>
+    {children}
+  </section>
+);
 
 const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdit }) => {
-  const [formData, setFormData] = useState(event || {
-    time: "", title: "", type: "sightseeing", location: "", desc: "", urgent: false,
-    locationPlace: null,
-    transport: { mode: "train", duration: "", route: "" },
-    cost: ""
-  });
+  const [formData, setFormData] = useState(() => getInitialFormState(event));
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  useEffect(() => {
+    setFormData(getInitialFormState(event));
+  }, [event]);
+
+  const trimmedLocation = (formData.location || '').trim();
+  const mapEmbedUrl = useMemo(() => (
+    trimmedLocation
+      ? `https://www.google.com/maps?q=${encodeURIComponent(trimmedLocation)}&output=embed`
+      : ''
+  ), [trimmedLocation]);
+
+  const handleChange = (eventChange) => {
+    const { name, value, type, checked } = eventChange.target;
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [parent]: { ...prev[parent], [child]: value }
+        [parent]: { ...(prev[parent] || {}), [child]: value }
       }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      }));
+      return;
     }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleLocationTextChange = (value) => {
@@ -44,62 +129,100 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
     }));
   };
 
-  const trimmedLocation = (formData.location || '').trim();
-  const mapEmbedUrl = trimmedLocation
-    ? `https://www.google.com/maps?q=${encodeURIComponent(trimmedLocation)}&output=embed`
-    : '';
-  const mapSearchRecommendations = trimmedLocation
-    ? [
-        { label: '附近景點', keyword: '景點' },
-        { label: '附近餐廳', keyword: '餐廳' },
-        { label: '附近咖啡', keyword: '咖啡' },
-        { label: '附近購物', keyword: '購物' }
-      ]
-    : [];
+  const handleSubmit = (submitEvent) => {
+    submitEvent.preventDefault();
+    if (readOnly) return;
+
+    onSave({
+      ...formData,
+      currency: formData.currency || 'JPY',
+      cost: formData.cost ?? '',
+      transport: {
+        ...DEFAULT_EVENT.transport,
+        ...(formData.transport || {})
+      }
+    });
+  };
 
   return (
-    <div className="space-y-4 tp-body-text">
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">時間</label>
-          <input type="time" name="time" value={formData.time} onChange={handleChange} disabled={readOnly} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
-        </div>
-        <div>
-          <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">類型</label>
-          <select name="type" value={formData.type} onChange={handleChange} disabled={readOnly} className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed">
-            <option value="sightseeing">景點</option>
-            <option value="food">美食</option>
-            <option value="shopping">購物</option>
-            <option value="transport">交通</option>
-            <option value="hotel">住宿</option>
-            <option value="flight">航班</option>
-          </select>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-4 text-slate-700 dark:text-slate-200">
+      <FormSection title="基本資訊" description="先填時間與類型，行程卡會依這裡排序與顯示。">
+        <div className="grid gap-3 sm:grid-cols-[0.8fr_1fr]">
+          <Field label="時間" htmlFor="event-time">
+            <Input
+              id="event-time"
+              type="time"
+              name="time"
+              value={formData.time || ''}
+              onChange={handleChange}
+              disabled={readOnly}
+            />
+          </Field>
 
-      <div>
-        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">標題</label>
-        <input type="text" name="title" value={formData.title} onChange={handleChange} disabled={readOnly} placeholder="輸入行程名稱" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
-      </div>
+          <Field label="類型" htmlFor="event-type">
+            <Select
+              id="event-type"
+              name="type"
+              value={formData.type || 'sightseeing'}
+              onChange={handleChange}
+              disabled={readOnly}
+            >
+              {EVENT_TYPES.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </Select>
+          </Field>
+        </div>
 
-      <div>
-        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">地點 (用於導航)</label>
-        <div className="relative">
-          <MapPin size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <GooglePlaceInput
-            name="location"
-            value={formData.location}
-            onTextChange={handleLocationTextChange}
-            onPlaceSelect={handleLocationPlaceSelect}
+        <div className="mt-3">
+          <Field label="標題" htmlFor="event-title">
+            <Input
+              id="event-title"
+              type="text"
+              name="title"
+              value={formData.title || ''}
+              onChange={handleChange}
+              disabled={readOnly}
+              placeholder="輸入行程名稱"
+            />
+          </Field>
+        </div>
+
+        <label className="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
+          <input
+            type="checkbox"
+            name="urgent"
+            checked={Boolean(formData.urgent)}
+            onChange={handleChange}
             disabled={readOnly}
-            placeholder="輸入Google Maps地點名稱"
-            className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
           />
-        </div>
+          <AlertCircle size={16} />
+          標記為重要，例如需預約或必去景點
+        </label>
+      </FormSection>
+
+      <FormSection title="地點與備註" description="選 Google Maps 地點後，導航與旅途中模式會更準確。" icon={MapPin}>
+        <Field label="地點" htmlFor="event-location" hint="可輸入地名，或從 Google Maps 自動完成選擇。">
+          <div className="relative">
+            <MapPin size={16} className="pointer-events-none absolute left-3 top-3.5 text-slate-400 dark:text-slate-500" />
+            <GooglePlaceInput
+              id="event-location"
+              name="location"
+              value={formData.location}
+              onTextChange={handleLocationTextChange}
+              onPlaceSelect={handleLocationPlaceSelect}
+              disabled={readOnly}
+              placeholder="輸入 Google Maps 地點名稱"
+              ariaLabel="行程地點"
+              className="tp-input pl-10"
+            />
+          </div>
+        </Field>
+
         {trimmedLocation && (
           <div className="mt-3 space-y-2">
-            <p className="tp-caption-text text-gray-500 dark:text-slate-400">Google Maps 預覽</p>
-            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-600">
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
               <iframe
                 title="location-map-preview"
                 src={mapEmbedUrl}
@@ -109,104 +232,152 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               />
             </div>
             <div className="flex flex-wrap gap-2">
-              {mapSearchRecommendations.map((item) => (
+              {MAP_SEARCH_RECOMMENDATIONS.map((item) => (
                 <a
                   key={item.keyword}
                   href={`https://www.google.com/maps/search/${encodeURIComponent(`${trimmedLocation} ${item.keyword}`)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100"
+                  className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-white px-3 py-1.5 text-xs font-bold text-brand-700 transition hover:bg-brand-50 dark:border-brand-900/70 dark:bg-slate-900 dark:text-brand-300 dark:hover:bg-brand-950/30"
                 >
                   {item.label}
+                  <ExternalLink size={12} />
                 </a>
               ))}
             </div>
           </div>
         )}
-      </div>
 
-      <div>
-        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">描述 / 備註</label>
-        <textarea name="desc" value={formData.desc} onChange={handleChange} disabled={readOnly} placeholder="輸入詳細資訊" rows="2" className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed"></textarea>
-      </div>
-
-      <div>
-        <label className="tp-caption-text text-gray-500 dark:text-slate-400 font-bold block mb-1">相關連結 (URL)</label>
-        <div className="relative">
-          <LinkIcon size={16} className="absolute left-3 top-3 text-gray-400 dark:text-slate-500" />
-          <input type="url" name="url" value={formData.url || ""} onChange={handleChange} disabled={readOnly} placeholder="https://example.com" className="w-full pl-9 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg tp-form-control focus:outline-brand-500 text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
+        <div className="mt-3">
+          <Field label="描述 / 備註" htmlFor="event-desc">
+            <Textarea
+              id="event-desc"
+              name="desc"
+              value={formData.desc || ''}
+              onChange={handleChange}
+              disabled={readOnly}
+              placeholder="輸入詳細資訊、集合地點、訂位資訊..."
+              rows="3"
+            />
+          </Field>
         </div>
-        <p className="tp-caption-text text-gray-400 dark:text-slate-500 mt-1">例如: 官方網站、購票連結、預約確認等</p>
-      </div>
 
-      <div className="p-3 bg-brand-50 dark:bg-brand-900/30 rounded-lg border border-brand-100 dark:border-brand-900/50">
-        <h4 className="text-xs font-bold text-brand-700 dark:text-brand-400 mb-2 flex items-center"><Navigation size={12} className="mr-1"/> 交通資訊 (選填)</h4>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <input type="text" name="transport.duration" value={formData.transport?.duration || ""} onChange={handleChange} disabled={readOnly} placeholder="預估時間 (如: 30分)" className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
-          <select name="transport.mode" value={formData.transport?.mode || "train"} onChange={handleChange} disabled={readOnly} className="bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed">
-            <option value="train">電車/地鐵</option>
-            <option value="walk">步行</option>
-            <option value="taxi">計程車/Uber</option>
-            <option value="bus">巴士</option>
-            <option value="flight">飛機</option>
-          </select>
+        <div className="mt-3">
+          <Field label="相關連結" htmlFor="event-url" hint="例如官方網站、購票連結、預約確認頁。">
+            <div className="relative">
+              <LinkIcon size={16} className="pointer-events-none absolute left-3 top-3.5 text-slate-400 dark:text-slate-500" />
+              <Input
+                id="event-url"
+                type="url"
+                name="url"
+                value={formData.url || ''}
+                onChange={handleChange}
+                disabled={readOnly}
+                placeholder="https://example.com"
+                className="pl-10"
+              />
+            </div>
+          </Field>
         </div>
-        <input type="text" name="transport.route" value={formData.transport?.route || ""} onChange={handleChange} disabled={readOnly} placeholder="路線備註 (如: 山手線往池袋)" className="w-full bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-800 rounded p-1.5 text-xs text-gray-900 dark:text-slate-200 disabled:opacity-70 disabled:cursor-not-allowed" />
-      </div>
+      </FormSection>
 
-      <div className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold">💰 花費設定</label>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 dark:text-slate-400">幣別:</label>
-            <select
+      <FormSection title="交通資訊" description="讓行程卡能提示下一段路線與預估時間。" icon={Navigation}>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="預估時間" htmlFor="event-transport-duration">
+            <Input
+              id="event-transport-duration"
+              type="text"
+              name="transport.duration"
+              value={formData.transport?.duration || ''}
+              onChange={handleChange}
+              disabled={readOnly}
+              placeholder="例如：30 分"
+            />
+          </Field>
+
+          <Field label="交通方式" htmlFor="event-transport-mode">
+            <Select
+              id="event-transport-mode"
+              name="transport.mode"
+              value={formData.transport?.mode || 'train'}
+              onChange={handleChange}
+              disabled={readOnly}
+            >
+              {TRANSPORT_MODES.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        <div className="mt-3">
+          <Field label="路線備註" htmlFor="event-transport-route">
+            <Input
+              id="event-transport-route"
+              type="text"
+              name="transport.route"
+              value={formData.transport?.route || ''}
+              onChange={handleChange}
+              disabled={readOnly}
+              placeholder="例如：山手線往池袋，轉乘一次"
+            />
+          </Field>
+        </div>
+      </FormSection>
+
+      <FormSection title="預估花費" description="這裡記錄的是行程預算，不會混入實際記帳。" icon={Wallet}>
+        <div className="grid gap-3 sm:grid-cols-[0.75fr_1fr]">
+          <Field label="幣別" htmlFor="event-currency">
+            <Select
+              id="event-currency"
               name="currency"
               value={formData.currency || 'JPY'}
               onChange={handleChange}
               disabled={readOnly}
-              className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-slate-200 focus:outline-none focus:border-brand-500 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <option value="JPY">JPY (日幣)</option>
-              <option value="TWD">TWD (台幣)</option>
-            </select>
-          </div>
-        </div>
-        
-        <div>
-          <label className="text-xs text-gray-500 dark:text-slate-400 font-bold block mb-1">預估金額 (預算)</label>
-          <input
-            type="number"
-            name="cost"
-            value={formData.cost || ""}
-            onChange={handleChange}
-            disabled={readOnly}
-            placeholder="輸入預算"
-            className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 text-sm focus:outline-brand-500 dark:text-gray-200 disabled:opacity-70 disabled:cursor-not-allowed"
-          />
-        </div>
-      </div>
+              <option value="JPY">JPY（日幣）</option>
+              <option value="TWD">TWD（台幣）</option>
+            </Select>
+          </Field>
 
-      <div className="flex items-center space-x-2">
-        <input type="checkbox" id="urgent" name="urgent" checked={formData.urgent} onChange={handleChange} disabled={readOnly} className="rounded text-brand-600 focus:ring-brand-500 disabled:opacity-70 disabled:cursor-not-allowed" />
-        <label htmlFor="urgent" className="text-sm text-gray-700 dark:text-gray-300 font-medium">標記為重要 (需預約/必去)</label>
-      </div>
+          <Field label="預估金額" htmlFor="event-cost">
+            <Input
+              id="event-cost"
+              type="number"
+              name="cost"
+              value={formData.cost || ''}
+              onChange={handleChange}
+              disabled={readOnly}
+              min="0"
+              placeholder="輸入預算"
+            />
+          </Field>
+        </div>
+      </FormSection>
 
       {readOnly ? (
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <button onClick={onCancel} className="w-full border border-gray-300 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+        <div className="grid gap-2 pt-1 sm:grid-cols-2">
+          <Button type="button" variant="secondary" onClick={onCancel} className="w-full">
             關閉
-          </button>
-          <button onClick={onRequestEdit} className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md">
-            編輯行程
-          </button>
+          </Button>
+          {onRequestEdit && (
+            <Button type="button" onClick={onRequestEdit} className="w-full">
+              編輯行程
+            </Button>
+          )}
         </div>
       ) : (
-        <button onClick={() => onSave(formData)} className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors shadow-md mt-2 flex items-center justify-center">
-          <Save size={18} className="mr-2" />
-          儲存行程
-        </button>
+        <div className="grid gap-2 pt-1 sm:grid-cols-2">
+          <Button type="button" variant="secondary" onClick={onCancel} className="w-full">
+            取消
+          </Button>
+          <Button type="submit" className="w-full">
+            <Save size={18} />
+            儲存行程
+          </Button>
+        </div>
       )}
-    </div>
+    </form>
   );
 };
 

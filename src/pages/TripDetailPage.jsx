@@ -666,6 +666,7 @@ const TripDetailPage = () => {
           setIsEventViewMode(false);
         }}
         title={editingEvent ? (isEventViewMode ? '行程詳情' : '編輯行程') : '新增行程'}
+        size="lg"
       >
         <EditEventForm
           event={editingEvent}

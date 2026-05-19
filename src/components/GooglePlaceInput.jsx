@@ -4,6 +4,7 @@ import { loadGoogleMapsPlacesLibrary, normalizeGooglePlaceResult } from '../serv
 const DEFAULT_PLACE_TYPES = [];
 
 const GooglePlaceInput = ({
+  id,
   value,
   onTextChange,
   onPlaceSelect,
@@ -11,6 +12,7 @@ const GooglePlaceInput = ({
   placeholder = '',
   className = '',
   name,
+  ariaLabel,
   placeTypes = DEFAULT_PLACE_TYPES
 }) => {
   const inputRef = useRef(null);
@@ -65,6 +67,7 @@ const GooglePlaceInput = ({
 
   return (
     <input
+      id={id}
       ref={inputRef}
       type="text"
       name={name}
@@ -73,6 +76,7 @@ const GooglePlaceInput = ({
       disabled={disabled}
       placeholder={placeholder}
       autoComplete="off"
+      aria-label={ariaLabel}
       className={className}
     />
   );

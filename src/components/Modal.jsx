@@ -1,13 +1,24 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { cx } from './ui';
 
-const Modal = ({ isOpen, onClose, children, title }) => {
+const sizeClasses = {
+  sm: 'sm:max-w-sm',
+  md: 'sm:max-w-md',
+  lg: 'sm:max-w-2xl',
+  xl: 'sm:max-w-4xl'
+};
+
+const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-2xl animate-fade-in-up dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <div className={cx(
+        'animate-fade-in-up flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-slate-200 bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-lg dark:border-slate-800 dark:bg-slate-900',
+        sizeClasses[size] || sizeClasses.md
+      )}>
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h3>
           <button
             type="button"
@@ -18,7 +29,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
             <X size={24} />
           </button>
         </div>
-        <div className="p-4">
+        <div className="overflow-y-auto p-4">
           {children}
         </div>
       </div>

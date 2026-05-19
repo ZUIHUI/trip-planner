@@ -7,6 +7,30 @@ import WeatherWidget from '../WeatherWidget';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 
+const currencySymbol = (currency) => (currency === 'TWD' ? 'NT$' : '¥');
+
+const readEventCost = (event) => {
+  const amount = Number(event?.cost?.amount ?? event?.cost);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return {
+    amount,
+    currency: event?.cost?.currency || event?.currency || 'JPY'
+  };
+};
+
+const formatCostSummary = (costItems) => {
+  if (!costItems.length) return '未設定';
+
+  const totals = costItems.reduce((acc, item) => {
+    acc[item.currency] = (acc[item.currency] || 0) + item.amount;
+    return acc;
+  }, {});
+
+  return Object.entries(totals)
+    .map(([currency, amount]) => `${currencySymbol(currency)}${amount.toLocaleString()}`)
+    .join(' / ');
+};
+
 const ItineraryTab = () => {
   const {
     itinerary,
@@ -32,10 +56,11 @@ const ItineraryTab = () => {
     handleOpenGoogleMaps
   } = useTripWorkspace();
 
-  const todayCost = (currentDayData?.events || [])
-    .filter((event) => event.cost)
-    .reduce((sum, event) => sum + (parseInt(event.cost, 10) || 0), 0);
-  const todayCostEventCount = (currentDayData?.events || []).filter((event) => event.cost).length;
+  const todayCostItems = (currentDayData?.events || [])
+    .map(readEventCost)
+    .filter(Boolean);
+  const todayCostSummary = formatCostSummary(todayCostItems);
+  const todayCostEventCount = todayCostItems.length;
 
   return (
     <>
@@ -172,10 +197,12 @@ const ItineraryTab = () => {
               <div>
                 <h3 className="font-bold text-slate-900 dark:text-white">今日預估花費</h3>
                 <p className="mt-1 text-2xl font-black text-amber-700 dark:text-amber-300">
-                  {todayCost.toLocaleString()} 元
+                  {todayCostSummary}
                 </p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  共 {todayCostEventCount} 個項目有記錄花費
+                  {todayCostEventCount > 0
+                    ? `共 ${todayCostEventCount} 個項目有記錄花費`
+                    : '今日行程尚未設定預估花費'}
                 </p>
               </div>
             </div>
