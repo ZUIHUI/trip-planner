@@ -1,14 +1,24 @@
 import React from 'react';
+import { Luggage } from 'lucide-react';
 import PackingListContent from '../PackingListContent';
+import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 
 const PackingTab = () => {
   const { checklists, setChecklists, tripDetails, itinerary } = useTripWorkspace();
 
   return (
-    <div className="px-4 sm:px-6 mt-6 space-y-4 pb-10">
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">🎒 打包清單</h3>
+    <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
+      <Card className="p-4">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="tp-icon-chip">
+            <Luggage size={20} />
+          </div>
+          <div>
+            <h2 className="tp-section-title">打包清單</h2>
+            <p className="tp-section-subtitle">依行李箱、隨身包與每日衣服整理，不容易漏帶。</p>
+          </div>
+        </div>
         <PackingListContent
           items={checklists.packing}
           onUpdate={(newItems) =>
@@ -17,7 +27,7 @@ const PackingTab = () => {
           travelers={tripDetails?.travelers || []}
           itinerary={itinerary}
         />
-      </div>
+      </Card>
     </div>
   );
 };

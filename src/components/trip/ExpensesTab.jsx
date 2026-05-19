@@ -14,7 +14,7 @@ const ExpensesTab = () => {
   } = useTripWorkspace();
 
   return (
-    <div className="mt-2 pb-20">
+    <div className="mt-2 px-4 pb-20 sm:px-6 lg:px-8">
       <ExpenseTracker
         ref={expenseTrackerRef}
         itinerary={itinerary}

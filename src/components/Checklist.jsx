@@ -1,50 +1,137 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Button, EmptyState, Input } from './ui';
 
-const Checklist = ({ items = [], onAddItem, onToggleItem, onDeleteItem, title = "清單" }) => {
+const Checklist = ({
+  items = [],
+  onUpdate,
+  onAddItem,
+  onToggleItem,
+  onDeleteItem,
+  title = '清單'
+}) => {
   const [inputValue, setInputValue] = useState('');
+  const safeItems = Array.isArray(items) ? items : [];
+  const doneCount = useMemo(() => safeItems.filter((item) => item.done).length, [safeItems]);
 
-  const handleAddItem = (e) => {
-    if (e.key === 'Enter' && inputValue.trim()) {
-      onAddItem(inputValue);
-      setInputValue('');
+  const commitUpdate = (nextItems) => {
+    onUpdate?.(nextItems);
+  };
+
+  const addItem = () => {
+    const text = inputValue.trim();
+    if (!text) return;
+
+    if (onAddItem) {
+      onAddItem(text);
+    } else {
+      commitUpdate([
+        ...safeItems,
+        {
+          id: Date.now(),
+          text,
+          done: false
+        }
+      ]);
     }
+    setInputValue('');
+  };
+
+  const toggleItem = (id) => {
+    if (onToggleItem) {
+      onToggleItem(id);
+      return;
+    }
+    commitUpdate(safeItems.map((item) => (
+      item.id === id ? { ...item, done: !item.done } : item
+    )));
+  };
+
+  const deleteItem = (id) => {
+    const target = safeItems.find((item) => item.id === id);
+    if (!target) return;
+    if (!window.confirm(`確定要刪除「${target.text}」嗎？`)) return;
+
+    if (onDeleteItem) {
+      onDeleteItem(id);
+      return;
+    }
+    commitUpdate(safeItems.filter((item) => item.id !== id));
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6">
-      <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-4">{title}</h3>
-
-      <div className="space-y-2 mb-4">
-        {items.map(item => (
-          <div key={item.id} className="flex items-center gap-3 group">
-            <input
-              type="checkbox"
-              checked={item.done || false}
-              onChange={() => onToggleItem(item.id)}
-              className="rounded text-brand-600 cursor-pointer"
-            />
-            <span className={`flex-1 ${item.done ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-700 dark:text-slate-300'}`}>
-              {item.text}
-            </span>
-            <button
-              onClick={() => onDeleteItem(item.id)}
-              className="touch-target opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all"
-              title={`刪除 ${item.text}`}
-            >
-              ✕
-            </button>
-          </div>
-        ))}
+    <div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="tp-section-title">{title}</h3>
+          <p className="tp-section-subtitle mt-1">
+            已完成 {doneCount} / {safeItems.length} 項
+          </p>
+        </div>
+        <div className="rounded-full bg-brand-50 px-3 py-1 text-xs font-bold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+          {safeItems.length ? `${Math.round((doneCount / safeItems.length) * 100)}%` : '0%'}
+        </div>
       </div>
 
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleAddItem}
-        placeholder="+ 新增待辦事項 (Enter)"
-        className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg p-2 text-sm focus:outline-none focus:border-brand-400 dark:text-slate-200"
-      />
+      {safeItems.length === 0 ? (
+        <EmptyState
+          icon={CheckCircle2}
+          title="目前沒有待辦項目"
+          description="在下方輸入項目後按 Enter，或點擊新增按鈕。"
+          className="py-8"
+        />
+      ) : (
+        <div className="space-y-2">
+          {safeItems.map((item) => (
+            <div
+              key={item.id}
+              className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-900/20"
+            >
+              <input
+                type="checkbox"
+                checked={item.done || false}
+                onChange={() => toggleItem(item.id)}
+                className="h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-900"
+                aria-label={`標記 ${item.text} 完成狀態`}
+              />
+              <span className={`min-w-0 flex-1 break-words text-sm font-medium ${
+                item.done ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'
+              }`}>
+                {item.text}
+              </span>
+              <button
+                type="button"
+                onClick={() => deleteItem(item.id)}
+                className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                title={`刪除 ${item.text}`}
+                aria-label={`刪除 ${item.text}`}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
+        <Input
+          type="text"
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              addItem();
+            }
+          }}
+          placeholder="新增待辦事項"
+          aria-label="新增待辦事項"
+        />
+        <Button onClick={addItem} disabled={!inputValue.trim()}>
+          <Plus size={16} />
+          新增
+        </Button>
+      </div>
     </div>
   );
 };
