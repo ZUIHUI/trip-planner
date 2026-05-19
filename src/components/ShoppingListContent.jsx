@@ -1,9 +1,466 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Trash2, Upload, X, ExternalLink, Filter, ShoppingCart, Search, Settings, ZoomIn, Pencil, GripVertical } from 'lucide-react';
+import {
+  ExternalLink,
+  Filter,
+  GripVertical,
+  Pencil,
+  Plus,
+  Search,
+  Settings,
+  ShoppingCart,
+  Trash2,
+  Upload,
+  X,
+  ZoomIn
+} from 'lucide-react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { updateShoppingList, updateShoppingCategories } from '../services/tripService';
+import { updateShoppingCategories, updateShoppingList } from '../services/tripService';
+import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, LoadingState, Select, Textarea } from './ui';
+
+const DEFAULT_CATEGORIES = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
+
+const INITIAL_FORM_DATA = {
+  name: '',
+  category: '未分類',
+  shop: '',
+  quantity: 1,
+  notes: '',
+  image: null
+};
+
+const getProgress = (totalItems, purchasedItems) => (
+  totalItems ? Math.round((purchasedItems / totalItems) * 100) : 0
+);
+
+const renderToBody = (node) => {
+  if (typeof document === 'undefined') return null;
+  return createPortal(node, document.body);
+};
+
+const ShoppingSummary = ({ totalItems, purchasedItems }) => {
+  const progress = getProgress(totalItems, purchasedItems);
+
+  return (
+    <Card className="p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="tp-icon-chip bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300">
+            <ShoppingCart size={20} />
+          </div>
+          <div>
+            <h2 className="tp-section-title">購物清單</h2>
+            <p className="tp-section-subtitle">整理想買商品、店家、圖片與備註。</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center sm:min-w-72">
+          <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">總計</p>
+            <p className="mt-1 font-black text-slate-900 dark:text-white">{totalItems}</p>
+          </div>
+          <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">已買</p>
+            <p className="mt-1 font-black text-slate-900 dark:text-white">{purchasedItems}</p>
+          </div>
+          <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">進度</p>
+            <p className="mt-1 font-black text-slate-900 dark:text-white">{progress}%</p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div
+          className="h-full rounded-full bg-orange-500 transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </Card>
+  );
+};
+
+const ShoppingControls = ({
+  categories,
+  filterCategory,
+  setFilterCategory,
+  searchQuery,
+  setSearchQuery,
+  onManageCategories
+}) => (
+  <Card className="p-4">
+    <div className="grid gap-3 lg:grid-cols-[1fr_0.7fr_auto]">
+      <div className="relative">
+        <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="搜尋商品、店家或備註"
+          className="pl-9 pr-10"
+          aria-label="搜尋購物清單"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="touch-target absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            aria-label="清除搜尋"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
+      <div className="relative">
+        <Filter size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Select
+          value={filterCategory}
+          onChange={(event) => setFilterCategory(event.target.value)}
+          className="pl-9"
+          aria-label="購物分類篩選"
+        >
+          <option value="All">顯示所有分類</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+        </Select>
+      </div>
+
+      <Button variant="secondary" onClick={onManageCategories}>
+        <Settings size={17} />
+        管理分類
+      </Button>
+    </div>
+  </Card>
+);
+
+const ManageCategoriesModal = ({
+  categories,
+  newCategoryName,
+  setNewCategoryName,
+  onAddCategory,
+  onDeleteCategory,
+  onClose
+}) => renderToBody(
+  <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-label="管理分類">
+    <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">管理分類</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          aria-label="關閉分類管理"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <Input
+          type="text"
+          value={newCategoryName}
+          onChange={(event) => setNewCategoryName(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              onAddCategory();
+            }
+          }}
+          placeholder="新分類名稱"
+          aria-label="新分類名稱"
+        />
+        <Button onClick={onAddCategory} disabled={!newCategoryName.trim()}>
+          <Plus size={16} />
+          新增
+        </Button>
+      </div>
+
+      <div className="mt-4 max-h-64 space-y-2 overflow-y-auto">
+        {categories.map((category) => (
+          <div key={category} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{category}</span>
+            {!DEFAULT_CATEGORIES.includes(category) && (
+              <button
+                type="button"
+                onClick={() => onDeleteCategory(category)}
+                className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                title={`刪除分類 ${category}`}
+                aria-label={`刪除分類 ${category}`}
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const ImageZoomModal = ({ image, onClose }) => renderToBody(
+  <div
+    className="fixed inset-0 z-[130] flex cursor-pointer items-center justify-center bg-black/90 p-4"
+    onClick={onClose}
+    role="dialog"
+    aria-modal="true"
+    aria-label="圖片預覽"
+  >
+    <div className="relative max-h-[90vh] max-w-4xl">
+      <img src={image} alt="商品圖片預覽" className="max-h-[90vh] max-w-full rounded-lg object-contain" />
+      <button
+        type="button"
+        onClick={onClose}
+        className="touch-target absolute -right-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg hover:bg-slate-100"
+        aria-label="關閉圖片預覽"
+      >
+        <X size={22} />
+      </button>
+    </div>
+  </div>
+);
+
+const ShoppingItemFormModal = ({
+  categories,
+  editingId,
+  formData,
+  imagePreview,
+  setFormData,
+  setImagePreview,
+  onImageChange,
+  onSave,
+  onClose
+}) => renderToBody(
+  <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={editingId ? '編輯購物項目' : '新增購物項目'}>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
+      className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          aria-label="關閉購物項目表單"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <Field label="商品名稱" htmlFor="shopping-item-name">
+          <Input
+            id="shopping-item-name"
+            type="text"
+            value={formData.name}
+            onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+            placeholder="例如：EVE 止痛藥"
+            required
+            autoFocus
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="分類" htmlFor="shopping-item-category">
+            <Select
+              id="shopping-item-category"
+              value={formData.category}
+              onChange={(event) => setFormData({ ...formData, category: event.target.value })}
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="數量" htmlFor="shopping-item-quantity">
+            <Input
+              id="shopping-item-quantity"
+              type="number"
+              min="1"
+              value={formData.quantity}
+              onChange={(event) => setFormData({ ...formData, quantity: parseInt(event.target.value, 10) || 1 })}
+            />
+          </Field>
+        </div>
+
+        <Field label="店家 / 地點" htmlFor="shopping-item-shop">
+          <Input
+            id="shopping-item-shop"
+            type="text"
+            value={formData.shop}
+            onChange={(event) => setFormData({ ...formData, shop: event.target.value })}
+            placeholder="例如：松本清、Donki"
+          />
+        </Field>
+
+        <Field label="備註 / 連結" htmlFor="shopping-item-notes">
+          <Textarea
+            id="shopping-item-notes"
+            value={formData.notes}
+            onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
+            placeholder="規格、型號、價格、購買連結..."
+            rows="3"
+          />
+        </Field>
+
+        <Field label="圖片">
+          <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-center transition hover:border-brand-300 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-800/70 dark:hover:border-brand-700">
+            <input type="file" accept="image/*" onChange={onImageChange} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+            {imagePreview ? (
+              <span className="relative inline-block">
+                <img src={imagePreview} alt="商品圖片預覽" className="mx-auto max-h-32 rounded-lg" />
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setImagePreview(null);
+                    setFormData({ ...formData, image: null });
+                  }}
+                  className="absolute -right-2 -top-2 rounded-full bg-red-600 p-1 text-white shadow-sm"
+                  aria-label="移除商品圖片"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ) : (
+              <>
+                <Upload size={24} className="text-slate-400" />
+                <span className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-300">點擊上傳圖片</span>
+              </>
+            )}
+          </label>
+        </Field>
+
+        <Button type="submit" className="w-full">
+          {editingId ? '儲存變更' : '確認新增'}
+        </Button>
+      </div>
+    </form>
+  </div>
+);
+
+const ShoppingItemCard = ({
+  item,
+  draggedItemId,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
+  onTogglePurchased,
+  onEdit,
+  onDelete,
+  onZoomImage
+}) => (
+  <Card
+    as="article"
+    interactive
+    className={`p-4 ${item.purchased ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/70 dark:bg-emerald-950/20' : ''} ${
+      draggedItemId === item.id ? 'opacity-50' : ''
+    }`}
+    draggable
+    data-item-id={item.id}
+    onDragStart={(event) => onDragStart(event, item.id)}
+    onDragOver={onDragOver}
+    onDrop={(event) => onDrop(event, item.id)}
+  >
+    <div className="flex gap-3">
+      <div
+        className="touch-none flex shrink-0 cursor-grab items-start pt-1 text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400"
+        onTouchStart={(event) => onTouchStart(event, item.id)}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <GripVertical size={20} />
+      </div>
+
+      <input
+        type="checkbox"
+        checked={item.purchased}
+        onChange={() => onTogglePurchased(item.id)}
+        className="mt-1 h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-900"
+        aria-label={`標記 ${item.name} 是否已購買`}
+      />
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className={`break-words text-lg font-bold leading-tight ${
+              item.purchased ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-900 dark:text-white'
+            }`}>
+              {item.name}
+            </h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Badge variant="muted">{item.category || '未分類'}</Badge>
+              {item.shop && <Badge variant="info">{item.shop}</Badge>}
+              <Badge variant="warning">x{item.quantity || 1}</Badge>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 gap-1">
+            <button
+              type="button"
+              onClick={() => onEdit(item)}
+              className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
+              title={`編輯 ${item.name}`}
+              aria-label={`編輯 ${item.name}`}
+            >
+              <Pencil size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(item.id)}
+              className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+              title={`刪除 ${item.name}`}
+              aria-label={`刪除 ${item.name}`}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+
+        {(item.notes || item.image) && (
+          <div className="mt-3 space-y-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+            {item.notes && (
+              <div className="rounded-lg bg-slate-50 p-3 text-sm leading-6 text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+                {item.notes.includes('http') ? (
+                  <a
+                    href={item.notes}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-w-0 items-center gap-1 break-all font-semibold text-brand-700 hover:underline dark:text-brand-300"
+                  >
+                    <ExternalLink size={14} className="shrink-0" />
+                    {item.notes}
+                  </a>
+                ) : item.notes}
+              </div>
+            )}
+
+            {item.image && (
+              <button type="button" onClick={() => onZoomImage(item.image)} className="group relative inline-block text-left">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="h-32 w-auto rounded-lg border border-slate-200 object-cover shadow-sm transition-opacity group-hover:opacity-90 dark:border-slate-700"
+                />
+                <span className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ZoomIn className="text-white drop-shadow-md" size={24} />
+                </span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  </Card>
+);
 
 const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   const [items, setItems] = useState([]);
@@ -13,12 +470,13 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   const [filterCategory, setFilterCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [zoomedImage, setZoomedImage] = useState(null);
-
-  // Categories State
-  const defaultCategories = ['未分類', '藥妝', '服飾', '伴手禮', '電器', '零食', '其他'];
-  const [categories, setCategories] = useState(defaultCategories);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [draggedItemId, setDraggedItemId] = useState(null);
 
   useEffect(() => {
     const hasModalOpen = showAddForm || isManageCategoriesOpen || Boolean(zoomedImage);
@@ -29,42 +487,25 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
     };
   }, [showAddForm, isManageCategoriesOpen, zoomedImage, onModalOpenChange]);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    category: '未分類',
-    shop: '',
-    quantity: 1,
-    notes: '',
-    image: null
-  });
-  const [imagePreview, setImagePreview] = useState(null);
-  const [editingId, setEditingId] = useState(null);
-  const [draggedItemId, setDraggedItemId] = useState(null);
-
   useImperativeHandle(ref, () => ({
     openAddForm: () => {
       setEditingId(null);
+      setFormData(INITIAL_FORM_DATA);
+      setImagePreview(null);
       setShowAddForm(true);
     }
   }), []);
 
-  const renderToBody = (node) => {
-    if (typeof document === 'undefined') return null;
-    return createPortal(node, document.body);
-  };
-  
-  // Load from Firestore
   useEffect(() => {
     if (!tripId) {
       setLoading(false);
-      return;
+      return undefined;
     }
 
     setLoading(true);
-    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
+    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
         if (data.shoppingList) {
           setItems(data.shoppingList);
         }
@@ -74,87 +515,105 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
       }
       setLoading(false);
     }, (err) => {
-      console.error("Error fetching shopping list:", err);
-      setError("無法載入購物清單");
+      console.error('Error fetching shopping list:', err);
+      setError('無法載入購物清單');
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [tripId]);
 
+  const safeItems = Array.isArray(items) ? items : [];
+  const filteredItems = useMemo(() => safeItems.filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
+    const matchesSearch = !query ||
+      String(item.name || '').toLowerCase().includes(query) ||
+      String(item.shop || '').toLowerCase().includes(query) ||
+      String(item.notes || '').toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  }), [safeItems, filterCategory, searchQuery]);
+
+  const purchasedItems = safeItems.filter((item) => item.purchased).length;
+
   const updateItems = (newItems) => {
     setItems(newItems);
     if (tripId) {
-      updateShoppingList(tripId, newItems).catch(err => {
-        console.error("Failed to save shopping list:", err);
+      updateShoppingList(tripId, newItems).catch((err) => {
+        console.error('Failed to save shopping list:', err);
+      });
+    }
+  };
+
+  const updateCategories = (newCategories) => {
+    setCategories(newCategories);
+    if (tripId) {
+      Promise.resolve(updateShoppingCategories(tripId, newCategories)).catch((err) => {
+        console.error('Failed to save shopping categories:', err);
       });
     }
   };
 
   const handleAddCategory = () => {
-    if (newCategoryName.trim() && !categories.includes(newCategoryName.trim())) {
-      const newCategories = [...categories, newCategoryName.trim()];
-      setCategories(newCategories);
-      setNewCategoryName('');
-      if (tripId) {
-        updateShoppingCategories(tripId, newCategories);
-      }
-    }
+    const nextCategory = newCategoryName.trim();
+    if (!nextCategory || categories.includes(nextCategory)) return;
+    updateCategories([...categories, nextCategory]);
+    setNewCategoryName('');
   };
 
   const handleDeleteCategory = (categoryToDelete) => {
-    if (window.confirm(`確定要刪除分類「${categoryToDelete}」嗎？`)) {
-      const newCategories = categories.filter(c => c !== categoryToDelete);
-      setCategories(newCategories);
-      if (tripId) {
-        updateShoppingCategories(tripId, newCategories);
-      }
-    }
+    if (!window.confirm(`確定要刪除分類「${categoryToDelete}」嗎？`)) return;
+    updateCategories(categories.filter((category) => category !== categoryToDelete));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result);
-        setFormData(prev => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagePreview(reader.result);
+      setFormData((prev) => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const resetForm = () => {
+    setFormData(INITIAL_FORM_DATA);
+    setImagePreview(null);
+    setEditingId(null);
+    setShowAddForm(false);
   };
 
   const handleSaveItem = () => {
-    if (!formData.name.trim()) {
+    const name = formData.name.trim();
+    if (!name) {
       alert('請輸入商品名稱');
       return;
     }
 
     if (editingId) {
-      // Update existing item
-      const newItems = items.map(item => 
-        item.id === editingId 
-          ? { ...item, ...formData } 
-          : item
-      );
-      updateItems(newItems);
+      updateItems(safeItems.map((item) => (
+        item.id === editingId ? { ...item, ...formData, name } : item
+      )));
     } else {
-      // Add new item
-      const newItem = {
-        id: Date.now(),
-        ...formData,
-        purchased: false,
-        createdAt: new Date().toISOString()
-      };
-      const newItems = [newItem, ...items];
-      updateItems(newItems);
+      updateItems([
+        {
+          id: Date.now(),
+          ...formData,
+          name,
+          purchased: false,
+          createdAt: new Date().toISOString()
+        },
+        ...safeItems
+      ]);
     }
     resetForm();
   };
 
   const handleEditItem = (item) => {
     setFormData({
-      name: item.name,
+      name: item.name || '',
       category: item.category || '未分類',
       shop: item.shop || '',
       quantity: item.quantity || 1,
@@ -167,502 +626,147 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const deleteItem = (id) => {
-    if (window.confirm('確定要刪除此商品嗎？')) {
-      const newItems = items.filter(item => item.id !== id);
-      updateItems(newItems);
-    }
+    const target = safeItems.find((item) => item.id === id);
+    if (!target) return;
+    if (!window.confirm(`確定要刪除「${target.name}」嗎？`)) return;
+    updateItems(safeItems.filter((item) => item.id !== id));
   };
 
   const togglePurchased = (id) => {
-    const newItems = items.map(item => 
+    updateItems(safeItems.map((item) => (
       item.id === id ? { ...item, purchased: !item.purchased } : item
-    );
-    updateItems(newItems);
+    )));
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      category: '未分類',
-      shop: '',
-      quantity: 1,
-      notes: '',
-      image: null
-    });
-    setImagePreview(null);
-    setEditingId(null);
-    setShowAddForm(false);
-  };
-
-  // Drag and Drop Handlers
-  const handleDragStart = (e, id) => {
+  const handleDragStart = (event, id) => {
     setDraggedItemId(id);
-    e.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDrop = (e, targetId) => {
-    e.preventDefault();
+  const reorderItems = (targetId) => {
     if (!draggedItemId || draggedItemId === targetId) return;
-
-    const sourceIndex = items.findIndex(i => i.id === draggedItemId);
-    const targetIndex = items.findIndex(i => i.id === targetId);
-
+    const sourceIndex = safeItems.findIndex((item) => item.id === draggedItemId);
+    const targetIndex = safeItems.findIndex((item) => item.id === targetId);
     if (sourceIndex === -1 || targetIndex === -1) return;
 
-    const newItems = [...items];
-    const [movedItem] = newItems.splice(sourceIndex, 1);
-    newItems.splice(targetIndex, 0, movedItem);
+    const nextItems = [...safeItems];
+    const [movedItem] = nextItems.splice(sourceIndex, 1);
+    nextItems.splice(targetIndex, 0, movedItem);
+    updateItems(nextItems);
+  };
 
-    updateItems(newItems);
+  const handleDrop = (event, targetId) => {
+    event.preventDefault();
+    reorderItems(targetId);
     setDraggedItemId(null);
   };
 
-  // Touch Support for Mobile Drag and Drop
-  const handleTouchStart = (e, id) => {
+  const handleTouchStart = (event, id) => {
     setDraggedItemId(id);
   };
 
-  const handleTouchMove = (e) => {
+  const handleTouchMove = (event) => {
     if (!draggedItemId) return;
-    // Prevent scrolling while dragging via the handle
-    if (e.cancelable && e.target.closest('.touch-none')) {
-      e.preventDefault();
+    if (event.cancelable && event.target.closest('.touch-none')) {
+      event.preventDefault();
     }
 
-    const touch = e.touches[0];
+    const touch = event.touches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!target) return;
-
-    const targetRow = target.closest('[data-item-id]');
-    if (targetRow) {
-      const targetId = parseInt(targetRow.getAttribute('data-item-id'));
-      
-      // Only reorder if we are over a different item
-      if (targetId && targetId !== draggedItemId) {
-        const sourceIndex = items.findIndex(i => i.id === draggedItemId);
-        const targetIndex = items.findIndex(i => i.id === targetId);
-
-        if (sourceIndex !== -1 && targetIndex !== -1) {
-          const newItems = [...items];
-          const [movedItem] = newItems.splice(sourceIndex, 1);
-          newItems.splice(targetIndex, 0, movedItem);
-          updateItems(newItems);
-        }
-      }
-    }
+    const targetRow = target?.closest?.('[data-item-id]');
+    if (!targetRow) return;
+    const targetId = parseInt(targetRow.getAttribute('data-item-id'), 10);
+    if (targetId) reorderItems(targetId);
   };
 
   const handleTouchEnd = () => {
     setDraggedItemId(null);
   };
 
-  // Safe filter
-  const safeItems = Array.isArray(items) ? items : [];
-  const filteredItems = safeItems.filter(item => {
-    const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
-    const matchesSearch = searchQuery.trim() === '' || 
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.shop && item.shop.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.notes && item.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
-
-  // Calculate stats
-  const totalItems = safeItems.length;
-  const purchasedItems = safeItems.filter(i => i.purchased).length;
-
   if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-        <span className="ml-2 text-gray-500 dark:text-gray-400">載入購物清單中...</span>
-      </div>
-    );
+    return <LoadingState label="載入購物清單中..." className="mx-4 my-8 sm:mx-6 lg:mx-8" />;
   }
 
   if (error) {
-    return (
-      <div className="text-center py-12 text-red-500 dark:text-red-400">
-        <p>載入失敗: {error}</p>
-      </div>
-    );
+    return <ErrorState title="購物清單載入失敗" description={error} className="mx-4 my-8 sm:mx-6 lg:mx-8" />;
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 py-6 pb-24 overflow-x-hidden">
-       {/* Header & Stats */}
-       <div className="mb-6">
-         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-           <ShoppingCart className="text-orange-500" />
-           購物清單
-         </h2>
-         <div className="flex gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
-           <span>總計: {totalItems} 項</span>
-           <span>已買: {purchasedItems} 項</span>
-           <span>進度: {totalItems ? Math.round((purchasedItems / totalItems) * 100) : 0}%</span>
-         </div>
-         {/* Progress Bar */}
-         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
-            <div 
-              className="bg-orange-500 h-2.5 rounded-full transition-all duration-500" 
-              style={{ width: `${totalItems ? (purchasedItems / totalItems) * 100 : 0}%` }}
-            ></div>
-         </div>
-       </div>
+    <div className="w-full space-y-4 overflow-x-hidden px-4 py-4 pb-24 sm:px-6 lg:px-8">
+      <ShoppingSummary totalItems={safeItems.length} purchasedItems={purchasedItems} />
 
-       {/* Controls */}
-       <div className="space-y-3 mb-6">
-         {/* Search Bar */}
-         <div className="relative">
-           <input
-             type="text"
-             placeholder="搜尋商品、店家或備註..."
-             value={searchQuery}
-             onChange={(e) => setSearchQuery(e.target.value)}
-             className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500 text-gray-900 dark:text-slate-100"
-           />
-           <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500" />
-           {searchQuery && (
-             <button 
-               onClick={() => setSearchQuery('')}
-               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
-             >
-               <X size={16} />
-             </button>
-           )}
-         </div>
+      <ShoppingControls
+        categories={categories}
+        filterCategory={filterCategory}
+        setFilterCategory={setFilterCategory}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onManageCategories={() => setIsManageCategoriesOpen(true)}
+      />
 
-         <div className="flex flex-col sm:flex-row gap-3">
-           <div className="flex items-center bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg px-3 py-2 flex-1">
-             <Filter size={18} className="text-gray-400 dark:text-slate-500 mr-2" />
-             <select 
-               value={filterCategory}
-               onChange={(e) => setFilterCategory(e.target.value)}
-               className="bg-transparent w-full outline-none text-gray-700 dark:text-slate-200"
-             >
-               <option value="All" className="dark:bg-slate-800">顯示所有分類</option>
-               {categories.map(c => <option key={c} value={c} className="dark:bg-slate-800">{c}</option>)}
-             </select>
-           </div>
+      {filteredItems.length === 0 ? (
+        <EmptyState
+          icon={ShoppingCart}
+          title={safeItems.length ? '沒有找到符合條件的商品' : '尚無購物項目'}
+          description={safeItems.length ? '調整搜尋關鍵字或分類篩選。' : '點擊底部新增按鈕，加入第一個想買的商品。'}
+        />
+      ) : (
+        <div className="space-y-3">
+          {filteredItems.map((item) => (
+            <ShoppingItemCard
+              key={item.id}
+              item={item}
+              draggedItemId={draggedItemId}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTogglePurchased={togglePurchased}
+              onEdit={handleEditItem}
+              onDelete={deleteItem}
+              onZoomImage={setZoomedImage}
+            />
+          ))}
+        </div>
+      )}
 
-             <button
-               onClick={() => setIsManageCategoriesOpen(true)}
-               className="touch-target bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors inline-flex items-center justify-center gap-1.5"
-               title="管理分類"
-               aria-label="管理分類"
-             >
-             <Settings size={20} />
-             <span className="text-sm font-medium sm:hidden">分類</span>
-           </button>
-         </div>
-       </div>
+      {isManageCategoriesOpen && (
+        <ManageCategoriesModal
+          categories={categories}
+          newCategoryName={newCategoryName}
+          setNewCategoryName={setNewCategoryName}
+          onAddCategory={handleAddCategory}
+          onDeleteCategory={handleDeleteCategory}
+          onClose={() => setIsManageCategoriesOpen(false)}
+        />
+      )}
 
-       {/* Manage Categories Modal */}
-       {isManageCategoriesOpen && (
-         renderToBody(<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4">
-           <div className="bg-white dark:bg-slate-800 rounded-xl w-full max-w-sm p-6 shadow-2xl max-h-[90svh] overflow-y-auto">
-             <div className="flex justify-between items-center mb-4">
-               <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">管理分類</h3>
-               <button onClick={() => setIsManageCategoriesOpen(false)} className="touch-target" title="關閉"><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
-             </div>
-             
-             <div className="flex gap-2 mb-4">
-               <input
-                 type="text"
-                 value={newCategoryName}
-                 onChange={(e) => setNewCategoryName(e.target.value)}
-                 placeholder="新分類名稱"
-                 className="flex-1 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
-                 onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
-               />
-               <button 
-                 onClick={handleAddCategory}
-                 disabled={!newCategoryName.trim()}
-                 className="touch-target bg-brand-600 text-white px-3 py-2 rounded-lg hover:bg-brand-700 disabled:opacity-50"
-               >
-                 <Plus size={18} />
-               </button>
-             </div>
+      {zoomedImage && <ImageZoomModal image={zoomedImage} onClose={() => setZoomedImage(null)} />}
 
-             <div className="space-y-2 max-h-60 overflow-y-auto">
-               {categories.map(cat => (
-                 <div key={cat} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                   <span className="text-gray-700 dark:text-slate-200">{cat}</span>
-                   {!defaultCategories.includes(cat) && (
-                     <button 
-                       onClick={() => handleDeleteCategory(cat)}
-                       className="touch-target text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400"
-                       title={`刪除分類 ${cat}`}
-                     >
-                       <Trash2 size={16} />
-                     </button>
-                   )}
-                 </div>
-               ))}
-             </div>
-           </div>
-         </div>)
-       )}
-
-       {/* Image Zoom Modal */}
-       {zoomedImage && (
-         renderToBody(<div 
-           className="fixed inset-0 bg-black/90 z-[130] flex items-center justify-center p-4 cursor-pointer"
-           onClick={() => setZoomedImage(null)}
-         >
-           <div className="relative max-w-4xl max-h-[90vh]">
-             <img 
-               src={zoomedImage} 
-               alt="Zoomed" 
-               className="max-w-full max-h-[90vh] object-contain rounded-lg"
-             />
-             <button 
-               onClick={() => setZoomedImage(null)}
-               className="touch-target absolute -top-4 -right-4 bg-white dark:bg-slate-800 text-black dark:text-slate-100 rounded-full p-2 shadow-lg hover:bg-gray-200 dark:hover:bg-slate-700"
-               title="關閉圖片預覽"
-             >
-               <X size={24} />
-             </button>
-           </div>
-         </div>)
-       )}
-
-       {/* Add Form Modal/Panel */}
-       {showAddForm && (
-         renderToBody(<div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[120] p-0 sm:p-4">
-           <div className="bg-white dark:bg-slate-800 w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-t-2xl sm:rounded-xl overflow-y-auto p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl">
-             <div className="flex justify-between items-center mb-4">
-               <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">{editingId ? '編輯購物項目' : '新增購物項目'}</h3>
-               <button onClick={resetForm} className="touch-target" title="關閉編輯表單"><X size={24} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300" /></button>
-             </div>
-             
-             <div className="space-y-4">
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">商品名稱 *</label>
-                 <input 
-                   type="text" 
-                   value={formData.name}
-                   onChange={e => setFormData({...formData, name: e.target.value})}
-                   className="w-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 outline-none"
-                   placeholder="例如: EVE止痛藥"
-                 />
-               </div>
-
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">分類</label>
-                   <select 
-                     value={formData.category}
-                     onChange={e => setFormData({...formData, category: e.target.value})}
-                     className="w-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg px-3 py-2 outline-none"
-                   >
-                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                   </select>
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">數量</label>
-                   <input 
-                     type="number" 
-                     min="1"
-                     value={formData.quantity}
-                     onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
-                     className="w-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg px-3 py-2 outline-none"
-                   />
-                 </div>
-               </div>
-
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">店家 / 地點</label>
-                 <input 
-                   type="text" 
-                   value={formData.shop}
-                   onChange={e => setFormData({...formData, shop: e.target.value})}
-                   className="w-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg px-3 py-2 outline-none"
-                   placeholder="例如: 松本清, Donki"
-                 />
-               </div>
-
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">備註 (可貼連結)</label>
-                 <textarea 
-                   value={formData.notes}
-                   onChange={e => setFormData({...formData, notes: e.target.value})}
-                   className="w-full border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 rounded-lg px-3 py-2 outline-none resize-none"
-                   rows="3"
-                   placeholder="規格、型號、價格..."
-                 />
-               </div>
-
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">圖片</label>
-                 <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-4 text-center hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors cursor-pointer relative">
-                   <input 
-                     type="file" 
-                     accept="image/*" 
-                     onChange={handleImageChange}
-                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                   />
-                   {imagePreview ? (
-                     <div className="relative inline-block">
-                       <img src={imagePreview} alt="Preview" className="max-h-32 rounded mx-auto" />
-                       <button 
-                         onClick={(e) => {
-                           e.preventDefault();
-                           e.stopPropagation();
-                           setImagePreview(null);
-                           setFormData({...formData, image: null});
-                         }}
-                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-sm"
-                       >
-                         <X size={12} />
-                       </button>
-                     </div>
-                   ) : (
-                     <div className="flex flex-col items-center text-gray-500 dark:text-slate-400">
-                       <Upload size={24} className="mb-2" />
-                       <span className="text-sm">點擊上傳圖片</span>
-                     </div>
-                   )}
-                 </div>
-               </div>
-
-               <button 
-                 onClick={handleSaveItem}
-                 className="w-full bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition-colors mt-2"
-               >
-                 {editingId ? '儲存變更' : '確認新增'}
-               </button>
-             </div>
-           </div>
-         </div>)
-       )}
-
-       {/* List */}
-       <div className="space-y-3">
-         {filteredItems.length === 0 ? (
-           <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-xl border border-dashed border-gray-300 dark:border-slate-700">
-             <p className="text-gray-400 dark:text-slate-500">沒有找到商品</p>
-           </div>
-         ) : (
-           filteredItems.map(item => (
-             <div 
-               key={item.id} 
-               data-item-id={item.id}
-               draggable
-               onDragStart={(e) => handleDragStart(e, item.id)}
-               onDragOver={handleDragOver}
-               onDrop={(e) => handleDrop(e, item.id)}
-               className={`bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border transition-all ${
-                 item.purchased ? 'border-green-200 dark:border-green-900 bg-green-50/30 dark:bg-green-900/20' : 'border-gray-100 dark:border-slate-700'
-               } ${draggedItemId === item.id ? 'opacity-50 bg-gray-100 dark:bg-slate-700' : ''}`}
-             >
-               <div className="flex gap-4">
-                 {/* Drag Handle */}
-                 <div 
-                   className="cursor-grab text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 flex-shrink-0 touch-none flex items-start pt-1 -ml-2 p-2"
-                   onTouchStart={(e) => handleTouchStart(e, item.id)}
-                   onTouchMove={handleTouchMove}
-                   onTouchEnd={handleTouchEnd}
-                 >
-                   <GripVertical size={20} />
-                 </div>
-
-                 {/* Checkbox */}
-                 <div className="pt-1">
-                   <input 
-                     type="checkbox" 
-                     checked={item.purchased}
-                     onChange={() => togglePurchased(item.id)}
-                     className="w-6 h-6 rounded border-gray-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 cursor-pointer bg-white dark:bg-slate-700"
-                   />
-                 </div>
-
-                 {/* Content */}
-                 <div className="flex-1 min-w-0">
-                   <div className="flex justify-between items-start mb-2">
-                     <div className="pr-2">
-                       <h3 className={`font-bold text-lg leading-tight break-words ${item.purchased ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-900 dark:text-slate-100'}`}>
-                         {item.name}
-                       </h3>
-                       
-                       {/* Tags Row */}
-                       <div className="flex flex-wrap items-center gap-2 mt-2">
-                         <span className="text-xs px-2.5 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-md font-medium">
-                           {item.category}
-                         </span>
-                         {item.shop && (
-                           <span className="text-xs px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-md font-medium flex items-center gap-1">
-                             🏪 {item.shop}
-                           </span>
-                         )}
-                         <span className="text-xs px-2.5 py-1 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-md font-medium">
-                           x{item.quantity}
-                         </span>
-                       </div>
-                     </div>
-                     
-                     <div className="flex gap-1 flex-shrink-0">
-                       <button 
-                         onClick={() => handleEditItem(item)}
-                         className="touch-target p-1.5 text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors"
-                         title={`編輯 ${item.name}`}
-                       >
-                         <Pencil size={16} />
-                       </button>
-                       <button 
-                         onClick={() => deleteItem(item.id)}
-                         className="touch-target p-1.5 text-gray-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400 rounded-full transition-colors"
-                         title={`刪除 ${item.name}`}
-                       >
-                         <Trash2 size={16} />
-                       </button>
-                     </div>
-                   </div>
-
-                   {/* Notes & Image */}
-                   {(item.notes || item.image) && (
-                     <div className={`mt-3 pt-3 border-t ${item.purchased ? 'border-green-100 dark:border-green-900/30' : 'border-gray-50 dark:border-slate-700'} space-y-3`}>
-                       {item.notes && (
-                         <div className="text-sm text-gray-600 dark:text-slate-300 break-words leading-relaxed bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg">
-                           {item.notes.includes('http') ? (
-                             <a href={item.notes} target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 break-all">
-                               <ExternalLink size={14} className="shrink-0" />
-                               {item.notes}
-                             </a>
-                           ) : (
-                             item.notes
-                           )}
-                         </div>
-                       )}
-                       {item.image && (
-                         <div className="relative group inline-block">
-                           <img 
-                             src={item.image} 
-                             alt={item.name} 
-                             className="h-32 w-auto object-cover rounded-lg border border-gray-200 dark:border-slate-600 cursor-zoom-in hover:opacity-90 transition-opacity shadow-sm" 
-                             onClick={() => setZoomedImage(item.image)}
-                           />
-                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity bg-black/20 rounded-lg">
-                             <ZoomIn className="text-white drop-shadow-md" size={24} />
-                           </div>
-                         </div>
-                       )}
-                     </div>
-                   )}
-                 </div>
-               </div>
-             </div>
-           ))
-         )}
-       </div>
-
+      {showAddForm && (
+        <ShoppingItemFormModal
+          categories={categories}
+          editingId={editingId}
+          formData={formData}
+          imagePreview={imagePreview}
+          setFormData={setFormData}
+          setImagePreview={setImagePreview}
+          onImageChange={handleImageChange}
+          onSave={handleSaveItem}
+          onClose={resetForm}
+        />
+      )}
     </div>
   );
 });
+
+ShoppingListContent.displayName = 'ShoppingListContent';
 
 export default ShoppingListContent;

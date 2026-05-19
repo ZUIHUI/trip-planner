@@ -1,25 +1,486 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Edit2, Trash2, DollarSign, Calendar, X, Save, Users, CheckCircle2, ArrowRight, Wallet } from 'lucide-react';
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  DollarSign,
+  Edit2,
+  Save,
+  Trash2,
+  Users,
+  Wallet,
+  X
+} from 'lucide-react';
+import { Badge, Button, Card, EmptyState, Field, Input, Select, Textarea } from './ui';
 
-const ExpenseTracker = forwardRef(({ itinerary = [], expenses = [], setExpenses, exchangeRate = 0.215, travelers = [], onModalOpenChange }, ref) => {
+const EXPENSE_CATEGORIES = [
+  { id: 'food', label: '餐飲', className: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-900/70' },
+  { id: 'transport', label: '交通', className: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:border-sky-900/70' },
+  { id: 'shopping', label: '購物', className: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/70' },
+  { id: 'ticket', label: '票券/門票', className: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-300 dark:border-violet-900/70' },
+  { id: 'accommodation', label: '住宿', className: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-900/70' },
+  { id: 'other', label: '其他', className: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' }
+];
+
+const getCategory = (categoryId) => (
+  EXPENSE_CATEGORIES.find((category) => category.id === categoryId) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1]
+);
+
+const convertToTwd = (expense, exchangeRate) => {
+  const amount = parseFloat(expense.amount) || 0;
+  return expense.currency === 'JPY' ? Math.round(amount * exchangeRate) : amount;
+};
+
+const formatTwd = (amount) => `NT$ ${Math.round(amount).toLocaleString()}`;
+
+const renderToBody = (node) => {
+  if (typeof document === 'undefined') return null;
+  return createPortal(node, document.body);
+};
+
+const ExpenseSummary = ({ totalSpentTWD, exchangeRate, onOpenSettlement }) => (
+  <Card className="overflow-hidden border-emerald-200 bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white dark:border-emerald-900">
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm font-semibold text-emerald-50">總旅行花費 (TWD)</p>
+        <h2 className="mt-1 text-4xl font-black tracking-tight">{formatTwd(totalSpentTWD)}</h2>
+      </div>
+      <div className="rounded-lg bg-white/20 p-2" aria-hidden="true">
+        <DollarSign size={24} />
+      </div>
+    </div>
+    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-lg bg-white/12 px-3 py-2 text-xs font-semibold text-emerald-50">
+        目前匯率：JPY 1 約 {exchangeRate} TWD
+      </div>
+      <Button variant="secondary" onClick={onOpenSettlement} className="border-white/50 bg-white text-emerald-700 hover:bg-emerald-50">
+        <Wallet size={16} />
+        查看分帳
+      </Button>
+    </div>
+  </Card>
+);
+
+const DayFilter = ({ itinerary, selectedDay, onSelectDay }) => (
+  <Card className="p-2">
+    <div className="no-scrollbar flex gap-2 overflow-x-auto" role="tablist" aria-label="支出日期篩選">
+      <button
+        type="button"
+        onClick={() => onSelectDay('all')}
+        className={`touch-target shrink-0 rounded-lg px-4 py-2 text-sm font-bold transition ${
+          selectedDay === 'all'
+            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+        }`}
+        aria-pressed={selectedDay === 'all'}
+      >
+        全部
+      </button>
+      {itinerary.map((day) => (
+        <button
+          key={day.day}
+          type="button"
+          onClick={() => onSelectDay(day.day)}
+          className={`touch-target shrink-0 rounded-lg px-4 py-2 text-sm font-bold transition ${
+            selectedDay === day.day
+              ? 'bg-brand-600 text-white dark:bg-brand-500 dark:text-slate-950'
+              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+          }`}
+          aria-pressed={selectedDay === day.day}
+        >
+          Day {day.day} ({day.date})
+        </button>
+      ))}
+    </div>
+  </Card>
+);
+
+const CategoryPill = ({ category }) => (
+  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${category.className}`}>
+    {category.label}
+  </span>
+);
+
+const ExpenseCard = ({ item, exchangeRate, onEdit, onDelete }) => {
+  const category = getCategory(item.category);
+  const amountText = `${item.currency === 'TWD' ? 'NT$' : '¥'} ${Number(item.amount || 0).toLocaleString()}`;
+  const twdText = item.currency !== 'TWD' ? formatTwd(convertToTwd(item, exchangeRate)) : null;
+  const splitLabel = item.splitType === 'settled'
+    ? '已結清'
+    : item.splitType === 'all'
+      ? '全員分攤'
+      : `分攤：${item.involved?.join(', ') || '未設定'}`;
+
+  return (
+    <Card as="article" interactive className="p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <CategoryPill category={category} />
+            {item.isSettled && (
+              <Badge variant="muted">
+                <CheckCircle2 size={12} />
+                已結清
+              </Badge>
+            )}
+          </div>
+          <h4 className="break-words text-lg font-black text-slate-900 dark:text-white">{item.title}</h4>
+          {item.note && (
+            <p className="mt-2 inline-block max-w-full break-words rounded-lg bg-slate-50 p-2 text-sm leading-6 text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+              {item.note}
+            </p>
+          )}
+        </div>
+
+        <div className="shrink-0 text-left sm:text-right">
+          <p className="text-xl font-black text-slate-900 dark:text-white">{amountText}</p>
+          {twdText && <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">約 {twdText}</p>}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800">
+        <div className="space-y-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="inline-flex items-center gap-1.5">
+            <Users size={14} />
+            <span className="font-semibold text-slate-700 dark:text-slate-200">{item.payer || '未設定付款人'}</span>
+          </p>
+          <p>{splitLabel}</p>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={() => onEdit(item)} aria-label={`編輯支出 ${item.title}`}>
+            <Edit2 size={14} />
+            編輯
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => onDelete(item.id)} aria-label={`刪除支出 ${item.title}`}>
+            <Trash2 size={14} />
+            刪除
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const ExpenseList = ({ groupedExpenses, exchangeRate, onEdit, onDelete }) => {
+  if (Object.keys(groupedExpenses).length === 0) {
+    return (
+      <EmptyState
+        icon={DollarSign}
+        title="目前尚無支出"
+        description="點擊新增支出，記錄第一筆旅行花費。"
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {Object.entries(groupedExpenses).map(([date, items]) => {
+        const dailyTotal = items.reduce((sum, item) => sum + convertToTwd(item, exchangeRate), 0);
+
+        return (
+          <section key={date} className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+                <Calendar size={14} />
+                {date || '未設定日期'}
+              </h3>
+              <span className="text-sm font-black text-slate-700 dark:text-slate-200">{formatTwd(dailyTotal)}</span>
+            </div>
+
+            <div className="space-y-3">
+              {items.map((item) => (
+                <ExpenseCard
+                  key={item.id}
+                  item={item}
+                  exchangeRate={exchangeRate}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+};
+
+const SplitTypeButton = ({ active, onClick, children }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`touch-target flex-1 rounded-lg border px-2 py-2 text-xs font-bold transition ${
+      active
+        ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+    }`}
+    aria-pressed={active}
+  >
+    {children}
+  </button>
+);
+
+const ExpenseFormModal = ({
+  editingId,
+  formData,
+  setFormData,
+  itinerary,
+  payerOptions,
+  onSubmit,
+  onClose,
+  onInvolvedChange
+}) => renderToBody(
+  <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={editingId ? '編輯支出' : '新增支出'}>
+    <form
+      onSubmit={onSubmit}
+      className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingId ? '編輯支出' : '新增支出'}</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          aria-label="關閉支出表單"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <Field label="支出名稱" htmlFor="expense-title">
+          <Input
+            id="expense-title"
+            type="text"
+            name="title"
+            value={formData.title || ''}
+            onChange={(event) => setFormData((prev) => ({ ...prev, title: event.target.value }))}
+            placeholder="例如：拉麵、車票、門票"
+            required
+            autoFocus
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="金額" htmlFor="expense-amount">
+            <Input
+              id="expense-amount"
+              type="number"
+              name="amount"
+              value={formData.amount || ''}
+              onChange={(event) => setFormData((prev) => ({ ...prev, amount: event.target.value }))}
+              placeholder="0"
+              min="0"
+              required
+            />
+          </Field>
+          <Field label="幣別" htmlFor="expense-currency">
+            <Select
+              id="expense-currency"
+              name="currency"
+              value={formData.currency}
+              onChange={(event) => setFormData((prev) => ({ ...prev, currency: event.target.value }))}
+            >
+              <option value="JPY">JPY (日圓)</option>
+              <option value="TWD">TWD (台幣)</option>
+            </Select>
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="日期" htmlFor="expense-date">
+            <Select
+              id="expense-date"
+              name="date"
+              value={formData.date}
+              onChange={(event) => setFormData((prev) => ({ ...prev, date: event.target.value }))}
+            >
+              {itinerary.length === 0 && <option value="">未設定日期</option>}
+              {itinerary.map((day) => (
+                <option key={day.day} value={day.date}>
+                  Day {day.day} ({day.date})
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="分類" htmlFor="expense-category">
+            <Select
+              id="expense-category"
+              name="category"
+              value={formData.category}
+              onChange={(event) => setFormData((prev) => ({ ...prev, category: event.target.value }))}
+            >
+              {EXPENSE_CATEGORIES.map((category) => (
+                <option key={category.id} value={category.id}>{category.label}</option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        <Field label="備註" htmlFor="expense-note">
+          <Textarea
+            id="expense-note"
+            name="note"
+            value={formData.note || ''}
+            onChange={(event) => setFormData((prev) => ({ ...prev, note: event.target.value }))}
+            placeholder="例如：收據、付款方式、同行者備註"
+            rows="2"
+          />
+        </Field>
+
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/70">
+          <Field label="誰先付款？" htmlFor="expense-payer">
+            <Select
+              id="expense-payer"
+              name="payer"
+              value={formData.payer}
+              onChange={(event) => setFormData((prev) => ({ ...prev, payer: event.target.value }))}
+            >
+              {payerOptions.map((payer) => (
+                <option key={payer} value={payer}>{payer}</option>
+              ))}
+            </Select>
+          </Field>
+
+          <div className="mt-3">
+            <p className="mb-2 text-sm font-semibold text-slate-600 dark:text-slate-300">分帳方式</p>
+            <div className="grid grid-cols-3 gap-2">
+              <SplitTypeButton
+                active={formData.splitType === 'all'}
+                onClick={() => setFormData((prev) => ({ ...prev, splitType: 'all' }))}
+              >
+                全員均分
+              </SplitTypeButton>
+              <SplitTypeButton
+                active={formData.splitType === 'specific'}
+                onClick={() => setFormData((prev) => ({ ...prev, splitType: 'specific' }))}
+              >
+                指定分攤
+              </SplitTypeButton>
+              <SplitTypeButton
+                active={formData.splitType === 'settled'}
+                onClick={() => setFormData((prev) => ({ ...prev, splitType: 'settled' }))}
+              >
+                已結清
+              </SplitTypeButton>
+            </div>
+
+            {formData.splitType === 'specific' && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {payerOptions.map((person) => (
+                  <button
+                    key={person}
+                    type="button"
+                    onClick={() => onInvolvedChange(person)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                      formData.involved?.includes(person)
+                        ? 'border-emerald-600 bg-emerald-500 text-white'
+                        : 'border-slate-200 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                    }`}
+                    aria-pressed={formData.involved?.includes(person)}
+                  >
+                    {person}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {formData.splitType === 'settled' && (
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                這筆支出會標記為已結清，不納入誰欠誰的分帳計算。
+              </p>
+            )}
+          </div>
+        </div>
+
+        <Button type="submit" className="w-full">
+          <Save size={18} />
+          {editingId ? '更新支出' : '新增支出'}
+        </Button>
+      </div>
+    </form>
+  </div>
+);
+
+const SettlementModal = ({ settlements, onClose }) => renderToBody(
+  <div className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="分帳結果">
+    <div className="flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-slate-200 bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center justify-between border-b border-slate-100 bg-emerald-50 p-4 dark:border-slate-800 dark:bg-emerald-950/20">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-emerald-800 dark:text-emerald-300">
+          <Wallet size={20} />
+          分帳結果 (TWD)
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+          aria-label="關閉分帳結果"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="overflow-y-auto p-4">
+        {settlements.length === 0 ? (
+          <EmptyState
+            icon={CheckCircle2}
+            title="目前沒有需要結算的金額"
+            description="所有花費可能已結清，或目前沒有可分帳的支出。"
+            className="border-0 shadow-none"
+          />
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-500 dark:text-slate-400">依照目前分帳方式，建議用以下轉帳完成結算。</p>
+            {settlements.map((transfer, index) => (
+              <div key={`${transfer.from}-${transfer.to}-${index}`} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/70">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="w-20 truncate text-center font-bold text-slate-800 dark:text-slate-100" title={transfer.from}>{transfer.from}</span>
+                  <span className="flex flex-col items-center text-slate-400">
+                    <span className="text-[10px]">給</span>
+                    <ArrowRight size={16} />
+                  </span>
+                  <span className="w-20 truncate text-center font-bold text-slate-800 dark:text-slate-100" title={transfer.to}>{transfer.to}</span>
+                </div>
+                <span className="shrink-0 text-lg font-black text-emerald-700 dark:text-emerald-300">
+                  {formatTwd(transfer.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-slate-100 bg-slate-50 p-4 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
+        金額以台幣估算，實際付款仍以現場匯率與支付紀錄為準。
+      </div>
+    </div>
+  </div>
+);
+
+const ExpenseTracker = forwardRef(({
+  itinerary = [],
+  expenses = [],
+  setExpenses,
+  exchangeRate = 0.215,
+  travelers = [],
+  onModalOpenChange
+}, ref) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSettlementOpen, setIsSettlementOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [selectedDay, setSelectedDay] = useState('all');
 
   useEffect(() => {
     onModalOpenChange?.(isFormOpen || isSettlementOpen);
-
     return () => {
       onModalOpenChange?.(false);
     };
   }, [isFormOpen, isSettlementOpen, onModalOpenChange]);
-  const [editingId, setEditingId] = useState(null);
-  const [selectedDay, setSelectedDay] = useState('all');
-  
-  // 確保至少有一個付款人選項
+
   const payerOptions = useMemo(() => {
     if (travelers && travelers.length > 0) {
-      return travelers.map(t => (typeof t === 'object' && t.name) ? t.name : t);
+      return travelers.map((traveler) => (typeof traveler === 'object' && traveler.name) ? traveler.name : traveler);
     }
     return ['我'];
   }, [travelers]);
@@ -28,90 +489,68 @@ const ExpenseTracker = forwardRef(({ itinerary = [], expenses = [], setExpenses,
     title: '',
     amount: '',
     currency: 'JPY',
-    date: (itinerary && itinerary.length > 0) ? itinerary[0].date : '',
+    date: itinerary?.[0]?.date || '',
     category: 'food',
     payer: payerOptions[0],
-    splitType: 'all', // all, specific, settled
-    involved: payerOptions, // 預設所有人分攤
-    isSettled: false, // 是否已結清
-    note: '' // 備註
+    splitType: 'all',
+    involved: payerOptions,
+    isSettled: false,
+    note: ''
   }), [itinerary, payerOptions]);
-  
+
   const [formData, setFormData] = useState(initialFormState);
 
-  const categories = [
-    { id: 'food', label: '餐飲', color: 'bg-orange-100 text-orange-600' },
-    { id: 'transport', label: '交通', color: 'bg-blue-100 text-blue-600' },
-    { id: 'shopping', label: '購物', color: 'bg-emerald-100 text-emerald-600' },
-    { id: 'ticket', label: '票券/門票', color: 'bg-purple-100 text-purple-600' },
-    { id: 'accommodation', label: '住宿', color: 'bg-indigo-100 text-indigo-600' },
-    { id: 'other', label: '其他', color: 'bg-gray-100 text-gray-600' }
-  ];
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
 
-  // 計算總花費 (TWD)
-  const totalSpentTWD = useMemo(() => {
-    return expenses.reduce((total, item) => {
-      const amount = parseFloat(item.amount) || 0;
-      const amountTWD = item.currency === 'JPY' ? Math.round(amount * exchangeRate) : amount;
-      return total + amountTWD;
-    }, 0);
-  }, [expenses, exchangeRate]);
+  const totalSpentTWD = useMemo(() => (
+    safeExpenses.reduce((total, item) => total + convertToTwd(item, exchangeRate), 0)
+  ), [safeExpenses, exchangeRate]);
 
-  // 計算分帳結果
   const settlements = useMemo(() => {
     const balances = {};
-    // 初始化餘額
-    payerOptions.forEach(p => balances[p] = 0);
+    payerOptions.forEach((payer) => {
+      balances[payer] = 0;
+    });
 
-    expenses.forEach(expense => {
-      // 跳過已結清的項目
+    safeExpenses.forEach((expense) => {
       if (expense.isSettled || expense.splitType === 'settled') return;
 
-      const amount = parseFloat(expense.amount) || 0;
-      const amountTWD = expense.currency === 'JPY' ? Math.round(amount * exchangeRate) : amount;
-      
+      const amountTWD = convertToTwd(expense, exchangeRate);
       const payer = expense.payer;
       const involved = expense.involved || [];
-      
-      // 如果沒有分攤人，則跳過
-      if (!involved || involved.length === 0) return;
+      if (!involved.length) return;
 
       const splitAmount = amountTWD / involved.length;
 
-      // 付款人增加債權 (正值)
       if (payer) {
         balances[payer] = (balances[payer] || 0) + amountTWD;
       }
 
-      // 分攤人增加債務 (負值)
-      involved.forEach(person => {
+      involved.forEach((person) => {
         balances[person] = (balances[person] || 0) - splitAmount;
       });
     });
 
-    // 計算轉帳路徑
     const debtors = [];
     const creditors = [];
 
     Object.entries(balances).forEach(([person, amount]) => {
-      if (amount < -1) debtors.push({ person, amount }); // 使用 -1 避免浮點數誤差
-      else if (amount > 1) creditors.push({ person, amount });
+      if (amount < -1) debtors.push({ person, amount });
+      if (amount > 1) creditors.push({ person, amount });
     });
 
-    debtors.sort((a, b) => a.amount - b.amount); // 升序 (負最多在前)
-    creditors.sort((a, b) => b.amount - a.amount); // 降序 (正最多在前)
+    debtors.sort((a, b) => a.amount - b.amount);
+    creditors.sort((a, b) => b.amount - a.amount);
 
     const transfers = [];
-    let i = 0; // debtor index
-    let j = 0; // creditor index
+    let debtorIndex = 0;
+    let creditorIndex = 0;
 
-    while (i < debtors.length && j < creditors.length) {
-      const debtor = debtors[i];
-      const creditor = creditors[j];
-
-      // 找出可抵銷的金額
+    while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+      const debtor = debtors[debtorIndex];
+      const creditor = creditors[creditorIndex];
       const amount = Math.min(Math.abs(debtor.amount), creditor.amount);
-      
+
       if (amount > 0) {
         transfers.push({
           from: debtor.person,
@@ -120,77 +559,78 @@ const ExpenseTracker = forwardRef(({ itinerary = [], expenses = [], setExpenses,
         });
       }
 
-      // 更新餘額
       debtor.amount += amount;
       creditor.amount -= amount;
 
-      // 如果債務/債權已清，移動指標
-      if (Math.abs(debtor.amount) < 1) i++;
-      if (creditor.amount < 1) j++;
+      if (Math.abs(debtor.amount) < 1) debtorIndex += 1;
+      if (creditor.amount < 1) creditorIndex += 1;
     }
 
     return transfers;
-  }, [expenses, exchangeRate, payerOptions]);
+  }, [safeExpenses, exchangeRate, payerOptions]);
 
-  // 處理表單變更
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
-    }));
+  const filteredExpenses = useMemo(() => {
+    if (selectedDay === 'all') return safeExpenses;
+    const targetDay = itinerary.find((day) => day.day === parseInt(selectedDay, 10));
+    if (!targetDay) return [];
+    return safeExpenses.filter((expense) => expense.date === targetDay.date);
+  }, [safeExpenses, selectedDay, itinerary]);
+
+  const groupedExpenses = useMemo(() => {
+    const sorted = [...filteredExpenses].sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+    return sorted.reduce((groups, item) => {
+      const date = item.date || '未設定日期';
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(item);
+      return groups;
+    }, {});
+  }, [filteredExpenses]);
+
+  const openAddForm = () => {
+    setEditingId(null);
+    setFormData(initialFormState);
+    setIsFormOpen(true);
   };
 
-  // 處理分攤人選擇
-  const handleInvolvedChange = (person) => {
-    setFormData(prev => {
-      const currentInvolved = prev.involved || [];
-      const newInvolved = currentInvolved.includes(person)
-        ? currentInvolved.filter(p => p !== person)
-        : [...currentInvolved, person];
-      return { ...prev, involved: newInvolved };
-    });
-  };
+  useImperativeHandle(ref, () => ({
+    openAddForm
+  }), [initialFormState]);
 
-  // 提交表單 (新增或編輯)
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
     if (!formData.title || !formData.amount) return;
 
     const expenseData = {
       ...formData,
       amount: parseFloat(formData.amount),
-      // 如果是已結清，強制設定 isSettled 為 true
       isSettled: formData.splitType === 'settled' ? true : formData.isSettled,
-      // 如果是全部分攤，確保 involved 包含所有人
       involved: formData.splitType === 'all' ? payerOptions : formData.involved
     };
 
     if (editingId) {
-      // 編輯模式
-      setExpenses(prev => prev.map(item => 
+      setExpenses((prev) => prev.map((item) => (
         item.id === editingId ? { ...expenseData, id: editingId } : item
-      ));
+      )));
     } else {
-      // 新增模式
-      const newExpense = {
-        ...expenseData,
-        id: Date.now().toString()
-      };
-      setExpenses(prev => [...prev, newExpense]);
+      setExpenses((prev) => [
+        ...prev,
+        {
+          ...expenseData,
+          id: Date.now().toString()
+        }
+      ]);
     }
 
     handleCloseForm();
   };
 
-  // 刪除項目
   const handleDelete = (id) => {
-    if (window.confirm('確定要刪除此筆支出嗎？')) {
-      setExpenses(prev => prev.filter(item => item.id !== id));
-    }
+    const target = safeExpenses.find((item) => item.id === id);
+    if (!target) return;
+    if (!window.confirm(`確定要刪除「${target.title}」這筆支出嗎？`)) return;
+    setExpenses((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // 開啟編輯
   const handleEdit = (item) => {
     setFormData({
       title: item.title || '',
@@ -208,455 +648,59 @@ const ExpenseTracker = forwardRef(({ itinerary = [], expenses = [], setExpenses,
     setIsFormOpen(true);
   };
 
-  // 關閉表單
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingId(null);
     setFormData(initialFormState);
   };
 
-  // 根據選擇的天數過濾
-  const filteredExpenses = useMemo(() => {
-    if (selectedDay === 'all') return expenses;
-    // 找出該 day 對應的 date
-    const targetDay = itinerary.find(d => d.day === parseInt(selectedDay));
-    if (!targetDay) return [];
-    return expenses.filter(e => e.date === targetDay.date);
-  }, [expenses, selectedDay, itinerary]);
-
-  // 依日期分組顯示
-  const groupedExpenses = useMemo(() => {
-    // 先排序
-    const sorted = [...filteredExpenses].sort((a, b) => {
-      // 簡單日期比較 (假設格式 MM/DD)
-      return a.date.localeCompare(b.date);
+  const handleInvolvedChange = (person) => {
+    setFormData((prev) => {
+      const currentInvolved = prev.involved || [];
+      const nextInvolved = currentInvolved.includes(person)
+        ? currentInvolved.filter((item) => item !== person)
+        : [...currentInvolved, person];
+      return { ...prev, involved: nextInvolved };
     });
-
-    return sorted.reduce((groups, item) => {
-      if (!groups[item.date]) groups[item.date] = [];
-      groups[item.date].push(item);
-      return groups;
-    }, {});
-  }, [filteredExpenses]);
-
-  const modalRoot = typeof document !== 'undefined' ? document.body : null;
-
-  useImperativeHandle(ref, () => ({
-    openAddForm: () => {
-      setEditingId(null);
-      setFormData(initialFormState);
-      setIsFormOpen(true);
-    }
-  }), [initialFormState]);
+  };
 
   return (
-    <div className="space-y-6 pb-24 relative">
-      {/* 總覽卡片 */}
-      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-emerald-100 text-sm font-medium mb-1">目前總花費 (TWD)</p>
-            <h2 className="text-4xl font-bold">
-              ${Math.round(totalSpentTWD).toLocaleString()}
-            </h2>
-          </div>
-          <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-            <DollarSign size={24} className="text-white" />
-          </div>
-        </div>
-        <div className="mt-4 flex items-center justify-between">
-          <div className="flex items-center text-xs text-emerald-100 bg-white/10 rounded-lg px-3 py-2 w-fit">
-            <span className="mr-2">💱</span>
-            目前匯率: 1 JPY ≈ {exchangeRate} TWD
-          </div>
-          <button
-            onClick={() => setIsSettlementOpen(true)}
-            className="flex items-center gap-2 bg-white text-emerald-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-emerald-50 transition-colors"
-          >
-            <Wallet size={16} />
-            查看分帳
-          </button>
-        </div>
-      </div>
+    <div className="relative space-y-4 pb-24">
+      <ExpenseSummary
+        totalSpentTWD={totalSpentTWD}
+        exchangeRate={exchangeRate}
+        onOpenSettlement={() => setIsSettlementOpen(true)}
+      />
 
-      {/* 篩選器 */}
-      <div className="flex overflow-x-auto pb-2 no-scrollbar gap-2">
-        <button
-          onClick={() => setSelectedDay('all')}
-          className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-            selectedDay === 'all'
-              ? 'bg-gray-800 text-white dark:bg-white dark:text-slate-900'
-              : 'bg-white text-gray-600 border border-gray-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
-          }`}
-        >
-          全部
-        </button>
-        {itinerary.map(day => (
-          <button
-            key={day.day}
-            onClick={() => setSelectedDay(day.day)}
-            className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${
-              selectedDay === day.day
-                ? 'bg-brand-600 text-white'
-                : 'bg-white text-gray-600 border border-gray-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
-            }`}
-          >
-            Day {day.day} ({day.date})
-          </button>
-        ))}
-      </div>
+      <DayFilter itinerary={itinerary} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
 
-      {/* 支出列表 */}
-      <div className="space-y-6">
-        {Object.keys(groupedExpenses).length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-gray-200 dark:border-slate-800">
-            <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <DollarSign size={32} className="text-gray-300 dark:text-slate-500" />
-            </div>
-            <p className="text-gray-500 dark:text-slate-400">尚無支出紀錄</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">點擊右下角按鈕新增第一筆支出</p>
-          </div>
-        ) : (
-          Object.entries(groupedExpenses).map(([date, items]) => (
-            <div key={date} className="space-y-3">
-              <h3 className="font-bold text-gray-500 dark:text-slate-400 text-sm sticky top-0 bg-gray-50 dark:bg-slate-950 py-2 z-10 flex items-center backdrop-blur-sm bg-opacity-90">
-                <Calendar size={14} className="mr-2" />
-                {date}
-              </h3>
-              
-              <div className="space-y-3">
-                {items.map(item => {
-                  const category = categories.find(c => c.id === item.category) || categories[5];
-                  return (
-                    <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-slate-800 relative group transition-all hover:shadow-md">
-                      {/* Top Row: Category & Amount */}
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${category.color}`}>
-                            {category.label}
-                          </span>
-                          {item.isSettled && (
-                            <span className="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 px-2 py-1 rounded-full flex items-center">
-                              <CheckCircle2 size={10} className="mr-1" /> 已結清
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <span className="block font-bold text-gray-900 dark:text-slate-100 text-lg">
-                            {item.currency === 'TWD' ? 'NT$' : '¥'} {item.amount.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
+      <ExpenseList
+        groupedExpenses={groupedExpenses}
+        exchangeRate={exchangeRate}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
-                      {/* Middle Row: Title & Note */}
-                      <div className="mb-3 pr-16">
-                        <h4 className="font-bold text-gray-800 dark:text-slate-200 text-base break-words">
-                          {item.title}
-                        </h4>
-                        {item.note && (
-                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 break-words bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg inline-block max-w-full">
-                            {item.note}
-                          </p>
-                        )}
-                      </div>
+      {isFormOpen && (
+        <ExpenseFormModal
+          editingId={editingId}
+          formData={formData}
+          setFormData={setFormData}
+          itinerary={itinerary}
+          payerOptions={payerOptions}
+          onSubmit={handleSubmit}
+          onClose={handleCloseForm}
+          onInvolvedChange={handleInvolvedChange}
+        />
+      )}
 
-                      {/* Bottom Row: Meta Info & Actions */}
-                      <div className="flex justify-between items-end">
-                        <div className="text-xs text-gray-500 dark:text-slate-400 space-y-1.5">
-                          <div className="flex items-center gap-1.5">
-                            <Users size={12} className="text-gray-400" />
-                            <span className="font-medium text-gray-600 dark:text-slate-300">{item.payer}</span>
-                            <span className="text-gray-300">|</span>
-                            <span>
-                              {item.splitType === 'settled' ? '已分帳' : 
-                               item.splitType === 'all' ? '全員分攤' : 
-                               `分攤: ${item.involved?.join(', ')}`}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-end gap-2">
-                          {item.currency !== 'TWD' && (
-                            <span className="text-xs font-medium text-gray-400 dark:text-slate-500">
-                              ≈ NT$ {Math.round(item.amount * exchangeRate).toLocaleString()}
-                            </span>
-                          )}
-                          
-                          <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button 
-                              onClick={() => handleEdit(item)} 
-                              className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 rounded-lg transition-colors"
-                              title="編輯"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(item.id)} 
-                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                              title="刪除"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                {/* 當日小計 */}
-                <div className="bg-gray-50 dark:bg-slate-900/50 rounded-xl p-4 border border-dashed border-gray-200 dark:border-slate-800 flex justify-between items-center">
-                  <span className="font-medium text-gray-500 dark:text-slate-400 text-sm">當日小計</span>
-                  <span className="font-bold text-gray-700 dark:text-slate-300 text-lg">
-                    NT$ {Math.round(items.reduce((sum, item) => {
-                      const amount = parseFloat(item.amount) || 0;
-                      const rate = item.currency === 'JPY' ? exchangeRate : 1;
-                      return sum + (amount * rate);
-                    }, 0)).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Add/Edit Modal */}
-      {isFormOpen && modalRoot && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-none sm:rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 overflow-y-auto">
-            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-950/50 sticky top-0 z-10">
-              <h3 className="font-bold text-lg text-gray-800 dark:text-white">
-                {editingId ? '編輯支出' : '新增支出'}
-              </h3>
-              <button onClick={handleCloseForm} className="p-1 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-full transition-colors">
-                <X size={20} className="text-gray-500" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">項目名稱</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title || ''}
-                  onChange={handleChange}
-                  placeholder="例如：午餐、紀念品"
-                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
-                  required
-                  autoFocus
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">金額</label>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={formData.amount || ''}
-                    onChange={handleChange}
-                    placeholder="0"
-                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
-                    required
-                    min="0"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">幣別</label>
-                  <select
-                    name="currency"
-                    value={formData.currency}
-                    onChange={handleChange}
-                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
-                  >
-                    <option value="JPY">JPY (日幣)</option>
-                    <option value="TWD">TWD (台幣)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">日期</label>
-                  <select
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
-                  >
-                    {itinerary && itinerary.map(day => (
-                      <option key={day.day} value={day.date}>
-                        Day {day.day} ({day.date})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">類別</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white"
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">備註</label>
-                <textarea
-                  name="note"
-                  value={formData.note || ''}
-                  onChange={handleChange}
-                  placeholder="選填：詳細說明、地點..."
-                  rows="2"
-                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:outline-emerald-500 dark:text-white resize-none"
-                />
-              </div>
-
-              {/* 付款與分帳設定 */}
-              <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg border border-gray-100 dark:border-slate-700 space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">誰先付款？</label>
-                  <select
-                    name="payer"
-                    value={formData.payer}
-                    onChange={handleChange}
-                    className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-2 text-sm focus:outline-emerald-500 dark:text-white"
-                  >
-                    {payerOptions.map(p => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-1">分帳方式</label>
-                  <div className="flex gap-2 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, splitType: 'all' }))}
-                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'all' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-400' : 'bg-white border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}
-                    >
-                      全員均分
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, splitType: 'specific' }))}
-                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'specific' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-400' : 'bg-white border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}
-                    >
-                      指定分攤
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, splitType: 'settled' }))}
-                      className={`flex-1 py-1.5 text-xs rounded-md border ${formData.splitType === 'settled' ? 'bg-emerald-100 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-400' : 'bg-white border-gray-200 text-gray-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}
-                    >
-                      已結清
-                    </button>
-                  </div>
-
-                  {formData.splitType === 'specific' && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {payerOptions.map(person => (
-                        <button
-                          key={person}
-                          type="button"
-                          onClick={() => handleInvolvedChange(person)}
-                          className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                            formData.involved?.includes(person)
-                              ? 'bg-emerald-500 text-white border-emerald-600'
-                              : 'bg-white text-gray-500 border-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
-                          }`}
-                        >
-                          {person}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {formData.splitType === 'settled' && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      此筆支出將只列入總花費，不參與後續的債務計算。
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-md mt-4 flex items-center justify-center"
-              >
-                <Save size={18} className="mr-2" />
-                {editingId ? '更新支出' : '新增支出'}
-              </button>
-            </form>
-          </div>
-        </div>
-      , modalRoot)}
-      {/* Settlement Modal */}
-      {isSettlementOpen && modalRoot && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-none sm:rounded-2xl w-full h-[100svh] sm:h-auto sm:max-h-[90vh] sm:max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col">
-            <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/20">
-              <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
-                <Wallet size={20} />
-                分帳結算 (TWD)
-              </h3>
-              <button onClick={() => setIsSettlementOpen(false)} className="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-full transition-colors">
-                <X size={20} className="text-emerald-600 dark:text-emerald-400" />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto">
-              {settlements.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-                  <CheckCircle2 size={48} className="mx-auto mb-3 text-emerald-500" />
-                  <p className="font-bold">目前沒有需要結算的款項</p>
-                  <p className="text-xs mt-1">所有支出都已結清或無人欠款</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-2 text-center">
-                    以下是建議的轉帳方式，可將債務最小化
-                  </p>
-                  {settlements.map((transfer, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="font-bold text-gray-800 dark:text-slate-200 w-16 text-center truncate" title={transfer.from}>
-                          {transfer.from}
-                        </div>
-                        <div className="flex flex-col items-center text-gray-400">
-                          <span className="text-[10px] mb-0.5">給</span>
-                          <ArrowRight size={16} />
-                        </div>
-                        <div className="font-bold text-gray-800 dark:text-slate-200 w-16 text-center truncate" title={transfer.to}>
-                          {transfer.to}
-                        </div>
-                      </div>
-                      <div className="font-bold text-emerald-600 dark:text-emerald-400 text-lg ml-4">
-                        ${transfer.amount.toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gray-50 dark:bg-slate-950/50 text-center text-xs text-gray-500 dark:text-slate-400 border-t border-gray-100 dark:border-slate-800">
-              * 金額皆以台幣 (TWD) 計算，已包含匯率換算
-            </div>
-          </div>
-        </div>
-      , modalRoot)}
+      {isSettlementOpen && (
+        <SettlementModal settlements={settlements} onClose={() => setIsSettlementOpen(false)} />
+      )}
     </div>
   );
 });
+
+ExpenseTracker.displayName = 'ExpenseTracker';
 
 export default ExpenseTracker;
