@@ -4,6 +4,8 @@ const GOOGLE_MAPS_SCRIPT_ID = 'trip-planner-google-maps-js';
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 let placesLibraryPromise = null;
+let placesServiceElement = null;
+let placesService = null;
 
 export const hasGoogleMapsApiKey = () => hasText(GOOGLE_MAPS_API_KEY);
 
@@ -184,6 +186,94 @@ export const loadGoogleMapsPlacesLibrary = () => {
   });
 
   return placesLibraryPromise;
+};
+
+const normalizePrediction = (prediction) => ({
+  placeId: prediction.place_id || '',
+  description: prediction.description || '',
+  mainText: prediction.structured_formatting?.main_text || prediction.description || '',
+  secondaryText: prediction.structured_formatting?.secondary_text || '',
+  types: prediction.types || []
+});
+
+const getPlacesService = (places) => {
+  if (!places?.PlacesService || typeof document === 'undefined') return null;
+
+  if (!placesServiceElement) {
+    placesServiceElement = document.createElement('div');
+    placesServiceElement.setAttribute('aria-hidden', 'true');
+    placesServiceElement.style.display = 'none';
+    document.body.appendChild(placesServiceElement);
+  }
+
+  if (!placesService) {
+    placesService = new places.PlacesService(placesServiceElement);
+  }
+
+  return placesService;
+};
+
+export const fetchGooglePlacePredictions = async (input, options = {}) => {
+  const normalizedInput = String(input || '').trim();
+  if (normalizedInput.length < 2 || !hasGoogleMapsApiKey()) return [];
+
+  const places = await loadGoogleMapsPlacesLibrary();
+  if (!places?.AutocompleteService) return [];
+
+  const service = new places.AutocompleteService();
+  const request = {
+    input: normalizedInput,
+    language: 'zh-TW'
+  };
+
+  if (Array.isArray(options.placeTypes) && options.placeTypes.length > 0) {
+    request.types = options.placeTypes;
+  }
+
+  try {
+    const response = await service.getPlacePredictions(request);
+    return (response?.predictions || []).map(normalizePrediction);
+  } catch (error) {
+    console.warn('Google Places predictions failed:', error);
+    return [];
+  }
+};
+
+export const fetchGooglePlaceDetails = async (placeId, fallbackText = '') => {
+  const normalizedPlaceId = String(placeId || '').trim();
+  if (!normalizedPlaceId) {
+    return normalizeGooglePlaceResult(null, fallbackText);
+  }
+
+  const places = await loadGoogleMapsPlacesLibrary();
+  const service = getPlacesService(places);
+  if (!service) {
+    return {
+      ...normalizeGooglePlaceResult(null, fallbackText),
+      placeId: normalizedPlaceId
+    };
+  }
+
+  return new Promise((resolve) => {
+    service.getDetails(
+      {
+        placeId: normalizedPlaceId,
+        fields: ['place_id', 'name', 'formatted_address', 'geometry', 'types']
+      },
+      (place, status) => {
+        const okStatus = places?.PlacesServiceStatus?.OK || window.google?.maps?.places?.PlacesServiceStatus?.OK;
+        if (status === okStatus && place) {
+          resolve(normalizeGooglePlaceResult(place, fallbackText));
+          return;
+        }
+
+        resolve({
+          ...normalizeGooglePlaceResult(null, fallbackText),
+          placeId: normalizedPlaceId
+        });
+      }
+    );
+  });
 };
 
 export const geocodePlace = async (query) => {
