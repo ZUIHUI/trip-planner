@@ -6,19 +6,80 @@ const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 let placesLibraryPromise = null;
 let placesServiceElement = null;
 let placesService = null;
+let googleMapsAuthError = null;
 const placePredictionCache = new Map();
 const PLACE_PREDICTION_CACHE_LIMIT = 40;
+const GOOGLE_MAPS_LOAD_TIMEOUT_MS = 12000;
 
 export const GOOGLE_PLACE_PREDICTION_STATUS = {
   idle: 'idle',
   missingApiKey: 'missing_api_key',
   loadingFailed: 'loading_failed',
+  apiNotActivated: 'api_not_activated',
+  apiTargetBlocked: 'api_target_blocked',
+  billingOrKeyError: 'billing_or_key_error',
+  legacyFallbackUsed: 'legacy_fallback_used',
   requestFailed: 'request_failed',
   empty: 'empty',
   success: 'success'
 };
 
 export const hasGoogleMapsApiKey = () => hasText(GOOGLE_MAPS_API_KEY);
+
+const debugGooglePlaces = (message, detail) => {
+  if (import.meta.env.DEV) {
+    console.warn(message, detail);
+  }
+};
+
+const buildGooglePlacesError = (status, message, cause = null) => {
+  const error = new Error(message);
+  error.googlePlacesStatus = status;
+  if (cause) {
+    error.cause = cause;
+    error.originalStatus = cause.googlePlacesStatus || cause.status || cause.code || cause.name || cause.message || '';
+  }
+  return error;
+};
+
+const getGoogleErrorText = (error) => {
+  if (!error) return '';
+  if (typeof error === 'string') return error;
+  return String(
+    error.googlePlacesStatus ||
+    error.originalStatus ||
+    error.status ||
+    error.code ||
+    error.name ||
+    error.message ||
+    ''
+  );
+};
+
+const classifyGooglePlacesError = (error, fallbackStatus = GOOGLE_PLACE_PREDICTION_STATUS.requestFailed) => {
+  const errorText = getGoogleErrorText(error);
+
+  if (/ApiNotActivated|API_NOT_ACTIVATED|api_not_activated|not activated|not enabled/i.test(errorText)) {
+    return GOOGLE_PLACE_PREDICTION_STATUS.apiNotActivated;
+  }
+
+  if (/ApiTargetBlocked|RefererNotAllowed|RefererDenied|blocked|referrer|referer|target/i.test(errorText)) {
+    return GOOGLE_PLACE_PREDICTION_STATUS.apiTargetBlocked;
+  }
+
+  if (/Billing|InvalidKey|MissingKey|ExpiredKey|ProjectDenied|OverQuota|REQUEST_DENIED|key/i.test(errorText)) {
+    return GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError;
+  }
+
+  return fallbackStatus;
+};
+
+const createPredictionState = (status, predictions = [], error = null, extra = {}) => ({
+  status,
+  predictions,
+  error,
+  ...extra
+});
 
 const getPlaceId = (place) => {
   if (!place || typeof place !== 'object') return '';
@@ -42,6 +103,14 @@ export const normalizePlaceText = (place) => {
       ''
     ).trim();
   }
+  return '';
+};
+
+const normalizeGoogleText = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') return value.trim();
+  if (typeof value.text === 'string') return value.text.trim();
+  if (typeof value.toString === 'function') return value.toString().trim();
   return '';
 };
 
@@ -139,8 +208,19 @@ export const loadGoogleMapsPlacesLibrary = () => {
     return Promise.resolve(null);
   }
 
-  if (window.google?.maps?.places) {
-    return Promise.resolve(window.google.maps.places);
+  if (googleMapsAuthError) {
+    return Promise.reject(googleMapsAuthError);
+  }
+
+  if (window.google?.maps?.importLibrary || window.google?.maps?.places) {
+    return Promise.resolve().then(async () => {
+      if (window.google?.maps?.importLibrary) {
+        const importedPlaces = await window.google.maps.importLibrary('places');
+        return importedPlaces || window.google?.maps?.places || null;
+      }
+
+      return window.google.maps.places;
+    });
   }
 
   if (placesLibraryPromise) {
@@ -148,29 +228,74 @@ export const loadGoogleMapsPlacesLibrary = () => {
   }
 
   placesLibraryPromise = new Promise((resolve, reject) => {
+    let didSettle = false;
+    let loadTimeout = null;
+
+    const settleResolve = (places) => {
+      if (didSettle) return;
+      didSettle = true;
+      if (loadTimeout) clearTimeout(loadTimeout);
+      resolve(places);
+    };
+
+    const settleReject = (error) => {
+      if (didSettle) return;
+      didSettle = true;
+      if (loadTimeout) clearTimeout(loadTimeout);
+      placesLibraryPromise = null;
+      reject(error);
+    };
+
     const resolvePlaces = async () => {
       try {
-        if (window.google?.maps?.places) {
-          resolve(window.google.maps.places);
+        if (googleMapsAuthError) {
+          settleReject(googleMapsAuthError);
           return;
         }
 
         if (window.google?.maps?.importLibrary) {
           const places = await window.google.maps.importLibrary('places');
-          resolve(places);
+          settleResolve(places || window.google?.maps?.places || null);
           return;
         }
 
-        reject(new Error('Google Places library is unavailable'));
+        if (window.google?.maps?.places) {
+          settleResolve(window.google.maps.places);
+          return;
+        }
+
+        settleReject(new Error('Google Places library is unavailable'));
       } catch (error) {
-        reject(error);
+        settleReject(error);
       }
     };
+
+    const previousAuthFailure = window.gm_authFailure;
+    window.gm_authFailure = () => {
+      googleMapsAuthError = buildGooglePlacesError(
+        GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError,
+        'Google Maps JavaScript API authentication failed'
+      );
+      if (typeof previousAuthFailure === 'function') {
+        previousAuthFailure();
+      }
+      settleReject(googleMapsAuthError);
+    };
+
+    loadTimeout = window.setTimeout(() => {
+      settleReject(
+        googleMapsAuthError ||
+        buildGooglePlacesError(
+          GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+          'Google Maps JavaScript API load timed out'
+        )
+      );
+    }, GOOGLE_MAPS_LOAD_TIMEOUT_MS);
 
     const existingScript = document.getElementById(GOOGLE_MAPS_SCRIPT_ID);
     if (existingScript) {
       existingScript.addEventListener('load', resolvePlaces, { once: true });
-      existingScript.addEventListener('error', () => reject(new Error('Google Maps JavaScript API failed to load')), { once: true });
+      existingScript.addEventListener('error', () => settleReject(new Error('Google Maps JavaScript API failed to load')), { once: true });
       resolvePlaces();
       return;
     }
@@ -181,6 +306,7 @@ export const loadGoogleMapsPlacesLibrary = () => {
       key: GOOGLE_MAPS_API_KEY,
       libraries: 'places',
       language: 'zh-TW',
+      v: 'weekly',
       loading: 'async',
       callback: '__tripPlannerGoogleMapsReady'
     });
@@ -190,8 +316,7 @@ export const loadGoogleMapsPlacesLibrary = () => {
     script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
     script.async = true;
     script.onerror = () => {
-      placesLibraryPromise = null;
-      reject(new Error('Google Maps JavaScript API failed to load'));
+      settleReject(new Error('Google Maps JavaScript API failed to load'));
     };
     document.head.appendChild(script);
   });
@@ -199,7 +324,8 @@ export const loadGoogleMapsPlacesLibrary = () => {
   return placesLibraryPromise;
 };
 
-const normalizePrediction = (prediction) => ({
+const normalizeLegacyPrediction = (prediction) => ({
+  source: 'legacy',
   placeId: prediction.place_id || '',
   description: prediction.description || '',
   mainText: prediction.structured_formatting?.main_text || prediction.description || '',
@@ -207,13 +333,38 @@ const normalizePrediction = (prediction) => ({
   types: prediction.types || []
 });
 
+const normalizeNewPrediction = (suggestion) => {
+  const placePrediction = suggestion?.placePrediction || suggestion;
+  const description = normalizeGoogleText(placePrediction?.text);
+  const mainText = normalizeGoogleText(placePrediction?.mainText) || description;
+  const secondaryText = normalizeGoogleText(placePrediction?.secondaryText);
+
+  return {
+    source: 'new',
+    placeId: placePrediction?.placeId || '',
+    description,
+    mainText,
+    secondaryText,
+    types: Array.isArray(placePrediction?.types) ? placePrediction.types : [],
+    placePrediction
+  };
+};
+
 const getPredictionCacheKey = (input, options = {}) => {
   const placeTypesKey = Array.isArray(options.placeTypes) ? options.placeTypes.join('|') : '';
   return `${placeTypesKey}::${String(input || '').trim().toLowerCase()}`;
 };
 
 const cachePredictionState = (key, state) => {
-  if (!key || state.status === GOOGLE_PLACE_PREDICTION_STATUS.requestFailed || state.status === GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed) {
+  const nonCacheableStatuses = new Set([
+    GOOGLE_PLACE_PREDICTION_STATUS.requestFailed,
+    GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+    GOOGLE_PLACE_PREDICTION_STATUS.apiNotActivated,
+    GOOGLE_PLACE_PREDICTION_STATUS.apiTargetBlocked,
+    GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError
+  ]);
+
+  if (!key || nonCacheableStatuses.has(state.status)) {
     return state;
   }
 
@@ -228,7 +379,37 @@ const cachePredictionState = (key, state) => {
   return state;
 };
 
-const requestPlacePredictions = (places, request) => {
+const requestNewPlacePredictions = async (places, request) => {
+  if (!places?.AutocompleteSuggestion?.fetchAutocompleteSuggestions) {
+    throw buildGooglePlacesError(
+      GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+      'Google Places AutocompleteSuggestion is unavailable'
+    );
+  }
+
+  const autocompleteRequest = {
+    input: request.input,
+    language: request.language || 'zh-TW'
+  };
+
+  if (Array.isArray(request.types) && request.types.length > 0) {
+    autocompleteRequest.includedPrimaryTypes = request.types;
+  }
+
+  const result = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions(autocompleteRequest);
+  return Array.isArray(result?.suggestions) ? result.suggestions : [];
+};
+
+const requestLegacyPlacePredictions = (places, request) => {
+  if (!places?.AutocompleteService) {
+    return Promise.reject(
+      buildGooglePlacesError(
+        GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+        'Google Places AutocompleteService is unavailable'
+      )
+    );
+  }
+
   const service = new places.AutocompleteService();
   const okStatus = places?.PlacesServiceStatus?.OK || window.google?.maps?.places?.PlacesServiceStatus?.OK;
   const zeroResultsStatus = places?.PlacesServiceStatus?.ZERO_RESULTS || window.google?.maps?.places?.PlacesServiceStatus?.ZERO_RESULTS;
@@ -245,7 +426,9 @@ const requestPlacePredictions = (places, request) => {
         return;
       }
 
-      reject(new Error(status || 'Google Places request failed'));
+      const error = new Error(status || 'Google Places request failed');
+      error.status = status;
+      reject(error);
     });
   });
 };
@@ -275,19 +458,11 @@ export const fetchGooglePlacePredictions = async (input, options = {}) => {
 export const getGooglePlacePredictionsState = async (input, options = {}) => {
   const normalizedInput = String(input || '').trim();
   if (normalizedInput.length < 2) {
-    return {
-      status: GOOGLE_PLACE_PREDICTION_STATUS.idle,
-      predictions: [],
-      error: null
-    };
+    return createPredictionState(GOOGLE_PLACE_PREDICTION_STATUS.idle);
   }
 
   if (!hasGoogleMapsApiKey()) {
-    return {
-      status: GOOGLE_PLACE_PREDICTION_STATUS.missingApiKey,
-      predictions: [],
-      error: null
-    };
+    return createPredictionState(GOOGLE_PLACE_PREDICTION_STATUS.missingApiKey);
   }
 
   const cacheKey = getPredictionCacheKey(normalizedInput, options);
@@ -300,19 +475,13 @@ export const getGooglePlacePredictionsState = async (input, options = {}) => {
     places = await loadGoogleMapsPlacesLibrary();
   } catch (error) {
     placesLibraryPromise = null;
-    return {
-      status: GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
-      predictions: [],
+    const status = classifyGooglePlacesError(error, GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed);
+    debugGooglePlaces('Google Maps JavaScript API failed to load:', {
+      status,
+      originalStatus: getGoogleErrorText(error),
       error
-    };
-  }
-
-  if (!places?.AutocompleteService) {
-    return {
-      status: GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
-      predictions: [],
-      error: new Error('Google Places autocomplete is unavailable')
-    };
+    });
+    return createPredictionState(status, [], error);
   }
 
   const request = {
@@ -324,28 +493,95 @@ export const getGooglePlacePredictionsState = async (input, options = {}) => {
     request.types = options.placeTypes;
   }
 
+  let newApiError = null;
   try {
-    const rawPredictions = await requestPlacePredictions(places, request);
-    const predictions = rawPredictions.map(normalizePrediction);
-    return cachePredictionState(cacheKey, {
-      status: predictions.length
-        ? GOOGLE_PLACE_PREDICTION_STATUS.success
-        : GOOGLE_PLACE_PREDICTION_STATUS.empty,
+    const rawPredictions = await requestNewPlacePredictions(places, request);
+    const predictions = rawPredictions.map(normalizeNewPrediction);
+    const status = predictions.length
+      ? GOOGLE_PLACE_PREDICTION_STATUS.success
+      : GOOGLE_PLACE_PREDICTION_STATUS.empty;
+    return cachePredictionState(cacheKey, createPredictionState(
+      status,
       predictions,
-      error: null
-    });
+      null,
+      { provider: 'places_new' }
+    ));
   } catch (error) {
-    console.warn('Google Places predictions failed:', error);
-    return {
-      status: GOOGLE_PLACE_PREDICTION_STATUS.requestFailed,
-      predictions: [],
+    newApiError = error;
+    debugGooglePlaces('Google Places AutocompleteSuggestion failed:', {
+      status: classifyGooglePlacesError(error),
+      originalStatus: getGoogleErrorText(error),
       error
-    };
+    });
+  }
+
+  try {
+    const rawPredictions = await requestLegacyPlacePredictions(places, request);
+    const predictions = rawPredictions.map(normalizeLegacyPrediction);
+    const status = predictions.length
+      ? GOOGLE_PLACE_PREDICTION_STATUS.legacyFallbackUsed
+      : GOOGLE_PLACE_PREDICTION_STATUS.empty;
+
+    return cachePredictionState(cacheKey, createPredictionState(
+      status,
+      predictions,
+      newApiError,
+      {
+        provider: 'places_legacy',
+        fallbackUsed: true
+      }
+    ));
+  } catch (legacyError) {
+    const specificStatus = classifyGooglePlacesError(legacyError);
+    const newApiStatus = classifyGooglePlacesError(newApiError);
+    const status = newApiStatus !== GOOGLE_PLACE_PREDICTION_STATUS.requestFailed
+      ? newApiStatus
+      : specificStatus;
+    const error = buildGooglePlacesError(status, 'Google Places autocomplete failed', legacyError);
+    error.newApiError = newApiError;
+
+    debugGooglePlaces('Google Places autocomplete failed:', {
+      status,
+      newApiStatus,
+      legacyStatus: specificStatus,
+      newApiError,
+      legacyError
+    });
+
+    return createPredictionState(status, [], error, {
+      provider: 'none'
+    });
   }
 };
 
-export const fetchGooglePlaceDetails = async (placeId, fallbackText = '') => {
-  const normalizedPlaceId = String(placeId || '').trim();
+const getPlaceReferenceId = (placeReference) => {
+  if (typeof placeReference === 'string') return placeReference.trim();
+  if (!placeReference || typeof placeReference !== 'object') return '';
+  return String(placeReference.placeId || placeReference.place_id || placeReference.id || '').trim();
+};
+
+const getNewPlacePrediction = (placeReference) => {
+  if (!placeReference || typeof placeReference !== 'object') return null;
+  if (placeReference.placePrediction?.toPlace) return placeReference.placePrediction;
+  if (placeReference.rawPlacePrediction?.toPlace) return placeReference.rawPlacePrediction;
+  if (placeReference.toPlace) return placeReference;
+  return null;
+};
+
+const fetchNewPlaceDetails = async (placeReference, fallbackText) => {
+  const placePrediction = getNewPlacePrediction(placeReference);
+  if (!placePrediction?.toPlace) return null;
+
+  const place = placePrediction.toPlace();
+  await place.fetchFields({
+    fields: ['id', 'displayName', 'formattedAddress', 'location']
+  });
+
+  return normalizeGooglePlaceResult(place, fallbackText);
+};
+
+export const fetchGooglePlaceDetails = async (placeReference, fallbackText = '') => {
+  const normalizedPlaceId = getPlaceReferenceId(placeReference);
   if (!normalizedPlaceId) {
     return normalizeGooglePlaceResult(null, fallbackText);
   }
@@ -354,12 +590,28 @@ export const fetchGooglePlaceDetails = async (placeId, fallbackText = '') => {
   try {
     places = await loadGoogleMapsPlacesLibrary();
   } catch (error) {
-    console.warn('Google Places details failed to load:', error);
+    debugGooglePlaces('Google Places details failed to load:', error);
     return {
       ...normalizeGooglePlaceResult(null, fallbackText),
       placeId: normalizedPlaceId
     };
   }
+
+  try {
+    const newPlaceResult = await fetchNewPlaceDetails(placeReference, fallbackText);
+    if (newPlaceResult) {
+      return {
+        ...newPlaceResult,
+        placeId: newPlaceResult.placeId || normalizedPlaceId
+      };
+    }
+  } catch (error) {
+    debugGooglePlaces('Google Places new details failed, falling back to legacy details:', {
+      originalStatus: getGoogleErrorText(error),
+      error
+    });
+  }
+
   const service = getPlacesService(places);
   if (!service) {
     return {

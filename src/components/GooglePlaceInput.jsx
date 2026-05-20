@@ -10,9 +10,26 @@ import {
 const DEFAULT_PLACE_TYPES = [];
 const MIN_QUERY_LENGTH = 2;
 
-const defaultHelperText = '輸入 2 個字開始搜尋 Google 地點，也可以直接手動輸入。';
-const defaultEmptyMessage = '找不到 Google 建議，可直接手動輸入。';
-const defaultApiUnavailableMessage = 'Google API 未設定，仍可手動輸入。';
+const defaultHelperText = '輸入 2 個字以上可搜尋 Google 地點，也可以直接手動輸入。';
+const defaultEmptyMessage = '找不到 Google 建議，仍可手動輸入或換個關鍵字。';
+const defaultApiUnavailableMessage = 'Google API 未設定，仍可直接手動輸入。';
+
+const STATUS_MESSAGES = {
+  [GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed]: 'Google Maps 載入失敗，請確認 Maps JavaScript API 可用；仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.apiNotActivated]: '請確認 Google Cloud 已啟用 Maps JavaScript API 與 Places API (new)。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.apiTargetBlocked]: 'Google API key 可能被 API restrictions 或 referrer restrictions 擋住；仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError]: 'Google API key、billing、額度或網域限制可能有問題；仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.requestFailed]: 'Google 地點搜尋暫時失敗，仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.legacyFallbackUsed]: '已用相容模式取得 Google 建議。'
+};
+
+const ERROR_STATUSES = new Set([
+  GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+  GOOGLE_PLACE_PREDICTION_STATUS.apiNotActivated,
+  GOOGLE_PLACE_PREDICTION_STATUS.apiTargetBlocked,
+  GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError,
+  GOOGLE_PLACE_PREDICTION_STATUS.requestFailed
+]);
 
 const getPlaceSummary = (place) => {
   if (!place || typeof place !== 'object') return null;
@@ -106,8 +123,10 @@ const GooglePlaceInput = ({
     if (!query) return helperText;
     if (query.length < MIN_QUERY_LENGTH) return '再輸入 1 個字開始搜尋 Google 地點。';
     if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.empty) return emptyMessage;
-    if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed) return 'Google API 載入失敗，仍可手動輸入。';
-    if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.requestFailed) return 'Google 地點搜尋暫時失敗，仍可手動輸入。';
+    if (STATUS_MESSAGES[predictionStatus] && suggestions.length === 0) return STATUS_MESSAGES[predictionStatus];
+    if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.legacyFallbackUsed && suggestions.length > 0) {
+      return '已用相容模式取得 Google 建議，用上下鍵選擇地點，Enter 套用。';
+    }
     if (suggestions.length > 0) return '用上下鍵選擇地點，Enter 套用。';
     return helperText;
   }, [
@@ -123,7 +142,7 @@ const GooglePlaceInput = ({
   ]);
 
   const statusTone = useMemo(() => {
-    if (!canUseGooglePlaces || predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed || predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.requestFailed) {
+    if (!canUseGooglePlaces || ERROR_STATUSES.has(predictionStatus)) {
       return 'text-amber-700 dark:text-amber-300';
     }
     if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.empty) {
@@ -142,7 +161,7 @@ const GooglePlaceInput = ({
     setPredictionStatus(GOOGLE_PLACE_PREDICTION_STATUS.success);
     onTextChange?.(fallbackText);
 
-    const place = await fetchGooglePlaceDetails(suggestion.placeId, fallbackText);
+    const place = await fetchGooglePlaceDetails(suggestion, fallbackText);
     onPlaceSelect?.({
       ...place,
       name: place.name || suggestion.mainText || fallbackText,
