@@ -1,4 +1,4 @@
-const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
+const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/flight-tracking-api';
 
 const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
 
@@ -20,8 +20,14 @@ const normalizeLookupDate = (rawDate = '') => {
   const value = String(rawDate || '').trim();
   if (!value) return '';
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value.replaceAll('-', '');
+  const slashDate = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if (slashDate) {
+    return `${slashDate[1]}${slashDate[2].padStart(2, '0')}${slashDate[3].padStart(2, '0')}`;
+  }
+
+  const dashDate = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (dashDate) {
+    return `${dashDate[1]}${dashDate[2].padStart(2, '0')}${dashDate[3].padStart(2, '0')}`;
   }
 
   if (/^\d{8}$/.test(value)) {
@@ -37,18 +43,38 @@ const normalizeLookupDate = (rawDate = '') => {
   return `${year}${month}${day}`;
 };
 
-const toTimeText = (raw) => {
-  if (!raw) return '';
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return parsed.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+const formatLookupDate = (yyyymmdd = '') => {
+  const match = String(yyyymmdd).match(/^\d{4}(\d{2})(\d{2})$/);
+  if (!match) return '';
+  return `${Number(match[1])}/${Number(match[2])}`;
 };
 
-const toDateText = (raw) => {
-  if (!raw) return '';
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return `${parsed.getMonth() + 1}/${parsed.getDate()}`;
+const toTimeText = (raw) => {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+
+  const isoMatch = value.match(/T(\d{2}):(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}:${isoMatch[2]}`;
+  }
+
+  const meridiemMatch = value.match(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/i);
+  if (meridiemMatch) {
+    const hour = Number(meridiemMatch[1]);
+    const minute = meridiemMatch[2];
+    const meridiem = meridiemMatch[3].toUpperCase();
+    const normalizedHour = meridiem === 'PM'
+      ? (hour === 12 ? 12 : hour + 12)
+      : (hour === 12 ? 0 : hour);
+    return `${String(normalizedHour).padStart(2, '0')}:${minute}`;
+  }
+
+  const timeMatch = value.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+  if (timeMatch) {
+    return `${String(Number(timeMatch[1])).padStart(2, '0')}:${timeMatch[2]}`;
+  }
+
+  return value;
 };
 
 const readText = (...values) => {
@@ -56,27 +82,67 @@ const readText = (...values) => {
   return value ? value.trim() : '';
 };
 
-const findLeg = (payload, key) => {
-  const items = Array.isArray(payload) ? payload : [payload];
-  return items
-    .map((item) => item?.[key])
-    .find((item) => item && typeof item === 'object') || null;
+const getField = (source, ...keys) => {
+  if (!source || typeof source !== 'object') return '';
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return '';
 };
 
-const buildFlightRecord = (payload, flightCode, carrierCode) => {
-  const departure = findLeg(payload, 'departure');
-  const arrival = findLeg(payload, 'arrival');
+const asArray = (value) => {
+  if (Array.isArray(value)) return value;
+  return value == null ? [] : [value];
+};
+
+const findLeg = (payload, key) => {
+  const containers = asArray(payload);
+  for (const container of containers) {
+    const legs = asArray(container?.[key]);
+    const leg = legs.find((item) => item && typeof item === 'object');
+    if (leg) return leg;
+  }
+  return null;
+};
+
+const extractTerminal = (raw) => {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  const [terminal] = value.split(/\s+-\s+/);
+  return terminal?.trim() || '';
+};
+
+const buildFlightRecord = (payload, flightCode, carrierCode, lookupDate) => {
+  const items = asArray(payload);
+  const firstItem = items[0] || {};
+  const departure = findLeg(items, 'departure');
+  const arrival = findLeg(items, 'arrival');
 
   if (!departure && !arrival) {
     return null;
   }
 
-  const departureIso = readText(
+  const departureTime = readText(
+    departure?.offGroundTime,
+    departure?.outGateTime,
+    getField(departure, 'Takeoff Time:', 'Takeoff Time', 'Actual Time:', 'Actual Time'),
+    getField(departure, 'Scheduled Time:', 'Scheduled Time'),
+    departure?.scheduledTime,
+    departure?.estimatedTime,
     departure?.departureDateTime,
     departure?.scheduledDateTime,
     departure?.estimatedDateTime
   );
-  const arrivalIso = readText(
+  const arrivalTime = readText(
+    arrival?.inGateTime,
+    arrival?.onGroundTime,
+    getField(arrival, 'At Gate Time:', 'At Gate Time', 'Actual Time:', 'Actual Time'),
+    getField(arrival, 'Scheduled Time:', 'Scheduled Time'),
+    arrival?.scheduledTime,
+    arrival?.estimatedTime,
     arrival?.arrivalDateTime,
     arrival?.scheduledDateTime,
     arrival?.estimatedDateTime
@@ -84,14 +150,14 @@ const buildFlightRecord = (payload, flightCode, carrierCode) => {
 
   return {
     code: flightCode,
-    airline: readText(payload?.airline?.name, payload?.airlineName, payload?.airline, carrierCode),
-    date: toDateText(departureIso || arrivalIso),
-    departureTime: toTimeText(departureIso),
-    arrivalTime: toTimeText(arrivalIso),
-    dep: readText(departure?.airportCode, departure?.airportIata, departure?.iata),
-    arr: readText(arrival?.airportCode, arrival?.airportIata, arrival?.iata),
-    depTerminal: readText(departure?.terminal),
-    arrTerminal: readText(arrival?.terminal)
+    airline: readText(firstItem?.airline?.name, firstItem?.airlineName, firstItem?.airline, carrierCode),
+    date: formatLookupDate(lookupDate),
+    departureTime: toTimeText(departureTime),
+    arrivalTime: toTimeText(arrivalTime),
+    dep: readText(getField(departure, 'Airport:', 'Airport'), departure?.airportCode, departure?.airportIata, departure?.iata),
+    arr: readText(getField(arrival, 'Airport:', 'Airport'), arrival?.airportCode, arrival?.airportIata, arrival?.iata),
+    depTerminal: readText(extractTerminal(getField(departure, 'Terminal - Gate:', 'Terminal - Gate')), departure?.terminal),
+    arrTerminal: readText(extractTerminal(getField(arrival, 'Terminal - Gate:', 'Terminal - Gate')), arrival?.terminal)
   };
 };
 
@@ -192,7 +258,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const record = buildFlightRecord(results, parsedCode.code, parsedCode.name);
+    const record = buildFlightRecord(results, parsedCode.code, parsedCode.name, date);
     if (!record) {
       sendJson(res, 502, {
         error: 'invalid_provider_payload',
