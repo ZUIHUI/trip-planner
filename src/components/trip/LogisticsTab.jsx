@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
+import { getFlightLookupAvailability } from '../../services/flightService';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 
@@ -236,7 +237,8 @@ const AccommodationCard = ({
   tripDetails,
   setTripDetails,
   onAddressChange,
-  onPlaceSelect
+  onPlaceSelect,
+  onClearPlace
 }) => (
   <Card className="p-4">
     <SectionHeading
@@ -273,7 +275,11 @@ const AccommodationCard = ({
           value={tripDetails?.accommodation?.address || ''}
           onTextChange={onAddressChange}
           onPlaceSelect={onPlaceSelect}
+          selectedPlace={tripDetails?.accommodation?.placeId ? tripDetails.accommodation : null}
+          onClearPlace={onClearPlace}
           ariaLabel="住宿地址"
+          helperText="輸入飯店或地址搜尋 Google 地點；也可以直接手動填地址。"
+          emptyMessage="找不到推薦住宿地點，可直接輸入地址。"
           className="tp-input"
         />
       </Field>
@@ -345,7 +351,18 @@ const FlightCard = ({
 }) => {
   const meta = directionMeta[direction];
   const flight = tripDetails?.flights?.[direction] || {};
-  const canLookup = Boolean((flight.code || '').trim());
+  const lookupDate = direction === 'outbound'
+    ? tripDetails?.dateRange?.start
+    : tripDetails?.dateRange?.end;
+  const lookupAvailability = getFlightLookupAvailability(lookupDate || '');
+  const hasFlightCode = Boolean((flight.code || '').trim());
+  const canLookup = hasFlightCode && lookupAvailability.canLookup;
+  const showLookupButton = lookupAvailability.reason !== 'too_old';
+  const lookupHint = !lookupAvailability.canLookup
+    ? lookupAvailability.message
+    : hasFlightCode
+      ? `將依 ${lookupAvailability.normalizedDate} 查詢航班`
+      : '輸入航班代號後即可依旅程日期查詢';
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
@@ -362,18 +379,28 @@ const FlightCard = ({
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{meta.helper}</p>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => handleLookupFlight(direction)}
-          disabled={isLookingUp || !canLookup}
-          className="w-full sm:w-auto"
-        >
-          <Search size={14} />
-          {isLookingUp ? '查詢中...' : '自動帶入'}
-        </Button>
+        {showLookupButton && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => handleLookupFlight(direction)}
+            disabled={isLookingUp || !canLookup}
+            className="w-full sm:w-auto"
+          >
+            <Search size={14} />
+            {isLookingUp ? '查詢中...' : '查詢航班'}
+          </Button>
+        )}
       </div>
+
+      <p className={`mb-3 rounded-lg border px-3 py-2 text-xs font-semibold ${
+        lookupAvailability.canLookup
+          ? 'border-sky-100 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/25 dark:text-sky-300'
+          : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200'
+      }`}>
+        {lookupHint}
+      </p>
 
       {lookupError && (
         <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300">
@@ -396,6 +423,11 @@ const FlightCard = ({
         <div className="grid gap-3 sm:grid-cols-2">
           <FlightField label="出發機場" field="dep" direction={direction} value={flight.dep} setTripDetails={setTripDetails} placeholder="TPE" />
           <FlightField label="抵達機場" field="arr" direction={direction} value={flight.arr} setTripDetails={setTripDetails} placeholder="NRT" />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FlightField label="出發航廈" field="depTerminal" direction={direction} value={flight.depTerminal} setTripDetails={setTripDetails} placeholder="例如：T1 / 第 1 航廈" />
+          <FlightField label="抵達航廈" field="arrTerminal" direction={direction} value={flight.arrTerminal} setTripDetails={setTripDetails} placeholder="例如：T2 / 第 2 航廈" />
         </div>
       </div>
     </div>
@@ -451,6 +483,18 @@ const LogisticsTab = () => {
     }));
   };
 
+  const handleAccommodationPlaceClear = () => {
+    setTripDetails((prev) => ({
+      ...prev,
+      accommodation: {
+        ...(prev?.accommodation || {}),
+        placeId: '',
+        lat: null,
+        lng: null
+      }
+    }));
+  };
+
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
       <CompletionPanel tripDetails={tripDetails} />
@@ -470,6 +514,7 @@ const LogisticsTab = () => {
             setTripDetails={setTripDetails}
             onAddressChange={handleAccommodationAddressChange}
             onPlaceSelect={handleAccommodationPlaceSelect}
+            onClearPlace={handleAccommodationPlaceClear}
           />
         </div>
 

@@ -129,6 +129,13 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
     }));
   };
 
+  const handleLocationPlaceClear = () => {
+    setFormData((prev) => ({
+      ...prev,
+      locationPlace: null
+    }));
+  };
+
   const handleSubmit = (submitEvent) => {
     submitEvent.preventDefault();
     if (readOnly) return;
@@ -212,9 +219,13 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               value={formData.location}
               onTextChange={handleLocationTextChange}
               onPlaceSelect={handleLocationPlaceSelect}
+              selectedPlace={formData.locationPlace}
+              onClearPlace={handleLocationPlaceClear}
               disabled={readOnly}
               placeholder="輸入 Google Maps 地點名稱"
               ariaLabel="行程地點"
+              helperText="輸入 2 個字搜尋 Google 地點；找不到時仍可直接手動輸入。"
+              emptyMessage="找不到推薦地點，可先手動輸入地址或地點名稱。"
               className="tp-input pl-10"
             />
           </div>

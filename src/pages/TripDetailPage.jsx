@@ -18,7 +18,7 @@ import { useTrip } from '../hooks/useTrip';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { fetchJPYRate } from '../services/currencyService';
-import { lookupFlightByCode } from '../services/flightService';
+import { getFlightLookupAvailability, lookupFlightByCode, mergeFlightLookupResult } from '../services/flightService';
 import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../services/googleMapsService';
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
@@ -501,11 +501,12 @@ const TripDetailPage = () => {
     const departureDate = direction === 'outbound'
       ? (tripDetails?.dateRange?.start || '')
       : (tripDetails?.dateRange?.end || '');
+    const availability = getFlightLookupAvailability(departureDate);
 
-    if (!departureDate) {
+    if (!availability.canLookup) {
       setFlightLookupError((prev) => ({
         ...prev,
-        [direction]: direction === 'outbound' ? '請先設定出發日期' : '請先設定結束日期'
+        [direction]: availability.message
       }));
       return;
     }
@@ -520,8 +521,7 @@ const TripDetailPage = () => {
         flights: {
           ...(prev?.flights || {}),
           [direction]: {
-            ...((prev?.flights && prev.flights[direction]) || {}),
-            ...flightInfo
+            ...mergeFlightLookupResult((prev?.flights && prev.flights[direction]) || {}, flightInfo)
           }
         }
       }));

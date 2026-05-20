@@ -6,6 +6,17 @@ const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 let placesLibraryPromise = null;
 let placesServiceElement = null;
 let placesService = null;
+const placePredictionCache = new Map();
+const PLACE_PREDICTION_CACHE_LIMIT = 40;
+
+export const GOOGLE_PLACE_PREDICTION_STATUS = {
+  idle: 'idle',
+  missingApiKey: 'missing_api_key',
+  loadingFailed: 'loading_failed',
+  requestFailed: 'request_failed',
+  empty: 'empty',
+  success: 'success'
+};
 
 export const hasGoogleMapsApiKey = () => hasText(GOOGLE_MAPS_API_KEY);
 
@@ -196,6 +207,49 @@ const normalizePrediction = (prediction) => ({
   types: prediction.types || []
 });
 
+const getPredictionCacheKey = (input, options = {}) => {
+  const placeTypesKey = Array.isArray(options.placeTypes) ? options.placeTypes.join('|') : '';
+  return `${placeTypesKey}::${String(input || '').trim().toLowerCase()}`;
+};
+
+const cachePredictionState = (key, state) => {
+  if (!key || state.status === GOOGLE_PLACE_PREDICTION_STATUS.requestFailed || state.status === GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed) {
+    return state;
+  }
+
+  if (placePredictionCache.size >= PLACE_PREDICTION_CACHE_LIMIT) {
+    const firstKey = placePredictionCache.keys().next().value;
+    if (firstKey) {
+      placePredictionCache.delete(firstKey);
+    }
+  }
+
+  placePredictionCache.set(key, state);
+  return state;
+};
+
+const requestPlacePredictions = (places, request) => {
+  const service = new places.AutocompleteService();
+  const okStatus = places?.PlacesServiceStatus?.OK || window.google?.maps?.places?.PlacesServiceStatus?.OK;
+  const zeroResultsStatus = places?.PlacesServiceStatus?.ZERO_RESULTS || window.google?.maps?.places?.PlacesServiceStatus?.ZERO_RESULTS;
+
+  return new Promise((resolve, reject) => {
+    service.getPlacePredictions(request, (predictions, status) => {
+      if (status === okStatus) {
+        resolve(Array.isArray(predictions) ? predictions : []);
+        return;
+      }
+
+      if (status === zeroResultsStatus) {
+        resolve([]);
+        return;
+      }
+
+      reject(new Error(status || 'Google Places request failed'));
+    });
+  });
+};
+
 const getPlacesService = (places) => {
   if (!places?.PlacesService || typeof document === 'undefined') return null;
 
@@ -214,13 +268,53 @@ const getPlacesService = (places) => {
 };
 
 export const fetchGooglePlacePredictions = async (input, options = {}) => {
+  const result = await getGooglePlacePredictionsState(input, options);
+  return result.predictions;
+};
+
+export const getGooglePlacePredictionsState = async (input, options = {}) => {
   const normalizedInput = String(input || '').trim();
-  if (normalizedInput.length < 2 || !hasGoogleMapsApiKey()) return [];
+  if (normalizedInput.length < 2) {
+    return {
+      status: GOOGLE_PLACE_PREDICTION_STATUS.idle,
+      predictions: [],
+      error: null
+    };
+  }
 
-  const places = await loadGoogleMapsPlacesLibrary();
-  if (!places?.AutocompleteService) return [];
+  if (!hasGoogleMapsApiKey()) {
+    return {
+      status: GOOGLE_PLACE_PREDICTION_STATUS.missingApiKey,
+      predictions: [],
+      error: null
+    };
+  }
 
-  const service = new places.AutocompleteService();
+  const cacheKey = getPredictionCacheKey(normalizedInput, options);
+  if (placePredictionCache.has(cacheKey)) {
+    return placePredictionCache.get(cacheKey);
+  }
+
+  let places = null;
+  try {
+    places = await loadGoogleMapsPlacesLibrary();
+  } catch (error) {
+    placesLibraryPromise = null;
+    return {
+      status: GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+      predictions: [],
+      error
+    };
+  }
+
+  if (!places?.AutocompleteService) {
+    return {
+      status: GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed,
+      predictions: [],
+      error: new Error('Google Places autocomplete is unavailable')
+    };
+  }
+
   const request = {
     input: normalizedInput,
     language: 'zh-TW'
@@ -231,11 +325,22 @@ export const fetchGooglePlacePredictions = async (input, options = {}) => {
   }
 
   try {
-    const response = await service.getPlacePredictions(request);
-    return (response?.predictions || []).map(normalizePrediction);
+    const rawPredictions = await requestPlacePredictions(places, request);
+    const predictions = rawPredictions.map(normalizePrediction);
+    return cachePredictionState(cacheKey, {
+      status: predictions.length
+        ? GOOGLE_PLACE_PREDICTION_STATUS.success
+        : GOOGLE_PLACE_PREDICTION_STATUS.empty,
+      predictions,
+      error: null
+    });
   } catch (error) {
     console.warn('Google Places predictions failed:', error);
-    return [];
+    return {
+      status: GOOGLE_PLACE_PREDICTION_STATUS.requestFailed,
+      predictions: [],
+      error
+    };
   }
 };
 
@@ -245,7 +350,16 @@ export const fetchGooglePlaceDetails = async (placeId, fallbackText = '') => {
     return normalizeGooglePlaceResult(null, fallbackText);
   }
 
-  const places = await loadGoogleMapsPlacesLibrary();
+  let places = null;
+  try {
+    places = await loadGoogleMapsPlacesLibrary();
+  } catch (error) {
+    console.warn('Google Places details failed to load:', error);
+    return {
+      ...normalizeGooglePlaceResult(null, fallbackText),
+      placeId: normalizedPlaceId
+    };
+  }
   const service = getPlacesService(places);
   if (!service) {
     return {
