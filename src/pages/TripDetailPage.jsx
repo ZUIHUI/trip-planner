@@ -4,6 +4,7 @@ import { Plus, Save, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
+import EventDetailView from '../components/EventDetailView';
 import SettingsPanel from '../components/SettingsPanel';
 import BottomNavigation from '../components/BottomNavigation';
 import SummaryTab from '../components/trip/SummaryTab';
@@ -539,6 +540,20 @@ const TripDetailPage = () => {
     }
   };
 
+  const editingEventPrevLocation = useMemo(() => {
+    if (!editingEvent || !currentDayData?.events?.length) {
+      return tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
+    }
+
+    const eventIndex = currentDayData.events.findIndex((event) => event.id === editingEvent.id);
+    if (eventIndex > 0) {
+      const prevEvent = currentDayData.events[eventIndex - 1];
+      return prevEvent?.locationPlace || prevEvent?.location || '';
+    }
+
+    return tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
+  }, [currentDayData, editingEvent, tripDetails]);
+
   const tripWorkspaceValue = useMemo(() => ({
     tripId,
     tripDetails,
@@ -672,17 +687,29 @@ const TripDetailPage = () => {
         title={editingEvent ? (isEventViewMode ? '行程詳情' : '編輯行程') : '新增行程'}
         size="lg"
       >
-        <EditEventForm
-          event={editingEvent}
-          readOnly={isEventViewMode}
-          onRequestEdit={() => setIsEventViewMode(false)}
-          onSave={handleSaveEvent}
-          onCancel={() => {
-            setIsEditModalOpen(false);
-            setEditingEvent(null);
-            setIsEventViewMode(false);
-          }}
-        />
+        {isEventViewMode && editingEvent ? (
+          <EventDetailView
+            event={editingEvent}
+            prevLocation={editingEventPrevLocation}
+            onEdit={() => setIsEventViewMode(false)}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setEditingEvent(null);
+              setIsEventViewMode(false);
+            }}
+            onOpenGoogleMaps={handleOpenGoogleMaps}
+          />
+        ) : (
+          <EditEventForm
+            event={editingEvent}
+            onSave={handleSaveEvent}
+            onCancel={() => {
+              setIsEditModalOpen(false);
+              setEditingEvent(null);
+              setIsEventViewMode(false);
+            }}
+          />
+        )}
       </Modal>
 
       {/* 設定面板 */}

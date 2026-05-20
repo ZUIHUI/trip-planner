@@ -13,9 +13,9 @@ const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-3 sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className={cx(
-        'animate-fade-in-up flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-slate-200 bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-lg dark:border-slate-800 dark:bg-slate-900',
+        'animate-fade-in-up flex max-h-[min(92svh,760px)] w-full max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl sm:max-h-[90vh] dark:border-slate-800 dark:bg-slate-900',
         sizeClasses[size] || sizeClasses.md
       )}>
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
