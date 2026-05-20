@@ -13,6 +13,7 @@ import {
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
 import { getFlightLookupAvailability } from '../../services/flightService';
+import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 
@@ -147,11 +148,12 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
           />
         </Field>
 
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-3 md:grid-cols-2">
           <Field label="開始日期" htmlFor="trip-start-date">
             <Input
               id="trip-start-date"
               type="date"
+              className="tp-date-input"
               value={startDate}
               onChange={(event) =>
                 setTripDetails((prev) => {
@@ -170,6 +172,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
             <Input
               id="trip-end-date"
               type="date"
+              className="tp-date-input"
               value={endDate}
               onChange={(event) =>
                 setTripDetails((prev) => {
@@ -341,6 +344,29 @@ const FlightField = ({ label, field, direction, value, setTripDetails, placehold
   </Field>
 );
 
+const FlightAirportField = ({ label, field, direction, value, setTripDetails, placeholder }) => (
+  <Field label={label} htmlFor={`flight-${direction}-${field}`}>
+    <AirportCodeInput
+      id={`flight-${direction}-${field}`}
+      value={value || ''}
+      placeholder={placeholder}
+      ariaLabel={label}
+      onChange={(nextCode) =>
+        setTripDetails((prev) => ({
+          ...prev,
+          flights: {
+            ...(prev?.flights || {}),
+            [direction]: {
+              ...((prev?.flights && prev.flights[direction]) || {}),
+              [field]: nextCode
+            }
+          }
+        }))
+      }
+    />
+  </Field>
+);
+
 const FlightCard = ({
   direction,
   tripDetails,
@@ -399,6 +425,10 @@ const FlightCard = ({
         {lookupHint}
       </p>
 
+      <p className="mb-3 max-w-full break-words rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+        若同航班號有多段航線，請選出發與抵達機場；系統會用出發機場查詢，並用抵達機場確認航段。
+      </p>
+
       {lookupError && (
         <p className="mb-3 max-w-full break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300">
           {lookupError}
@@ -418,8 +448,8 @@ const FlightCard = ({
         </div>
 
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          <FlightField label="出發機場" field="dep" direction={direction} value={flight.dep} setTripDetails={setTripDetails} placeholder="TPE" />
-          <FlightField label="抵達機場" field="arr" direction={direction} value={flight.arr} setTripDetails={setTripDetails} placeholder="NRT" />
+          <FlightAirportField label="出發機場" field="dep" direction={direction} value={flight.dep} setTripDetails={setTripDetails} placeholder="TPE" />
+          <FlightAirportField label="抵達機場" field="arr" direction={direction} value={flight.arr} setTripDetails={setTripDetails} placeholder="NRT" />
         </div>
 
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">

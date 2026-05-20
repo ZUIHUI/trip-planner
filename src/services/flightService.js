@@ -1,6 +1,8 @@
 const FLIGHT_LOOKUP_API_PATH = '/api/flight-lookup';
 
 const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
+const normalizeAirportCode = (rawCode = '') => String(rawCode || '').trim().toUpperCase();
+const isAirportCode = (rawCode = '') => /^[A-Z]{3}$/.test(normalizeAirportCode(rawCode));
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 
@@ -77,7 +79,7 @@ const readResponsePayload = async (response) => {
   return { message: await response.text() };
 };
 
-export const lookupFlightByCode = async (rawCode, rawDepartureDate = '') => {
+export const lookupFlightByCode = async (rawCode, rawDepartureDate = '', options = {}) => {
   const code = normalizeFlightCode(rawCode);
   if (!code) throw new Error('請先輸入航班代號');
 
@@ -90,6 +92,22 @@ export const lookupFlightByCode = async (rawCode, rawDepartureDate = '') => {
     code,
     date: availability.normalizedDate
   });
+
+  const departureAirport = normalizeAirportCode(options.departureAirport);
+  const arrivalAirport = normalizeAirportCode(options.arrivalAirport);
+  if (departureAirport) {
+    if (!isAirportCode(departureAirport)) {
+      throw new Error('出發機場請輸入 3 碼 IATA 代碼，例如 TPE');
+    }
+    query.set('depap', departureAirport);
+  }
+
+  if (arrivalAirport) {
+    if (!isAirportCode(arrivalAirport)) {
+      throw new Error('抵達機場請輸入 3 碼 IATA 代碼，例如 NRT');
+    }
+    query.set('arrap', arrivalAirport);
+  }
 
   const response = await fetch(`${FLIGHT_LOOKUP_API_PATH}?${query.toString()}`);
   const payload = await readResponsePayload(response);

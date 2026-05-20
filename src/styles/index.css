@@ -136,6 +136,19 @@
     min-height: 44px;
   }
 
+  .tp-date-input {
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .tp-date-input::-webkit-date-and-time-value {
+    min-inline-size: 0;
+    text-align: left;
+  }
+
   .tp-select {
     @apply w-full min-w-0 max-w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 pr-8 text-slate-900 placeholder:text-slate-400 shadow-sm transition focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
     min-height: 44px;

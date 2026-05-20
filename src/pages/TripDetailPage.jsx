@@ -497,7 +497,8 @@ const TripDetailPage = () => {
   };
 
   const handleLookupFlight = async (direction) => {
-    const code = tripDetails?.flights?.[direction]?.code || '';
+    const currentFlight = tripDetails?.flights?.[direction] || {};
+    const code = currentFlight.code || '';
     const departureDate = direction === 'outbound'
       ? (tripDetails?.dateRange?.start || '')
       : (tripDetails?.dateRange?.end || '');
@@ -515,7 +516,10 @@ const TripDetailPage = () => {
     setIsLookingUpFlight((prev) => ({ ...prev, [direction]: true }));
 
     try {
-      const flightInfo = await lookupFlightByCode(code, departureDate);
+      const flightInfo = await lookupFlightByCode(code, departureDate, {
+        departureAirport: currentFlight.dep,
+        arrivalAirport: currentFlight.arr
+      });
       setTripDetails((prev) => ({
         ...prev,
         flights: {

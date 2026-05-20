@@ -1,6 +1,8 @@
 const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
 
 const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
+const normalizeAirportCode = (rawCode = '') => String(rawCode || '').trim().toUpperCase();
+const isAirportCode = (rawCode = '') => /^[A-Z]{3}$/.test(normalizeAirportCode(rawCode));
 
 const parseFlightCode = (rawCode = '') => {
   const code = normalizeFlightCode(rawCode);
@@ -154,8 +156,8 @@ const buildFlightRecord = (payload, flightCode, carrierCode, lookupDate) => {
     date: formatLookupDate(lookupDate),
     departureTime: toTimeText(departureTime),
     arrivalTime: toTimeText(arrivalTime),
-    dep: readText(getField(departure, 'Airport:', 'Airport'), departure?.airportCode, departure?.airportIata, departure?.iata),
-    arr: readText(getField(arrival, 'Airport:', 'Airport'), arrival?.airportCode, arrival?.airportIata, arrival?.iata),
+    dep: readText(departure?.airportCode, departure?.airportIata, departure?.iata, getField(departure, 'Airport:', 'Airport')),
+    arr: readText(arrival?.airportCode, arrival?.airportIata, arrival?.iata, getField(arrival, 'Airport:', 'Airport')),
     depTerminal: readText(extractTerminal(getField(departure, 'Terminal - Gate:', 'Terminal - Gate')), departure?.terminal),
     arrTerminal: readText(extractTerminal(getField(arrival, 'Terminal - Gate:', 'Terminal - Gate')), arrival?.terminal)
   };
@@ -229,9 +231,26 @@ module.exports = async (req, res) => {
     date
   });
 
-  const departureAirport = String(req.query?.depap || '').trim().toUpperCase();
+  const departureAirport = normalizeAirportCode(req.query?.depap);
+  if (req.query?.depap && !isAirportCode(req.query.depap)) {
+    sendJson(res, 400, {
+      error: 'invalid_departure_airport',
+      message: '出發機場請輸入 3 碼 IATA 代碼，例如 TPE'
+    });
+    return;
+  }
+
   if (departureAirport) {
     query.set('depap', departureAirport);
+  }
+
+  const arrivalAirport = normalizeAirportCode(req.query?.arrap);
+  if (req.query?.arrap && !isAirportCode(req.query.arrap)) {
+    sendJson(res, 400, {
+      error: 'invalid_arrival_airport',
+      message: '抵達機場請輸入 3 碼 IATA 代碼，例如 NRT'
+    });
+    return;
   }
 
   try {
@@ -263,6 +282,16 @@ module.exports = async (req, res) => {
       sendJson(res, 502, {
         error: 'invalid_provider_payload',
         message: 'FlightAPI.io 回傳格式不完整，請手動確認航班資料。'
+      });
+      return;
+    }
+
+    if (arrivalAirport && normalizeAirportCode(record.arr) !== arrivalAirport) {
+      const actualRoute = `${record.dep || '未取得'} → ${record.arr || '未取得'}`;
+      sendJson(res, 409, {
+        error: 'arrival_airport_mismatch',
+        message: `查到的航段為 ${actualRoute}，與選擇的抵達機場 ${arrivalAirport} 不符`,
+        flight: record
       });
       return;
     }
