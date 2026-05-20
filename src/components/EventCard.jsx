@@ -64,7 +64,15 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
     onEdit(event, true);
   };
 
+  const handleEditClick = (clickEvent) => {
+    clickEvent.preventDefault();
+    clickEvent.stopPropagation();
+    setShowMenu(false);
+    onEdit(event, false);
+  };
+
   const handleRouteClick = (clickEvent) => {
+    clickEvent.preventDefault();
     clickEvent.stopPropagation();
     if (!locationText || !onOpenGoogleMaps) return;
     onOpenGoogleMaps(prevLocation, event.locationPlace || event.location);
@@ -103,6 +111,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
             <button
               type="button"
               onClick={(clickEvent) => {
+                clickEvent.preventDefault();
                 clickEvent.stopPropagation();
                 setShowMenu((prev) => !prev);
               }}
@@ -118,11 +127,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
               <div className="absolute right-0 top-11 z-20 w-36 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
                 <button
                   type="button"
-                  onClick={(clickEvent) => {
-                    clickEvent.stopPropagation();
-                    onEdit(event);
-                    setShowMenu(false);
-                  }}
+                  onClick={handleEditClick}
                   className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   <Edit2 size={14} />
@@ -131,6 +136,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
                 <button
                   type="button"
                   onClick={(clickEvent) => {
+                    clickEvent.preventDefault();
                     clickEvent.stopPropagation();
                     onDelete(event.id);
                     setShowMenu(false);

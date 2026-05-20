@@ -626,7 +626,7 @@ const TripDetailPage = () => {
         shouldShowCoverBackground={shouldShowCoverBackground}
       />
 
-      <PageContainer className="pb-24">
+      <PageContainer className="pb-24 lg:pb-36">
         <div className="pt-4">
           {activeTab === 'summary' && (
             <SummaryTab />
@@ -709,7 +709,7 @@ const TripDetailPage = () => {
       />
 
       {activeTab === 'itinerary' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
             <div className="tp-mobile-action-grid gap-2">
               <Button
@@ -743,7 +743,7 @@ const TripDetailPage = () => {
       )}
 
       {activeTab === 'shopping' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
             <Button
               onClick={() => shoppingListRef.current?.openAddForm?.()}
@@ -757,7 +757,7 @@ const TripDetailPage = () => {
       )}
 
       {activeTab === 'expenses' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
             <Button
               onClick={() => expenseTrackerRef.current?.openAddForm?.()}
