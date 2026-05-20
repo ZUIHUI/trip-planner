@@ -208,8 +208,8 @@ export const normalizeTripDocumentForApp = (rawData, fallbackData = createTripAp
       packing: asArray(planning.checklists?.packing || source.checklists?.packing || fallback.checklists?.packing)
     },
     expenses: asArray(finance.expenses).length ? asArray(finance.expenses) : asArray(source.expenses || fallback.expenses),
-    shoppingList: planning.shoppingList || source.shoppingList,
-    shoppingCategories: planning.shoppingCategories || source.shoppingCategories,
+    shoppingList: planning.shoppingList ?? source.shoppingList ?? fallback.shoppingList ?? null,
+    shoppingCategories: planning.shoppingCategories ?? source.shoppingCategories ?? fallback.shoppingCategories ?? null,
     savedAt: source.savedAt
   };
 };

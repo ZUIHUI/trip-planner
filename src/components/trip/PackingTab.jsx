@@ -9,14 +9,14 @@ const PackingTab = () => {
 
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
-      <Card className="p-4">
+      <Card className="p-3 sm:p-4">
         <div className="mb-4 flex items-center gap-3">
           <div className="tp-icon-chip">
             <Luggage size={20} />
           </div>
           <div>
-            <h2 className="tp-section-title">打包清單</h2>
-            <p className="tp-section-subtitle">依行李箱、隨身包與每日衣服整理，不容易漏帶。</p>
+            <h2 className="tp-section-title">行李清單</h2>
+            <p className="tp-section-subtitle">出發前快速確認托運、隨身與每日衣物。</p>
           </div>
         </div>
         <PackingListContent
