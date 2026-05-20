@@ -61,6 +61,16 @@ npm run build
 npm run preview
 ```
 
+## 環境變數
+
+航班查詢使用 FlightAPI.io，API key 必須放在 server-side environment，不要加上 `VITE_` 前綴：
+
+```env
+FLIGHTAPI_IO_KEY=your_flightapi_io_key_here
+```
+
+本機若要測試 `/api/flight-lookup`，請使用 Vercel dev server 或部署到 Vercel 後測試；一般 `npm run dev` 只會啟動 Vite 前端。
+
 ## 資料庫說明
 
 資料表結構定義位於：

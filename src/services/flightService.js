@@ -1,27 +1,10 @@
-const AVIATIONSTACK_API_URL = 'https://api.aviationstack.com/v1/flights';
-const HISTORICAL_LOOKUP_MONTHS = 3;
+const FLIGHT_LOOKUP_API_PATH = '/api/flight-lookup';
 
-const normalizeFlightCode = (rawCode = '') => rawCode.trim().toUpperCase().replace(/\s+/g, '');
+const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 
 const readText = (value) => (hasText(value) ? value.trim() : '');
-
-const toLocalDateOnly = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const toTimeText = (raw) => {
-  if (!raw) return '';
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return parsed.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
-};
-
-const toDateText = (raw) => {
-  if (!raw) return '';
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) return '';
-  return `${parsed.getMonth() + 1}/${parsed.getDate()}`;
-};
 
 export const normalizeFlightLookupDate = (rawDate = '') => {
   const value = String(rawDate || '').trim();
@@ -47,7 +30,7 @@ const parseLookupDate = (rawDate = '') => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-export const getFlightLookupAvailability = (rawDate = '', today = new Date()) => {
+export const getFlightLookupAvailability = (rawDate = '') => {
   if (!String(rawDate || '').trim()) {
     return {
       canLookup: false,
@@ -68,39 +51,11 @@ export const getFlightLookupAvailability = (rawDate = '', today = new Date()) =>
     };
   }
 
-  const cutoff = toLocalDateOnly(today);
-  cutoff.setMonth(cutoff.getMonth() - HISTORICAL_LOOKUP_MONTHS);
-
-  if (toLocalDateOnly(parsedDate) < cutoff) {
-    return {
-      canLookup: false,
-      reason: 'too_old',
-      normalizedDate,
-      message: 'Aviationstack 只支援最近 3 個月的歷史航班，請手動填寫。'
-    };
-  }
-
   return {
     canLookup: true,
     reason: 'available',
     normalizedDate,
-    message: '可依旅程日期查詢航班。'
-  };
-};
-
-const buildFlightRecord = (item, fallbackCode) => {
-  const departureIso = item?.departure?.scheduled || item?.departure?.estimated;
-  const arrivalIso = item?.arrival?.scheduled || item?.arrival?.estimated;
-  return {
-    code: item?.flight?.iata || fallbackCode,
-    airline: item?.airline?.name || '',
-    date: toDateText(departureIso),
-    departureTime: toTimeText(departureIso),
-    arrivalTime: toTimeText(arrivalIso),
-    dep: item?.departure?.iata || '',
-    arr: item?.arrival?.iata || '',
-    depTerminal: item?.departure?.terminal || '',
-    arrTerminal: item?.arrival?.terminal || ''
+    message: '可依旅程日期查詢 FlightAPI.io 航班資料。'
   };
 };
 
@@ -114,6 +69,14 @@ export const mergeFlightLookupResult = (existingFlight = {}, lookupResult = {}) 
   return merged;
 };
 
+const readResponsePayload = async (response) => {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+  return { message: await response.text() };
+};
+
 export const lookupFlightByCode = async (rawCode, rawDepartureDate = '') => {
   const code = normalizeFlightCode(rawCode);
   if (!code) throw new Error('請先輸入航班代號');
@@ -123,34 +86,21 @@ export const lookupFlightByCode = async (rawCode, rawDepartureDate = '') => {
     throw new Error(availability.message);
   }
 
-  const accessKey = import.meta.env.VITE_AVIATIONSTACK_API_KEY;
-  if (!accessKey) {
-    throw new Error('尚未設定航班查詢 API Key：VITE_AVIATIONSTACK_API_KEY');
-  }
-
   const query = new URLSearchParams({
-    access_key: accessKey,
-    flight_iata: code,
-    flight_date: availability.normalizedDate,
-    limit: '1'
+    code,
+    date: availability.normalizedDate
   });
 
-  const response = await fetch(`${AVIATIONSTACK_API_URL}?${query.toString()}`);
-  if (!response.ok) throw new Error('航班查詢失敗，請稍後再試或手動填寫。');
+  const response = await fetch(`${FLIGHT_LOOKUP_API_PATH}?${query.toString()}`);
+  const payload = await readResponsePayload(response);
 
-  const payload = await response.json();
-  if (payload?.error) {
-    const apiMessage = payload.error?.info || payload.error?.message || '無法取得航班資料';
-    throw new Error(apiMessage);
+  if (!response.ok) {
+    throw new Error(payload?.message || 'FlightAPI.io 航班查詢失敗，請稍後再試或手動填寫。');
   }
 
-  const results = Array.isArray(payload?.data)
-    ? payload.data
-    : Array.isArray(payload?.results)
-      ? payload.results
-      : [];
-  const first = results[0] || null;
-  if (!first) throw new Error('查無此日期的航班資料，已保留目前手動輸入內容。');
+  if (!payload?.flight) {
+    throw new Error('FlightAPI.io 回傳格式不完整，請手動確認航班資料。');
+  }
 
-  return buildFlightRecord(first, code);
+  return payload.flight;
 };

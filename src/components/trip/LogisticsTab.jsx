@@ -357,12 +357,11 @@ const FlightCard = ({
   const lookupAvailability = getFlightLookupAvailability(lookupDate || '');
   const hasFlightCode = Boolean((flight.code || '').trim());
   const canLookup = hasFlightCode && lookupAvailability.canLookup;
-  const showLookupButton = lookupAvailability.reason !== 'too_old';
   const lookupHint = !lookupAvailability.canLookup
     ? lookupAvailability.message
     : hasFlightCode
-      ? `將依 ${lookupAvailability.normalizedDate} 查詢航班`
-      : '輸入航班代號後即可依旅程日期查詢';
+      ? `將依 ${lookupAvailability.normalizedDate} 查詢 FlightAPI.io 航班`
+      : '輸入航班代號後即可依旅程日期查詢 FlightAPI.io';
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
@@ -379,19 +378,17 @@ const FlightCard = ({
             <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{meta.helper}</p>
           </div>
         </div>
-        {showLookupButton && (
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => handleLookupFlight(direction)}
-            disabled={isLookingUp || !canLookup}
-            className="w-full sm:w-auto"
-          >
-            <Search size={14} />
-            {isLookingUp ? '查詢中...' : '查詢航班'}
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => handleLookupFlight(direction)}
+          disabled={isLookingUp || !canLookup}
+          className="w-full sm:w-auto"
+        >
+          <Search size={14} />
+          {isLookingUp ? '查詢中...' : '查詢航班'}
+        </Button>
       </div>
 
       <p className={`mb-3 rounded-lg border px-3 py-2 text-xs font-semibold ${
