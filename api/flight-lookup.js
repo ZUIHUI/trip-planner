@@ -1,4 +1,4 @@
-const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/flight-tracking-api';
+const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
 
 const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
 

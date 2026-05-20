@@ -22,13 +22,13 @@ export const Textarea = forwardRef(({ className = '', ...props }, ref) => (
 Textarea.displayName = 'Textarea';
 
 export const Field = ({ label, htmlFor, hint, children, className = '' }) => (
-  <div className={className}>
+  <div className={cx('min-w-0 max-w-full', className)}>
     {label && (
       <label htmlFor={htmlFor} className="tp-label">
         {label}
       </label>
     )}
     {children}
-    {hint && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
+    {hint && <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
   </div>
 );

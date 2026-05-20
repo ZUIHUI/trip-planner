@@ -186,7 +186,7 @@ const GooglePlaceInput = ({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative min-w-0 max-w-full">
       <input
         id={inputId}
         type="text"
@@ -215,12 +215,12 @@ const GooglePlaceInput = ({
         </span>
       )}
 
-      <p id={statusId} aria-live="polite" className={`mt-1 text-xs font-semibold ${statusTone}`}>
+      <p id={statusId} aria-live="polite" className={`mt-1 break-words text-xs font-semibold ${statusTone}`}>
         {statusMessage}
       </p>
 
       {selectedSummary && (
-        <div className="mt-2 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/25 dark:text-emerald-200">
+        <div className="mt-2 flex min-w-0 max-w-full items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/25 dark:text-emerald-200">
           <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-black uppercase tracking-wide">已選 Google 地點</p>
