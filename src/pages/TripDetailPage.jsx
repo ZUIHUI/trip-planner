@@ -648,7 +648,7 @@ const TripDetailPage = () => {
       <PageContainer className="pb-24 lg:pb-36">
         <div className="pt-4">
           {activeTab === 'summary' && (
-            <SummaryTab />
+            <SummaryTab onTabChange={setActiveTab} onAddEvent={openAddModal} />
           )}
 
           {activeTab === 'itinerary' && (
