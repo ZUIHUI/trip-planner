@@ -25,6 +25,7 @@ import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { Button, LoadingState, PageContainer } from '../components/ui';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
@@ -98,6 +99,7 @@ const TripDetailPage = () => {
   const { tripId: paramTripId } = useParams();
   const tripId = typeof paramTripId === 'string' ? paramTripId.trim() : '';
   const navigate = useNavigate();
+  const { confirm, toast } = useFeedback();
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -409,15 +411,45 @@ const TripDetailPage = () => {
     setEditingEvent(null);
   };
 
-  const handleDeleteEvent = (id) => {
-    if (window.confirm('確定要刪除這個行程嗎？')) {
-      setItinerary(prev => prev.map(day => {
-        if (day.day === selectedDay) {
-          return { ...day, events: day.events.filter(e => e.id !== id) };
-        }
-        return day;
-      }));
-    }
+  const handleDeleteEvent = async (id) => {
+    const targetDay = itinerary.find((day) => day.day === selectedDay);
+    const targetEvent = targetDay?.events?.find((event) => event.id === id);
+    if (!targetEvent) return;
+
+    const shouldDelete = await confirm({
+      title: '刪除行程？',
+      description: `「${targetEvent.title || '未命名行程'}」會從 Day ${selectedDay} 移除。`,
+      confirmLabel: '刪除行程',
+      variant: 'danger'
+    });
+
+    if (!shouldDelete) return;
+
+    setItinerary(prev => prev.map(day => {
+      if (day.day === selectedDay) {
+        return { ...day, events: day.events.filter(e => e.id !== id) };
+      }
+      return day;
+    }));
+
+    toast({
+      variant: 'info',
+      title: '已刪除行程',
+      description: targetEvent.title || '未命名行程',
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => {
+        setItinerary(prev => prev.map(day => {
+          if (day.day !== selectedDay) return day;
+          const exists = day.events.some((event) => event.id === targetEvent.id);
+          if (exists) return day;
+          return {
+            ...day,
+            events: [...day.events, targetEvent].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+          };
+        }));
+      }
+    });
   };
 
   const handleUpdateDayMeta = (dayNumber, patch) => {

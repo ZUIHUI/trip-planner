@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Edit2, ChevronDown, ChevronUp, Upload, ExternalLink } from 'lucide-react';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 /**
  * 購物清單組件
  * 功能: 記錄店家、商品、支援圖片上傳、備註可放連結
  */
 const ShoppingList = ({ isOpen, onClose }) => {
+  const { confirm, toast } = useFeedback();
   const [lists, setLists] = useState([]);
   const [newList, setNewList] = useState('');
   const [expandedList, setExpandedList] = useState(null);
@@ -46,10 +48,28 @@ const ShoppingList = ({ isOpen, onClose }) => {
   };
 
   // 刪除清單
-  const deleteList = (id) => {
-    if (window.confirm('確定要刪除這個清單嗎?')) {
-      setLists(lists.filter(l => l.id !== id));
-    }
+  const deleteList = async (id) => {
+    const target = lists.find((list) => list.id === id);
+    if (!target) return;
+    const shouldDelete = await confirm({
+      title: '刪除購物清單？',
+      description: `「${target.name}」會從本機購物清單移除。`,
+      confirmLabel: '刪除清單',
+      variant: 'danger'
+    });
+
+    if (!shouldDelete) return;
+
+    const previousLists = lists;
+    setLists(lists.filter(l => l.id !== id));
+    toast({
+      variant: 'info',
+      title: '已刪除購物清單',
+      description: target.name,
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => setLists(previousLists)
+    });
   };
 
   // 新增清單項目

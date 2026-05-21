@@ -15,6 +15,7 @@ import { createTrip, deleteTrip, listTrips } from '../services/tripService';
 import { createTripAppData } from '../domain/tripSchema';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } from '../components/ui';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
@@ -180,6 +181,7 @@ const TripCard = ({
 
 const TripListPage = () => {
   const navigate = useNavigate();
+  const { confirm, toast } = useFeedback();
   const newTripInputRef = useRef(null);
   const [trips, setTrips] = useState([]);
   const [newTripTitle, setNewTripTitle] = useState('');
@@ -294,7 +296,11 @@ const TripListPage = () => {
       setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
       saveLocalTrips(optimisticTrips.filter((trip) => trip.id !== tripId));
       localStorage.removeItem(getStorageKey(tripId));
-      alert('建立旅程失敗，已回滾本地資料');
+      toast({
+        variant: 'danger',
+        title: '建立旅程失敗',
+        description: '已回滾本地資料，請稍後再試。'
+      });
       console.error(error);
     }
   };
@@ -303,7 +309,14 @@ const TripListPage = () => {
     const target = trips.find((trip) => trip.id === tripId);
     if (!target) return;
 
-    if (!window.confirm(`確認刪除「${target.title}」？此動作無法復原。`)) {
+    const shouldDelete = await confirm({
+      title: '刪除旅程？',
+      description: `「${target.title}」會從本機與雲端移除，此動作無法復原。`,
+      confirmLabel: '刪除旅程',
+      variant: 'danger'
+    });
+
+    if (!shouldDelete) {
       return;
     }
 
@@ -317,13 +330,22 @@ const TripListPage = () => {
 
     try {
       await deleteTrip(tripId);
+      toast({
+        variant: 'success',
+        title: '已刪除旅程',
+        description: target.title
+      });
     } catch (error) {
       setTrips(prevTrips);
       saveLocalTrips(prevTrips);
       if (localTripRaw) {
         localStorage.setItem(getStorageKey(tripId), localTripRaw);
       }
-      alert('刪除失敗，已回復原始資料');
+      toast({
+        variant: 'danger',
+        title: '刪除失敗',
+        description: '已回復原始資料，請稍後再試。'
+      });
       console.error(error);
     }
   };

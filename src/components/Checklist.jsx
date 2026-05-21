@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { Button, EmptyState, Input } from './ui';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 const Checklist = ({
   items = [],
@@ -10,6 +11,7 @@ const Checklist = ({
   onDeleteItem,
   title = '清單'
 }) => {
+  const { confirm, toast } = useFeedback();
   const [inputValue, setInputValue] = useState('');
   const safeItems = Array.isArray(items) ? items : [];
   const doneCount = useMemo(() => safeItems.filter((item) => item.done).length, [safeItems]);
@@ -47,16 +49,38 @@ const Checklist = ({
     )));
   };
 
-  const deleteItem = (id) => {
+  const deleteItem = async (id) => {
     const target = safeItems.find((item) => item.id === id);
     if (!target) return;
-    if (!window.confirm(`確定要刪除「${target.text}」嗎？`)) return;
+    const shouldDelete = await confirm({
+      title: '刪除項目？',
+      description: `「${target.text}」會從清單移除。`,
+      confirmLabel: '刪除',
+      variant: 'danger'
+    });
+
+    if (!shouldDelete) return;
 
     if (onDeleteItem) {
       onDeleteItem(id);
+      toast({
+        variant: 'success',
+        title: '已刪除項目',
+        description: target.text
+      });
       return;
     }
+
+    const previousItems = safeItems;
     commitUpdate(safeItems.filter((item) => item.id !== id));
+    toast({
+      variant: 'info',
+      title: '已刪除項目',
+      description: target.text,
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => commitUpdate(previousItems)
+    });
   };
 
   return (

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { MAX_COVER_IMAGE_FILE_SIZE_BYTES, normalizeCoverImageUrl } from '../utils/coverImage';
 import { Button, Field, Input, Select } from './ui';
+import { useFeedback } from '../contexts/FeedbackContext';
 
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
@@ -82,6 +83,7 @@ const SettingsPanel = ({
   coverImage,
   onCoverImageChange
 }) => {
+  const { confirm, toast } = useFeedback();
   const [newTravelerName, setNewTravelerName] = useState('');
   const [coverImageError, setCoverImageError] = useState('');
   const [coverImagePreview, setCoverImagePreview] = useState('');
@@ -103,11 +105,28 @@ const SettingsPanel = ({
     setNewTravelerName('');
   };
 
-  const handleDeleteTraveler = (id) => {
+  const handleDeleteTraveler = async (id) => {
     const target = travelers.find((traveler) => traveler.id === id);
     if (!target) return;
-    if (!window.confirm(`確定要刪除成員「${target.name}」嗎？`)) return;
+    const shouldDelete = await confirm({
+      title: '刪除旅伴？',
+      description: `「${target.name}」會從旅伴清單移除。`,
+      confirmLabel: '刪除旅伴',
+      variant: 'danger'
+    });
+
+    if (!shouldDelete) return;
+
+    const previousTravelers = travelers;
     onUpdateTravelers(travelers.filter((traveler) => traveler.id !== id));
+    toast({
+      variant: 'info',
+      title: '已刪除旅伴',
+      description: target.name,
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => onUpdateTravelers(previousTravelers)
+    });
   };
 
   const handleCoverImageFileChange = (event) => {
