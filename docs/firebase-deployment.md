@@ -31,6 +31,50 @@ In Firebase Console for `trip-planner-36455`:
 
 Firebase CLI can deploy Hosting, Firestore rules, Realtime Database rules, and Functions from this repo, but sign-in providers are still configured in the Firebase Console.
 
+### Vercel Authentication Setup
+
+When the app is served from Vercel, Firebase Auth can fail after Google consent with `missing initial state` because the app domain and Firebase Auth helper domain use different browser storage partitions.
+
+This repo includes `vercel.json` rewrites for:
+
+```text
+/__/auth/*
+/__/firebase/*
+```
+
+The app also uses the current `*.vercel.app` host as `authDomain` at runtime. For Vercel deployments, configure these settings:
+
+Firebase Console > Authentication > Settings > Authorized domains:
+
+```text
+trip-planner-mu-red.vercel.app
+```
+
+Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client > Authorized JavaScript origins:
+
+```text
+https://trip-planner-mu-red.vercel.app
+```
+
+Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client > Authorized redirect URIs:
+
+```text
+https://trip-planner-mu-red.vercel.app/__/auth/handler
+https://trip-planner-36455.firebaseapp.com/__/auth/handler
+```
+
+Vercel environment variables should still point at the Firebase project:
+
+```text
+VITE_FIREBASE_AUTH_DOMAIN=trip-planner-36455.firebaseapp.com
+```
+
+If you use a custom domain on Vercel, set this env var and add the same domain to Firebase and Google OAuth:
+
+```text
+VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH=true
+```
+
 ## Environment
 
 Set these values before building:

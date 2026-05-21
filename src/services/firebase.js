@@ -3,9 +3,23 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 
+const getRuntimeAuthDomain = () => {
+  const configuredAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+
+  if (typeof window === 'undefined') {
+    return configuredAuthDomain;
+  }
+
+  const host = window.location.hostname;
+  const shouldUseCurrentHost = import.meta.env.VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH === 'true'
+    || host.endsWith('.vercel.app');
+
+  return shouldUseCurrentHost ? host : configuredAuthDomain;
+};
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  authDomain: getRuntimeAuthDomain(),
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
