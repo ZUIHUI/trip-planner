@@ -164,6 +164,39 @@ npm run presence:backfill -- --dry-run
 
 After backfill, new member changes are mirrored automatically by Cloud Functions.
 
+## Claim Existing Ownerless Trips
+
+Existing cloud trips that were created before account isolation may not have `access.ownerUid`. These trips must be claimed by the primary owner account before they appear in that account's trip list.
+
+The primary owner email is:
+
+```text
+sky32439@gmail.com
+```
+
+UI path:
+
+1. Sign in as `sky32439@gmail.com`.
+2. Open the trip list.
+3. Use the `既有雲端旅程 Owner 綁定` card.
+
+Admin script path:
+
+```bash
+gcloud auth application-default login
+npm run owner:claim -- --dry-run
+npm run owner:claim
+```
+
+With the portable Node helper:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File .\scripts\firebase-portable-node.ps1 -NodeRoot $NodeRoot -Task owner-claim-dry-run
+powershell.exe -ExecutionPolicy Bypass -File .\scripts\firebase-portable-node.ps1 -NodeRoot $NodeRoot -Task owner-claim
+```
+
+The script looks up the Firebase Auth user by email, writes `access.ownerUid`, `access.ownerEmail`, `access.ownerName`, and creates `trips/{tripId}/members/{uid}` with `role = owner`. Trips that already have an owner are skipped and never overwritten.
+
 ## Windows Portable Node Flow
 
 If Node is not installed globally, use the downloaded standalone Node folder as a temporary PATH. This does not permanently change Windows environment variables.

@@ -17,6 +17,7 @@
     "functions:install": "cd functions && npm install",
     "functions:lint": "cd functions && npm run lint",
     "presence:backfill": "node functions/scripts/backfillPresenceAcl.js",
+    "owner:claim": "node functions/scripts/claimOwnerlessTrips.js",
     "deploy": "npm run build && firebase deploy --only firestore:rules,database,functions,hosting",
     "deploy:rules": "firebase deploy --only firestore:rules,database",
     "deploy:hosting": "npm run build && firebase deploy --only hosting"

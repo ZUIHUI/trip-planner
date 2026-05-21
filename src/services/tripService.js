@@ -20,7 +20,9 @@ import {
   normalizeTripDocumentForApp
 } from '../domain/tripSchema';
 
-const PRIMARY_OWNER_EMAIL = import.meta.env.VITE_PRIMARY_OWNER_EMAIL || '';
+const PRIMARY_OWNER_EMAIL = (import.meta.env.VITE_PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
+
+const getUserEmail = (user) => String(user?.email || '').toLowerCase();
 
 const getUserName = (user, profile = {}) => (
   profile.displayName ||
@@ -111,7 +113,7 @@ export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' 
     const ownerUid = tripData?.access?.ownerUid || '';
 
     if (!ownerUid) {
-      if (!PRIMARY_OWNER_EMAIL || user.email !== PRIMARY_OWNER_EMAIL) {
+      if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
         throw new Error('這趟旅程尚未綁定 Owner，只有主要帳號可以接管既有資料。');
       }
 
@@ -328,7 +330,7 @@ export const redeemShareToken = async ({ tripId, shareToken, user, profile }) =>
 
 export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   requireUser(user);
-  if (!PRIMARY_OWNER_EMAIL || user.email !== PRIMARY_OWNER_EMAIL) {
+  if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
     throw new Error('目前帳號不是主要資料擁有者');
   }
 
@@ -369,4 +371,4 @@ export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   return { claimed, skipped };
 };
 
-export const isPrimaryOwnerAccount = (user) => Boolean(PRIMARY_OWNER_EMAIL && user?.email === PRIMARY_OWNER_EMAIL);
+export const isPrimaryOwnerAccount = (user) => Boolean(PRIMARY_OWNER_EMAIL && getUserEmail(user) === PRIMARY_OWNER_EMAIL);

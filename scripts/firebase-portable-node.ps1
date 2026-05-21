@@ -1,6 +1,6 @@
 param(
   [string]$NodeRoot = $env:PORTABLE_NODE_ROOT,
-  [ValidateSet("check", "install", "login", "build", "database-init", "database-list", "deploy", "rules", "hosting", "functions", "artifacts-policy", "backfill-dry-run", "backfill")]
+  [ValidateSet("check", "install", "login", "build", "database-init", "database-list", "deploy", "rules", "hosting", "functions", "artifacts-policy", "owner-claim-dry-run", "owner-claim", "backfill-dry-run", "backfill")]
   [string]$Task = "check",
   [string]$ProjectId = "trip-planner-36455",
   [string]$FunctionsLocation = "asia-east1"
@@ -109,6 +109,12 @@ switch ($Task) {
   }
   "artifacts-policy" {
     Invoke-Firebase functions:artifacts:setpolicy --location $FunctionsLocation --days 7 --force --project $ProjectId
+  }
+  "owner-claim-dry-run" {
+    Invoke-RootNpm run owner:claim -- --dry-run
+  }
+  "owner-claim" {
+    Invoke-RootNpm run owner:claim
   }
   "backfill-dry-run" {
     Invoke-RootNpm run presence:backfill -- --dry-run

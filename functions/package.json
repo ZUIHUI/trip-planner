@@ -6,8 +6,9 @@
     "node": "20"
   },
   "scripts": {
-    "lint": "node --check index.js && node --check scripts/backfillPresenceAcl.js",
-    "backfill:presence": "node scripts/backfillPresenceAcl.js"
+    "lint": "node --check index.js && node --check scripts/backfillPresenceAcl.js && node --check scripts/claimOwnerlessTrips.js",
+    "backfill:presence": "node scripts/backfillPresenceAcl.js",
+    "claim:ownerless": "node scripts/claimOwnerlessTrips.js"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
