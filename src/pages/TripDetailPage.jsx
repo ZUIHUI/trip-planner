@@ -742,7 +742,16 @@ const TripDetailPage = () => {
       {activeTab === 'itinerary' && (
         <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
-            <div className="tp-mobile-action-grid gap-2">
+            <div className="sm:hidden">
+              <Button
+                onClick={openAddModal}
+                className="w-full"
+              >
+                <Plus size={17} />
+                新增行程
+              </Button>
+            </div>
+            <div className="hidden grid-cols-3 gap-2 sm:grid">
               <Button
                 onClick={openAddModal}
                 className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"

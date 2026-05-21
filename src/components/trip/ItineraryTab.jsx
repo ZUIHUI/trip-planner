@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, ChevronDown, ChevronUp, Pencil, Plus, Wallet } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, Wallet } from 'lucide-react';
 import DaySelector from '../DaySelector';
 import EventCard from '../EventCard';
 import NextEventWidget from '../NextEventWidget';
@@ -59,6 +59,16 @@ const ItineraryTab = () => {
     .filter(Boolean);
   const todayCostSummary = formatCostSummary(todayCostItems);
   const todayCostEventCount = todayCostItems.length;
+  const shouldShowCostToggle = todayCostEventCount > 0;
+  const currentDayIndex = itinerary.findIndex((item) => item.day === selectedDay);
+  const nextDayItem = itinerary.length > 1
+    ? itinerary[((currentDayIndex >= 0 ? currentDayIndex : 0) + 1) % itinerary.length]
+    : null;
+
+  const handleSelectNextDay = () => {
+    if (!nextDayItem) return;
+    setSelectedDay(nextDayItem.day);
+  };
 
   return (
     <>
@@ -82,16 +92,33 @@ const ItineraryTab = () => {
       />
 
       <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
-
-      <div className="mt-4 px-4 pb-24 sm:px-6 lg:px-8">
-        <div className="flex justify-stretch sm:justify-end">
-          <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={toggleSecondaryModules} aria-expanded={showSecondaryModules}>
-            {showSecondaryModules ? '收合資訊' : '查看更多資訊'}
-            {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      {nextDayItem && (
+        <div className="mt-2 px-4 sm:hidden">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleSelectNextDay}
+            className="w-full justify-center"
+            aria-label={`前往 Day ${nextDayItem.day}`}
+          >
+            下一天
+            <span className="font-black">Day {nextDayItem.day}</span>
+            <ChevronRight size={16} />
           </Button>
         </div>
+      )}
 
-        <section className="mt-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800">
+      <div className="mt-4 px-4 pb-24 sm:px-6 lg:px-8">
+        {shouldShowCostToggle && (
+          <div className="flex justify-stretch sm:justify-end">
+            <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={toggleSecondaryModules} aria-expanded={showSecondaryModules}>
+              {showSecondaryModules ? '收合花費' : '今日花費'}
+              {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </Button>
+          </div>
+        )}
+
+        <section className={`${shouldShowCostToggle ? 'mt-4' : 'mt-2'} flex flex-col gap-3 border-b border-slate-200 pb-4 sm:mt-4 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}>
           <div className="min-w-0 flex-1">
             {currentDayData ? (
               isEditingDayMeta ? (
@@ -137,9 +164,16 @@ const ItineraryTab = () => {
           </div>
 
           {currentDayData && !isEditingDayMeta && (
-            <Button variant="ghost" size="sm" onClick={startDayMetaEdit}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={startDayMetaEdit}
+              className="self-start !px-2 sm:self-auto sm:!px-3"
+              aria-label="編輯 Day"
+              title="編輯 Day"
+            >
               <Pencil size={15} />
-              編輯 Day
+              <span className="hidden sm:inline">編輯 Day</span>
             </Button>
           )}
         </section>
@@ -174,7 +208,7 @@ const ItineraryTab = () => {
           )}
         </div>
 
-        {showSecondaryModules && currentDayData && currentDayData.events.length > 0 && (
+        {showSecondaryModules && currentDayData && shouldShowCostToggle && (
           <Card className="mt-6 p-4">
             <div className="flex items-start gap-3">
               <div className="tp-icon-chip bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">

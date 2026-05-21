@@ -53,12 +53,19 @@ const getLocationText = (event) => {
   return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
 };
 
+const normalizeExternalUrl = (url) => {
+  const trimmed = String(url || '').trim();
+  if (!trimmed) return '';
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+};
+
 const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) => {
   const [showMenu, setShowMenu] = useState(false);
   const meta = getEventMeta(event.type);
   const Icon = meta.icon;
   const locationText = getLocationText(event);
   const costText = formatCost(event);
+  const externalUrl = normalizeExternalUrl(event.url);
 
   const handleCardClick = () => {
     onEdit(event, true);
@@ -78,17 +85,24 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
     onOpenGoogleMaps(prevLocation, event.locationPlace || event.location);
   };
 
+  const handleMapClick = (clickEvent) => {
+    clickEvent.preventDefault();
+    clickEvent.stopPropagation();
+    if (!locationText || !onOpenGoogleMaps) return;
+    onOpenGoogleMaps('', event.locationPlace || event.location);
+  };
+
   return (
     <div className="relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800">
       <span className={`absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
         event.urgent ? 'border-red-500' : 'border-brand-400'
       }`} />
 
-      <Card interactive className="relative cursor-pointer p-4" onClick={handleCardClick}>
+      <Card interactive className="relative cursor-pointer p-3 sm:p-4" onClick={handleCardClick}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${meta.className}`}>
-              <Icon size={21} />
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11 ${meta.className}`}>
+              <Icon size={20} />
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -101,7 +115,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
                   </Badge>
                 )}
               </div>
-              <h3 className="mt-2 break-words text-xl font-black leading-tight text-slate-950 dark:text-white">
+              <h3 className="mt-1.5 break-words text-lg font-black leading-tight text-slate-950 sm:mt-2 sm:text-xl dark:text-white">
                 {event.title || '未命名行程'}
               </h3>
             </div>
@@ -152,21 +166,21 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
         </div>
 
         {event.desc && (
-          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <p className="mt-3 hidden whitespace-pre-wrap break-words text-sm leading-6 text-slate-600 sm:block dark:text-slate-300">
             {event.desc}
           </p>
         )}
 
-        <div className="mt-4 grid gap-2">
+        <div className="mt-3 grid gap-2 sm:mt-4">
           {locationText && (
             <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
               <MapPin size={16} className="mt-0.5 shrink-0 text-brand-600 dark:text-brand-300" />
-              <span className="font-semibold">{locationText}</span>
+              <span className="break-words font-semibold leading-5">{locationText}</span>
             </div>
           )}
 
           {(event.transport?.duration || event.transport?.route) && (
-            <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <div className="hidden items-start gap-2 text-sm text-slate-600 sm:flex dark:text-slate-300">
               <Navigation size={16} className="mt-0.5 shrink-0 text-slate-400" />
               <span>
                 {event.transport.duration && <span className="font-semibold">{event.transport.duration}</span>}
@@ -177,17 +191,17 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
           )}
 
           {costText && (
-            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <div className="hidden items-center gap-2 text-sm text-slate-600 sm:flex dark:text-slate-300">
               <Wallet size={16} className="shrink-0 text-amber-600 dark:text-amber-300" />
               <span className="font-semibold">{costText}</span>
             </div>
           )}
 
-          {event.url && (
-            <div className="flex items-start gap-2 text-sm">
+          {externalUrl && (
+            <div className="hidden items-start gap-2 text-sm sm:flex">
               <LinkIcon size={16} className="mt-0.5 shrink-0 text-sky-600 dark:text-sky-300" />
               <a
-                href={event.url}
+                href={externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(clickEvent) => clickEvent.stopPropagation()}
@@ -200,7 +214,36 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
           )}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+        {(locationText || externalUrl) && (
+          <div className="mt-3 flex items-center justify-end gap-2 sm:hidden">
+            {onOpenGoogleMaps && locationText && (
+              <button
+                type="button"
+                onClick={handleMapClick}
+                className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg border border-brand-100 bg-brand-50 text-brand-700 transition hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-brand-900/70 dark:bg-brand-950/30 dark:text-brand-300"
+                aria-label={`開啟 ${event.title || locationText} 的地圖`}
+                title="開地圖"
+              >
+                <Map size={17} />
+              </button>
+            )}
+            {externalUrl && (
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(clickEvent) => clickEvent.stopPropagation()}
+                className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sky-100 bg-sky-50 text-sky-700 transition hover:bg-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-300"
+                aria-label={`開啟 ${event.title || '行程'} 網址`}
+                title="開網址"
+              >
+                <ExternalLink size={17} />
+              </a>
+            )}
+          </div>
+        )}
+
+        <div className="mt-4 hidden flex-wrap items-center justify-end gap-2 sm:flex">
           {onOpenGoogleMaps && locationText && (
             <Button variant="secondary" size="sm" onClick={handleRouteClick}>
               <Map size={14} />

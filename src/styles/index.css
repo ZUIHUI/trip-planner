@@ -208,16 +208,6 @@
     @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300;
   }
 
-  .tp-mobile-action-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .tp-mobile-action-grid > * {
-    width: 100%;
-    min-width: 0;
-  }
-
   .tp-body-text {
     font-size: var(--font-size-body-mobile);
     line-height: var(--line-height-body);
