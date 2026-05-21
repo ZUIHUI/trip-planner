@@ -3,6 +3,7 @@ import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, Walle
 import DaySelector from '../DaySelector';
 import EventCard from '../EventCard';
 import NextEventWidget from '../NextEventWidget';
+import ItineraryRoutePanel from './ItineraryRoutePanel';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 
@@ -177,6 +178,12 @@ const ItineraryTab = () => {
             </Button>
           )}
         </section>
+
+        <ItineraryRoutePanel
+          currentDayData={currentDayData}
+          tripDetails={tripDetails}
+          currentLocation={currentLocation}
+        />
 
         <div className="mt-5">
           {currentDayData && currentDayData.events.length === 0 ? (

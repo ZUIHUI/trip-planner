@@ -72,7 +72,8 @@ const buildFallbackData = (initialTripDetails, initialItinerary) => ({
   tripDetails: initialTripDetails,
   itinerary: initialItinerary,
   checklists: { preTrip: [], packing: [] },
-  expenses: []
+  expenses: [],
+  placePool: []
 });
 
 const mergeTripDetailsForSync = (localTripDetails, firebaseTripDetails, fallbackTripDetails) => {
@@ -124,6 +125,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
   const [itinerary, setItinerary] = useState(initialItinerary);
   const [checklists, setChecklists] = useState({ preTrip: [], packing: [] });
   const [expenses, setExpenses] = useState([]);
+  const [placePool, setPlacePool] = useState([]);
   const autoSaveTimeoutRef = useRef(null);
   const loadingTimeoutRef = useRef(null);
 
@@ -151,6 +153,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       setItinerary(initialItinerary);
       setChecklists({ preTrip: [], packing: [] });
       setExpenses([]);
+      setPlacePool([]);
       setSaveError('無效的旅程 ID');
       setIsLoading(false);
       return;
@@ -187,6 +190,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         );
         setChecklists(localOrFallback.checklists || { preTrip: [], packing: [] });
         setExpenses(localOrFallback.expenses || []);
+        setPlacePool(localOrFallback.placePool || []);
 
         // 標記初始加載完成
         setIsLoading(false);
@@ -214,6 +218,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
               );
               setChecklists(normalizedFirebaseData.checklists || { preTrip: [], packing: [] });
               setExpenses(normalizedFirebaseData.expenses || []);
+              setPlacePool(normalizedFirebaseData.placePool || []);
             }
           } catch (err) {
             console.warn('⚠️ Firebase 載入失敗:', err.message);
@@ -271,7 +276,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
           tripDetails: normalizedTripDetails,
           itinerary,
           checklists,
-          expenses
+          expenses,
+          placePool
         });
 
         // 優先儲存到 localStorage（立即）
@@ -310,7 +316,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [tripDetails, itinerary, checklists, expenses, safeTripId, storageKey, isLoading]);
+  }, [tripDetails, itinerary, checklists, expenses, placePool, safeTripId, storageKey, isLoading]);
 
   // 手動從 Firebase 更新資料
   const manualRefresh = async () => {
@@ -337,6 +343,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         );
         setChecklists(normalizedFirebaseData.checklists || { preTrip: [], packing: [] });
         setExpenses(normalizedFirebaseData.expenses || []);
+        setPlacePool(normalizedFirebaseData.placePool || []);
         return true;
       }
     } catch (err) {
@@ -368,7 +375,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         tripDetails: normalizedTripDetails,
         itinerary,
         checklists,
-        expenses
+        expenses,
+        placePool
       });
       await persistTripData(dataToSave);
       return true;
@@ -393,6 +401,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     setChecklists,
     expenses,
     setExpenses,
+    placePool,
+    setPlacePool,
     manualRefresh,
     saveNow
   };

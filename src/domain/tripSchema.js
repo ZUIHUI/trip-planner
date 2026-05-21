@@ -25,7 +25,8 @@ export const createTripAppData = (title = '未命名旅程', days = 6) => ({
   },
   itinerary: createEmptyItinerary(days),
   checklists: { preTrip: [], packing: [] },
-  expenses: []
+  expenses: [],
+  placePool: []
 });
 
 const asObject = (value) => (value && typeof value === 'object' && !Array.isArray(value) ? value : {});
@@ -149,6 +150,26 @@ const normalizeDayForApp = (day = {}, index = 0) => {
   };
 };
 
+const normalizePlacePoolItem = (item = {}, index = 0) => {
+  const source = asObject(item);
+  const location = normalizeLocationForDocument(source.place || source.location || source);
+  const plannedDay = Number(source.plannedDay);
+
+  return {
+    id: makeId('place', source.id || location.placeId || index + 1),
+    name: cleanString(source.name || location.name || location.address, `想去地點 ${index + 1}`),
+    address: cleanString(source.address || location.address || location.name),
+    placeId: cleanString(source.placeId || location.placeId),
+    lat: typeof source.lat === 'number' ? source.lat : location.lat,
+    lng: typeof source.lng === 'number' ? source.lng : location.lng,
+    note: cleanString(source.note || source.notes),
+    status: cleanString(source.status, Number.isFinite(plannedDay) ? 'planned' : 'idea'),
+    plannedDay: Number.isFinite(plannedDay) ? plannedDay : null,
+    addedAt: cleanString(source.addedAt),
+    plannedAt: cleanString(source.plannedAt)
+  };
+};
+
 export const normalizeTripDocumentForApp = (rawData, fallbackData = createTripAppData()) => {
   const source = asObject(rawData);
   const fallback = asObject(fallbackData);
@@ -196,6 +217,8 @@ export const normalizeTripDocumentForApp = (rawData, fallbackData = createTripAp
   const sourceItinerary = asArray(source.itineraryDays).length ? source.itineraryDays : source.itinerary;
   const itinerary = (asArray(sourceItinerary).length ? asArray(sourceItinerary) : asArray(fallback.itinerary))
     .map(normalizeDayForApp);
+  const placePool = asArray(planning.placePool || source.placePool || fallback.placePool)
+    .map(normalizePlacePoolItem);
 
   return {
     ...fallback,
@@ -203,6 +226,7 @@ export const normalizeTripDocumentForApp = (rawData, fallbackData = createTripAp
     schemaVersion: source.schemaVersion || 1,
     tripDetails,
     itinerary,
+    placePool,
     checklists: {
       preTrip: asArray(planning.checklists?.preTrip || source.checklists?.preTrip || fallback.checklists?.preTrip),
       packing: asArray(planning.checklists?.packing || source.checklists?.packing || fallback.checklists?.packing)
@@ -247,6 +271,7 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
         preTrip: asArray(source.checklists?.preTrip),
         packing: asArray(source.checklists?.packing)
       },
+      placePool: asArray(source.placePool).map(normalizePlacePoolItem),
       shoppingList: source.shoppingList || previous.planning?.shoppingList || previous.shoppingList || null,
       shoppingCategories: source.shoppingCategories || previous.planning?.shoppingCategories || previous.shoppingCategories || null
     },
@@ -258,6 +283,7 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
     // Compatibility fields keep old clients and localStorage snapshots readable.
     tripDetails,
     itinerary: asArray(source.itinerary).map(normalizeDayForApp),
+    placePool: asArray(source.placePool).map(normalizePlacePoolItem),
     checklists: {
       preTrip: asArray(source.checklists?.preTrip),
       packing: asArray(source.checklists?.packing)

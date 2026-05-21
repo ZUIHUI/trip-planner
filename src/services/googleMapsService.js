@@ -159,6 +159,33 @@ export const buildGoogleMapsDirectionsUrl = (origin, destination) => {
   return `https://www.google.com/maps/dir/?${params.toString()}`;
 };
 
+export const buildGoogleMapsMultiStopDirectionsUrl = (origin, destinations = []) => {
+  const normalizedDestinations = (Array.isArray(destinations) ? destinations : [destinations])
+    .map(normalizePlaceText)
+    .filter(Boolean);
+
+  if (!normalizedDestinations.length) return '';
+
+  const finalDestination = normalizedDestinations[normalizedDestinations.length - 1];
+  const waypoints = normalizedDestinations.slice(0, -1);
+  const params = new URLSearchParams({
+    api: '1',
+    destination: finalDestination,
+    travelmode: 'transit'
+  });
+
+  const normalizedOrigin = normalizePlaceText(origin);
+  if (normalizedOrigin) {
+    params.set('origin', normalizedOrigin);
+  }
+
+  if (waypoints.length) {
+    params.set('waypoints', waypoints.join('|'));
+  }
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
 export const normalizeGooglePlaceResult = (place, fallbackText = '') => {
   if (!place || typeof place !== 'object') {
     const fallback = String(fallbackText || '').trim();

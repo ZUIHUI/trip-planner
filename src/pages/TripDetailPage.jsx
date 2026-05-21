@@ -152,6 +152,8 @@ const TripDetailPage = () => {
     setChecklists,
     expenses,
     setExpenses,
+    placePool,
+    setPlacePool,
     isSaving,
     saveNow
   } = useTrip(tripId, defaultTripDetails, defaultItinerary);
@@ -596,6 +598,8 @@ const TripDetailPage = () => {
     setChecklists,
     expenses,
     setExpenses,
+    placePool,
+    setPlacePool,
     exchangeRate,
     shoppingListRef,
     expenseTrackerRef,
@@ -635,6 +639,7 @@ const TripDetailPage = () => {
     itinerary,
     checklists,
     expenses,
+    placePool,
     selectedDay,
     currentDayData,
     currentDayTitle,

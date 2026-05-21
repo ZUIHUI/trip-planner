@@ -18,6 +18,7 @@ import { getFlightLookupAvailability } from '../../services/flightService';
 import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
+import ReservationImportCard from './ReservationImportCard';
 
 const statusMeta = {
   planning: { label: '規劃中', variant: 'warning' },
@@ -889,6 +890,8 @@ const LogisticsTab = () => {
   return (
     <div className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8">
       <CompletionPanel tripDetails={tripDetails} />
+
+      <ReservationImportCard tripDetails={tripDetails} setTripDetails={setTripDetails} />
 
       <MobileSectionSwitcher
         activeSection={activeMobileSection}

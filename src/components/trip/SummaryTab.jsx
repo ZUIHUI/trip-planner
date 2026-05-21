@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import PlacePoolCard from './PlacePoolCard';
 
 const emptyText = '未設定';
 const eventTypeLabels = {
@@ -219,6 +220,98 @@ const InfoPill = ({ label, value }) => (
     </p>
   </div>
 );
+
+const CommandCenterCard = ({
+  tripDetails,
+  itinerary,
+  placePool,
+  budgetProgress,
+  onTabChange,
+  onAddEvent
+}) => {
+  const dateRange = tripDetails?.dateRange || {};
+  const accommodation = tripDetails?.accommodation || {};
+  const flights = tripDetails?.flights || {};
+  const totalEvents = itinerary.reduce((sum, day) => sum + (day.events?.length || 0), 0);
+  const safePlacePool = Array.isArray(placePool) ? placePool : [];
+  const steps = [
+    {
+      id: 'dates',
+      label: '日期',
+      done: Boolean(dateRange.start && dateRange.end),
+      action: () => onTabChange?.('flights')
+    },
+    {
+      id: 'logistics',
+      label: '住宿航班',
+      done: Boolean((accommodation.name || accommodation.address) && (flights.outbound?.code || flights.inbound?.code)),
+      action: () => onTabChange?.('flights')
+    },
+    {
+      id: 'ideas',
+      label: '想去地點',
+      done: safePlacePool.length > 0 || totalEvents > 0,
+      action: () => document.getElementById('place-pool-input')?.focus()
+    },
+    {
+      id: 'itinerary',
+      label: '每日行程',
+      done: totalEvents > 0,
+      action: onAddEvent
+    }
+  ];
+  const completedSteps = steps.filter((step) => step.done).length;
+  const progress = Math.round((completedSteps / steps.length) * 100);
+  const nextStep = steps.find((step) => !step.done);
+
+  return (
+    <Card className="order-0 overflow-hidden p-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={progress >= 75 ? 'success' : 'info'}>{progress}% 就緒</Badge>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              {completedSteps}/{steps.length} 個關鍵資料
+            </span>
+          </div>
+          <h2 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">旅程控制台</h2>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
+            {nextStep ? `下一步：補齊${nextStep.label}` : '核心資料已就緒，可以直接進入旅途中使用。'}
+          </p>
+        </div>
+
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[1fr_auto] lg:w-[420px]">
+          <div>
+            <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true">
+              <div className="h-2 rounded-full bg-brand-600 transition-all" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {steps.map((step) => (
+                <button
+                  key={step.id}
+                  type="button"
+                  onClick={step.action}
+                  className={`rounded-lg border px-3 py-2 text-left text-xs font-black transition ${
+                    step.done
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-brand-200 hover:bg-brand-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-brand-950/25'
+                  }`}
+                >
+                  {step.done ? '完成' : '待補'} · {step.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:w-44 sm:grid-cols-1">
+            <InfoPill label="行程" value={`${totalEvents} 個`} />
+            <InfoPill label="地點池" value={`${safePlacePool.length} 個`} />
+            <InfoPill label="預算" value={budgetProgress ? `${budgetProgress}%` : '未設定'} />
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
   const { day, event } = nextSummary;
@@ -550,6 +643,9 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     budgetTarget,
     remainingBudget,
     budgetProgress,
+    placePool,
+    setPlacePool,
+    setItinerary,
     handleOpenGoogleMaps
   } = useTripWorkspace();
 
@@ -565,6 +661,15 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
 
   return (
     <div className="flex min-w-0 flex-col gap-4 px-4 pb-10 sm:px-6 lg:px-8">
+      <CommandCenterCard
+        tripDetails={tripDetails}
+        itinerary={itinerary}
+        placePool={placePool}
+        budgetProgress={budgetProgress}
+        onTabChange={onTabChange}
+        onAddEvent={onAddEvent}
+      />
+
       <NextStepCard
         nextSummary={nextSummary}
         onAddEvent={onAddEvent}
@@ -575,6 +680,15 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
       <ReadinessCard items={readinessItems} onTabChange={onTabChange} />
 
       <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
+
+      <PlacePoolCard
+        placePool={placePool}
+        setPlacePool={setPlacePool}
+        itinerary={itinerary}
+        setItinerary={setItinerary}
+        selectedDay={selectedDay}
+        onAddEvent={onAddEvent}
+      />
 
       <TripOverviewCard
         tripDisplayDates={tripDisplayDates}
