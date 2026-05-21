@@ -1,8 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Bed,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   Info,
   MapPin,
@@ -26,17 +28,59 @@ const statusMeta = {
 const directionMeta = {
   outbound: {
     label: '去程',
-    helper: '通常使用旅程開始日期查詢。',
+    helper: '用旅程開始日查詢航班',
     colorClass: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300'
   },
   inbound: {
     label: '回程',
-    helper: '通常使用旅程結束日期查詢。',
+    helper: '用旅程結束日查詢航班',
     colorClass: 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
   }
 };
 
-const SectionHeading = ({ icon: Icon, title, description, aside }) => (
+const getInfoTasks = (tripDetails) => [
+  { label: '旅程名稱', done: Boolean(tripDetails?.title), section: 'trip' },
+  {
+    label: '日期範圍',
+    done: Boolean(tripDetails?.dateRange?.start && tripDetails?.dateRange?.end),
+    section: 'trip'
+  },
+  {
+    label: '住宿地址',
+    done: Boolean(tripDetails?.accommodation?.address),
+    section: 'accommodation'
+  },
+  {
+    label: '去程航班',
+    done: Boolean(tripDetails?.flights?.outbound?.code),
+    section: 'flights'
+  },
+  {
+    label: '回程航班',
+    done: Boolean(tripDetails?.flights?.inbound?.code),
+    section: 'flights'
+  }
+];
+
+const getMobileSectionStatus = (tripDetails) => {
+  const tasks = getInfoTasks(tripDetails);
+  const missingBySection = tasks.reduce((result, task) => {
+    if (!task.done) {
+      result[task.section] = [...(result[task.section] || []), task.label];
+    }
+    return result;
+  }, {});
+
+  return {
+    trip: missingBySection.trip?.length ? '待補資料' : '已填寫',
+    accommodation: missingBySection.accommodation?.length ? '未填住宿' : '已填寫',
+    flights: missingBySection.flights?.length
+      ? missingBySection.flights.join('、')
+      : '已填寫'
+  };
+};
+
+const SectionHeading = ({ icon: Icon, title, description, aside, compactDescription = false }) => (
   <div className="mb-4 flex min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
     <div className="flex min-w-0 items-start gap-3">
       <div className="tp-icon-chip">
@@ -44,7 +88,11 @@ const SectionHeading = ({ icon: Icon, title, description, aside }) => (
       </div>
       <div className="min-w-0">
         <h3 className="tp-section-title">{title}</h3>
-        <p className="tp-section-subtitle">{description}</p>
+        {description && (
+          <p className={`tp-section-subtitle ${compactDescription ? 'hidden sm:block' : ''}`}>
+            {description}
+          </p>
+        )}
       </div>
     </div>
     {aside}
@@ -64,33 +112,35 @@ const InfoTile = ({ label, value, icon: Icon }) => (
 );
 
 const CompletionPanel = ({ tripDetails }) => {
-  const tasks = [
-    { label: '旅程名稱', done: Boolean(tripDetails?.title) },
-    { label: '日期範圍', done: Boolean(tripDetails?.dateRange?.start && tripDetails?.dateRange?.end) },
-    { label: '住宿地址', done: Boolean(tripDetails?.accommodation?.address) },
-    { label: '去程航班', done: Boolean(tripDetails?.flights?.outbound?.code) },
-    { label: '回程航班', done: Boolean(tripDetails?.flights?.inbound?.code) }
-  ];
+  const tasks = getInfoTasks(tripDetails);
   const completed = tasks.filter((task) => task.done).length;
+  const missingTasks = tasks.filter((task) => !task.done);
   const percent = Math.round((completed / tasks.length) * 100);
   const status = statusMeta[tripDetails?.status] || statusMeta.planning;
 
   return (
-    <Card className="overflow-hidden p-4">
+    <Card className="overflow-hidden p-3 sm:p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant={status.variant}>{status.label}</Badge>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">資料完成度 {percent}%</span>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              完成 {completed}/{tasks.length}
+            </span>
           </div>
-          <h2 className="mt-2 text-xl font-black text-slate-950 dark:text-white">出發前資訊中心</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-            這裡維護的住宿與航班資料會被首頁摘要、旅途中模式、導航與天氣預設地點共用。
+          <h2 className="mt-2 text-lg font-black text-slate-950 dark:text-white sm:text-xl">
+            出發前資訊
+          </h2>
+          <p className="mt-1 hidden text-sm leading-6 text-slate-500 dark:text-slate-400 sm:block">
+            先補齊旅程、住宿與航班，旅途中查看資料會更快。
+          </p>
+          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
+            {missingTasks.length ? `待補：${missingTasks.map((task) => task.label).join('、')}` : '資訊已完整'}
           </p>
         </div>
 
         <div className="min-w-0 lg:w-64">
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true">
             <div className="h-2 rounded-full bg-brand-600 transition-all" style={{ width: `${percent}%` }} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -114,17 +164,63 @@ const CompletionPanel = ({ tripDetails }) => {
   );
 };
 
-const TripInfoCard = ({ tripDetails, setTripDetails }) => {
+const MobileSectionSwitcher = ({ activeSection, onChange, sectionStatus }) => {
+  const sections = [
+    { id: 'trip', label: '旅程', icon: Info },
+    { id: 'accommodation', label: '住宿', icon: Bed },
+    { id: 'flights', label: '航班', icon: Plane }
+  ];
+
+  return (
+    <div className="sm:hidden">
+      <div
+        className="grid grid-cols-3 gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900"
+        role="tablist"
+        aria-label="資訊設定段落"
+      >
+        {sections.map(({ id, label, icon: Icon }) => {
+          const isActive = activeSection === id;
+          const isComplete = sectionStatus[id] === '已填寫';
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(id)}
+              className={`min-h-12 min-w-0 rounded-lg px-2 py-2 text-center transition ${
+                isActive
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              }`}
+            >
+              <span className="flex items-center justify-center gap-1.5 text-sm font-black">
+                <Icon size={15} />
+                {label}
+              </span>
+              <span className={`mt-0.5 block truncate text-[11px] font-bold ${isActive ? 'text-white/80' : isComplete ? 'text-emerald-600 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                {sectionStatus[id]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = false }) => {
   const startDate = tripDetails?.dateRange?.start || '';
   const endDate = tripDetails?.dateRange?.end || '';
   const invalidDateRange = Boolean(startDate && endDate && new Date(endDate) < new Date(startDate));
 
   return (
-    <Card className="p-4">
+    <Card className="p-3 sm:p-4">
       <SectionHeading
         icon={Info}
         title="旅程資訊"
-        description="設定名稱、日期、狀態與總預算。"
+        description="設定旅程名稱、日期、狀態與預算。"
+        compactDescription={compact}
         aside={tripDetails?.dates && (
           <Badge variant="info" className="self-start">
             {tripDetails.dates}
@@ -133,9 +229,9 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
       />
 
       <div className="grid min-w-0 gap-3">
-        <Field label="旅程名稱" htmlFor="trip-title">
+        <Field label="旅程名稱" htmlFor={`${idPrefix}trip-title`}>
           <Input
-            id="trip-title"
+            id={`${idPrefix}trip-title`}
             type="text"
             placeholder="旅程名稱"
             value={tripDetails?.title || ''}
@@ -148,10 +244,10 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
           />
         </Field>
 
-        <div className="grid min-w-0 gap-3 md:grid-cols-2">
-          <Field label="開始日期" htmlFor="trip-start-date">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <Field label="開始日期" htmlFor={`${idPrefix}trip-start-date`}>
             <Input
-              id="trip-start-date"
+              id={`${idPrefix}trip-start-date`}
               type="date"
               className="tp-date-input"
               value={startDate}
@@ -168,9 +264,9 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
               }
             />
           </Field>
-          <Field label="結束日期" htmlFor="trip-end-date">
+          <Field label="結束日期" htmlFor={`${idPrefix}trip-end-date`}>
             <Input
-              id="trip-end-date"
+              id={`${idPrefix}trip-end-date`}
               type="date"
               className="tp-date-input"
               value={endDate}
@@ -191,14 +287,14 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
 
         {invalidDateRange && (
           <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300">
-            結束日期早於開始日期，請確認旅程日期。
+            結束日期不能早於開始日期。
           </p>
         )}
 
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          <Field label="旅行狀態" htmlFor="trip-status">
+          <Field label="旅程狀態" htmlFor={`${idPrefix}trip-status`}>
             <Select
-              id="trip-status"
+              id={`${idPrefix}trip-status`}
               value={tripDetails?.status || 'planning'}
               onChange={(event) =>
                 setTripDetails((prev) => ({
@@ -212,12 +308,12 @@ const TripInfoCard = ({ tripDetails, setTripDetails }) => {
               <option value="done">已完成</option>
             </Select>
           </Field>
-          <Field label="旅程總預算（元）" htmlFor="trip-budget">
+          <Field label="旅程預算" htmlFor={`${idPrefix}trip-budget`}>
             <Input
-              id="trip-budget"
+              id={`${idPrefix}trip-budget`}
               type="number"
               min="0"
-              placeholder="例如：30000"
+              placeholder="例如 50000"
               value={tripDetails?.budget?.total || ''}
               onChange={(event) =>
                 setTripDetails((prev) => ({
@@ -241,13 +337,16 @@ const AccommodationCard = ({
   setTripDetails,
   onAddressChange,
   onPlaceSelect,
-  onClearPlace
+  onClearPlace,
+  idPrefix = '',
+  compact = false
 }) => (
-  <Card className="p-4">
+  <Card className="p-3 sm:p-4">
     <SectionHeading
       icon={Bed}
       title="住宿資訊"
-      description="旅途中模式會用這裡作為路線與天氣備用地點。"
+      description="先填住宿名稱與地址，入住時間可稍後補。"
+      compactDescription={compact}
     />
 
     <div className="mb-4 grid min-w-0 gap-3 sm:grid-cols-2">
@@ -256,9 +355,9 @@ const AccommodationCard = ({
     </div>
 
     <div className="grid min-w-0 gap-3">
-      <Field label="飯店名稱" htmlFor="hotel-name">
+      <Field label="飯店名稱" htmlFor={`${idPrefix}hotel-name`}>
         <Input
-          id="hotel-name"
+          id={`${idPrefix}hotel-name`}
           type="text"
           placeholder="飯店名稱"
           value={tripDetails?.accommodation?.name || ''}
@@ -271,9 +370,9 @@ const AccommodationCard = ({
         />
       </Field>
 
-      <Field label="住宿地址" htmlFor="hotel-address" hint="可輸入地址或從 Google Maps 自動完成選擇。">
+      <Field label="住宿地址" htmlFor={`${idPrefix}hotel-address`} hint="可搜尋 Google 地點，也可直接手動輸入。">
         <GooglePlaceInput
-          id="hotel-address"
+          id={`${idPrefix}hotel-address`}
           placeholder="地址"
           value={tripDetails?.accommodation?.address || ''}
           onTextChange={onAddressChange}
@@ -281,50 +380,62 @@ const AccommodationCard = ({
           selectedPlace={tripDetails?.accommodation?.placeId ? tripDetails.accommodation : null}
           onClearPlace={onClearPlace}
           ariaLabel="住宿地址"
-          helperText="輸入飯店或地址搜尋 Google 地點；也可以直接手動填地址。"
-          emptyMessage="找不到推薦住宿地點，可直接輸入地址。"
+          helperText="輸入 2 個字以上搜尋 Google 地點，或直接手動輸入。"
+          emptyMessage="找不到建議，仍可手動輸入地址。"
           className="tp-input"
         />
       </Field>
 
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-        <Field label="Check-in" htmlFor="hotel-check-in">
-          <Input
-            id="hotel-check-in"
-            type="text"
-            placeholder="例如：2/23 16:00"
-            value={tripDetails?.accommodation?.checkIn || ''}
-            onChange={(event) =>
-              setTripDetails((prev) => ({
-                ...prev,
-                accommodation: { ...(prev?.accommodation || {}), checkIn: event.target.value }
-              }))
-            }
-          />
-        </Field>
-        <Field label="Check-out" htmlFor="hotel-check-out">
-          <Input
-            id="hotel-check-out"
-            type="text"
-            placeholder="例如：2/28 10:00"
-            value={tripDetails?.accommodation?.checkOut || ''}
-            onChange={(event) =>
-              setTripDetails((prev) => ({
-                ...prev,
-                accommodation: { ...(prev?.accommodation || {}), checkOut: event.target.value }
-              }))
-            }
-          />
-        </Field>
+      <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
+        <p className="mb-3 text-sm font-black text-slate-800 dark:text-slate-100">入住時間</p>
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+          <Field label="Check-in" htmlFor={`${idPrefix}hotel-check-in`}>
+            <Input
+              id={`${idPrefix}hotel-check-in`}
+              type="text"
+              placeholder="例如 2/23 16:00"
+              value={tripDetails?.accommodation?.checkIn || ''}
+              onChange={(event) =>
+                setTripDetails((prev) => ({
+                  ...prev,
+                  accommodation: { ...(prev?.accommodation || {}), checkIn: event.target.value }
+                }))
+              }
+            />
+          </Field>
+          <Field label="Check-out" htmlFor={`${idPrefix}hotel-check-out`}>
+            <Input
+              id={`${idPrefix}hotel-check-out`}
+              type="text"
+              placeholder="例如 2/28 10:00"
+              value={tripDetails?.accommodation?.checkOut || ''}
+              onChange={(event) =>
+                setTripDetails((prev) => ({
+                  ...prev,
+                  accommodation: { ...(prev?.accommodation || {}), checkOut: event.target.value }
+                }))
+              }
+            />
+          </Field>
+        </div>
       </div>
     </div>
   </Card>
 );
 
-const FlightField = ({ label, field, direction, value, setTripDetails, placeholder, type = 'text' }) => (
-  <Field label={label} htmlFor={`flight-${direction}-${field}`}>
+const FlightField = ({
+  label,
+  field,
+  direction,
+  value,
+  setTripDetails,
+  placeholder,
+  type = 'text',
+  idPrefix = ''
+}) => (
+  <Field label={label} htmlFor={`${idPrefix}flight-${direction}-${field}`}>
     <Input
-      id={`flight-${direction}-${field}`}
+      id={`${idPrefix}flight-${direction}-${field}`}
       type={type}
       placeholder={placeholder}
       value={value || ''}
@@ -344,10 +455,18 @@ const FlightField = ({ label, field, direction, value, setTripDetails, placehold
   </Field>
 );
 
-const FlightAirportField = ({ label, field, direction, value, setTripDetails, placeholder }) => (
-  <Field label={label} htmlFor={`flight-${direction}-${field}`}>
+const FlightAirportField = ({
+  label,
+  field,
+  direction,
+  value,
+  setTripDetails,
+  placeholder,
+  idPrefix = ''
+}) => (
+  <Field label={label} htmlFor={`${idPrefix}flight-${direction}-${field}`}>
     <AirportCodeInput
-      id={`flight-${direction}-${field}`}
+      id={`${idPrefix}flight-${direction}-${field}`}
       value={value || ''}
       placeholder={placeholder}
       ariaLabel={label}
@@ -373,8 +492,11 @@ const FlightCard = ({
   setTripDetails,
   handleLookupFlight,
   isLookingUp,
-  lookupError
+  lookupError,
+  compact = false,
+  idPrefix = ''
 }) => {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const meta = directionMeta[direction];
   const flight = tripDetails?.flights?.[direction] || {};
   const lookupDate = direction === 'outbound'
@@ -383,11 +505,12 @@ const FlightCard = ({
   const lookupAvailability = getFlightLookupAvailability(lookupDate || '');
   const hasFlightCode = Boolean((flight.code || '').trim());
   const canLookup = hasFlightCode && lookupAvailability.canLookup;
+  const showDetails = !compact || detailsOpen;
   const lookupHint = !lookupAvailability.canLookup
     ? lookupAvailability.message
     : hasFlightCode
-      ? `將依 ${lookupAvailability.normalizedDate} 查詢 FlightAPI.io 航班`
-      : '輸入航班代號後即可依旅程日期查詢 FlightAPI.io';
+      ? `用旅程日期 ${lookupAvailability.normalizedDate} 查航班`
+      : '輸入航班號後可用旅程日期查航班';
 
   return (
     <div className="min-w-0 max-w-full rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
@@ -426,7 +549,7 @@ const FlightCard = ({
       </p>
 
       <p className="mb-3 max-w-full break-words rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-        若同航班號有多段航線，請選出發與抵達機場；系統會用出發機場查詢，並用抵達機場確認航段。
+        同航班號有多段航線時，先填出發與抵達機場。
       </p>
 
       {lookupError && (
@@ -437,27 +560,227 @@ const FlightCard = ({
 
       <div className="grid min-w-0 gap-3">
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          <FlightField label="航班代號" field="code" direction={direction} value={flight.code} setTripDetails={setTripDetails} placeholder="例如：JX802" />
-          <FlightField label="航空公司" field="airline" direction={direction} value={flight.airline} setTripDetails={setTripDetails} placeholder="例如：星宇航空" />
-        </div>
-
-        <div className="grid min-w-0 gap-3 sm:grid-cols-3">
-          <FlightField label="日期" field="date" direction={direction} value={flight.date} setTripDetails={setTripDetails} placeholder="例如：2/23" />
-          <FlightField label="起飛時間" field="departureTime" direction={direction} value={flight.departureTime} setTripDetails={setTripDetails} placeholder="14:40" />
-          <FlightField label="抵達時間" field="arrivalTime" direction={direction} value={flight.arrivalTime} setTripDetails={setTripDetails} placeholder="19:15" />
+          <FlightField
+            label="航班代號"
+            field="code"
+            direction={direction}
+            value={flight.code}
+            setTripDetails={setTripDetails}
+            placeholder="例如 JX802"
+            idPrefix={idPrefix}
+          />
+          {!compact && (
+            <FlightField
+              label="航空公司"
+              field="airline"
+              direction={direction}
+              value={flight.airline}
+              setTripDetails={setTripDetails}
+              placeholder="例如 星宇航空"
+              idPrefix={idPrefix}
+            />
+          )}
         </div>
 
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          <FlightAirportField label="出發機場" field="dep" direction={direction} value={flight.dep} setTripDetails={setTripDetails} placeholder="TPE" />
-          <FlightAirportField label="抵達機場" field="arr" direction={direction} value={flight.arr} setTripDetails={setTripDetails} placeholder="NRT" />
+          <FlightAirportField
+            label="出發機場"
+            field="dep"
+            direction={direction}
+            value={flight.dep}
+            setTripDetails={setTripDetails}
+            placeholder="TPE"
+            idPrefix={idPrefix}
+          />
+          <FlightAirportField
+            label="抵達機場"
+            field="arr"
+            direction={direction}
+            value={flight.arr}
+            setTripDetails={setTripDetails}
+            placeholder="NRT"
+            idPrefix={idPrefix}
+          />
         </div>
 
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          <FlightField label="出發航廈" field="depTerminal" direction={direction} value={flight.depTerminal} setTripDetails={setTripDetails} placeholder="例如：T1 / 第 1 航廈" />
-          <FlightField label="抵達航廈" field="arrTerminal" direction={direction} value={flight.arrTerminal} setTripDetails={setTripDetails} placeholder="例如：T2 / 第 2 航廈" />
-        </div>
+        {compact && (
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((open) => !open)}
+            className="inline-flex min-h-11 w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            aria-expanded={detailsOpen}
+          >
+            詳細欄位
+            {detailsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+        )}
+
+        {showDetails && (
+          <div className={`grid min-w-0 gap-3 ${compact ? 'rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900' : ''}`}>
+            {compact && (
+              <FlightField
+                label="航空公司"
+                field="airline"
+                direction={direction}
+                value={flight.airline}
+                setTripDetails={setTripDetails}
+                placeholder="例如 星宇航空"
+                idPrefix={idPrefix}
+              />
+            )}
+
+            <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+              <FlightField
+                label="日期"
+                field="date"
+                direction={direction}
+                value={flight.date}
+                setTripDetails={setTripDetails}
+                placeholder="例如 2/23"
+                idPrefix={idPrefix}
+              />
+              <FlightField
+                label="起飛時間"
+                field="departureTime"
+                direction={direction}
+                value={flight.departureTime}
+                setTripDetails={setTripDetails}
+                placeholder="14:40"
+                idPrefix={idPrefix}
+              />
+              <FlightField
+                label="抵達時間"
+                field="arrivalTime"
+                direction={direction}
+                value={flight.arrivalTime}
+                setTripDetails={setTripDetails}
+                placeholder="19:15"
+                idPrefix={idPrefix}
+              />
+            </div>
+
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+              <FlightField
+                label="出發航廈"
+                field="depTerminal"
+                direction={direction}
+                value={flight.depTerminal}
+                setTripDetails={setTripDetails}
+                placeholder="例如 T1"
+                idPrefix={idPrefix}
+              />
+              <FlightField
+                label="抵達航廈"
+                field="arrTerminal"
+                direction={direction}
+                value={flight.arrTerminal}
+                setTripDetails={setTripDetails}
+                placeholder="例如 T2"
+                idPrefix={idPrefix}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  );
+};
+
+const FlightSection = ({
+  tripDetails,
+  setTripDetails,
+  handleLookupFlight,
+  isLookingUpFlight,
+  flightLookupError,
+  mobile = false
+}) => {
+  const [activeDirection, setActiveDirection] = useState('outbound');
+  const directions = ['outbound', 'inbound'];
+  const activeMeta = directionMeta[activeDirection];
+
+  if (mobile) {
+    return (
+      <Card className="p-3">
+        <SectionHeading
+          icon={Plane}
+          title="航班資訊"
+          description="先填航班號與機場，再查詢航班。"
+          compactDescription
+        />
+
+        <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
+          {directions.map((direction) => {
+            const meta = directionMeta[direction];
+            const flightCode = tripDetails?.flights?.[direction]?.code;
+            const isActive = activeDirection === direction;
+            return (
+              <button
+                key={direction}
+                type="button"
+                onClick={() => setActiveDirection(direction)}
+                className={`min-h-11 rounded-lg px-3 py-2 text-sm font-black transition ${
+                  isActive
+                    ? 'bg-brand-600 text-white shadow-sm'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                aria-pressed={isActive}
+              >
+                <span className="block">{meta.label}</span>
+                <span className={`block truncate text-[11px] ${isActive ? 'text-white/75' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {flightCode || '缺航班'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="mb-3 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          正在編輯：{activeMeta.label}
+        </p>
+
+        <FlightCard
+          direction={activeDirection}
+          tripDetails={tripDetails}
+          setTripDetails={setTripDetails}
+          handleLookupFlight={handleLookupFlight}
+          isLookingUp={Boolean(isLookingUpFlight?.[activeDirection])}
+          lookupError={flightLookupError?.[activeDirection]}
+          compact
+          idPrefix="mobile-"
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-4">
+      <SectionHeading
+        icon={Plane}
+        title="航班資訊"
+        description="輸入航班代號與機場後，可用旅程日期查詢航班資料。"
+      />
+
+      <div className="space-y-4">
+        <FlightCard
+          direction="outbound"
+          tripDetails={tripDetails}
+          setTripDetails={setTripDetails}
+          handleLookupFlight={handleLookupFlight}
+          isLookingUp={Boolean(isLookingUpFlight?.outbound)}
+          lookupError={flightLookupError?.outbound}
+          idPrefix="desktop-"
+        />
+        <FlightCard
+          direction="inbound"
+          tripDetails={tripDetails}
+          setTripDetails={setTripDetails}
+          handleLookupFlight={handleLookupFlight}
+          isLookingUp={Boolean(isLookingUpFlight?.inbound)}
+          lookupError={flightLookupError?.inbound}
+          idPrefix="desktop-"
+        />
+      </div>
+    </Card>
   );
 };
 
@@ -469,6 +792,7 @@ const LogisticsTab = () => {
     isLookingUpFlight,
     flightLookupError
   } = useTripWorkspace();
+  const [activeMobileSection, setActiveMobileSection] = useState('trip');
 
   const tripSnapshot = useMemo(() => {
     const budget = Number(tripDetails?.budget?.total || 0);
@@ -481,6 +805,8 @@ const LogisticsTab = () => {
         : '航班機場未完整設定'
     };
   }, [tripDetails]);
+
+  const mobileSectionStatus = useMemo(() => getMobileSectionStatus(tripDetails), [tripDetails]);
 
   const handleAccommodationAddressChange = (value) => {
     setTripDetails((prev) => ({
@@ -522,55 +848,89 @@ const LogisticsTab = () => {
     }));
   };
 
+  const renderMobileSection = () => {
+    if (activeMobileSection === 'accommodation') {
+      return (
+        <AccommodationCard
+          tripDetails={tripDetails}
+          setTripDetails={setTripDetails}
+          onAddressChange={handleAccommodationAddressChange}
+          onPlaceSelect={handleAccommodationPlaceSelect}
+          onClearPlace={handleAccommodationPlaceClear}
+          idPrefix="mobile-"
+          compact
+        />
+      );
+    }
+
+    if (activeMobileSection === 'flights') {
+      return (
+        <FlightSection
+          tripDetails={tripDetails}
+          setTripDetails={setTripDetails}
+          handleLookupFlight={handleLookupFlight}
+          isLookingUpFlight={isLookingUpFlight}
+          flightLookupError={flightLookupError}
+          mobile
+        />
+      );
+    }
+
+    return (
+      <TripInfoCard
+        tripDetails={tripDetails}
+        setTripDetails={setTripDetails}
+        idPrefix="mobile-"
+        compact
+      />
+    );
+  };
+
   return (
     <div className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8">
       <CompletionPanel tripDetails={tripDetails} />
 
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <InfoTile label="旅程期間" value={tripSnapshot.dates} icon={CalendarDays} />
-        <InfoTile label="總預算" value={tripSnapshot.budget} icon={Wallet} />
+      <MobileSectionSwitcher
+        activeSection={activeMobileSection}
+        onChange={setActiveMobileSection}
+        sectionStatus={mobileSectionStatus}
+      />
+
+      <div className="hidden min-w-0 gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+        <InfoTile label="旅程日期" value={tripSnapshot.dates} icon={CalendarDays} />
+        <InfoTile label="旅程預算" value={tripSnapshot.budget} icon={Wallet} />
         <InfoTile label="住宿" value={tripSnapshot.hotel} icon={Bed} />
         <InfoTile label="機場" value={tripSnapshot.airport} icon={Clock3} />
       </div>
 
-      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div className="sm:hidden">
+        {renderMobileSection()}
+      </div>
+
+      <div className="hidden min-w-0 gap-4 sm:grid xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <div className="min-w-0 space-y-4">
-          <TripInfoCard tripDetails={tripDetails} setTripDetails={setTripDetails} />
+          <TripInfoCard
+            tripDetails={tripDetails}
+            setTripDetails={setTripDetails}
+            idPrefix="desktop-"
+          />
           <AccommodationCard
             tripDetails={tripDetails}
             setTripDetails={setTripDetails}
             onAddressChange={handleAccommodationAddressChange}
             onPlaceSelect={handleAccommodationPlaceSelect}
             onClearPlace={handleAccommodationPlaceClear}
+            idPrefix="desktop-"
           />
         </div>
 
-        <Card className="p-4">
-          <SectionHeading
-            icon={Plane}
-            title="航班資訊"
-            description="可用航班代號查詢，也能手動補齊航空公司、時間與機場。"
-          />
-
-          <div className="space-y-4">
-            <FlightCard
-              direction="outbound"
-              tripDetails={tripDetails}
-              setTripDetails={setTripDetails}
-              handleLookupFlight={handleLookupFlight}
-              isLookingUp={isLookingUpFlight.outbound}
-              lookupError={flightLookupError.outbound}
-            />
-            <FlightCard
-              direction="inbound"
-              tripDetails={tripDetails}
-              setTripDetails={setTripDetails}
-              handleLookupFlight={handleLookupFlight}
-              isLookingUp={isLookingUpFlight.inbound}
-              lookupError={flightLookupError.inbound}
-            />
-          </div>
-        </Card>
+        <FlightSection
+          tripDetails={tripDetails}
+          setTripDetails={setTripDetails}
+          handleLookupFlight={handleLookupFlight}
+          isLookingUpFlight={isLookingUpFlight}
+          flightLookupError={flightLookupError}
+        />
       </div>
     </div>
   );
