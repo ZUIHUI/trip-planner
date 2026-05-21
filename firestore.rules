@@ -13,7 +13,7 @@ service cloud.firestore {
     function isPrimaryOwner() {
       return signedIn()
         && request.auth.token.email != null
-        && request.auth.token.email == primaryOwnerEmail();
+        && request.auth.token.email.lower() == primaryOwnerEmail();
     }
 
     function tripPath(tripId) {
@@ -35,14 +35,20 @@ service cloud.firestore {
         && data.access.ownerUid != '';
     }
 
+    function isOwnedByCurrentUser(data) {
+      return signedIn()
+        && hasOwner(data)
+        && data.access.ownerUid == request.auth.uid;
+    }
+
     function isTripOwner(tripId) {
       return signedIn()
-        && get(tripPath(tripId)).data.access.ownerUid == request.auth.uid;
+        && isOwnedByCurrentUser(get(tripPath(tripId)).data);
     }
 
     function isTripOwnerAfter(tripId) {
       return signedIn()
-        && getAfter(tripPath(tripId)).data.access.ownerUid == request.auth.uid;
+        && isOwnedByCurrentUser(getAfter(tripPath(tripId)).data);
     }
 
     function memberRole(tripId) {
@@ -82,7 +88,7 @@ service cloud.firestore {
     match /trips/{tripId} {
       allow get: if signedIn()
         && (
-          resource.data.access.ownerUid == request.auth.uid
+          isOwnedByCurrentUser(resource.data)
           || exists(memberPath(tripId, request.auth.uid))
           || (isPrimaryOwner() && !hasOwner(resource.data))
         );
@@ -90,9 +96,8 @@ service cloud.firestore {
       allow list: if signedIn()
         && (
           isPrimaryOwner()
-          || resource.data.access.ownerUid == request.auth.uid
+          || isOwnedByCurrentUser(resource.data)
           || exists(memberPath(tripId, request.auth.uid))
-          || (isPrimaryOwner() && !hasOwner(resource.data))
         );
 
       allow create: if signedIn()
@@ -101,7 +106,7 @@ service cloud.firestore {
 
       allow update: if signedIn()
         && (
-          resource.data.access.ownerUid == request.auth.uid
+          isOwnedByCurrentUser(resource.data)
           || (
             isPrimaryOwner()
             && !hasOwner(resource.data)
@@ -115,7 +120,7 @@ service cloud.firestore {
         );
 
       allow delete: if signedIn()
-        && resource.data.access.ownerUid == request.auth.uid;
+        && isOwnedByCurrentUser(resource.data);
 
       match /members/{uid} {
         allow read: if signedIn()

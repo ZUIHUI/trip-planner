@@ -51,6 +51,14 @@ const memberPayload = ({ user, profile, role, shareToken = '' }) => ({
 const getTripDocRef = (tripId) => doc(db, 'trips', tripId);
 const getMemberDocRef = (tripId, uid) => doc(db, 'trips', tripId, 'members', uid);
 
+const commitInChunks = async (operations, chunkSize = 240) => {
+  for (let index = 0; index < operations.length; index += chunkSize) {
+    const batch = writeBatch(db);
+    operations.slice(index, index + chunkSize).forEach((operation) => operation(batch));
+    await batch.commit();
+  }
+};
+
 export const loadTrip = async (tripId) => {
   const ref = getTripDocRef(tripId);
   const snap = await getDoc(ref);
@@ -335,7 +343,7 @@ export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   }
 
   const snapshot = await getDocs(collection(db, 'trips'));
-  const batch = writeBatch(db);
+  const operations = [];
   const now = new Date().toISOString();
   let claimed = 0;
   let skipped = 0;
@@ -348,25 +356,29 @@ export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
     }
 
     claimed += 1;
-    batch.set(snapshotDoc.ref, {
-      access: {
-        ownerUid: user.uid,
-        ownerEmail: user.email || '',
-        ownerName: getUserName(user, profile),
-        migratedAt: now
-      },
-      updatedAt: now
-    }, { merge: true });
-    batch.set(getMemberDocRef(snapshotDoc.id, user.uid), memberPayload({ user, profile, role: 'owner' }), { merge: true });
+    operations.push((batch) => {
+      batch.set(snapshotDoc.ref, {
+        access: {
+          ownerUid: user.uid,
+          ownerEmail: user.email || '',
+          ownerName: getUserName(user, profile),
+          migratedAt: now
+        },
+        updatedAt: now
+      }, { merge: true });
+      batch.set(getMemberDocRef(snapshotDoc.id, user.uid), memberPayload({ user, profile, role: 'owner' }), { merge: true });
+    });
   });
 
-  batch.set(doc(db, 'appMeta', 'ownerMigration'), {
-    primaryOwnerEmail: PRIMARY_OWNER_EMAIL,
-    claimed,
-    skipped,
-    updatedAt: now
-  }, { merge: true });
-  await batch.commit();
+  operations.push((batch) => {
+    batch.set(doc(db, 'appMeta', 'ownerMigration'), {
+      primaryOwnerEmail: PRIMARY_OWNER_EMAIL,
+      claimed,
+      skipped,
+      updatedAt: now
+    }, { merge: true });
+  });
+  await commitInChunks(operations);
 
   return { claimed, skipped };
 };
