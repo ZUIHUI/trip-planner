@@ -412,7 +412,7 @@ const TripListPage = () => {
           </Button>
         </div>
 
-        {isPrimaryOwnerAccount(currentUser) && (
+        {false && isPrimaryOwnerAccount(currentUser) && (
           <Card className="mb-4 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
