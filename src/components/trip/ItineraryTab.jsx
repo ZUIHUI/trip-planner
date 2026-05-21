@@ -3,7 +3,6 @@ import { CalendarDays, ChevronDown, ChevronUp, Pencil, Plus, Wallet } from 'luci
 import DaySelector from '../DaySelector';
 import EventCard from '../EventCard';
 import NextEventWidget from '../NextEventWidget';
-import WeatherWidget from '../WeatherWidget';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 
@@ -41,7 +40,6 @@ const ItineraryTab = () => {
     currentDayDate,
     tripDetails,
     currentLocation,
-    selectedEventLocation,
     showSecondaryModules,
     toggleSecondaryModules,
     isEditingDayMeta,
@@ -92,18 +90,6 @@ const ItineraryTab = () => {
             {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </Button>
         </div>
-
-        {showSecondaryModules && (
-          <div className="mt-3">
-            <WeatherWidget
-              date={currentDayDate}
-              currentLocation={currentLocation}
-              accommodation={tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京'}
-              firstEventLocation={currentDayData?.events?.[0]?.location || null}
-              selectedEventLocation={selectedEventLocation}
-            />
-          </div>
-        )}
 
         <section className="mt-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800">
           <div className="min-w-0 flex-1">
