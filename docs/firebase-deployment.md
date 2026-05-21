@@ -22,7 +22,7 @@ In Firebase Console for `trip-planner-36455`:
 2. Click Get started if Authentication has not been initialized.
 3. Open Sign-in method.
 4. Enable Google, set a public-facing project name and support email, then Save.
-5. Enable Email/Password and turn on Email link sign-in if magic links are needed.
+5. Enable Email/Password and turn on Email link passwordless sign-in.
 6. Open Settings > Authorized domains.
 7. Confirm these domains are listed:
    - `trip-planner-36455.web.app`
@@ -30,6 +30,14 @@ In Firebase Console for `trip-planner-36455`:
    - `localhost`
 
 Firebase CLI can deploy Hosting, Firestore rules, Realtime Database rules, and Functions from this repo, but sign-in providers are still configured in the Firebase Console.
+
+Email link login uses Firebase Auth `sendSignInLinkToEmail` with `handleCodeInApp: true`. The link lands on:
+
+```text
+https://<app-domain>/login?redirect=<internal-path>
+```
+
+The app stores the requested email locally before sending the link. If the user opens the link on another device, the login page asks for the same email again before completing `signInWithEmailLink`. Do not add the email address into the URL.
 
 ### Vercel Authentication Setup
 
@@ -49,6 +57,8 @@ Firebase Console > Authentication > Settings > Authorized domains:
 ```text
 trip-planner-mu-red.vercel.app
 ```
+
+For email link login, the same Vercel domain must also remain in Firebase Auth authorized domains because Firebase validates the `ActionCodeSettings.url` domain.
 
 Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client > Authorized JavaScript origins:
 

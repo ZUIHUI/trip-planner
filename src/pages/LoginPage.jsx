@@ -4,24 +4,59 @@ import { Link2, Mail, PlaneTakeoff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
 
+const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
+
+const normalizeRedirectPath = (redirectPath = '/') => {
+  const fallback = '/';
+  const rawPath = String(redirectPath || fallback).trim();
+
+  if (!rawPath || rawPath.startsWith('//') || /^https?:\/\//i.test(rawPath)) {
+    return fallback;
+  }
+
+  return rawPath.startsWith('/') ? rawPath : fallback;
+};
+
 const getRedirectFromSearch = (search) => {
   const params = new URLSearchParams(search);
-  return params.get('redirect') || '/';
+  return normalizeRedirectPath(params.get('redirect') || '/');
 };
+
+const getStoredEmail = () => {
+  try {
+    return localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+const getCurrentHref = () => (typeof window === 'undefined' ? '' : window.location.href);
 
 const getAuthErrorMessage = (authError, fallback) => {
   const code = authError?.code || '';
 
   if (code === 'auth/configuration-not-found') {
-    return 'Firebase Authentication 尚未完成設定。請先在 Firebase Console 啟用 Authentication，並在 Sign-in method 開啟 Google 登入。';
+    return 'Firebase Authentication 尚未完成設定，請先在 Firebase Console 啟用 Authentication。';
   }
 
   if (code === 'auth/operation-not-allowed') {
-    return '此登入方式尚未啟用。請到 Firebase Authentication 的 Sign-in method 開啟對應 provider。';
+    return '登入方式尚未啟用。Email link 需要啟用 Email/Password provider，並開啟 Email link passwordless sign-in。';
   }
 
   if (code === 'auth/unauthorized-domain') {
-    return '目前網域尚未加入 Firebase Authentication Authorized domains，請加入 trip-planner-36455.web.app 與 trip-planner-36455.firebaseapp.com。';
+    return '目前網域尚未加入 Firebase Authentication authorized domains。';
+  }
+
+  if (code === 'auth/invalid-email') {
+    return 'Email 格式不正確。';
+  }
+
+  if (code === 'auth/expired-action-code') {
+    return '這個 Email 登入連結已過期，請重新寄送。';
+  }
+
+  if (code === 'auth/invalid-action-code') {
+    return '這個 Email 登入連結無效或已使用過，請重新寄送。';
   }
 
   if (code === 'auth/popup-blocked') {
@@ -29,11 +64,11 @@ const getAuthErrorMessage = (authError, fallback) => {
   }
 
   if (code === 'auth/popup-closed-by-user') {
-    return 'Google 登入視窗已關閉，請重新嘗試登入。';
+    return 'Google 登入視窗已關閉，尚未完成登入。';
   }
 
   if (code === 'auth/invalid-api-key') {
-    return 'Firebase API key 設定不正確，請確認部署環境使用 trip-planner-36455 的 Web app config。';
+    return 'Firebase API key 設定不正確，請檢查部署環境變數。';
   }
 
   return authError?.message || fallback;
@@ -53,11 +88,12 @@ const LoginPage = () => {
     clearRedirectAfterSignIn
   } = useAuth();
   const redirectPath = useMemo(() => getRedirectFromSearch(location.search), [location.search]);
-  const [email, setEmail] = useState(() => localStorage.getItem('trip_planner_email_for_sign_in') || '');
+  const currentHref = getCurrentHref();
+  const isCompletingLink = isEmailLink(currentHref);
+  const [email, setEmail] = useState(getStoredEmail);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isCompletingLink = isEmailLink(window.location.href);
 
   useEffect(() => {
     if (isAuthLoading || !currentUser) return;
@@ -68,19 +104,23 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (!isCompletingLink || currentUser) return;
-    const storedEmail = localStorage.getItem('trip_planner_email_for_sign_in') || '';
-    if (!storedEmail) return;
+
+    const storedEmail = getStoredEmail();
+    if (!storedEmail) {
+      setStatus('請輸入收到登入信的 Email 以完成驗證。');
+      return;
+    }
 
     setIsSubmitting(true);
-    completeEmailLink(storedEmail)
+    completeEmailLink(storedEmail, currentHref)
       .then(() => {
-        setStatus('登入完成，正在回到旅程。');
+        setStatus('Email 驗證成功，正在進入 Trip Planner。');
       })
       .catch((authError) => {
-        setError(getAuthErrorMessage(authError, 'Email 連結登入失敗，請重新寄送連結。'));
+        setError(getAuthErrorMessage(authError, 'Email 連結登入失敗，請重新寄送登入連結。'));
       })
       .finally(() => setIsSubmitting(false));
-  }, [isCompletingLink, currentUser, completeEmailLink]);
+  }, [isCompletingLink, currentUser, completeEmailLink, currentHref]);
 
   const handleSendLink = async (event) => {
     event.preventDefault();
@@ -90,9 +130,9 @@ const LoginPage = () => {
 
     try {
       await sendMagicLink(email, redirectPath);
-      setStatus('登入連結已寄出，請到信箱點擊連結完成登入。');
+      setStatus('登入連結已寄出，請到信箱開啟連結完成驗證。');
     } catch (authError) {
-      setError(getAuthErrorMessage(authError, '無法寄出登入連結。'));
+      setError(getAuthErrorMessage(authError, '無法寄出登入連結，請稍後再試。'));
     } finally {
       setIsSubmitting(false);
     }
@@ -101,13 +141,14 @@ const LoginPage = () => {
   const handleCompleteLink = async (event) => {
     event.preventDefault();
     setError('');
+    setStatus('');
     setIsSubmitting(true);
 
     try {
-      await completeEmailLink(email);
-      setStatus('登入完成，正在回到旅程。');
+      await completeEmailLink(email, currentHref);
+      setStatus('Email 驗證成功，正在進入 Trip Planner。');
     } catch (authError) {
-      setError(getAuthErrorMessage(authError, 'Email 連結登入失敗。'));
+      setError(getAuthErrorMessage(authError, 'Email 連結登入失敗，請確認 Email 與登入信一致。'));
     } finally {
       setIsSubmitting(false);
     }
@@ -115,12 +156,13 @@ const LoginPage = () => {
 
   const handleGoogleLogin = async () => {
     setError('');
+    setStatus('');
     setIsSubmitting(true);
 
     try {
       await signInWithGoogle(redirectPath);
     } catch (authError) {
-      setError(getAuthErrorMessage(authError, 'Google 登入失敗。'));
+      setError(getAuthErrorMessage(authError, 'Google 登入失敗，請稍後再試。'));
     } finally {
       setIsSubmitting(false);
     }
@@ -129,7 +171,7 @@ const LoginPage = () => {
   if (isAuthLoading) {
     return (
       <main className="tp-page-shell flex min-h-screen items-center justify-center p-4">
-        <LoadingState label="確認登入狀態..." />
+        <LoadingState label="正在確認登入狀態..." />
       </main>
     );
   }
@@ -144,7 +186,7 @@ const LoginPage = () => {
             </div>
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              使用 Email 連結或 Google 登入，旅程會依帳號分開保存，也能跨裝置回來繼續規劃。
+              使用 Email 驗證連結或 Google 帳號登入，旅程資料會綁定到你的帳號。
             </p>
           </div>
 
@@ -157,11 +199,12 @@ const LoginPage = () => {
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
                 autoComplete="email"
+                required
               />
             </Field>
             <Button type="submit" disabled={isSubmitting} className="justify-center">
               <Mail size={16} />
-              {isCompletingLink ? '完成 Email 登入' : '寄送登入連結'}
+              {isCompletingLink ? '完成 Email 登入' : '寄送 Email 登入連結'}
             </Button>
           </form>
 

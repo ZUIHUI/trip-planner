@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
   if (isAuthLoading) {
     return (
       <div className="tp-page-shell flex min-h-screen items-center justify-center p-4">
-        <LoadingState label="確認登入狀態..." />
+        <LoadingState label="正在確認登入狀態..." />
       </div>
     );
   }

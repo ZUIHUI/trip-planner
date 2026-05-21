@@ -19,8 +19,19 @@ const REDIRECT_AFTER_SIGN_IN_KEY = 'trip_planner_redirect_after_sign_in';
 const getProfileName = (user) => (
   user?.displayName ||
   String(user?.email || '').split('@')[0] ||
-  '旅伴'
+  'Traveler'
 );
+
+const normalizeRedirectPath = (redirectPath = '/') => {
+  const fallback = '/';
+  const rawPath = String(redirectPath || fallback).trim();
+
+  if (!rawPath || rawPath.startsWith('//') || /^https?:\/\//i.test(rawPath)) {
+    return fallback;
+  }
+
+  return rawPath.startsWith('/') ? rawPath : fallback;
+};
 
 const buildProfileFromUser = (user, patch = {}) => ({
   uid: user.uid,
@@ -34,7 +45,15 @@ const buildProfileFromUser = (user, patch = {}) => ({
 
 const readStoredRedirect = () => {
   try {
-    return localStorage.getItem(REDIRECT_AFTER_SIGN_IN_KEY) || '/';
+    return normalizeRedirectPath(localStorage.getItem(REDIRECT_AFTER_SIGN_IN_KEY) || '/');
+  } catch {
+    return '/';
+  }
+};
+
+const readRedirectFromEmailLink = (href) => {
+  try {
+    return normalizeRedirectPath(new URL(href).searchParams.get('redirect') || '/');
   } catch {
     return '/';
   }
@@ -77,7 +96,7 @@ export const AuthProvider = ({ children }) => {
         const profile = await syncUserProfile(user);
         setUserProfile(profile);
       } catch (error) {
-        console.warn('同步使用者資料失敗:', error);
+        console.warn('同步使用者資料失敗', error);
         setUserProfile(buildProfileFromUser(user));
       } finally {
         setIsAuthLoading(false);
@@ -93,8 +112,9 @@ export const AuthProvider = ({ children }) => {
       throw new Error('請輸入 Email');
     }
 
+    const safeRedirectPath = normalizeRedirectPath(redirectPath);
     const url = new URL('/login', window.location.origin);
-    url.searchParams.set('redirect', redirectPath || '/');
+    url.searchParams.set('redirect', safeRedirectPath);
 
     await sendSignInLinkToEmail(auth, safeEmail, {
       url: url.toString(),
@@ -102,7 +122,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, safeEmail);
-    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, redirectPath || '/');
+    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, safeRedirectPath);
   }, []);
 
   const completeEmailLink = useCallback(async (email, href = window.location.href) => {
@@ -114,18 +134,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (!safeEmail) {
-      throw new Error('請再次輸入 Email 以完成登入');
+      throw new Error('請輸入收到登入信的 Email，才能完成驗證。');
     }
 
     const credential = await signInWithEmailLink(auth, safeEmail, href);
     localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, readRedirectFromEmailLink(href));
     const profile = await syncUserProfile(credential.user);
     setUserProfile(profile);
     return credential.user;
   }, []);
 
   const signInWithGoogle = useCallback(async (redirectPath = '/') => {
-    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, redirectPath || '/');
+    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, normalizeRedirectPath(redirectPath));
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     const credential = await signInWithPopup(auth, provider);
