@@ -53,6 +53,7 @@ exports.claimExistingTrips = onCall(async (request) => {
   const writes = [];
   const claimedTripIds = [];
   const reassignedTripIds = [];
+  const syncedTripIds = [];
   const skippedTripIds = [];
 
   snapshot.docs.forEach((tripDoc) => {
@@ -64,18 +65,16 @@ exports.claimExistingTrips = onCall(async (request) => {
       ? data.access.ownerEmail.trim()
       : '';
 
-    if (currentOwnerUid === uid) {
-      skippedTripIds.push(`${tripDoc.id} (already-owned)`);
-      return;
-    }
-
     if (currentOwnerUid && !forceOwned) {
       skippedTripIds.push(`${tripDoc.id} (${currentOwnerEmail || currentOwnerUid})`);
       return;
     }
 
     const isReassigningOwnedTrip = Boolean(currentOwnerUid && currentOwnerUid !== uid);
-    if (isReassigningOwnedTrip) {
+    const isSyncingOwnedTrip = currentOwnerUid === uid;
+    if (isSyncingOwnedTrip) {
+      syncedTripIds.push(tripDoc.id);
+    } else if (isReassigningOwnedTrip) {
       reassignedTripIds.push(tripDoc.id);
     } else {
       claimedTripIds.push(tripDoc.id);
@@ -101,7 +100,9 @@ exports.claimExistingTrips = onCall(async (request) => {
         shareToken: '',
         joinedAt: now,
         updatedAt: now,
-        source: isReassigningOwnedTrip ? 'owner-repair-ui' : 'owner-claim-ui'
+        source: isSyncingOwnedTrip
+          ? 'owner-sync-ui'
+          : (isReassigningOwnedTrip ? 'owner-repair-ui' : 'owner-claim-ui')
       }, { merge: true });
 
       if (isReassigningOwnedTrip) {
@@ -116,9 +117,11 @@ exports.claimExistingTrips = onCall(async (request) => {
       primaryOwnerUid: uid,
       claimed: claimedTripIds.length,
       reassigned: reassignedTripIds.length,
+      synced: syncedTripIds.length,
       skipped: skippedTripIds.length,
       claimedTripIds,
       reassignedTripIds,
+      syncedTripIds,
       skippedTripIds,
       forceOwned,
       source: 'claimExistingTrips',
@@ -131,9 +134,11 @@ exports.claimExistingTrips = onCall(async (request) => {
   return {
     claimed: claimedTripIds.length,
     reassigned: reassignedTripIds.length,
+    synced: syncedTripIds.length,
     skipped: skippedTripIds.length,
     claimedTripIds,
     reassignedTripIds,
+    syncedTripIds,
     skippedTripIds
   };
 });

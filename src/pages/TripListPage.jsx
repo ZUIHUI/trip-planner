@@ -379,7 +379,7 @@ const TripListPage = () => {
     setMigrationStatus(null);
     try {
       const result = await claimOwnerlessTrips({ user: currentUser, profile: userProfile });
-      setMigrationStatus(`已綁定 ${result.claimed || 0} 筆 ownerless 旅程，修復 ${result.reassigned || 0} 筆已有舊 Owner 的旅程，略過 ${result.skipped || 0} 筆。`);
+      setMigrationStatus(`已綁定 ${result.claimed || 0} 筆 ownerless 旅程，修復 ${result.reassigned || 0} 筆舊 Owner 旅程，同步 ${result.synced || 0} 筆已是 Owner 的旅程，略過 ${result.skipped || 0} 筆。`);
       const remoteTrips = await listTrips({ user: currentUser });
       setTrips(remoteTrips);
       saveLocalTrips(uid, remoteTrips);

@@ -190,7 +190,7 @@ UI path:
 2. Open the trip list.
 3. Use the `既有雲端旅程 Owner 綁定` card.
 
-The UI button calls the `claimExistingTrips` Cloud Function. The function uses Admin SDK after verifying the signed-in email is `sky32439@gmail.com`, so the browser does not need permission to scan or rewrite every `trips` document directly.
+The UI button calls the `claimExistingTrips` Cloud Function. The function uses Admin SDK after verifying the signed-in email is `sky32439@gmail.com`, so the browser does not need permission to scan or rewrite every `trips` document directly. If a trip is already owned by that UID, the function still syncs the owner member document so the trip list and collaboration membership stay aligned.
 
 Admin script path:
 

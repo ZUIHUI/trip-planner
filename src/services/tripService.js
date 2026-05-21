@@ -350,7 +350,7 @@ export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
     photoURL: user.photoURL || ''
   });
 
-  return response.data || { claimed: 0, reassigned: 0, skipped: 0 };
+  return response.data || { claimed: 0, reassigned: 0, synced: 0, skipped: 0 };
   /*
   if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
     throw new Error('目前帳號不是主要資料擁有者');
