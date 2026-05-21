@@ -7,9 +7,11 @@ import {
   Clock3,
   Compass,
   MapPin,
+  Pencil,
   PlaneTakeoff,
   Plus,
   Search,
+  X,
   UserRound,
   Trash2
 } from 'lucide-react';
@@ -203,6 +205,7 @@ const TripListPage = () => {
   const [expandedCards, setExpandedCards] = useState({});
   const [nicknameDraft, setNicknameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [isSavingNickname, setIsSavingNickname] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
 
   useEffect(() => {
     setNicknameDraft(userProfile?.displayName || currentUser?.displayName || '');
@@ -268,6 +271,7 @@ const TripListPage = () => {
   const hiddenTripCount = Math.max(sortedAndFilteredTrips.length - visibleTrips.length, 0);
   const hasTrips = trips.length > 0;
   const hasSearch = keyword.trim().length > 0;
+  const accountDisplayName = userProfile?.displayName || currentUser?.displayName || currentUser?.email || '已登入';
 
   const handleCreateTrip = async (event) => {
     event?.preventDefault();
@@ -384,6 +388,16 @@ const TripListPage = () => {
     }));
   };
 
+  const handleStartNicknameEdit = () => {
+    setNicknameDraft(userProfile?.displayName || currentUser?.displayName || '');
+    setIsEditingNickname(true);
+  };
+
+  const handleCancelNicknameEdit = () => {
+    setNicknameDraft(userProfile?.displayName || currentUser?.displayName || '');
+    setIsEditingNickname(false);
+  };
+
   const handleSaveNickname = async (event) => {
     event.preventDefault();
     const nextName = nicknameDraft.trim();
@@ -409,6 +423,7 @@ const TripListPage = () => {
         title: '暱稱已更新',
         description: result.updated ? `已更新 ${result.updated} 趟旅程中的顯示名稱。` : '新旅程會使用這個暱稱。'
       });
+      setIsEditingNickname(false);
     } catch (error) {
       toast({
         variant: 'danger',
@@ -423,37 +438,62 @@ const TripListPage = () => {
   return (
     <main className="tp-page-shell">
       <PageContainer className="py-6 sm:py-8">
-        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="tp-icon-chip bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-              <UserRound size={18} />
+        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="tp-icon-chip bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                <UserRound size={18} />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-slate-900 dark:text-white">
+                  {accountDisplayName}
+                </p>
+                <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  {currentUser?.email || '你的旅程會保存在這個帳號中'}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-black text-slate-900 dark:text-white">
-                {userProfile?.displayName || currentUser?.displayName || currentUser?.email || '已登入'}
-              </p>
-              <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {currentUser?.email || '你的旅程會保存在這個帳號中'}
-              </p>
-              <form onSubmit={handleSaveNickname} className="mt-2 flex max-w-md flex-col gap-2 sm:flex-row">
-                <Input
-                  type="text"
-                  value={nicknameDraft}
-                  onChange={(event) => setNicknameDraft(event.target.value)}
-                  placeholder="設定你的暱稱"
-                  aria-label="設定你的暱稱"
-                  className="h-9 text-sm"
-                />
-                <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
-                  <Check size={15} />
-                  {isSavingNickname ? '儲存中...' : '儲存暱稱'}
+            <div className="flex shrink-0 items-center gap-2">
+              {!isEditingNickname && (
+                <Button type="button" variant="ghost" size="sm" onClick={handleStartNicknameEdit} className="justify-center">
+                  <Pencil size={15} />
+                  <span className="hidden sm:inline">編輯名稱</span>
                 </Button>
-              </form>
+              )}
+              <Button variant="secondary" size="sm" onClick={logout}>
+                登出
+              </Button>
             </div>
           </div>
-          <Button variant="secondary" size="sm" onClick={logout}>
-            登出
-          </Button>
+
+          {isEditingNickname && (
+            <form onSubmit={handleSaveNickname} className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <label className="min-w-0 flex-1">
+                  <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
+                  <Input
+                    type="text"
+                    value={nicknameDraft}
+                    onChange={(event) => setNicknameDraft(event.target.value)}
+                    placeholder="設定你的暱稱"
+                    aria-label="設定你的暱稱"
+                    className="h-10 text-sm"
+                    autoFocus
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                  <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
+                    <Check size={15} />
+                    {isSavingNickname ? '儲存中...' : '儲存'}
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelNicknameEdit} disabled={isSavingNickname} className="justify-center">
+                    <X size={15} />
+                    取消
+                  </Button>
+                </div>
+              </div>
+            </form>
+          )}
         </div>
 
         <section className="overflow-hidden rounded-lg border border-brand-100 bg-white shadow-sm dark:border-brand-900/60 dark:bg-slate-900">
