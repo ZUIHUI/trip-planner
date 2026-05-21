@@ -255,47 +255,53 @@ const ShareCollaborationCard = ({
           <div className="min-w-0">
             <h3 className="tp-section-title">共同規劃</h3>
             <p className="tp-section-subtitle mt-1">
-              邀請旅伴一起查看或規劃，這裡也會顯示誰正在旅程中。
+              {canManageSharing
+                ? '邀請旅伴一起查看或規劃，這裡也會顯示誰正在旅程中。'
+                : '查看一起旅行的人，也可以調整自己的顯示名稱。'}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {isSharedSession && <Badge variant="info">從邀請加入</Badge>}
           <Badge variant={canManageSharing ? 'success' : 'muted'}>{getRoleLabel(accessRole)}</Badge>
-          <Badge variant={settings.enabled ? 'success' : 'muted'}>{settings.enabled ? '可邀請' : '未開放邀請'}</Badge>
+          {canManageSharing && (
+            <Badge variant={settings.enabled ? 'success' : 'muted'}>{settings.enabled ? '可邀請' : '未開放邀請'}</Badge>
+          )}
           <Badge variant={onlineCount ? 'success' : 'muted'}>{onlineCount} 人在線</Badge>
         </div>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
-        <Field label="邀請連結" htmlFor="trip-share-url" hint="把連結傳給旅伴，對方登入後就會出現在這趟旅程。">
-          <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
-            <Input
-              id="trip-share-url"
-              value={shareUrl || '尚未建立邀請連結'}
-              readOnly
-              className="font-mono text-xs"
-              onFocus={(event) => event.target.select()}
-            />
-            <Button variant="secondary" onClick={handleCopyLink} disabled={!canManageSharing || isWorking} className="justify-center">
-              <Copy size={16} />
-              複製
-            </Button>
-          </div>
-        </Field>
+      {canManageSharing && (
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <Field label="邀請連結" htmlFor="trip-share-url" hint="把連結傳給旅伴，對方登入後就會出現在這趟旅程。">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+              <Input
+                id="trip-share-url"
+                value={shareUrl || '尚未建立邀請連結'}
+                readOnly
+                className="font-mono text-xs"
+                onFocus={(event) => event.target.select()}
+              />
+              <Button variant="secondary" onClick={handleCopyLink} disabled={isWorking} className="justify-center">
+                <Copy size={16} />
+                複製
+              </Button>
+            </div>
+          </Field>
 
-        <Field label="新旅伴加入後" htmlFor="trip-share-permission">
-          <Select
-            id="trip-share-permission"
-            value={settings.permission}
-            onChange={handlePermissionChange}
-            disabled={!canManageSharing || isWorking}
-          >
-            <option value="view">只能查看</option>
-            <option value="edit">可以一起規劃</option>
-          </Select>
-        </Field>
-      </div>
+          <Field label="新旅伴加入後" htmlFor="trip-share-permission">
+            <Select
+              id="trip-share-permission"
+              value={settings.permission}
+              onChange={handlePermissionChange}
+              disabled={isWorking}
+            >
+              <option value="view">只能查看</option>
+              <option value="edit">可以一起規劃</option>
+            </Select>
+          </Field>
+        </div>
+      )}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在旅伴清單、地點投票與在線狀態中。">
@@ -307,22 +313,26 @@ const ShareCollaborationCard = ({
           />
         </Field>
 
-        <div className="grid gap-2 sm:grid-cols-4">
+        <div className={`grid gap-2 ${canManageSharing ? 'sm:grid-cols-4' : ''}`}>
           <Button variant="secondary" onClick={handleSaveDisplayName} disabled={isWorking} className="justify-center">
             儲存名稱
           </Button>
-          <Button onClick={handleCreateLink} disabled={!canManageSharing || isWorking} className="justify-center">
-            <Link2 size={16} />
-            建立連結
-          </Button>
-          <Button variant="ghost" onClick={handleDisableSharing} disabled={!canManageSharing || isWorking || !settings.enabled} className="justify-center">
-            <XCircle size={16} />
-            停用
-          </Button>
-          <Button variant={settings.votesEnabled ? 'secondary' : 'ghost'} onClick={handleVotesToggle} disabled={!canManageSharing || isWorking} className="justify-center">
-            <Vote size={16} />
-            {settings.votesEnabled ? '投票開啟' : '投票關閉'}
-          </Button>
+          {canManageSharing && (
+            <>
+              <Button onClick={handleCreateLink} disabled={isWorking} className="justify-center">
+                <Link2 size={16} />
+                建立連結
+              </Button>
+              <Button variant="ghost" onClick={handleDisableSharing} disabled={isWorking || !settings.enabled} className="justify-center">
+                <XCircle size={16} />
+                停用
+              </Button>
+              <Button variant={settings.votesEnabled ? 'secondary' : 'ghost'} onClick={handleVotesToggle} disabled={isWorking} className="justify-center">
+                <Vote size={16} />
+                {settings.votesEnabled ? '投票開啟' : '投票關閉'}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
