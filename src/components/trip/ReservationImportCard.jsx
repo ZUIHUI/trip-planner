@@ -110,7 +110,7 @@ const ReservationImportCard = ({ tripDetails, setTripDetails }) => {
             </p>
           </div>
         </div>
-        <Badge variant={hasParsedData ? 'success' : 'muted'}>{hasParsedData ? '可套用' : 'MVP'}</Badge>
+        <Badge variant={hasParsedData ? 'success' : 'muted'}>{hasParsedData ? '可套用' : '可貼上'}</Badge>
       </div>
 
       <div className="grid gap-3">
@@ -141,7 +141,7 @@ const ReservationImportCard = ({ tripDetails, setTripDetails }) => {
             套用到空白欄位
           </Button>
           <Button variant="ghost" onClick={() => handleApply(true)} disabled={!hasParsedData} className="justify-center">
-            覆蓋套用
+            用匯入內容更新
           </Button>
         </div>
       </div>

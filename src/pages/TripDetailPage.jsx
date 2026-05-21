@@ -461,7 +461,7 @@ const TripDetailPage = () => {
 
   const handleSaveEvent = (eventData) => {
     if (!canEdit) {
-      toast({ variant: 'warning', title: '唯讀模式', description: '你目前沒有編輯這趟旅程的權限。' });
+      toast({ variant: 'warning', title: '目前只能查看', description: '這趟旅程暫時不能由你修改。' });
       return;
     }
 
@@ -495,7 +495,7 @@ const TripDetailPage = () => {
 
   const handleDeleteEvent = async (id) => {
     if (!canEdit) {
-      toast({ variant: 'warning', title: '唯讀模式', description: '你目前沒有刪除行程的權限。' });
+      toast({ variant: 'warning', title: '目前只能查看', description: '這趟旅程暫時不能由你刪除行程。' });
       return;
     }
 
@@ -568,7 +568,7 @@ const TripDetailPage = () => {
 
   const openAddModal = () => {
     if (!canEdit) {
-      toast({ variant: 'warning', title: '唯讀模式', description: '你目前只能查看這趟旅程。' });
+      toast({ variant: 'warning', title: '目前只能查看', description: '這趟旅程暫時不能由你新增行程。' });
       return;
     }
 
@@ -579,7 +579,7 @@ const TripDetailPage = () => {
 
   const openEditModal = (event, viewMode = false) => {
     if (!canEdit && !viewMode) {
-      toast({ variant: 'warning', title: '唯讀模式', description: '你目前只能查看行程詳情。' });
+      toast({ variant: 'warning', title: '目前只能查看', description: '你可以查看行程詳情，但不能修改。' });
       return;
     }
 
@@ -633,7 +633,7 @@ const TripDetailPage = () => {
     if (!canEdit) {
       setFlightLookupError((prev) => ({
         ...prev,
-        [direction]: '唯讀模式不能更新航班資料'
+        [direction]: '你目前只能查看，不能更新航班資料'
       }));
       return;
     }
@@ -839,24 +839,22 @@ const TripDetailPage = () => {
 
       <PageContainer className="pb-24 lg:pb-36">
         <div className="pt-4">
-          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm font-semibold ${
-            isReadOnly
-              ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200'
-          }`}>
-            {isReadOnly ? '唯讀模式：你可以查看這趟旅程，但不能修改。' : `協作權限：${accessRole === 'owner' ? 'Owner' : (accessRole === 'editor' || accessRole === 'edit') ? 'Editor' : '可編輯'}`}
-          </div>
+          {isReadOnly && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
+              你目前可以查看這趟旅程；若要一起規劃，請建立者重新分享可編輯連結。
+            </div>
+          )}
 
           {(saveError || syncConflict) && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-              <p>{syncConflict ? '偵測到遠端已有新版本，請選擇要保留哪一版。' : saveError}</p>
+              <p>{syncConflict ? '另一位旅伴剛更新了旅程，請選擇要使用哪一版。' : saveError}</p>
               {syncConflict && (
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                   <Button size="sm" variant="secondary" onClick={() => resolveConflict('remote')}>
-                    套用遠端版本
+                    使用最新內容
                   </Button>
                   <Button size="sm" onClick={() => resolveConflict('local')}>
-                    保留我的版本並覆蓋
+                    保留我的內容
                   </Button>
                 </div>
               )}

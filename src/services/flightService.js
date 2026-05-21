@@ -57,7 +57,7 @@ export const getFlightLookupAvailability = (rawDate = '') => {
     canLookup: true,
     reason: 'available',
     normalizedDate,
-    message: '可依旅程日期查詢 FlightAPI.io 航班資料。'
+    message: '可依旅程日期查詢航班資料。'
   };
 };
 
@@ -97,14 +97,14 @@ export const lookupFlightByCode = async (rawCode, rawDepartureDate = '', options
   const arrivalAirport = normalizeAirportCode(options.arrivalAirport);
   if (departureAirport) {
     if (!isAirportCode(departureAirport)) {
-      throw new Error('出發機場請輸入 3 碼 IATA 代碼，例如 TPE');
+      throw new Error('出發機場請輸入 3 碼機場代碼，例如 TPE');
     }
     query.set('depap', departureAirport);
   }
 
   if (arrivalAirport) {
     if (!isAirportCode(arrivalAirport)) {
-      throw new Error('抵達機場請輸入 3 碼 IATA 代碼，例如 NRT');
+      throw new Error('抵達機場請輸入 3 碼機場代碼，例如 NRT');
     }
     query.set('arrap', arrivalAirport);
   }
@@ -113,11 +113,11 @@ export const lookupFlightByCode = async (rawCode, rawDepartureDate = '', options
   const payload = await readResponsePayload(response);
 
   if (!response.ok) {
-    throw new Error(payload?.message || 'FlightAPI.io 航班查詢失敗，請稍後再試或手動填寫。');
+    throw new Error(payload?.message || '航班查詢失敗，請稍後再試或手動填寫。');
   }
 
   if (!payload?.flight) {
-    throw new Error('FlightAPI.io 回傳格式不完整，請手動確認航班資料。');
+    throw new Error('航班資料不完整，請手動確認。');
   }
 
   return payload.flight;

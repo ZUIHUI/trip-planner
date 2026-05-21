@@ -305,7 +305,7 @@ const PlacePoolCard = ({
             onPlaceSelect={setSelectedPlace}
             selectedPlace={selectedPlace}
             onClearPlace={() => setSelectedPlace(null)}
-            placeholder={isReadOnly ? 'Viewer 只能查看地點池' : '輸入景點、餐廳或地址'}
+            placeholder={isReadOnly ? '你目前只能查看地點池' : '輸入景點、餐廳或地址'}
             ariaLabel="加入想去地點"
             className="tp-input"
             disabled={isReadOnly}

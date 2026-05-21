@@ -333,13 +333,13 @@ const SettingsPanel = ({
 
           <Section
             icon={Users}
-            title="旅程成員"
-            description="成員會用於行李分配與費用分帳。"
+            title="旅伴"
+            description="會用於行李分配與費用分帳。"
           >
             <div className="space-y-2">
               {travelers.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-400">
-                  尚未新增成員
+                  尚未加入旅伴
                 </div>
               ) : (
                 travelers.map((traveler) => (
@@ -373,8 +373,8 @@ const SettingsPanel = ({
                     handleAddTraveler();
                   }
                 }}
-                placeholder="輸入成員姓名"
-                aria-label="輸入成員姓名"
+                placeholder="輸入旅伴姓名"
+                aria-label="輸入旅伴姓名"
               />
               <Button onClick={handleAddTraveler} disabled={!newTravelerName.trim()}>
                 <Plus size={16} />

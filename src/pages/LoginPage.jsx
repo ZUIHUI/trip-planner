@@ -36,15 +36,15 @@ const getAuthErrorMessage = (authError, fallback) => {
   const code = authError?.code || '';
 
   if (code === 'auth/configuration-not-found') {
-    return 'Firebase Authentication 尚未完成設定，請先在 Firebase Console 啟用 Authentication。';
+    return '登入服務尚未完成設定，請稍後再試。';
   }
 
   if (code === 'auth/operation-not-allowed') {
-    return '登入方式尚未啟用。Email link 需要啟用 Email/Password provider，並開啟 Email link passwordless sign-in。';
+    return '這個登入方式尚未啟用，請先使用其他方式登入。';
   }
 
   if (code === 'auth/unauthorized-domain') {
-    return '目前網域尚未加入 Firebase Authentication authorized domains。';
+    return '這個網址目前尚未允許登入，請稍後再試。';
   }
 
   if (code === 'auth/invalid-email') {
@@ -68,7 +68,7 @@ const getAuthErrorMessage = (authError, fallback) => {
   }
 
   if (code === 'auth/invalid-api-key') {
-    return 'Firebase API key 設定不正確，請檢查部署環境變數。';
+    return '登入服務設定有誤，請稍後再試。';
   }
 
   return authError?.message || fallback;
@@ -186,7 +186,7 @@ const LoginPage = () => {
             </div>
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              使用 Email 驗證連結或 Google 帳號登入，旅程資料會綁定到你的帳號。
+              使用 Email 驗證連結或 Google 帳號登入，之後就能在不同裝置看到你的旅程。
             </p>
           </div>
 

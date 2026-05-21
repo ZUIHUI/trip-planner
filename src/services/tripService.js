@@ -155,7 +155,7 @@ export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' 
 
     if (!ownerUid) {
       if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
-        throw new Error('這趟旅程尚未綁定 Owner，只有主要帳號可以接管既有資料。');
+        throw new Error('這趟旅程還在舊資料格式，請用主要帳號登入後再開啟。');
       }
 
       const now = new Date().toISOString();
@@ -182,7 +182,7 @@ export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' 
       return { role: memberSnap.data()?.role || 'view', claimedOwner: false };
     }
 
-    throw new Error('你沒有這趟旅程的存取權限');
+    throw new Error('你還沒有加入這趟旅程，請使用邀請連結進入。');
   });
 };
 
@@ -264,7 +264,7 @@ export const saveTrip = async (
     const existingData = snap.data();
     const remoteRevision = Number(existingData?.syncMeta?.revision || 0);
     if (!force && remoteRevision !== Number(baseRevision || 0)) {
-      const error = new Error('遠端旅程已更新');
+      const error = new Error('旅程內容已更新');
       error.code = 'trip/conflict';
       error.remoteData = normalizeTripDocumentForApp({ id: snap.id, ...existingData });
       throw error;
@@ -372,7 +372,7 @@ export const redeemShareToken = async ({ tripId, shareToken, user, profile }) =>
 export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   requireUser(user);
   if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
-    throw new Error('只有主要帳號可以綁定既有旅程。');
+    throw new Error('只有主要帳號可以整理既有旅程。');
   }
 
   const callable = httpsCallable(functions, 'claimExistingTrips');

@@ -150,7 +150,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
 
   const markLocalChange = useCallback(() => {
     if (!canEdit) {
-      setSaveError('目前是唯讀權限，無法修改旅程');
+      setSaveError('你目前只能查看這趟旅程，不能修改。');
       return false;
     }
     hasLocalChangesRef.current = true;
@@ -183,7 +183,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   useEffect(() => {
     if (!safeTripId || !uid || !storageKey) {
       setIsLoading(false);
-      setAccessError(!uid ? '請先登入' : '無效的旅程 ID');
+      setAccessError(!uid ? '請先登入' : '這趟旅程不存在或連結有誤。');
       return undefined;
     }
 
@@ -259,7 +259,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           },
           (error) => {
             console.error('旅程即時同步失敗:', error);
-            setAccessError(error.message || '無法同步旅程');
+            setAccessError(error.message || '暫時無法載入最新旅程內容，請稍後再試。');
             setIsLoading(false);
           }
         );
@@ -277,7 +277,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       } catch (error) {
         if (cancelled) return;
         console.error('旅程存取驗證失敗:', error);
-        setAccessError(error.message || '無法存取旅程');
+        setAccessError(error.message || '你目前無法開啟這趟旅程。');
         setIsLoading(false);
       }
     };
@@ -343,7 +343,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       } catch (error) {
         if (error.code === 'trip/conflict') {
           setSyncConflict({ remoteData: error.remoteData });
-          setSaveError('遠端已有新版本，請選擇要保留哪一版');
+          setSaveError('另一位旅伴剛更新了旅程，請選擇要使用哪一版。');
         } else {
           console.error('自動儲存失敗:', error);
           setSaveError(error.message || '儲存失敗');
@@ -396,7 +396,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
 
   const saveNow = async ({ force = false } = {}) => {
     if (!safeTripId || !canEdit) {
-      setSaveError('目前沒有編輯權限');
+      setSaveError('你目前不能編輯這趟旅程。');
       return false;
     }
 
@@ -428,7 +428,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     } catch (error) {
       if (error.code === 'trip/conflict') {
         setSyncConflict({ remoteData: error.remoteData });
-        setSaveError('遠端已有新版本，請選擇要保留哪一版');
+        setSaveError('另一位旅伴剛更新了旅程，請選擇要使用哪一版。');
       } else {
         setSaveError(error.message || '手動儲存失敗');
       }

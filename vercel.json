@@ -7,6 +7,14 @@
     {
       "source": "/__/firebase/:path*",
       "destination": "https://trip-planner-36455.firebaseapp.com/__/firebase/:path*"
+    },
+    {
+      "source": "/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/trip/:path*",
+      "destination": "/index.html"
     }
   ]
 }

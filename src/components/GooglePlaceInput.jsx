@@ -10,17 +10,17 @@ import {
 const DEFAULT_PLACE_TYPES = [];
 const MIN_QUERY_LENGTH = 2;
 
-const defaultHelperText = '輸入 2 個字以上可搜尋 Google 地點，也可以直接手動輸入。';
-const defaultEmptyMessage = '找不到 Google 建議，仍可手動輸入或換個關鍵字。';
-const defaultApiUnavailableMessage = 'Google API 未設定，仍可直接手動輸入。';
+const defaultHelperText = '輸入 2 個字以上可搜尋地點，也可以直接手動輸入。';
+const defaultEmptyMessage = '找不到地點建議，仍可手動輸入或換個關鍵字。';
+const defaultApiUnavailableMessage = '地點建議暫時不可用，仍可直接手動輸入。';
 
 const STATUS_MESSAGES = {
-  [GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed]: 'Google Maps 載入失敗，請確認 Maps JavaScript API 可用；仍可手動輸入。',
-  [GOOGLE_PLACE_PREDICTION_STATUS.apiNotActivated]: '請確認 Google Cloud 已啟用 Maps JavaScript API 與 Places API (new)。',
-  [GOOGLE_PLACE_PREDICTION_STATUS.apiTargetBlocked]: 'Google API key 可能被 API restrictions 或 referrer restrictions 擋住；仍可手動輸入。',
-  [GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError]: 'Google API key、billing、額度或網域限制可能有問題；仍可手動輸入。',
-  [GOOGLE_PLACE_PREDICTION_STATUS.requestFailed]: 'Google 地點搜尋暫時失敗，仍可手動輸入。',
-  [GOOGLE_PLACE_PREDICTION_STATUS.legacyFallbackUsed]: '已用相容模式取得 Google 建議。'
+  [GOOGLE_PLACE_PREDICTION_STATUS.loadingFailed]: '地點建議暫時載入失敗，仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.apiNotActivated]: '地點建議暫時不可用，仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.apiTargetBlocked]: '地點建議暫時不可用，仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.billingOrKeyError]: '地點建議暫時不可用，仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.requestFailed]: '地點搜尋暫時失敗，仍可手動輸入。',
+  [GOOGLE_PLACE_PREDICTION_STATUS.legacyFallbackUsed]: '已取得地點建議。'
 };
 
 const ERROR_STATUSES = new Set([
@@ -119,13 +119,13 @@ const GooglePlaceInput = ({
   const statusMessage = useMemo(() => {
     if (disabled) return '';
     if (!canUseGooglePlaces) return apiUnavailableMessage;
-    if (isLoading) return '正在搜尋 Google 地點...';
+    if (isLoading) return '正在搜尋地點...';
     if (!query) return helperText;
-    if (query.length < MIN_QUERY_LENGTH) return '再輸入 1 個字開始搜尋 Google 地點。';
+    if (query.length < MIN_QUERY_LENGTH) return '再輸入 1 個字開始搜尋地點。';
     if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.empty) return emptyMessage;
     if (STATUS_MESSAGES[predictionStatus] && suggestions.length === 0) return STATUS_MESSAGES[predictionStatus];
     if (predictionStatus === GOOGLE_PLACE_PREDICTION_STATUS.legacyFallbackUsed && suggestions.length > 0) {
-      return '已用相容模式取得 Google 建議，用上下鍵選擇地點，Enter 套用。';
+      return '已取得地點建議，用上下鍵選擇地點，Enter 套用。';
     }
     if (suggestions.length > 0) return '用上下鍵選擇地點，Enter 套用。';
     return helperText;

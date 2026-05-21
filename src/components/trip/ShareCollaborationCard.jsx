@@ -61,16 +61,15 @@ const writeClipboardText = async (text) => {
 };
 
 const getRoleLabel = (role) => {
-  if (role === 'owner') return 'Owner';
-  if (role === 'editor' || role === 'edit') return 'Editor';
-  return 'Viewer';
+  if (role === 'owner') return '管理者';
+  if (role === 'editor' || role === 'edit') return '可一起規劃';
+  return '可查看';
 };
 
 const getMemberName = (member = {}) => (
   member.displayName ||
   member.email ||
-  member.uid ||
-  '未命名成員'
+  '未命名旅伴'
 );
 
 const formatEditingTarget = (target = '') => {
@@ -120,7 +119,7 @@ const ShareCollaborationCard = ({
 
   const runOwnerAction = async (action) => {
     if (!canManageSharing) {
-      setMessage('只有 Owner 可以管理邀請連結與成員權限。');
+      setMessage('這項設定只能由建立旅程的人調整。');
       return null;
     }
 
@@ -128,7 +127,7 @@ const ShareCollaborationCard = ({
     try {
       return await action();
     } catch (error) {
-      setMessage(error?.message || '協作設定更新失敗，請稍後再試。');
+      setMessage(error?.message || '邀請設定更新失敗，請稍後再試。');
       return null;
     } finally {
       setIsWorking(false);
@@ -155,7 +154,7 @@ const ShareCollaborationCard = ({
     const permission = event.target.value === 'edit' ? 'edit' : 'view';
     if (!settings.shareToken) {
       persistSettings({ permission, enabled: settings.enabled });
-      setMessage('權限已暫存，建立連結後會套用。');
+      setMessage('已先記住這個加入方式，建立連結後會套用。');
       return;
     }
 
@@ -166,12 +165,12 @@ const ShareCollaborationCard = ({
     if (!updated) return;
 
     persistSettings({ permission, enabled: true });
-    setMessage(permission === 'edit' ? '連結權限已改為可共同編輯。' : '連結權限已改為只可查看。');
+    setMessage(permission === 'edit' ? '新旅伴加入後可以一起規劃。' : '新旅伴加入後只能查看。');
   };
 
   const handleVotesToggle = () => {
     if (!canManageSharing) {
-      setMessage('只有 Owner 可以調整地點投票設定。');
+      setMessage('這項設定只能由建立旅程的人調整。');
       return;
     }
     const nextSettings = persistSettings({ votesEnabled: !settings.votesEnabled, enabled: settings.enabled });
@@ -184,7 +183,7 @@ const ShareCollaborationCard = ({
     if (!disabled) return;
 
     persistSettings({ enabled: false });
-    setMessage('邀請連結已停用，已加入的成員仍會保留原本權限。');
+    setMessage('邀請連結已停用，已加入的旅伴不受影響。');
   };
 
   const handleCopyLink = async () => {
@@ -225,7 +224,7 @@ const ShareCollaborationCard = ({
   const handleSaveDisplayName = async () => {
     const nextName = displayNameDraft.trim();
     if (!nextName) {
-      setMessage('請輸入要顯示在成員清單中的名稱。');
+      setMessage('請輸入要顯示在旅伴清單中的名稱。');
       return;
     }
 
@@ -256,20 +255,20 @@ const ShareCollaborationCard = ({
           <div className="min-w-0">
             <h3 className="tp-section-title">共同規劃</h3>
             <p className="tp-section-subtitle mt-1">
-              成員權限由 Firestore 管理，在線狀態由 Realtime Database 顯示。
+              邀請旅伴一起查看或規劃，這裡也會顯示誰正在旅程中。
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {isSharedSession && <Badge variant="info">分享加入</Badge>}
+          {isSharedSession && <Badge variant="info">從邀請加入</Badge>}
           <Badge variant={canManageSharing ? 'success' : 'muted'}>{getRoleLabel(accessRole)}</Badge>
-          <Badge variant={settings.enabled ? 'success' : 'muted'}>{settings.enabled ? '連結啟用' : '未啟用'}</Badge>
-          <Badge variant={onlineCount ? 'success' : 'muted'}>{onlineCount} online</Badge>
+          <Badge variant={settings.enabled ? 'success' : 'muted'}>{settings.enabled ? '可邀請' : '未開放邀請'}</Badge>
+          <Badge variant={onlineCount ? 'success' : 'muted'}>{onlineCount} 人在線</Badge>
         </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
-        <Field label="邀請連結" htmlFor="trip-share-url" hint="連結本身不代表權限，登入並兌換 token 後才會成為成員。">
+        <Field label="邀請連結" htmlFor="trip-share-url" hint="把連結傳給旅伴，對方登入後就會出現在這趟旅程。">
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
             <Input
               id="trip-share-url"
@@ -285,21 +284,21 @@ const ShareCollaborationCard = ({
           </div>
         </Field>
 
-        <Field label="新加入權限" htmlFor="trip-share-permission">
+        <Field label="新旅伴加入後" htmlFor="trip-share-permission">
           <Select
             id="trip-share-permission"
             value={settings.permission}
             onChange={handlePermissionChange}
             disabled={!canManageSharing || isWorking}
           >
-            <option value="view">只可查看</option>
-            <option value="edit">可共同編輯</option>
+            <option value="view">只能查看</option>
+            <option value="edit">可以一起規劃</option>
           </Select>
         </Field>
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在成員清單、地點投票與在線狀態中。">
+        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在旅伴清單、地點投票與在線狀態中。">
           <Input
             id="member-display-name"
             value={displayNameDraft}
@@ -331,14 +330,14 @@ const ShareCollaborationCard = ({
         <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
           <p className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
             <UsersRound size={13} />
-            成員數
+            旅伴
           </p>
           <p className="mt-0.5 truncate text-sm font-black text-slate-900 dark:text-white">
             {memberRows.length || 1} 位
           </p>
         </div>
         <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">我的權限</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">我的參與方式</p>
           <p className="mt-0.5 text-sm font-black text-slate-900 dark:text-white">
             {getRoleLabel(accessRole)}
           </p>
@@ -354,7 +353,7 @@ const ShareCollaborationCard = ({
 
       <div className="mt-4 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="border-b border-slate-100 px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-          旅程成員
+          一起旅行的人
         </div>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {memberRows.length ? memberRows.map((member) => {
@@ -371,7 +370,7 @@ const ShareCollaborationCard = ({
                   <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                     {online
                       ? `${tabLabels[presence.activeTab] || '在線'}${editingText ? ` · ${editingText}` : ''}`
-                      : member.email || member.uid}
+                      : member.email || '尚未提供 Email'}
                   </p>
                 </div>
                 <Badge variant={member.role === 'owner' ? 'success' : (member.role === 'editor' || member.role === 'edit') ? 'info' : 'muted'}>
@@ -381,7 +380,7 @@ const ShareCollaborationCard = ({
             );
           }) : (
             <p className="px-3 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              成員清單同步中。
+              正在更新旅伴清單。
             </p>
           )}
         </div>
@@ -389,7 +388,7 @@ const ShareCollaborationCard = ({
 
       {presenceError && (
         <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
-          在線狀態暫時無法同步：{presenceError}
+          在線狀態暫時無法顯示，旅程內容仍可正常使用。
         </p>
       )}
 

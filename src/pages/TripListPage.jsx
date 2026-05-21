@@ -14,10 +14,8 @@ import {
   Trash2
 } from 'lucide-react';
 import {
-  claimOwnerlessTrips,
   createTrip,
   deleteTrip,
-  isPrimaryOwnerAccount,
   listTrips,
   updateCurrentUserMemberProfiles
 } from '../services/tripService';
@@ -203,8 +201,6 @@ const TripListPage = () => {
   const [failedCoverImages, setFailedCoverImages] = useState({});
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [expandedCards, setExpandedCards] = useState({});
-  const [migrationStatus, setMigrationStatus] = useState(null);
-  const [isClaimingOwnerlessTrips, setIsClaimingOwnerlessTrips] = useState(false);
   const [nicknameDraft, setNicknameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [isSavingNickname, setIsSavingNickname] = useState(false);
 
@@ -411,7 +407,7 @@ const TripListPage = () => {
       toast({
         variant: 'success',
         title: '暱稱已更新',
-        description: result.updated ? `已同步 ${result.updated} 個旅程成員資料。` : '新旅程會使用這個暱稱。'
+        description: result.updated ? `已更新 ${result.updated} 趟旅程中的顯示名稱。` : '新旅程會使用這個暱稱。'
       });
     } catch (error) {
       toast({
@@ -421,22 +417,6 @@ const TripListPage = () => {
       });
     } finally {
       setIsSavingNickname(false);
-    }
-  };
-
-  const handleClaimOwnerlessTrips = async () => {
-    setIsClaimingOwnerlessTrips(true);
-    setMigrationStatus(null);
-    try {
-      const result = await claimOwnerlessTrips({ user: currentUser, profile: userProfile });
-      setMigrationStatus(`已綁定 ${result.claimed || 0} 筆 ownerless 旅程，修復 ${result.reassigned || 0} 筆舊 Owner 旅程，同步 ${result.synced || 0} 筆已是 Owner 的旅程，略過 ${result.skipped || 0} 筆。`);
-      const remoteTrips = await listTrips({ user: currentUser });
-      setTrips(remoteTrips);
-      saveLocalTrips(uid, remoteTrips);
-    } catch (error) {
-      setMigrationStatus(error.message || '綁定既有旅程失敗');
-    } finally {
-      setIsClaimingOwnerlessTrips(false);
     }
   };
 
@@ -453,7 +433,7 @@ const TripListPage = () => {
                 {userProfile?.displayName || currentUser?.displayName || currentUser?.email || '已登入'}
               </p>
               <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {currentUser?.email || '帳號旅程已隔離保存'}
+                {currentUser?.email || '你的旅程會保存在這個帳號中'}
               </p>
               <form onSubmit={handleSaveNickname} className="mt-2 flex max-w-md flex-col gap-2 sm:flex-row">
                 <Input
@@ -475,27 +455,6 @@ const TripListPage = () => {
             登出
           </Button>
         </div>
-
-        {false && isPrimaryOwnerAccount(currentUser) && (
-          <Card className="mb-4 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="tp-section-title">既有雲端旅程 Owner 綁定</h2>
-                <p className="tp-section-subtitle mt-1">
-                  會將既有雲端旅程綁定到目前主要帳號；若舊資料已被測試 Owner 綁住，也會修復為目前帳號。
-                </p>
-              </div>
-              <Button onClick={handleClaimOwnerlessTrips} disabled={isClaimingOwnerlessTrips} className="justify-center">
-                {isClaimingOwnerlessTrips ? '綁定中...' : '綁定既有旅程'}
-              </Button>
-            </div>
-            {migrationStatus && (
-              <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                {migrationStatus}
-              </p>
-            )}
-          </Card>
-        )}
 
         <section className="overflow-hidden rounded-lg border border-brand-100 bg-white shadow-sm dark:border-brand-900/60 dark:bg-slate-900">
           <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
@@ -541,7 +500,7 @@ const TripListPage = () => {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                建議先設定旅程日期，系統會自動產生天數，接著就能逐日加入行程。
+                建議先設定旅程日期，日期完成後會自動產生天數，接著就能逐日加入行程。
               </p>
             </div>
           </div>
