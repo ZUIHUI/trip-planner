@@ -12,6 +12,25 @@ Enable these products in the same Firebase project:
 - Hosting
 - Cloud Functions
 
+### Authentication Setup
+
+If Google login shows `auth/configuration-not-found`, the Firebase Auth product or provider is not fully configured for this project yet.
+
+In Firebase Console for `trip-planner-36455`:
+
+1. Open Build > Authentication.
+2. Click Get started if Authentication has not been initialized.
+3. Open Sign-in method.
+4. Enable Google, set a public-facing project name and support email, then Save.
+5. Enable Email/Password and turn on Email link sign-in if magic links are needed.
+6. Open Settings > Authorized domains.
+7. Confirm these domains are listed:
+   - `trip-planner-36455.web.app`
+   - `trip-planner-36455.firebaseapp.com`
+   - `localhost`
+
+Firebase CLI can deploy Hosting, Firestore rules, Realtime Database rules, and Functions from this repo, but sign-in providers are still configured in the Firebase Console.
+
 ## Environment
 
 Set these values before building:

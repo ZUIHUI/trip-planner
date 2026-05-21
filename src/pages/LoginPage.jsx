@@ -9,6 +9,36 @@ const getRedirectFromSearch = (search) => {
   return params.get('redirect') || '/';
 };
 
+const getAuthErrorMessage = (authError, fallback) => {
+  const code = authError?.code || '';
+
+  if (code === 'auth/configuration-not-found') {
+    return 'Firebase Authentication 尚未完成設定。請先在 Firebase Console 啟用 Authentication，並在 Sign-in method 開啟 Google 登入。';
+  }
+
+  if (code === 'auth/operation-not-allowed') {
+    return '此登入方式尚未啟用。請到 Firebase Authentication 的 Sign-in method 開啟對應 provider。';
+  }
+
+  if (code === 'auth/unauthorized-domain') {
+    return '目前網域尚未加入 Firebase Authentication Authorized domains，請加入 trip-planner-36455.web.app 與 trip-planner-36455.firebaseapp.com。';
+  }
+
+  if (code === 'auth/popup-blocked') {
+    return '瀏覽器封鎖了 Google 登入視窗，請允許彈出視窗後再試一次。';
+  }
+
+  if (code === 'auth/popup-closed-by-user') {
+    return 'Google 登入視窗已關閉，請重新嘗試登入。';
+  }
+
+  if (code === 'auth/invalid-api-key') {
+    return 'Firebase API key 設定不正確，請確認部署環境使用 trip-planner-36455 的 Web app config。';
+  }
+
+  return authError?.message || fallback;
+};
+
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,7 +77,7 @@ const LoginPage = () => {
         setStatus('登入完成，正在回到旅程。');
       })
       .catch((authError) => {
-        setError(authError.message || 'Email 連結登入失敗，請重新寄送連結。');
+        setError(getAuthErrorMessage(authError, 'Email 連結登入失敗，請重新寄送連結。'));
       })
       .finally(() => setIsSubmitting(false));
   }, [isCompletingLink, currentUser, completeEmailLink]);
@@ -62,7 +92,7 @@ const LoginPage = () => {
       await sendMagicLink(email, redirectPath);
       setStatus('登入連結已寄出，請到信箱點擊連結完成登入。');
     } catch (authError) {
-      setError(authError.message || '無法寄出登入連結。');
+      setError(getAuthErrorMessage(authError, '無法寄出登入連結。'));
     } finally {
       setIsSubmitting(false);
     }
@@ -77,7 +107,7 @@ const LoginPage = () => {
       await completeEmailLink(email);
       setStatus('登入完成，正在回到旅程。');
     } catch (authError) {
-      setError(authError.message || 'Email 連結登入失敗。');
+      setError(getAuthErrorMessage(authError, 'Email 連結登入失敗。'));
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +120,7 @@ const LoginPage = () => {
     try {
       await signInWithGoogle(redirectPath);
     } catch (authError) {
-      setError(authError.message || 'Google 登入失敗。');
+      setError(getAuthErrorMessage(authError, 'Google 登入失敗。'));
     } finally {
       setIsSubmitting(false);
     }
