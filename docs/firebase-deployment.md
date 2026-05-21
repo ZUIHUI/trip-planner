@@ -197,6 +197,22 @@ powershell.exe -ExecutionPolicy Bypass -File .\scripts\firebase-portable-node.ps
 
 The script looks up the Firebase Auth user by email, writes `access.ownerUid`, `access.ownerEmail`, `access.ownerName`, and creates `trips/{tripId}/members/{uid}` with `role = owner`. Trips that already have an owner are skipped and never overwritten.
 
+If the old trips were already claimed by a test Firebase Auth UID, the UI claim and `owner:claim` will skip them. Use the repair command only after confirming those trips should belong to `sky32439@gmail.com`:
+
+```bash
+npm run owner:repair -- --dry-run
+npm run owner:repair
+```
+
+With the portable Node helper:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File .\scripts\firebase-portable-node.ps1 -NodeRoot $NodeRoot -Task owner-repair-dry-run
+powershell.exe -ExecutionPolicy Bypass -File .\scripts\firebase-portable-node.ps1 -NodeRoot $NodeRoot -Task owner-repair
+```
+
+`owner:repair` force-updates `access.ownerUid` to the Firebase Auth UID for the target email, creates the target owner member, and removes the previous owner member so the old account no longer sees the trip through the member collection. Other collaborators are kept.
+
 ## Windows Portable Node Flow
 
 If Node is not installed globally, use the downloaded standalone Node folder as a temporary PATH. This does not permanently change Windows environment variables.

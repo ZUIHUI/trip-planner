@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "node --check index.js && node --check scripts/backfillPresenceAcl.js && node --check scripts/claimOwnerlessTrips.js",
     "backfill:presence": "node scripts/backfillPresenceAcl.js",
-    "claim:ownerless": "node scripts/claimOwnerlessTrips.js"
+    "claim:ownerless": "node scripts/claimOwnerlessTrips.js",
+    "repair:owner": "node scripts/claimOwnerlessTrips.js --force-owned"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",

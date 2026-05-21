@@ -31,6 +31,8 @@ loadEnvFile(path.join(repoRoot, '.env'));
 loadEnvFile(path.join(repoRoot, '.env.local'));
 
 const dryRun = process.argv.includes('--dry-run');
+const forceOwned = process.argv.includes('--force-owned');
+const keepPreviousOwnerMember = process.argv.includes('--keep-previous-owner-member');
 const ownerEmail = (
   readArg('email') ||
   process.env.PRIMARY_OWNER_EMAIL ||
@@ -82,16 +84,38 @@ const run = async () => {
   const snapshot = await firestore.collection('trips').get();
   const writes = [];
   const claimedTripIds = [];
+  const reassignedTripIds = [];
+  const skippedTripIds = [];
   let skipped = 0;
 
   snapshot.docs.forEach((tripDoc) => {
     const data = tripDoc.data() || {};
-    if (data.access && typeof data.access.ownerUid === 'string' && data.access.ownerUid.trim()) {
+    const currentOwnerUid = data.access && typeof data.access.ownerUid === 'string'
+      ? data.access.ownerUid.trim()
+      : '';
+    const currentOwnerEmail = data.access && typeof data.access.ownerEmail === 'string'
+      ? data.access.ownerEmail.trim()
+      : '';
+
+    if (currentOwnerUid && currentOwnerUid !== userRecord.uid && !forceOwned) {
       skipped += 1;
+      skippedTripIds.push(`${tripDoc.id} (${currentOwnerEmail || currentOwnerUid})`);
       return;
     }
 
-    claimedTripIds.push(tripDoc.id);
+    if (currentOwnerUid === userRecord.uid) {
+      skipped += 1;
+      skippedTripIds.push(`${tripDoc.id} (already owned by ${ownerEmail})`);
+      return;
+    }
+
+    const isReassigningOwnedTrip = Boolean(currentOwnerUid && currentOwnerUid !== userRecord.uid);
+
+    if (isReassigningOwnedTrip) {
+      reassignedTripIds.push(`${tripDoc.id} (${currentOwnerEmail || currentOwnerUid})`);
+    } else {
+      claimedTripIds.push(tripDoc.id);
+    }
     writes.push((batch) => {
       batch.set(tripDoc.ref, {
         access: {
@@ -114,6 +138,10 @@ const run = async () => {
         updatedAt: now,
         source: 'owner-claim'
       }, { merge: true });
+
+      if (isReassigningOwnedTrip && !keepPreviousOwnerMember) {
+        batch.delete(tripDoc.ref.collection('members').doc(currentOwnerUid));
+      }
     });
   });
 
@@ -122,25 +150,41 @@ const run = async () => {
       primaryOwnerEmail: ownerEmail,
       primaryOwnerUid: userRecord.uid,
       claimed: claimedTripIds.length,
+      reassigned: reassignedTripIds.length,
       skipped,
       claimedTripIds,
+      reassignedTripIds,
+      skippedTripIds,
+      forceOwned,
       dryRun,
       updatedAt: now
     }, { merge: true });
   });
 
   if (dryRun) {
-    console.log(`[dry-run] Owner ${ownerEmail} (${userRecord.uid}) would claim ${claimedTripIds.length} ownerless trips; skipped ${skipped}.`);
+    console.log(`[dry-run] Owner ${ownerEmail} (${userRecord.uid}) would claim ${claimedTripIds.length} ownerless trips and reassign ${reassignedTripIds.length} owned trips; skipped ${skipped}.`);
     if (claimedTripIds.length) {
-      console.log(`Trip IDs: ${claimedTripIds.join(', ')}`);
+      console.log(`Ownerless trip IDs: ${claimedTripIds.join(', ')}`);
+    }
+    if (reassignedTripIds.length) {
+      console.log(`Reassigned trip IDs: ${reassignedTripIds.join(', ')}`);
+    }
+    if (skippedTripIds.length) {
+      console.log(`Skipped trip IDs: ${skippedTripIds.join(', ')}`);
     }
     return;
   }
 
   await commitInChunks(writes);
-  console.log(`Owner ${ownerEmail} (${userRecord.uid}) claimed ${claimedTripIds.length} ownerless trips; skipped ${skipped}.`);
+  console.log(`Owner ${ownerEmail} (${userRecord.uid}) claimed ${claimedTripIds.length} ownerless trips and reassigned ${reassignedTripIds.length} owned trips; skipped ${skipped}.`);
   if (claimedTripIds.length) {
-    console.log(`Trip IDs: ${claimedTripIds.join(', ')}`);
+    console.log(`Ownerless trip IDs: ${claimedTripIds.join(', ')}`);
+  }
+  if (reassignedTripIds.length) {
+    console.log(`Reassigned trip IDs: ${reassignedTripIds.join(', ')}`);
+  }
+  if (skippedTripIds.length) {
+    console.log(`Skipped trip IDs: ${skippedTripIds.join(', ')}`);
   }
 };
 

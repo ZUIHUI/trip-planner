@@ -1,6 +1,6 @@
 param(
   [string]$NodeRoot = $env:PORTABLE_NODE_ROOT,
-  [ValidateSet("check", "install", "login", "build", "database-init", "database-list", "deploy", "rules", "hosting", "functions", "artifacts-policy", "owner-claim-dry-run", "owner-claim", "backfill-dry-run", "backfill")]
+  [ValidateSet("check", "install", "login", "build", "database-init", "database-list", "deploy", "rules", "hosting", "functions", "artifacts-policy", "owner-claim-dry-run", "owner-claim", "owner-repair-dry-run", "owner-repair", "backfill-dry-run", "backfill")]
   [string]$Task = "check",
   [string]$ProjectId = "trip-planner-36455",
   [string]$FunctionsLocation = "asia-east1"
@@ -115,6 +115,12 @@ switch ($Task) {
   }
   "owner-claim" {
     Invoke-RootNpm run owner:claim
+  }
+  "owner-repair-dry-run" {
+    Invoke-RootNpm run owner:repair -- --dry-run
+  }
+  "owner-repair" {
+    Invoke-RootNpm run owner:repair
   }
   "backfill-dry-run" {
     Invoke-RootNpm run presence:backfill -- --dry-run
