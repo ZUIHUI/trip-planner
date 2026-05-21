@@ -1,13 +1,31 @@
-import { useState, useEffect, useRef } from 'react';
-import { loadTrip, saveTrip } from '../services/tripService';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ensureTripAccess,
+  loadTrip,
+  saveTrip,
+  subscribeTrip,
+  subscribeTripMembers
+} from '../services/tripService';
 import { normalizeTripDateFields } from '../utils/tripDates';
 import { buildTripDocumentFromAppState, normalizeTripDocumentForApp } from '../domain/tripSchema';
 
 const LEGACY_STORAGE_KEY = 'trip_planner_data';
 const STORAGE_KEY_PREFIX = 'trip_planner_data_';
-const FIREBASE_TIMEOUT = 3000; // 3 秒超時
+const CLIENT_ID_KEY = 'trip_planner_client_id';
 
-const getStorageKey = (tripId) => `${STORAGE_KEY_PREFIX}${tripId}`;
+const getStorageKey = (tripId, uid) => `${STORAGE_KEY_PREFIX}${uid || 'guest'}_${tripId}`;
+
+const getClientId = () => {
+  try {
+    const existing = sessionStorage.getItem(CLIENT_ID_KEY);
+    if (existing) return existing;
+    const next = `client-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    sessionStorage.setItem(CLIENT_ID_KEY, next);
+    return next;
+  } catch {
+    return `client-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+};
 
 const extractTripYear = (tripDetails) => {
   const rangeStart = tripDetails?.dateRange?.start;
@@ -26,34 +44,22 @@ const parseMonthDay = (dateText) => {
   if (typeof dateText !== 'string') return null;
   const matchedDate = dateText.match(/^(\d{1,2})\/(\d{1,2})$/);
   if (!matchedDate) return null;
-
   const month = Number(matchedDate[1]);
   const day = Number(matchedDate[2]);
-  const isValidMonth = Number.isInteger(month) && month >= 1 && month <= 12;
-  const isValidDay = Number.isInteger(day) && day >= 1 && day <= 31;
-
-  if (!isValidMonth || !isValidDay) return null;
+  if (!Number.isInteger(month) || month < 1 || month > 12) return null;
+  if (!Number.isInteger(day) || day < 1 || day > 31) return null;
   return { month, day };
 };
 
-// 確保 itinerary 有完整的日期資訊
 const ensureItineraryComplete = (itinerary, tripDetails) => {
   if (!itinerary || itinerary.length === 0) return itinerary;
-
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const tripYear = extractTripYear(tripDetails) || new Date().getFullYear();
 
   return itinerary.map((day, index) => {
-    // 如果缺少 weekday，從 date 計算
     if (!day.weekday && day.date) {
       const parsedMonthDay = parseMonthDay(day.date);
-      if (!parsedMonthDay) {
-        return {
-          ...day,
-          day: day.day || index + 1
-        };
-      }
-
+      if (!parsedMonthDay) return { ...day, day: day.day || index + 1 };
       const date = new Date(tripYear, parsedMonthDay.month - 1, parsedMonthDay.day);
       return {
         ...day,
@@ -61,11 +67,17 @@ const ensureItineraryComplete = (itinerary, tripDetails) => {
         weekday: weekdays[date.getDay()]
       };
     }
-    return {
-      ...day,
-      day: day.day || index + 1
-    };
+    return { ...day, day: day.day || index + 1 };
   });
+};
+
+const defaultCollaboration = {
+  enabled: false,
+  shareToken: '',
+  permission: 'view',
+  votesEnabled: true,
+  createdAt: '',
+  updatedAt: ''
 };
 
 const buildFallbackData = (initialTripDetails, initialItinerary) => ({
@@ -73,192 +85,229 @@ const buildFallbackData = (initialTripDetails, initialItinerary) => ({
   itinerary: initialItinerary,
   checklists: { preTrip: [], packing: [] },
   expenses: [],
-  placePool: []
+  placePool: [],
+  collaboration: defaultCollaboration,
+  access: {},
+  syncMeta: { revision: 0 }
 });
 
-const mergeTripDetailsForSync = (localTripDetails, firebaseTripDetails, fallbackTripDetails) => {
-  const localDetails = localTripDetails || fallbackTripDetails;
-  const remoteDetails = firebaseTripDetails || fallbackTripDetails;
-
-  const localCoverImage = typeof localDetails?.coverImage === 'string' ? localDetails.coverImage : '';
-  const remoteCoverImage = typeof remoteDetails?.coverImage === 'string' ? remoteDetails.coverImage : '';
-
-  return {
-    ...localDetails,
-    ...remoteDetails,
-    // Firebase 可能因文件大小限制而無法保存 base64 圖片，避免覆蓋掉本地已成功儲存的背景圖
-    coverImage: remoteCoverImage || localCoverImage || ''
-  };
+const applyNormalizedData = ({
+  data,
+  fallbackData,
+  initialTripDetails,
+  initialItinerary,
+  setters
+}) => {
+  const normalized = normalizeTripDocumentForApp(data || fallbackData, fallbackData);
+  const normalizedTripDetails = normalizeTripDateFields(normalized.tripDetails || initialTripDetails);
+  setters.setTripDetails(normalizedTripDetails);
+  setters.setItinerary(ensureItineraryComplete(normalized.itinerary || initialItinerary, normalizedTripDetails));
+  setters.setChecklists(normalized.checklists || { preTrip: [], packing: [] });
+  setters.setExpenses(normalized.expenses || []);
+  setters.setPlacePool(normalized.placePool || []);
+  setters.setCollaboration(normalized.collaboration || defaultCollaboration);
+  setters.setAccess(normalized.access || {});
+  setters.setSyncMeta(normalized.syncMeta || { revision: 0 });
+  return normalized;
 };
 
-const migrateLegacyDataIfNeeded = (tripId) => {
-  const currentKey = getStorageKey(tripId);
-
-  try {
-    if (localStorage.getItem(currentKey)) {
-      return;
-    }
-
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (!legacyRaw) {
-      return;
-    }
-
-    localStorage.setItem(currentKey, legacyRaw);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
-    console.log(`✅ 已將舊資料遷移至 ${currentKey}`);
-  } catch (error) {
-    console.warn('⚠️ 舊資料遷移失敗：', error);
-  }
-};
-
-/**
- * useTrip Hook - 管理旅程狀態，支持 Firebase 和 localStorage 同步，協作編輯
- */
-export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
+export const useTrip = (tripId, initialTripDetails, initialItinerary, {
+  currentUser,
+  userProfile,
+  shareToken = ''
+} = {}) => {
   const safeTripId = typeof tripId === 'string' ? tripId.trim() : '';
-  const storageKey = safeTripId ? getStorageKey(safeTripId) : null;
+  const uid = currentUser?.uid || '';
+  const storageKey = safeTripId && uid ? getStorageKey(safeTripId, uid) : null;
+  const fallbackData = useMemo(
+    () => buildFallbackData(initialTripDetails, initialItinerary),
+    [initialTripDetails, initialItinerary]
+  );
+  const clientIdRef = useRef(getClientId());
+  const autoSaveTimeoutRef = useRef(null);
+  const hasLocalChangesRef = useRef(false);
+  const applyingRemoteRef = useRef(false);
+  const baseRevisionRef = useRef(0);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [tripDetails, setTripDetails] = useState(initialTripDetails);
-  const [itinerary, setItinerary] = useState(initialItinerary);
-  const [checklists, setChecklists] = useState({ preTrip: [], packing: [] });
-  const [expenses, setExpenses] = useState([]);
-  const [placePool, setPlacePool] = useState([]);
-  const autoSaveTimeoutRef = useRef(null);
-  const loadingTimeoutRef = useRef(null);
+  const [accessError, setAccessError] = useState('');
+  const [accessRole, setAccessRole] = useState('');
+  const [members, setMembers] = useState([]);
+  const [syncConflict, setSyncConflict] = useState(null);
+  const [tripDetails, setTripDetailsState] = useState(initialTripDetails);
+  const [itinerary, setItineraryState] = useState(initialItinerary);
+  const [checklists, setChecklistsState] = useState({ preTrip: [], packing: [] });
+  const [expenses, setExpensesState] = useState([]);
+  const [placePool, setPlacePoolState] = useState([]);
+  const [collaboration, setCollaborationState] = useState(defaultCollaboration);
+  const [access, setAccess] = useState({});
+  const [syncMeta, setSyncMeta] = useState({ revision: 0 });
 
-  const persistTripData = async (payload) => {
-    if (!safeTripId || !storageKey) {
-      throw new Error('無效的旅程 ID');
+  const canEdit = accessRole === 'owner' || accessRole === 'editor' || accessRole === 'edit';
+  const isReadOnly = Boolean(accessRole && !canEdit);
+
+  const markLocalChange = useCallback(() => {
+    if (!canEdit) {
+      setSaveError('目前是唯讀權限，無法修改旅程');
+      return false;
     }
+    hasLocalChangesRef.current = true;
+    return true;
+  }, [canEdit]);
 
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(payload));
-      console.log('💾 手動儲存到 localStorage 成功');
-    } catch (localErr) {
-      console.error('❌ localStorage 儲存失敗:', localErr);
-      throw localErr;
-    }
+  const wrapSetter = useCallback((setter) => (nextValue) => {
+    if (!markLocalChange()) return;
+    setter(nextValue);
+  }, [markLocalChange]);
 
-    await saveTrip(safeTripId, payload);
-    console.log('🔥 手動儲存到 Firebase 成功');
-  };
+  const setTripDetails = useMemo(() => wrapSetter(setTripDetailsState), [wrapSetter]);
+  const setItinerary = useMemo(() => wrapSetter(setItineraryState), [wrapSetter]);
+  const setChecklists = useMemo(() => wrapSetter(setChecklistsState), [wrapSetter]);
+  const setExpenses = useMemo(() => wrapSetter(setExpensesState), [wrapSetter]);
+  const setPlacePool = useMemo(() => wrapSetter(setPlacePoolState), [wrapSetter]);
+  const setCollaboration = useMemo(() => wrapSetter(setCollaborationState), [wrapSetter]);
 
-  // 初始化：優先使用 localStorage，背景嘗試更新 Firebase 資料
+  const rawSetters = useMemo(() => ({
+    setTripDetails: setTripDetailsState,
+    setItinerary: setItineraryState,
+    setChecklists: setChecklistsState,
+    setExpenses: setExpensesState,
+    setPlacePool: setPlacePoolState,
+    setCollaboration: setCollaborationState,
+    setAccess,
+    setSyncMeta
+  }), []);
+
   useEffect(() => {
-    if (!safeTripId || !storageKey) {
-      setTripDetails(initialTripDetails);
-      setItinerary(initialItinerary);
-      setChecklists({ preTrip: [], packing: [] });
-      setExpenses([]);
-      setPlacePool([]);
-      setSaveError('無效的旅程 ID');
+    if (!safeTripId || !uid || !storageKey) {
       setIsLoading(false);
-      return;
+      setAccessError(!uid ? '請先登入' : '無效的旅程 ID');
+      return undefined;
     }
 
-    const initializeData = async () => {
+    let cancelled = false;
+    let unsubscribeTrip = null;
+    let unsubscribeMembers = null;
+
+    const initialize = async () => {
+      setIsLoading(true);
+      setAccessError('');
+      setSaveError(null);
+
       try {
-        setIsLoading(true);
-        setSaveError(null);
-
-        migrateLegacyDataIfNeeded(safeTripId);
-
-        // 第一步：立即從 localStorage 載入（快速）
-        let localData = null;
-        try {
-          const savedData = localStorage.getItem(storageKey);
-          if (savedData) {
-            localData = JSON.parse(savedData);
-            console.log('✅ 從 localStorage 載入資料成功');
-          }
-        } catch (err) {
-          console.error('❌ localStorage 載入失敗:', err);
+        const legacyRaw = !localStorage.getItem(storageKey) ? localStorage.getItem(LEGACY_STORAGE_KEY) : null;
+        const localRaw = localStorage.getItem(storageKey) || legacyRaw;
+        if (localRaw) {
+          const localData = JSON.parse(localRaw);
+          applyingRemoteRef.current = true;
+          applyNormalizedData({
+            data: localData,
+            fallbackData,
+            initialTripDetails,
+            initialItinerary,
+            setters: rawSetters
+          });
+          applyingRemoteRef.current = false;
         }
+      } catch (error) {
+        console.warn('讀取本機旅程快取失敗:', error);
+      }
 
-        const fallbackData = buildFallbackData(initialTripDetails, initialItinerary);
-        const localOrFallback = normalizeTripDocumentForApp(localData || fallbackData, fallbackData);
-        const normalizedLocalTripDetails = normalizeTripDateFields(localOrFallback.tripDetails || initialTripDetails);
-        setTripDetails(normalizedLocalTripDetails);
-        setItinerary(
-          ensureItineraryComplete(
-            localOrFallback.itinerary || initialItinerary,
-            normalizedLocalTripDetails
-          )
-        );
-        setChecklists(localOrFallback.checklists || { preTrip: [], packing: [] });
-        setExpenses(localOrFallback.expenses || []);
-        setPlacePool(localOrFallback.placePool || []);
-
-        // 標記初始加載完成
-        setIsLoading(false);
-
-        // 第二步：背景嘗試從 Firebase 載入（含超時）
-        console.log('📝 背景從 Firebase 載入旅程:', safeTripId);
-        const firebasePromise = (async () => {
-          try {
-            const firebaseData = await loadTrip(safeTripId);
-            if (firebaseData) {
-              console.log('✅ 從 Firebase 載入資料成功');
-              const normalizedFirebaseData = normalizeTripDocumentForApp(firebaseData, fallbackData);
-              const mergedTripDetails = mergeTripDetailsForSync(
-                normalizedLocalTripDetails,
-                normalizedFirebaseData.tripDetails || initialTripDetails,
-                initialTripDetails
-              );
-              const normalizedFirebaseTripDetails = normalizeTripDateFields(mergedTripDetails);
-              setTripDetails(normalizedFirebaseTripDetails);
-              setItinerary(
-                ensureItineraryComplete(
-                  normalizedFirebaseData.itinerary || initialItinerary,
-                  normalizedFirebaseTripDetails
-                )
-              );
-              setChecklists(normalizedFirebaseData.checklists || { preTrip: [], packing: [] });
-              setExpenses(normalizedFirebaseData.expenses || []);
-              setPlacePool(normalizedFirebaseData.placePool || []);
-            }
-          } catch (err) {
-            console.warn('⚠️ Firebase 載入失敗:', err.message);
-          }
-        })();
-
-        // 3 秒超時
-        const timeoutPromise = new Promise((_, reject) => {
-          loadingTimeoutRef.current = setTimeout(
-            () => reject(new Error('Firebase 加載超時')),
-            FIREBASE_TIMEOUT
-          );
+      try {
+        const accessResult = await ensureTripAccess({
+          tripId: safeTripId,
+          user: currentUser,
+          profile: userProfile,
+          shareToken
         });
+        if (cancelled) return;
+        setAccessRole(accessResult.role || '');
 
-        try {
-          await Promise.race([firebasePromise, timeoutPromise]);
-          clearTimeout(loadingTimeoutRef.current);
-        } catch (timeoutErr) {
-          console.warn('⏱️ Firebase 加載超時，使用 localStorage 資料');
-          clearTimeout(loadingTimeoutRef.current);
-        }
-      } catch (err) {
-        console.error('❌ 初始化失敗:', err);
+        unsubscribeTrip = subscribeTrip(
+          safeTripId,
+          (remoteData) => {
+            if (!remoteData || cancelled) return;
+            const remoteSync = remoteData.syncMeta || {};
+            const isOwnWrite = remoteSync.updatedByClientId && remoteSync.updatedByClientId === clientIdRef.current;
+
+            if (hasLocalChangesRef.current && !isOwnWrite) {
+              setSyncConflict({ remoteData });
+              return;
+            }
+
+            applyingRemoteRef.current = true;
+            const normalized = applyNormalizedData({
+              data: remoteData,
+              fallbackData,
+              initialTripDetails,
+              initialItinerary,
+              setters: rawSetters
+            });
+            applyingRemoteRef.current = false;
+            baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
+            hasLocalChangesRef.current = false;
+            setSyncConflict(null);
+            setIsLoading(false);
+
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(normalized));
+            } catch (error) {
+              console.warn('寫入本機旅程快取失敗:', error);
+            }
+          },
+          (error) => {
+            console.error('旅程即時同步失敗:', error);
+            setAccessError(error.message || '無法同步旅程');
+            setIsLoading(false);
+          }
+        );
+
+        unsubscribeMembers = subscribeTripMembers(
+          safeTripId,
+          (nextMembers) => {
+            if (cancelled) return;
+            setMembers(nextMembers);
+            const self = nextMembers.find((member) => member.uid === uid);
+            if (self?.role) setAccessRole(self.role);
+          },
+          (error) => console.warn('成員同步失敗:', error)
+        );
+      } catch (error) {
+        if (cancelled) return;
+        console.error('旅程存取驗證失敗:', error);
+        setAccessError(error.message || '無法存取旅程');
         setIsLoading(false);
       }
     };
 
-    initializeData();
+    initialize();
 
     return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
+      cancelled = true;
+      unsubscribeTrip?.();
+      unsubscribeMembers?.();
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [safeTripId, storageKey, initialTripDetails, initialItinerary]);
+  }, [
+    safeTripId,
+    uid,
+    storageKey,
+    currentUser,
+    userProfile,
+    shareToken,
+    fallbackData,
+    initialTripDetails,
+    initialItinerary,
+    rawSetters
+  ]);
 
-  // 自動儲存到 localStorage 和 Firebase（防抖 1 秒）
   useEffect(() => {
-    if (!safeTripId || !storageKey || isLoading) {
-      return;
+    if (!safeTripId || !uid || isLoading || !canEdit || applyingRemoteRef.current || !hasLocalChangesRef.current) {
+      return undefined;
     }
 
     if (autoSaveTimeoutRef.current) {
@@ -269,43 +318,36 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
       try {
         setIsSaving(true);
         setSaveError(null);
-
         const normalizedTripDetails = normalizeTripDateFields(tripDetails);
-
         const dataToSave = buildTripDocumentFromAppState(safeTripId, {
           tripDetails: normalizedTripDetails,
           itinerary,
           checklists,
           expenses,
-          placePool
+          placePool,
+          collaboration,
+          access,
+          syncMeta
         });
 
-        // 優先儲存到 localStorage（立即）
-        try {
+        if (storageKey) {
           localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-          console.log('💾 自動儲存到 localStorage 成功');
-        } catch (localErr) {
-          console.error('❌ localStorage 儲存失敗:', localErr);
-          setSaveError('本地儲存失敗');
         }
 
-        // 背景儲存到 Firebase（含超時）
-        try {
-          const savePromise = saveTrip(safeTripId, dataToSave);
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Firebase 儲存超時')), FIREBASE_TIMEOUT);
-          });
-
-          await Promise.race([savePromise, timeoutPromise]);
-          console.log('🔥 自動儲存到 Firebase 成功');
-          setSaveError(null);
-        } catch (firebaseErr) {
-          console.warn('⚠️ Firebase 儲存失敗:', firebaseErr.message);
-          setSaveError('雲端同步失敗，但本地已儲存');
+        await saveTrip(safeTripId, dataToSave, {
+          user: currentUser,
+          profile: userProfile,
+          baseRevision: baseRevisionRef.current,
+          clientId: clientIdRef.current
+        });
+      } catch (error) {
+        if (error.code === 'trip/conflict') {
+          setSyncConflict({ remoteData: error.remoteData });
+          setSaveError('遠端已有新版本，請選擇要保留哪一版');
+        } else {
+          console.error('自動儲存失敗:', error);
+          setSaveError(error.message || '儲存失敗');
         }
-      } catch (err) {
-        console.error('❌ 自動儲存失敗:', err);
-        setSaveError('儲存失敗');
       } finally {
         setIsSaving(false);
       }
@@ -316,50 +358,45 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [tripDetails, itinerary, checklists, expenses, placePool, safeTripId, storageKey, isLoading]);
+  }, [
+    tripDetails,
+    itinerary,
+    checklists,
+    expenses,
+    placePool,
+    collaboration,
+    access,
+    syncMeta,
+    safeTripId,
+    uid,
+    storageKey,
+    isLoading,
+    canEdit,
+    currentUser,
+    userProfile
+  ]);
 
-  // 手動從 Firebase 更新資料
   const manualRefresh = async () => {
-    if (!safeTripId) {
-      setSaveError('無效的旅程 ID');
-      return false;
-    }
-
-    try {
-      setIsLoading(true);
-      console.log('🔄 手動從 Firebase 更新資料...');
-      const firebaseData = await loadTrip(safeTripId);
-      if (firebaseData) {
-        console.log('✅ 手動更新成功');
-        const fallbackData = buildFallbackData(initialTripDetails, initialItinerary);
-        const normalizedFirebaseData = normalizeTripDocumentForApp(firebaseData, fallbackData);
-        const normalizedFirebaseTripDetails = normalizeTripDateFields(normalizedFirebaseData.tripDetails || initialTripDetails);
-        setTripDetails(normalizedFirebaseTripDetails);
-        setItinerary(
-          ensureItineraryComplete(
-            normalizedFirebaseData.itinerary || initialItinerary,
-            normalizedFirebaseTripDetails
-          )
-        );
-        setChecklists(normalizedFirebaseData.checklists || { preTrip: [], packing: [] });
-        setExpenses(normalizedFirebaseData.expenses || []);
-        setPlacePool(normalizedFirebaseData.placePool || []);
-        return true;
-      }
-    } catch (err) {
-      console.error('❌ 手動更新失敗:', err);
-      setSaveError('無法連接伺服器');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-
-    return false;
+    if (!safeTripId) return false;
+    const remoteData = await loadTrip(safeTripId);
+    if (!remoteData) return false;
+    applyingRemoteRef.current = true;
+    const normalized = applyNormalizedData({
+      data: remoteData,
+      fallbackData,
+      initialTripDetails,
+      initialItinerary,
+      setters: rawSetters
+    });
+    applyingRemoteRef.current = false;
+    baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
+    hasLocalChangesRef.current = false;
+    return true;
   };
 
-  const saveNow = async () => {
-    if (!safeTripId || !storageKey) {
-      setSaveError('無效的旅程 ID');
+  const saveNow = async ({ force = false } = {}) => {
+    if (!safeTripId || !canEdit) {
+      setSaveError('目前沒有編輯權限');
       return false;
     }
 
@@ -370,29 +407,74 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     try {
       setIsSaving(true);
       setSaveError(null);
-      const normalizedTripDetails = normalizeTripDateFields(tripDetails);
       const dataToSave = buildTripDocumentFromAppState(safeTripId, {
-        tripDetails: normalizedTripDetails,
+        tripDetails: normalizeTripDateFields(tripDetails),
         itinerary,
         checklists,
         expenses,
-        placePool
+        placePool,
+        collaboration,
+        access,
+        syncMeta
       });
-      await persistTripData(dataToSave);
+      await saveTrip(safeTripId, dataToSave, {
+        user: currentUser,
+        profile: userProfile,
+        baseRevision: baseRevisionRef.current,
+        clientId: clientIdRef.current,
+        force
+      });
       return true;
-    } catch (err) {
-      console.error('❌ 手動儲存失敗:', err);
-      setSaveError('手動儲存失敗');
+    } catch (error) {
+      if (error.code === 'trip/conflict') {
+        setSyncConflict({ remoteData: error.remoteData });
+        setSaveError('遠端已有新版本，請選擇要保留哪一版');
+      } else {
+        setSaveError(error.message || '手動儲存失敗');
+      }
       return false;
     } finally {
       setIsSaving(false);
     }
   };
 
+  const resolveConflict = async (mode) => {
+    if (!syncConflict?.remoteData) return false;
+
+    if (mode === 'remote') {
+      applyingRemoteRef.current = true;
+      const normalized = applyNormalizedData({
+        data: syncConflict.remoteData,
+        fallbackData,
+        initialTripDetails,
+        initialItinerary,
+        setters: rawSetters
+      });
+      applyingRemoteRef.current = false;
+      baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
+      hasLocalChangesRef.current = false;
+      setSyncConflict(null);
+      setSaveError(null);
+      return true;
+    }
+
+    baseRevisionRef.current = Number(syncConflict.remoteData.syncMeta?.revision || baseRevisionRef.current);
+    setSyncConflict(null);
+    hasLocalChangesRef.current = true;
+    return saveNow({ force: true });
+  };
+
   return {
     isLoading,
     isSaving,
     saveError,
+    accessError,
+    accessRole,
+    canEdit,
+    isReadOnly,
+    members,
+    syncConflict,
+    resolveConflict,
     tripDetails,
     setTripDetails,
     itinerary,
@@ -403,6 +485,10 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary) => {
     setExpenses,
     placePool,
     setPlacePool,
+    collaboration,
+    setCollaboration,
+    access,
+    syncMeta,
     manualRefresh,
     saveNow
   };

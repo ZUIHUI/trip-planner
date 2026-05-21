@@ -34,9 +34,14 @@ export const LoadingState = ({ label = 'Loading...', className = '' }) => (
   </div>
 );
 
-export const ErrorState = ({ title = 'Something went wrong', description, className = '' }) => (
+export const ErrorState = ({ title = 'Something went wrong', description, actionLabel, onAction, className = '' }) => (
   <div className={cx('tp-error-state', className)} role="alert">
     <p className="text-base font-bold">{title}</p>
     {description && <p className="mt-1 text-sm">{description}</p>}
+    {actionLabel && onAction && (
+      <Button variant="primary" className="mt-4" onClick={onAction}>
+        {actionLabel}
+      </Button>
+    )}
   </div>
 );

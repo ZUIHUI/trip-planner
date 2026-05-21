@@ -204,14 +204,16 @@ const EventDetailView = ({ event, prevLocation, onEdit, onClose, onOpenGoogleMap
         )}
       </div>
 
-      <div className="grid min-w-0 gap-2 pt-1 sm:grid-cols-2">
+      <div className={`grid min-w-0 gap-2 pt-1 ${onEdit ? 'sm:grid-cols-2' : ''}`}>
         <Button type="button" variant="secondary" onClick={onClose} className="w-full">
           關閉
         </Button>
+        {onEdit && (
         <Button type="button" variant="secondary" onClick={onEdit} className="w-full">
           <Edit2 size={17} />
           編輯
         </Button>
+        )}
       </div>
     </div>
   );

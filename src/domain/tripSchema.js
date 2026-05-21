@@ -26,7 +26,27 @@ export const createTripAppData = (title = '未命名旅程', days = 6) => ({
   itinerary: createEmptyItinerary(days),
   checklists: { preTrip: [], packing: [] },
   expenses: [],
-  placePool: []
+  access: {
+    ownerUid: '',
+    ownerEmail: '',
+    ownerName: '',
+    migratedAt: ''
+  },
+  syncMeta: {
+    revision: 0,
+    updatedByUid: '',
+    updatedByClientId: '',
+    updatedAt: ''
+  },
+  placePool: [],
+  collaboration: {
+    enabled: false,
+    shareToken: '',
+    permission: 'view',
+    votesEnabled: true,
+    createdAt: '',
+    updatedAt: ''
+  }
 });
 
 const asObject = (value) => (value && typeof value === 'object' && !Array.isArray(value) ? value : {});
@@ -79,6 +99,55 @@ const normalizeCostForDocument = (event) => {
   return {
     amount: Number.isFinite(numericAmount) ? numericAmount : 0,
     currency: cleanString(event?.cost?.currency || event?.currency, 'JPY')
+  };
+};
+
+const normalizeCollaborationSettings = (settings = {}) => {
+  const source = asObject(settings);
+  const permission = cleanString(source.permission, 'view');
+
+  return {
+    enabled: Boolean(source.enabled),
+    shareToken: cleanString(source.shareToken || source.token),
+    permission: ['view', 'edit'].includes(permission) ? permission : 'view',
+    votesEnabled: source.votesEnabled === undefined ? true : Boolean(source.votesEnabled),
+    createdAt: cleanString(source.createdAt),
+    updatedAt: cleanString(source.updatedAt)
+  };
+};
+
+const normalizeAccess = (access = {}) => {
+  const source = asObject(access);
+
+  return {
+    ownerUid: cleanString(source.ownerUid),
+    ownerEmail: cleanString(source.ownerEmail),
+    ownerName: cleanString(source.ownerName),
+    migratedAt: cleanString(source.migratedAt)
+  };
+};
+
+const normalizeSyncMeta = (syncMeta = {}) => {
+  const source = asObject(syncMeta);
+  const revision = Number(source.revision);
+
+  return {
+    revision: Number.isFinite(revision) ? revision : 0,
+    updatedByUid: cleanString(source.updatedByUid),
+    updatedByClientId: cleanString(source.updatedByClientId),
+    updatedAt: cleanString(source.updatedAt)
+  };
+};
+
+const normalizePlaceVote = (vote = {}, index = 0) => {
+  const source = asObject(vote);
+  const value = Number(source.value);
+
+  return {
+    voterId: cleanString(source.voterId || source.id || `voter-${index + 1}`),
+    name: cleanString(source.name || source.label, '旅伴'),
+    value: Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 1,
+    votedAt: cleanString(source.votedAt || source.updatedAt)
   };
 };
 
@@ -166,7 +235,8 @@ const normalizePlacePoolItem = (item = {}, index = 0) => {
     status: cleanString(source.status, Number.isFinite(plannedDay) ? 'planned' : 'idea'),
     plannedDay: Number.isFinite(plannedDay) ? plannedDay : null,
     addedAt: cleanString(source.addedAt),
-    plannedAt: cleanString(source.plannedAt)
+    plannedAt: cleanString(source.plannedAt),
+    votes: asArray(source.votes).map(normalizePlaceVote)
   };
 };
 
@@ -219,6 +289,14 @@ export const normalizeTripDocumentForApp = (rawData, fallbackData = createTripAp
     .map(normalizeDayForApp);
   const placePool = asArray(planning.placePool || source.placePool || fallback.placePool)
     .map(normalizePlacePoolItem);
+  const collaboration = normalizeCollaborationSettings(
+    planning.collaboration ||
+    source.collaboration ||
+    legacyDetails.collaboration ||
+    fallback.collaboration
+  );
+  const access = normalizeAccess(source.access || fallback.access);
+  const syncMeta = normalizeSyncMeta(source.syncMeta || fallback.syncMeta);
 
   return {
     ...fallback,
@@ -227,6 +305,9 @@ export const normalizeTripDocumentForApp = (rawData, fallbackData = createTripAp
     tripDetails,
     itinerary,
     placePool,
+    collaboration,
+    access,
+    syncMeta,
     checklists: {
       preTrip: asArray(planning.checklists?.preTrip || source.checklists?.preTrip || fallback.checklists?.preTrip),
       packing: asArray(planning.checklists?.packing || source.checklists?.packing || fallback.checklists?.packing)
@@ -244,12 +325,21 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
   const dateRange = asObject(tripDetails.dateRange);
   const now = new Date().toISOString();
   const previous = asObject(previousDocument);
+  const collaboration = normalizeCollaborationSettings(
+    source.collaboration ||
+    previous.planning?.collaboration ||
+    previous.collaboration
+  );
+  const access = normalizeAccess(source.access || previous.access);
+  const syncMeta = normalizeSyncMeta(source.syncMeta || previous.syncMeta);
 
   return {
     ...previous,
     ...source,
     id: tripId || source.id || previous.id || '',
     schemaVersion: TRIP_SCHEMA_VERSION,
+    access,
+    syncMeta,
     meta: {
       title: cleanString(tripDetails.title, '未命名旅程'),
       status: cleanString(tripDetails.status, 'planning'),
@@ -271,6 +361,7 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
         preTrip: asArray(source.checklists?.preTrip),
         packing: asArray(source.checklists?.packing)
       },
+      collaboration,
       placePool: asArray(source.placePool).map(normalizePlacePoolItem),
       shoppingList: source.shoppingList || previous.planning?.shoppingList || previous.shoppingList || null,
       shoppingCategories: source.shoppingCategories || previous.planning?.shoppingCategories || previous.shoppingCategories || null
@@ -284,6 +375,7 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
     tripDetails,
     itinerary: asArray(source.itinerary).map(normalizeDayForApp),
     placePool: asArray(source.placePool).map(normalizePlacePoolItem),
+    collaboration,
     checklists: {
       preTrip: asArray(source.checklists?.preTrip),
       packing: asArray(source.checklists?.packing)

@@ -736,7 +736,7 @@ const ShoppingItemCard = ({
   );
 };
 
-const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
+const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = false }, ref) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -770,6 +770,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   }, [safeItems, formData.category, filterCategory]);
 
   const openAddForm = useCallback((defaults = {}) => {
+    if (readOnly) return;
     const nextFormData = buildFormData(categories, {
       category: filterCategory !== 'All' ? filterCategory : undefined,
       ...defaults
@@ -779,7 +780,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
     setFormData(nextFormData);
     setImagePreview(nextFormData.image || null);
     setShowAddForm(true);
-  }, [categories, filterCategory]);
+  }, [categories, filterCategory, readOnly]);
 
   useEffect(() => {
     const hasModalOpen =
@@ -823,6 +824,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   }, [tripId]);
 
   const updateItems = (newItems) => {
+    if (readOnly) return;
     setItems(newItems);
     if (tripId) {
       updateShoppingList(tripId, newItems).catch((err) => {
@@ -832,6 +834,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const updateCategories = (newCategories) => {
+    if (readOnly) return;
     setCategories(newCategories);
     if (tripId) {
       Promise.resolve(updateShoppingCategories(tripId, newCategories)).catch((err) => {
@@ -841,6 +844,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const handleAddCategory = () => {
+    if (readOnly) return;
     const nextCategory = newCategoryName.trim();
     if (!nextCategory || categories.includes(nextCategory)) return;
     updateCategories([...categories, nextCategory]);
@@ -848,6 +852,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const requestDeleteCategory = (categoryToDelete) => {
+    if (readOnly) return;
     setConfirmTarget({
       type: 'category',
       value: categoryToDelete,
@@ -858,6 +863,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const handleImageChange = (event) => {
+    if (readOnly) return;
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -878,6 +884,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const handleSaveItem = () => {
+    if (readOnly) return;
     const name = formData.name.trim();
     if (!name) {
       setFormError('請輸入商品名稱');
@@ -913,6 +920,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const handleEditItem = (item) => {
+    if (readOnly) return;
     const nextFormData = buildFormData(categories, {
       name: item.name || '',
       category: item.category || getDefaultCategory(categories),
@@ -930,6 +938,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const requestDeleteItem = (item) => {
+    if (readOnly) return;
     setConfirmTarget({
       type: 'item',
       value: item.id,
@@ -940,6 +949,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const handleConfirmDelete = () => {
+    if (readOnly) return;
     if (!confirmTarget) return;
 
     if (confirmTarget.type === 'item') {
@@ -964,22 +974,26 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const togglePurchased = (id) => {
+    if (readOnly) return;
     updateItems(safeItems.map((item) => (
       getId(item.id) === getId(id) ? { ...item, purchased: !item.purchased } : item
     )));
   };
 
   const handleDragStart = (event, id) => {
+    if (readOnly) return;
     setDraggedItemId(getId(id));
     event.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (event) => {
+    if (readOnly) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   };
 
   const reorderItems = (targetId) => {
+    if (readOnly) return;
     if (!draggedItemId || getId(draggedItemId) === getId(targetId)) return;
     const sourceIndex = safeItems.findIndex((item) => getId(item.id) === getId(draggedItemId));
     const targetIndex = safeItems.findIndex((item) => getId(item.id) === getId(targetId));
@@ -992,17 +1006,20 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange }, ref) => {
   };
 
   const handleDrop = (event, targetId) => {
+    if (readOnly) return;
     event.preventDefault();
     reorderItems(targetId);
     setDraggedItemId(null);
   };
 
   const handleTouchStart = (event, id) => {
+    if (readOnly) return;
     if (!sortMode) return;
     setDraggedItemId(getId(id));
   };
 
   const handleTouchMove = (event) => {
+    if (readOnly) return;
     if (!sortMode || !draggedItemId) return;
     if (event.cancelable) {
       event.preventDefault();

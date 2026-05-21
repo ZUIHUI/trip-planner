@@ -19,6 +19,7 @@ import {
 import { Badge, Button, Card, EmptyState } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import PlacePoolCard from './PlacePoolCard';
+import ShareCollaborationCard from './ShareCollaborationCard';
 
 const emptyText = '未設定';
 const eventTypeLabels = {
@@ -634,6 +635,7 @@ const FlightsCard = ({ flights, onTabChange }) => (
 
 const SummaryTab = ({ onTabChange, onAddEvent }) => {
   const {
+    tripId,
     tripDetails,
     itinerary,
     selectedDay,
@@ -646,6 +648,19 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     placePool,
     setPlacePool,
     setItinerary,
+    collaboration,
+    setCollaboration,
+    currentUser,
+    userProfile,
+    updateDisplayName,
+    isSharedSession,
+    accessRole,
+    canEdit,
+    isReadOnly,
+    members,
+    onlineMembers,
+    presenceByUid,
+    presenceError,
     handleOpenGoogleMaps
   } = useTripWorkspace();
 
@@ -681,13 +696,34 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
 
       <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
 
+      <ShareCollaborationCard
+        tripId={tripId}
+        collaboration={collaboration}
+        setCollaboration={setCollaboration}
+        currentUser={currentUser}
+        userProfile={userProfile}
+        updateDisplayName={updateDisplayName}
+        isSharedSession={isSharedSession}
+        accessRole={accessRole}
+        members={members}
+        onlineMembers={onlineMembers}
+        presenceByUid={presenceByUid}
+        presenceError={presenceError}
+      />
+
       <PlacePoolCard
+        tripId={tripId}
         placePool={placePool}
         setPlacePool={setPlacePool}
         itinerary={itinerary}
         setItinerary={setItinerary}
         selectedDay={selectedDay}
         onAddEvent={onAddEvent}
+        collaboration={collaboration}
+        currentUser={currentUser}
+        userProfile={userProfile}
+        canEdit={canEdit}
+        isReadOnly={isReadOnly}
       />
 
       <TripOverviewCard

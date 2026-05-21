@@ -1,0 +1,168 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function primaryOwnerEmail() {
+      return 'sky32439@gmail.com';
+    }
+
+    function isPrimaryOwner() {
+      return signedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email == primaryOwnerEmail();
+    }
+
+    function tripPath(tripId) {
+      return /databases/$(database)/documents/trips/$(tripId);
+    }
+
+    function memberPath(tripId, uid) {
+      return /databases/$(database)/documents/trips/$(tripId)/members/$(uid);
+    }
+
+    function sharePath(token) {
+      return /databases/$(database)/documents/tripShares/$(token);
+    }
+
+    function hasOwner(data) {
+      return data.keys().hasAny(['access'])
+        && data.access.keys().hasAny(['ownerUid'])
+        && data.access.ownerUid is string
+        && data.access.ownerUid != '';
+    }
+
+    function isTripOwner(tripId) {
+      return signedIn()
+        && get(tripPath(tripId)).data.access.ownerUid == request.auth.uid;
+    }
+
+    function isTripOwnerAfter(tripId) {
+      return signedIn()
+        && getAfter(tripPath(tripId)).data.access.ownerUid == request.auth.uid;
+    }
+
+    function memberRole(tripId) {
+      return get(memberPath(tripId, request.auth.uid)).data.role;
+    }
+
+    function isTripMember(tripId) {
+      return signedIn() && exists(memberPath(tripId, request.auth.uid));
+    }
+
+    function isTripEditor(tripId) {
+      return isTripMember(tripId)
+        && (memberRole(tripId) == 'editor' || memberRole(tripId) == 'edit');
+    }
+
+    function isViewerRole(role) {
+      return role == 'view' || role == 'viewer';
+    }
+
+    function validShareMembership(tripId, role, token) {
+      return token is string
+        && token != ''
+        && exists(sharePath(token))
+        && get(sharePath(token)).data.enabled == true
+        && get(sharePath(token)).data.tripId == tripId
+        && (
+          (get(sharePath(token)).data.permission == 'edit' && (role == 'editor' || role == 'edit'))
+          || (get(sharePath(token)).data.permission == 'view' && isViewerRole(role))
+        );
+    }
+
+    match /userProfiles/{uid} {
+      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    match /trips/{tripId} {
+      allow get: if signedIn()
+        && (
+          resource.data.access.ownerUid == request.auth.uid
+          || exists(memberPath(tripId, request.auth.uid))
+          || (isPrimaryOwner() && !hasOwner(resource.data))
+        );
+
+      allow list: if signedIn()
+        && (
+          isPrimaryOwner()
+          || resource.data.access.ownerUid == request.auth.uid
+          || exists(memberPath(tripId, request.auth.uid))
+          || (isPrimaryOwner() && !hasOwner(resource.data))
+        );
+
+      allow create: if signedIn()
+        && request.resource.data.access.ownerUid == request.auth.uid
+        && request.resource.data.access.ownerEmail == request.auth.token.email;
+
+      allow update: if signedIn()
+        && (
+          resource.data.access.ownerUid == request.auth.uid
+          || (
+            isPrimaryOwner()
+            && !hasOwner(resource.data)
+            && request.resource.data.access.ownerUid == request.auth.uid
+          )
+          || (
+            isTripEditor(tripId)
+            && request.resource.data.access == resource.data.access
+            && request.resource.data.collaboration == resource.data.collaboration
+          )
+        );
+
+      allow delete: if signedIn()
+        && resource.data.access.ownerUid == request.auth.uid;
+
+      match /members/{uid} {
+        allow read: if signedIn()
+          && (
+            resource.data.uid == request.auth.uid
+            || isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create: if signedIn()
+          && request.resource.data.uid == uid
+          && request.resource.data.uid == request.auth.uid
+          && (
+            (
+              request.resource.data.role == 'owner'
+              && isTripOwnerAfter(tripId)
+            )
+            || validShareMembership(
+              tripId,
+              request.resource.data.role,
+              request.resource.data.shareToken
+            )
+          );
+
+        allow update, delete: if signedIn() && isTripOwner(tripId);
+      }
+    }
+
+    match /tripShares/{token} {
+      allow get: if signedIn()
+        && resource.data.enabled == true;
+
+      allow list: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.createdByUid == request.auth.uid
+        && request.resource.data.tripId is string
+        && request.resource.data.permission in ['view', 'edit']
+        && request.resource.data.enabled == true
+        && isTripOwner(request.resource.data.tripId);
+
+      allow update, delete: if signedIn()
+        && isTripOwner(resource.data.tripId);
+    }
+
+    match /appMeta/{documentId} {
+      allow read, write: if isPrimaryOwner();
+    }
+  }
+}

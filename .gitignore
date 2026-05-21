@@ -1,5 +1,8 @@
 .env.local
 node_modules/
+functions/node_modules/
+.firebase/
+functions/.runtimeconfig.json
 dist/
 dev.log
 firebase-debug.log

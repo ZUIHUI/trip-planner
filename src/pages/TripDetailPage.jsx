@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Save, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
@@ -16,6 +16,7 @@ import ShoppingTab from '../components/trip/ShoppingTab';
 import ExpensesTab from '../components/trip/ExpensesTab';
 import { TripWorkspaceProvider } from '../contexts/TripWorkspaceContext';
 import { useTrip } from '../hooks/useTrip';
+import { useTripPresence } from '../hooks/useTripPresence';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { fetchJPYRate } from '../services/currencyService';
@@ -24,15 +25,16 @@ import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../servi
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
-import { Button, LoadingState, PageContainer } from '../components/ui';
+import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { useAuth } from '../contexts/AuthContext';
 
-const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
 const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
+const getTripIndexKey = (uid) => `trip_planner_trip_index_${uid || 'guest'}`;
 
 const getDateRangeDays = (startDate, endDate) => {
   if (!startDate || !endDate) return 0;
@@ -65,9 +67,10 @@ const buildAutoItineraryFromDateRange = (existingItinerary, startDate, endDate) 
   });
 };
 
-const syncTripMetaToLocalIndex = (tripId, patch) => {
+const syncTripMetaToLocalIndex = (tripId, patch, uid) => {
   try {
-    const raw = localStorage.getItem(TRIP_INDEX_KEY);
+    const storageKey = getTripIndexKey(uid);
+    const raw = localStorage.getItem(storageKey);
     const list = raw ? JSON.parse(raw) : [];
     const safeList = Array.isArray(list) ? list : [];
     const targetIndex = safeList.findIndex((trip) => trip.id === tripId);
@@ -89,7 +92,7 @@ const syncTripMetaToLocalIndex = (tripId, patch) => {
       });
     }
 
-    localStorage.setItem(TRIP_INDEX_KEY, JSON.stringify(safeList));
+    localStorage.setItem(storageKey, JSON.stringify(safeList));
   } catch (error) {
     console.warn('⚠️ 更新旅程索引失敗:', error);
   }
@@ -99,7 +102,13 @@ const TripDetailPage = () => {
   const { tripId: paramTripId } = useParams();
   const tripId = typeof paramTripId === 'string' ? paramTripId.trim() : '';
   const navigate = useNavigate();
+  const location = useLocation();
   const { confirm, toast } = useFeedback();
+  const { currentUser, userProfile, updateDisplayName, logout } = useAuth();
+  const shareToken = useMemo(
+    () => new URLSearchParams(location.search).get('share') || '',
+    [location.search]
+  );
   const [activeTab, setActiveTab] = useState('itinerary');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -154,9 +163,36 @@ const TripDetailPage = () => {
     setExpenses,
     placePool,
     setPlacePool,
+    collaboration,
+    setCollaboration,
+    accessError,
+    accessRole,
+    canEdit,
+    isReadOnly,
+    members,
+    syncConflict,
+    resolveConflict,
     isSaving,
+    saveError,
     saveNow
-  } = useTrip(tripId, defaultTripDetails, defaultItinerary);
+  } = useTrip(tripId, defaultTripDetails, defaultItinerary, {
+    currentUser,
+    userProfile,
+    shareToken
+  });
+  const {
+    onlineMembers,
+    presenceByUid,
+    presenceError,
+    updatePresenceEditingTarget
+  } = useTripPresence({
+    tripId,
+    currentUser,
+    userProfile,
+    accessRole,
+    activeTab,
+    enabled: !isLoading && !accessError
+  });
 
   const budgetInfo = useBudget(itinerary, expenses, exchangeRate);
   const totalEvents = useMemo(
@@ -180,8 +216,8 @@ const TripDetailPage = () => {
       title: tripDetails?.title || '未命名旅程',
       status: tripDetails?.status || 'planning',
       coverImage: tripDetails?.coverImage || ''
-    });
-  }, [tripId]);
+    }, currentUser?.uid);
+  }, [tripId, currentUser?.uid]);
 
   useEffect(() => {
     if (!tripId) return;
@@ -195,8 +231,8 @@ const TripDetailPage = () => {
       status: tripDetails?.status || 'planning',
       coverImage: tripDetails?.coverImage || '',
       eventCount: totalEvents
-    });
-  }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents]);
+    }, currentUser?.uid);
+  }, [tripId, tripDetails?.title, tripDetails?.status, tripDetails?.coverImage, totalEvents, currentUser?.uid]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -384,7 +420,23 @@ const TripDetailPage = () => {
     };
   }, [coverImageUrl]);
 
+  useEffect(() => {
+    if (!isEditModalOpen || isEventViewMode) {
+      updatePresenceEditingTarget('');
+      return undefined;
+    }
+
+    const target = editingEvent?.id ? `event:${editingEvent.id}` : 'event:new';
+    updatePresenceEditingTarget(target);
+    return () => updatePresenceEditingTarget('');
+  }, [isEditModalOpen, isEventViewMode, editingEvent?.id, updatePresenceEditingTarget]);
+
   const handleSaveEvent = (eventData) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '唯讀模式', description: '你目前沒有編輯這趟旅程的權限。' });
+      return;
+    }
+
     if (editingEvent) {
       setItinerary(prev => prev.map(day => {
         if (day.day === selectedDay) {
@@ -414,6 +466,11 @@ const TripDetailPage = () => {
   };
 
   const handleDeleteEvent = async (id) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '唯讀模式', description: '你目前沒有刪除行程的權限。' });
+      return;
+    }
+
     const targetDay = itinerary.find((day) => day.day === selectedDay);
     const targetEvent = targetDay?.events?.find((event) => event.id === id);
     if (!targetEvent) return;
@@ -455,12 +512,14 @@ const TripDetailPage = () => {
   };
 
   const handleUpdateDayMeta = (dayNumber, patch) => {
+    if (!canEdit) return;
     setItinerary(prev => prev.map(day => (
       day.day === dayNumber ? { ...day, ...patch } : day
     )));
   };
 
   const startDayMetaEdit = () => {
+    if (!canEdit) return;
     setDayMetaDraft({ title: currentDayTitle, date: currentDayDate });
     setIsEditingDayMeta(true);
   };
@@ -471,6 +530,7 @@ const TripDetailPage = () => {
   };
 
   const saveDayMeta = () => {
+    if (!canEdit) return;
     handleUpdateDayMeta(selectedDay, {
       title: dayMetaDraft.title.trim() || `Day ${selectedDay}`,
       date: dayMetaDraft.date.trim() || `Day ${selectedDay}`
@@ -479,12 +539,22 @@ const TripDetailPage = () => {
   };
 
   const openAddModal = () => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '唯讀模式', description: '你目前只能查看這趟旅程。' });
+      return;
+    }
+
     setEditingEvent(null);
     setIsEventViewMode(false);
     setIsEditModalOpen(true);
   };
 
   const openEditModal = (event, viewMode = false) => {
+    if (!canEdit && !viewMode) {
+      toast({ variant: 'warning', title: '唯讀模式', description: '你目前只能查看行程詳情。' });
+      return;
+    }
+
     setEditingEvent(event);
     setIsEventViewMode(viewMode);
     setSelectedEventLocation(event?.location || null);
@@ -532,6 +602,14 @@ const TripDetailPage = () => {
   };
 
   const handleLookupFlight = async (direction) => {
+    if (!canEdit) {
+      setFlightLookupError((prev) => ({
+        ...prev,
+        [direction]: '唯讀模式不能更新航班資料'
+      }));
+      return;
+    }
+
     const currentFlight = tripDetails?.flights?.[direction] || {};
     const code = currentFlight.code || '';
     const departureDate = direction === 'outbound'
@@ -600,6 +678,23 @@ const TripDetailPage = () => {
     setExpenses,
     placePool,
     setPlacePool,
+    collaboration,
+    setCollaboration,
+    currentUser,
+    userProfile,
+    updateDisplayName,
+    logout,
+    isSharedSession: Boolean(shareToken),
+    accessRole,
+    canEdit,
+    isReadOnly,
+    members,
+    onlineMembers,
+    presenceByUid,
+    presenceError,
+    updatePresenceEditingTarget,
+    syncConflict,
+    resolveConflict,
     exchangeRate,
     shoppingListRef,
     expenseTrackerRef,
@@ -640,6 +735,22 @@ const TripDetailPage = () => {
     checklists,
     expenses,
     placePool,
+    collaboration,
+    currentUser,
+    userProfile,
+    updateDisplayName,
+    logout,
+    shareToken,
+    accessRole,
+    canEdit,
+    isReadOnly,
+    members,
+    onlineMembers,
+    presenceByUid,
+    presenceError,
+    updatePresenceEditingTarget,
+    syncConflict,
+    resolveConflict,
     selectedDay,
     currentDayData,
     currentDayTitle,
@@ -668,6 +779,20 @@ const TripDetailPage = () => {
     );
   }
 
+  if (accessError) {
+    return (
+      <div className="tp-page-shell flex min-h-screen items-center justify-center p-4 font-sans">
+        <ErrorState
+          title="無法開啟旅程"
+          description={accessError}
+          actionLabel="回旅程列表"
+          onAction={() => navigate('/')}
+          className="w-full max-w-md"
+        />
+      </div>
+    );
+  }
+
   const isAnyModalOpen = isEditModalOpen || isSettingsOpen || isExpenseModalOpen || isShoppingModalOpen;
 
   return (
@@ -684,6 +809,30 @@ const TripDetailPage = () => {
 
       <PageContainer className="pb-24 lg:pb-36">
         <div className="pt-4">
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm font-semibold ${
+            isReadOnly
+              ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200'
+          }`}>
+            {isReadOnly ? '唯讀模式：你可以查看這趟旅程，但不能修改。' : `協作權限：${accessRole === 'owner' ? 'Owner' : (accessRole === 'editor' || accessRole === 'edit') ? 'Editor' : '可編輯'}`}
+          </div>
+
+          {(saveError || syncConflict) && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+              <p>{syncConflict ? '偵測到遠端已有新版本，請選擇要保留哪一版。' : saveError}</p>
+              {syncConflict && (
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <Button size="sm" variant="secondary" onClick={() => resolveConflict('remote')}>
+                    套用遠端版本
+                  </Button>
+                  <Button size="sm" onClick={() => resolveConflict('local')}>
+                    保留我的版本並覆蓋
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'summary' && (
             <SummaryTab onTabChange={setActiveTab} onAddEvent={openAddModal} />
           )}
@@ -728,7 +877,7 @@ const TripDetailPage = () => {
           <EventDetailView
             event={editingEvent}
             prevLocation={editingEventPrevLocation}
-            onEdit={() => setIsEventViewMode(false)}
+            onEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
             onClose={() => {
               setIsEditModalOpen(false);
               setEditingEvent(null);
@@ -740,6 +889,8 @@ const TripDetailPage = () => {
           <EditEventForm
             event={editingEvent}
             onSave={handleSaveEvent}
+            readOnly={isReadOnly}
+            onRequestEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
             onCancel={() => {
               setIsEditModalOpen(false);
               setEditingEvent(null);
@@ -782,6 +933,7 @@ const TripDetailPage = () => {
             <div className="sm:hidden">
               <Button
                 onClick={openAddModal}
+                disabled={!canEdit}
                 className="w-full"
               >
                 <Plus size={17} />
@@ -791,6 +943,7 @@ const TripDetailPage = () => {
             <div className="hidden grid-cols-3 gap-2 sm:grid">
               <Button
                 onClick={openAddModal}
+                disabled={!canEdit}
                 className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
               >
                 <Plus size={16} />
@@ -799,6 +952,7 @@ const TripDetailPage = () => {
               <Button
                 variant="secondary"
                 onClick={saveNow}
+                disabled={!canEdit}
                 className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
               >
                 <Save size={16} />
@@ -824,6 +978,7 @@ const TripDetailPage = () => {
           <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
             <Button
               onClick={() => shoppingListRef.current?.openAddForm?.()}
+              disabled={!canEdit}
               className="w-full"
             >
               <Plus size={16} />
@@ -838,6 +993,7 @@ const TripDetailPage = () => {
           <div className="mx-auto max-w-3xl rounded-lg border border-slate-200/80 bg-white/[0.88] p-2 shadow-lg supports-[backdrop-filter]:bg-white/[0.72] supports-[backdrop-filter]:backdrop-blur sm:max-w-none dark:border-slate-800 dark:bg-slate-900/[0.88]">
             <Button
               onClick={() => expenseTrackerRef.current?.openAddForm?.()}
+              disabled={!canEdit}
               className="w-full"
             >
               <Plus size={16} />

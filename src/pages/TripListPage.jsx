@@ -9,22 +9,24 @@ import {
   PlaneTakeoff,
   Plus,
   Search,
+  UserRound,
   Trash2
 } from 'lucide-react';
-import { createTrip, deleteTrip, listTrips } from '../services/tripService';
+import { claimOwnerlessTrips, createTrip, deleteTrip, isPrimaryOwnerAccount, listTrips } from '../services/tripService';
 import { createTripAppData } from '../domain/tripSchema';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { useAuth } from '../contexts/AuthContext';
 
-const TRIP_INDEX_KEY = 'trip_planner_trip_index';
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 
-const getStorageKey = (tripId) => `trip_planner_data_${tripId}`;
+const getTripIndexKey = (uid) => `trip_planner_trip_index_${uid || 'guest'}`;
+const getStorageKey = (tripId, uid) => `trip_planner_data_${uid || 'guest'}_${tripId}`;
 
-const loadLocalTrips = () => {
+const loadLocalTrips = (uid) => {
   try {
-    const raw = localStorage.getItem(TRIP_INDEX_KEY);
+    const raw = localStorage.getItem(getTripIndexKey(uid));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -33,8 +35,8 @@ const loadLocalTrips = () => {
   }
 };
 
-const saveLocalTrips = (trips) => {
-  localStorage.setItem(TRIP_INDEX_KEY, JSON.stringify(trips));
+const saveLocalTrips = (uid, trips) => {
+  localStorage.setItem(getTripIndexKey(uid), JSON.stringify(trips));
 };
 
 const setLastOpenedTripId = (tripId) => {
@@ -83,7 +85,8 @@ const TripCard = ({
   onCoverError,
   onOpen,
   onToggleExpanded,
-  onDelete
+  onDelete,
+  canDelete = false
 }) => {
   const coverImageUrl = normalizeCoverImageUrl(trip.coverImage);
   const showCover = coverImageUrl && !coverFailed;
@@ -166,7 +169,7 @@ const TripCard = ({
                 {formatDateRange(trip)}
               </span>
             </div>
-            <div className="flex justify-end">
+            <div className={canDelete ? 'flex justify-end' : 'hidden'}>
               <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
                 <Trash2 size={14} />
                 刪除旅程
@@ -182,6 +185,8 @@ const TripCard = ({
 const TripListPage = () => {
   const navigate = useNavigate();
   const { confirm, toast } = useFeedback();
+  const { currentUser, userProfile, logout } = useAuth();
+  const uid = currentUser?.uid || '';
   const newTripInputRef = useRef(null);
   const [trips, setTrips] = useState([]);
   const [newTripTitle, setNewTripTitle] = useState('');
@@ -190,15 +195,19 @@ const TripListPage = () => {
   const [failedCoverImages, setFailedCoverImages] = useState({});
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [expandedCards, setExpandedCards] = useState({});
+  const [migrationStatus, setMigrationStatus] = useState(null);
+  const [isClaimingOwnerlessTrips, setIsClaimingOwnerlessTrips] = useState(false);
 
   useEffect(() => {
+    if (!currentUser) return undefined;
+
     const init = async () => {
-      const localTrips = loadLocalTrips();
+      const localTrips = loadLocalTrips(uid);
       setTrips(localTrips);
       setIsLoading(false);
 
       try {
-        const remoteTrips = await listTrips();
+        const remoteTrips = await listTrips({ user: currentUser });
         if (remoteTrips.length > 0) {
           const mergedMap = new Map();
 
@@ -217,13 +226,14 @@ const TripListPage = () => {
               dateRange: trip.dateRange || localTrip?.dateRange || { start: '', end: '' },
               eventCount: trip.eventCount ?? localTrip?.eventCount ?? 0,
               updatedAt,
-              createdAt: trip.createdAt || localTrip?.createdAt || updatedAt
+              createdAt: trip.createdAt || localTrip?.createdAt || updatedAt,
+              accessRole: trip.accessRole || localTrip?.accessRole || 'view'
             });
           });
 
           const mergedTrips = Array.from(mergedMap.values());
           setTrips(mergedTrips);
-          saveLocalTrips(mergedTrips);
+          saveLocalTrips(uid, mergedTrips);
         }
       } catch (error) {
         console.warn('讀取雲端旅程列表失敗，改用本地資料', error);
@@ -231,7 +241,8 @@ const TripListPage = () => {
     };
 
     init();
-  }, []);
+    return undefined;
+  }, [currentUser, uid]);
 
   const sortedAndFilteredTrips = useMemo(() => {
     return trips
@@ -268,15 +279,16 @@ const TripListPage = () => {
       dateRange: { start: '', end: '' },
       eventCount: 0,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      accessRole: 'owner'
     };
 
     const optimisticTrips = [nextTripMeta, ...trips];
     setTrips(optimisticTrips);
-    saveLocalTrips(optimisticTrips);
+    saveLocalTrips(uid, optimisticTrips);
 
     localStorage.setItem(
-      getStorageKey(tripId),
+      getStorageKey(tripId, uid),
       JSON.stringify({
         ...template,
         savedAt: now
@@ -288,14 +300,14 @@ const TripListPage = () => {
         ...template,
         createdAt: now,
         updatedAt: now
-      });
+      }, { user: currentUser, profile: userProfile });
       setNewTripTitle('');
       setLastOpenedTripId(tripId);
       navigate(`/trip/${tripId}`);
     } catch (error) {
       setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
-      saveLocalTrips(optimisticTrips.filter((trip) => trip.id !== tripId));
-      localStorage.removeItem(getStorageKey(tripId));
+      saveLocalTrips(uid, optimisticTrips.filter((trip) => trip.id !== tripId));
+      localStorage.removeItem(getStorageKey(tripId, uid));
       toast({
         variant: 'danger',
         title: '建立旅程失敗',
@@ -323,10 +335,10 @@ const TripListPage = () => {
     const prevTrips = [...trips];
     const nextTrips = trips.filter((trip) => trip.id !== tripId);
     setTrips(nextTrips);
-    saveLocalTrips(nextTrips);
+    saveLocalTrips(uid, nextTrips);
 
-    const localTripRaw = localStorage.getItem(getStorageKey(tripId));
-    localStorage.removeItem(getStorageKey(tripId));
+    const localTripRaw = localStorage.getItem(getStorageKey(tripId, uid));
+    localStorage.removeItem(getStorageKey(tripId, uid));
 
     try {
       await deleteTrip(tripId);
@@ -337,9 +349,9 @@ const TripListPage = () => {
       });
     } catch (error) {
       setTrips(prevTrips);
-      saveLocalTrips(prevTrips);
+      saveLocalTrips(uid, prevTrips);
       if (localTripRaw) {
-        localStorage.setItem(getStorageKey(tripId), localTripRaw);
+        localStorage.setItem(getStorageKey(tripId, uid), localTripRaw);
       }
       toast({
         variant: 'danger',
@@ -362,9 +374,65 @@ const TripListPage = () => {
     }));
   };
 
+  const handleClaimOwnerlessTrips = async () => {
+    setIsClaimingOwnerlessTrips(true);
+    setMigrationStatus(null);
+    try {
+      const result = await claimOwnerlessTrips({ user: currentUser, profile: userProfile });
+      setMigrationStatus(`已綁定 ${result.claimed} 筆旅程，略過 ${result.skipped} 筆已有 Owner 的旅程。`);
+      const remoteTrips = await listTrips({ user: currentUser });
+      setTrips(remoteTrips);
+      saveLocalTrips(uid, remoteTrips);
+    } catch (error) {
+      setMigrationStatus(error.message || '綁定既有旅程失敗');
+    } finally {
+      setIsClaimingOwnerlessTrips(false);
+    }
+  };
+
   return (
     <main className="tp-page-shell">
       <PageContainer className="py-6 sm:py-8">
+        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="tp-icon-chip bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              <UserRound size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-slate-900 dark:text-white">
+                {userProfile?.displayName || currentUser?.displayName || currentUser?.email || '已登入'}
+              </p>
+              <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {currentUser?.email || '帳號旅程已隔離保存'}
+              </p>
+            </div>
+          </div>
+          <Button variant="secondary" size="sm" onClick={logout}>
+            登出
+          </Button>
+        </div>
+
+        {isPrimaryOwnerAccount(currentUser) && (
+          <Card className="mb-4 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="tp-section-title">既有雲端旅程 Owner 綁定</h2>
+                <p className="tp-section-subtitle mt-1">
+                  只會綁定尚未有 Owner 的舊旅程，已有 Owner 的旅程不會覆蓋。
+                </p>
+              </div>
+              <Button onClick={handleClaimOwnerlessTrips} disabled={isClaimingOwnerlessTrips} className="justify-center">
+                {isClaimingOwnerlessTrips ? '綁定中...' : '綁定既有旅程'}
+              </Button>
+            </div>
+            {migrationStatus && (
+              <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                {migrationStatus}
+              </p>
+            )}
+          </Card>
+        )}
+
         <section className="overflow-hidden rounded-lg border border-brand-100 bg-white shadow-sm dark:border-brand-900/60 dark:bg-slate-900">
           <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="p-5 sm:p-7">
@@ -469,6 +537,7 @@ const TripListPage = () => {
                     onOpen={() => openTripDetail(trip.id)}
                     onToggleExpanded={() => toggleExpandedCard(trip.id)}
                     onDelete={() => handleDeleteTrip(trip.id)}
+                    canDelete={trip.accessRole === 'owner'}
                   />
                 ))}
               </div>

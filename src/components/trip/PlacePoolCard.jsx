@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, Trash2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, ThumbsUp, Trash2, UsersRound } from 'lucide-react';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { Badge, Button, Card, Field } from '../ui';
@@ -8,6 +8,13 @@ const makePlaceId = () => `place-${Date.now()}-${Math.random().toString(36).slic
 
 const readPlaceName = (place) => String(place?.name || place?.address || '').trim();
 const readPlaceAddress = (place) => String(place?.address || place?.name || '').trim();
+
+const getVoteScore = (votes = []) => (Array.isArray(votes) ? votes : [])
+  .reduce((total, vote) => total + Number(vote?.value || 0), 0);
+
+const getVoteNames = (votes = []) => (Array.isArray(votes) ? votes : [])
+  .filter((vote) => Number(vote?.value || 0) > 0)
+  .map((vote) => String(vote?.name || '旅伴').trim() || '旅伴');
 
 const createPlaceItem = (draftText, selectedPlace) => {
   const fallbackText = String(draftText || '').trim();
@@ -25,7 +32,8 @@ const createPlaceItem = (draftText, selectedPlace) => {
     status: 'idea',
     plannedDay: null,
     addedAt: new Date().toISOString(),
-    plannedAt: ''
+    plannedAt: '',
+    votes: []
   };
 };
 
@@ -46,7 +54,7 @@ const createEventFromPlace = (place) => {
       lat: typeof place.lat === 'number' ? place.lat : null,
       lng: typeof place.lng === 'number' ? place.lng : null
     },
-    desc: place.note ? `想去原因：${place.note}` : '',
+    desc: place.note ? `地點池備註：${place.note}` : '',
     urgent: false,
     url: '',
     currency: 'JPY',
@@ -56,11 +64,24 @@ const createEventFromPlace = (place) => {
   };
 };
 
-const PlacePoolItem = ({ place, selectedDay, onSchedule, onDelete }) => {
+const PlacePoolItem = ({
+  place,
+  selectedDay,
+  onSchedule,
+  onDelete,
+  onVote,
+  votesEnabled = true,
+  voterId,
+  canEdit = true
+}) => {
   const title = readPlaceName(place) || '未命名地點';
   const address = readPlaceAddress(place);
   const mapsUrl = buildGoogleMapsSearchUrl(place);
   const isPlannedForCurrentDay = Number(place.plannedDay) === Number(selectedDay);
+  const votes = Array.isArray(place.votes) ? place.votes : [];
+  const voteScore = getVoteScore(votes);
+  const votedByMe = votes.some((vote) => vote.voterId === voterId && Number(vote.value) > 0);
+  const voterNames = getVoteNames(votes).slice(0, 3);
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
@@ -74,6 +95,12 @@ const PlacePoolItem = ({ place, selectedDay, onSchedule, onDelete }) => {
                 Day {place.plannedDay}
               </Badge>
             )}
+            {voteScore > 0 && (
+              <Badge variant="info">
+                <ThumbsUp size={12} />
+                {voteScore} 票
+              </Badge>
+            )}
           </div>
           {address && address !== title && (
             <p className="mt-1 flex items-start gap-1.5 break-words text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -82,27 +109,50 @@ const PlacePoolItem = ({ place, selectedDay, onSchedule, onDelete }) => {
             </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => onDelete(place.id)}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-300"
-          aria-label={`移除 ${title}`}
-          title="移除"
-        >
-          <Trash2 size={16} />
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => onDelete(place.id)}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+            aria-label={`刪除 ${title}`}
+            title="刪除"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
+
+      {votesEnabled && (
+        <div className="mt-3 flex min-w-0 flex-col gap-2 rounded-lg bg-slate-50 p-2 dark:bg-slate-800/70 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
+              <UsersRound size={13} />
+              {voterNames.length ? voterNames.join('、') : '還沒有人投票'}
+            </p>
+          </div>
+          <Button
+            variant={votedByMe ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => onVote(place.id, 1)}
+            disabled={!canEdit}
+            className="justify-center"
+          >
+            <ThumbsUp size={14} />
+            {votedByMe ? '已投票' : '想去'}
+          </Button>
+        </div>
+      )}
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <Button
           variant={isPlannedForCurrentDay ? 'secondary' : 'primary'}
           size="sm"
           onClick={() => onSchedule(place)}
-          disabled={isPlannedForCurrentDay}
+          disabled={!canEdit || isPlannedForCurrentDay}
           className="w-full justify-center"
         >
           <CalendarPlus size={14} />
-          {isPlannedForCurrentDay ? `已在 Day ${selectedDay}` : `排入 Day ${selectedDay}`}
+          {isPlannedForCurrentDay ? `已排入 Day ${selectedDay}` : `排入 Day ${selectedDay}`}
         </Button>
         {mapsUrl && (
           <Button
@@ -124,19 +174,41 @@ const PlacePoolItem = ({ place, selectedDay, onSchedule, onDelete }) => {
 };
 
 const PlacePoolCard = ({
+  tripId,
   placePool = [],
   setPlacePool,
   itinerary = [],
   setItinerary,
   selectedDay = 1,
-  onAddEvent
+  onAddEvent,
+  collaboration = {},
+  currentUser,
+  userProfile,
+  canEdit = true,
+  isReadOnly = false
 }) => {
-  const [draftText, setDraftText] = useState('');
-  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [draftText, setDraftText] = React.useState('');
+  const [selectedPlace, setSelectedPlace] = React.useState(null);
   const safePlacePool = Array.isArray(placePool) ? placePool : [];
-  const visiblePlaces = useMemo(() => safePlacePool.slice(0, 8), [safePlacePool]);
+  const visiblePlaces = useMemo(() => safePlacePool
+    .slice()
+    .sort((a, b) => {
+      const scoreDiff = getVoteScore(b.votes) - getVoteScore(a.votes);
+      if (scoreDiff !== 0) return scoreDiff;
+      return String(b.addedAt || '').localeCompare(String(a.addedAt || ''));
+    })
+    .slice(0, 8), [safePlacePool]);
   const targetDay = selectedDay || itinerary[0]?.day || 1;
-  const canAdd = Boolean(String(draftText || '').trim() || selectedPlace);
+  const canAdd = canEdit && Boolean(String(draftText || '').trim() || selectedPlace);
+  const votesEnabled = collaboration?.votesEnabled !== false;
+  const voterId = currentUser?.uid || '';
+  const voterName = (
+    userProfile?.displayName
+    || userProfile?.email
+    || currentUser?.displayName
+    || currentUser?.email
+    || '旅伴'
+  );
 
   const handleAddPlace = () => {
     if (!canAdd) return;
@@ -149,6 +221,7 @@ const PlacePoolCard = ({
   };
 
   const handleSchedulePlace = (place) => {
+    if (!canEdit) return;
     const nextEvent = createEventFromPlace(place);
 
     setItinerary((prev) => (Array.isArray(prev) ? prev : []).map((day) => {
@@ -172,7 +245,35 @@ const PlacePoolCard = ({
   };
 
   const handleDeletePlace = (placeId) => {
+    if (!canEdit) return;
     setPlacePool((prev) => (Array.isArray(prev) ? prev : []).filter((item) => item.id !== placeId));
+  };
+
+  const handleVotePlace = (placeId, value) => {
+    if (!canEdit || !votesEnabled || !voterId) return;
+
+    setPlacePool((prev) => (Array.isArray(prev) ? prev : []).map((item) => {
+      if (item.id !== placeId) return item;
+
+      const votes = Array.isArray(item.votes) ? item.votes : [];
+      const existingVote = votes.find((vote) => vote.voterId === voterId);
+      const nextVotes = existingVote?.value === value
+        ? votes.filter((vote) => vote.voterId !== voterId)
+        : [
+            ...votes.filter((vote) => vote.voterId !== voterId),
+            {
+              voterId,
+              name: voterName,
+              value,
+              votedAt: new Date().toISOString()
+            }
+          ];
+
+      return {
+        ...item,
+        votes: nextVotes
+      };
+    }));
   };
 
   return (
@@ -184,14 +285,16 @@ const PlacePoolCard = ({
           </div>
           <div className="min-w-0">
             <h3 className="tp-section-title">想去地點池</h3>
-            <p className="tp-section-subtitle mt-1">先收藏想去的點，再排進每天行程。</p>
+            <p className="tp-section-subtitle mt-1">
+              先收藏想去的地方，再依照每天路線排入行程。
+            </p>
           </div>
         </div>
         <Badge variant="muted">{safePlacePool.length} 個</Badge>
       </div>
 
       <div className="grid gap-3">
-        <Field label="新增地點" htmlFor="place-pool-input">
+        <Field label="加入地點" htmlFor="place-pool-input">
           <GooglePlaceInput
             id="place-pool-input"
             value={draftText}
@@ -202,9 +305,10 @@ const PlacePoolCard = ({
             onPlaceSelect={setSelectedPlace}
             selectedPlace={selectedPlace}
             onClearPlace={() => setSelectedPlace(null)}
-            placeholder="輸入景點、餐廳或商店"
-            ariaLabel="新增想去地點"
+            placeholder={isReadOnly ? 'Viewer 只能查看地點池' : '輸入景點、餐廳或地址'}
+            ariaLabel="加入想去地點"
             className="tp-input"
+            disabled={isReadOnly}
           />
         </Field>
 
@@ -223,13 +327,17 @@ const PlacePoolCard = ({
               selectedDay={targetDay}
               onSchedule={handleSchedulePlace}
               onDelete={handleDeletePlace}
+              onVote={handleVotePlace}
+              votesEnabled={votesEnabled}
+              voterId={voterId}
+              canEdit={canEdit}
             />
           ))
         ) : (
           <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            還沒有收藏地點。也可以先直接新增行程。
+            還沒有收藏地點。可以先搜尋景點或直接新增行程。
             <div className="mt-3">
-              <Button variant="secondary" size="sm" onClick={onAddEvent}>
+              <Button variant="secondary" size="sm" onClick={onAddEvent} disabled={!canEdit}>
                 <Plus size={14} />
                 新增行程
               </Button>
