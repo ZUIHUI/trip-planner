@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
   ChevronDown,
+  Check,
   Clock3,
   Compass,
   MapPin,
@@ -12,7 +13,14 @@ import {
   UserRound,
   Trash2
 } from 'lucide-react';
-import { claimOwnerlessTrips, createTrip, deleteTrip, isPrimaryOwnerAccount, listTrips } from '../services/tripService';
+import {
+  claimOwnerlessTrips,
+  createTrip,
+  deleteTrip,
+  isPrimaryOwnerAccount,
+  listTrips,
+  updateCurrentUserMemberProfiles
+} from '../services/tripService';
 import { createTripAppData } from '../domain/tripSchema';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } from '../components/ui';
@@ -185,7 +193,7 @@ const TripCard = ({
 const TripListPage = () => {
   const navigate = useNavigate();
   const { confirm, toast } = useFeedback();
-  const { currentUser, userProfile, logout } = useAuth();
+  const { currentUser, userProfile, updateDisplayName, logout } = useAuth();
   const uid = currentUser?.uid || '';
   const newTripInputRef = useRef(null);
   const [trips, setTrips] = useState([]);
@@ -197,6 +205,12 @@ const TripListPage = () => {
   const [expandedCards, setExpandedCards] = useState({});
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [isClaimingOwnerlessTrips, setIsClaimingOwnerlessTrips] = useState(false);
+  const [nicknameDraft, setNicknameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
+  const [isSavingNickname, setIsSavingNickname] = useState(false);
+
+  useEffect(() => {
+    setNicknameDraft(userProfile?.displayName || currentUser?.displayName || '');
+  }, [userProfile?.displayName, currentUser?.displayName]);
 
   useEffect(() => {
     if (!currentUser) return undefined;
@@ -374,6 +388,42 @@ const TripListPage = () => {
     }));
   };
 
+  const handleSaveNickname = async (event) => {
+    event.preventDefault();
+    const nextName = nicknameDraft.trim();
+
+    if (!nextName) {
+      toast({
+        variant: 'warning',
+        title: '請輸入暱稱'
+      });
+      return;
+    }
+
+    setIsSavingNickname(true);
+    try {
+      await updateDisplayName(nextName);
+      const result = await updateCurrentUserMemberProfiles({
+        user: currentUser,
+        displayName: nextName,
+        photoURL: currentUser?.photoURL || ''
+      });
+      toast({
+        variant: 'success',
+        title: '暱稱已更新',
+        description: result.updated ? `已同步 ${result.updated} 個旅程成員資料。` : '新旅程會使用這個暱稱。'
+      });
+    } catch (error) {
+      toast({
+        variant: 'danger',
+        title: '暱稱更新失敗',
+        description: error.message || '請稍後再試。'
+      });
+    } finally {
+      setIsSavingNickname(false);
+    }
+  };
+
   const handleClaimOwnerlessTrips = async () => {
     setIsClaimingOwnerlessTrips(true);
     setMigrationStatus(null);
@@ -405,6 +455,20 @@ const TripListPage = () => {
               <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
                 {currentUser?.email || '帳號旅程已隔離保存'}
               </p>
+              <form onSubmit={handleSaveNickname} className="mt-2 flex max-w-md flex-col gap-2 sm:flex-row">
+                <Input
+                  type="text"
+                  value={nicknameDraft}
+                  onChange={(event) => setNicknameDraft(event.target.value)}
+                  placeholder="設定你的暱稱"
+                  aria-label="設定你的暱稱"
+                  className="h-9 text-sm"
+                />
+                <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
+                  <Check size={15} />
+                  {isSavingNickname ? '儲存中...' : '儲存暱稱'}
+                </Button>
+              </form>
             </div>
           </div>
           <Button variant="secondary" size="sm" onClick={logout}>

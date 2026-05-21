@@ -116,6 +116,24 @@ export const updateTripMemberProfile = async ({ tripId, user, displayName = '', 
   return true;
 };
 
+export const updateCurrentUserMemberProfiles = async ({ user, displayName = '', photoURL = '' } = {}) => {
+  requireUser(user);
+  const snapshot = await getDocs(query(collectionGroup(db, 'members'), where('uid', '==', user.uid)));
+  const safeDisplayName = String(displayName || '').trim() || getUserName(user);
+  const operations = snapshot.docs.map((snapshotDoc) => (batch) => {
+    batch.update(snapshotDoc.ref, {
+      uid: user.uid,
+      email: user.email || '',
+      displayName: safeDisplayName,
+      photoURL: photoURL || user.photoURL || '',
+      updatedAt: new Date().toISOString()
+    });
+  });
+
+  await commitInChunks(operations);
+  return { updated: snapshot.size };
+};
+
 export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' }) => {
   requireUser(user);
 
