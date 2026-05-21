@@ -151,6 +151,17 @@ service cloud.firestore {
           );
 
         allow update, delete: if signedIn() && isTripOwner(tripId);
+
+        allow update: if signedIn()
+          && uid == request.auth.uid
+          && resource.data.uid == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'displayName',
+            'email',
+            'photoURL',
+            'updatedAt'
+          ]);
       }
     }
 

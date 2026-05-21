@@ -5,7 +5,7 @@ import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 
 const PackingTab = () => {
-  const { checklists, setChecklists, tripDetails, itinerary } = useTripWorkspace();
+  const { checklists, setChecklists, memberTravelers, itinerary } = useTripWorkspace();
 
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
@@ -24,7 +24,7 @@ const PackingTab = () => {
           onUpdate={(newItems) =>
             setChecklists((prev) => ({ ...prev, packing: newItems }))
           }
-          travelers={tripDetails?.travelers || []}
+          travelers={memberTravelers || []}
           itinerary={itinerary}
         />
       </Card>

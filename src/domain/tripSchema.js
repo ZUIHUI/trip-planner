@@ -323,6 +323,10 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
   const source = normalizeTripDocumentForApp(appState);
   const tripDetails = normalizeTripDateFields(source.tripDetails);
   const dateRange = asObject(tripDetails.dateRange);
+  const tripDetailsForDocument = {
+    ...tripDetails,
+    travelers: []
+  };
   const now = new Date().toISOString();
   const previous = asObject(previousDocument);
   const collaboration = normalizeCollaborationSettings(
@@ -354,7 +358,7 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
     logistics: {
       accommodation: asObject(tripDetails.accommodation),
       flights: asObject(tripDetails.flights),
-      travelers: asArray(tripDetails.travelers)
+      travelers: []
     },
     planning: {
       checklists: {
@@ -372,7 +376,7 @@ export const buildTripDocumentFromAppState = (tripId, appState, previousDocument
     },
     itineraryDays: asArray(source.itinerary).map(normalizeDayForDocument),
     // Compatibility fields keep old clients and localStorage snapshots readable.
-    tripDetails,
+    tripDetails: tripDetailsForDocument,
     itinerary: asArray(source.itinerary).map(normalizeDayForApp),
     placePool: asArray(source.placePool).map(normalizePlacePoolItem),
     collaboration,

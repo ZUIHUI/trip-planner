@@ -1,6 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, Copy, Link2, Share2, UsersRound, Vote, XCircle } from 'lucide-react';
-import { createTripShare, disableTripShare, updateTripSharePermission } from '../../services/tripService';
+import {
+  createTripShare,
+  disableTripShare,
+  updateTripMemberProfile,
+  updateTripSharePermission
+} from '../../services/tripService';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 
 const defaultCollaboration = {
@@ -227,6 +232,12 @@ const ShareCollaborationCard = ({
     setIsWorking(true);
     try {
       await updateDisplayName(nextName);
+      await updateTripMemberProfile({
+        tripId,
+        user: currentUser,
+        displayName: nextName,
+        photoURL: currentUser?.photoURL || ''
+      });
       setMessage('顯示名稱已更新。');
     } catch (error) {
       setMessage(error?.message || '顯示名稱更新失敗。');

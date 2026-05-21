@@ -98,6 +98,30 @@ const syncTripMetaToLocalIndex = (tripId, patch, uid) => {
   }
 };
 
+const buildTravelersFromMembers = (members = [], currentUser = null, userProfile = null) => {
+  const memberRows = Array.isArray(members) ? members : [];
+  const travelers = memberRows
+    .map((member) => ({
+      id: member.uid || member.id || member.email || '',
+      uid: member.uid || '',
+      name: member.displayName || member.email || member.uid || '',
+      email: member.email || '',
+      role: member.role || 'view'
+    }))
+    .filter((traveler) => traveler.id && traveler.name);
+
+  if (travelers.length) return travelers;
+
+  if (!currentUser?.uid) return [];
+  return [{
+    id: currentUser.uid,
+    uid: currentUser.uid,
+    name: userProfile?.displayName || currentUser.displayName || currentUser.email || 'Traveler',
+    email: currentUser.email || '',
+    role: 'owner'
+  }];
+};
+
 const TripDetailPage = () => {
   const { tripId: paramTripId } = useParams();
   const tripId = typeof paramTripId === 'string' ? paramTripId.trim() : '';
@@ -193,6 +217,10 @@ const TripDetailPage = () => {
     activeTab,
     enabled: !isLoading && !accessError
   });
+  const memberTravelers = useMemo(
+    () => buildTravelersFromMembers(members, currentUser, userProfile),
+    [members, currentUser, userProfile]
+  );
 
   const budgetInfo = useBudget(itinerary, expenses, exchangeRate);
   const totalEvents = useMemo(
@@ -689,6 +717,7 @@ const TripDetailPage = () => {
     canEdit,
     isReadOnly,
     members,
+    memberTravelers,
     onlineMembers,
     presenceByUid,
     presenceError,
@@ -745,6 +774,7 @@ const TripDetailPage = () => {
     canEdit,
     isReadOnly,
     members,
+    memberTravelers,
     onlineMembers,
     presenceByUid,
     presenceError,
@@ -906,8 +936,9 @@ const TripDetailPage = () => {
         onClose={() => setIsSettingsOpen(false)}
         enableGPS={enableGPS}
         onGPSToggle={() => setEnableGPS(!enableGPS)}
-        travelers={tripDetails?.travelers || []}
-        onUpdateTravelers={(next) => setTripDetails((prev) => ({ ...prev, travelers: next }))}
+        travelers={memberTravelers}
+        travelersReadOnly
+        onUpdateTravelers={() => {}}
         currentTheme={currentTheme}
         onThemeChange={setCurrentTheme}
         interfaceSize={interfaceSize}

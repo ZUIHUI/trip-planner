@@ -69,6 +69,7 @@ const SettingsPanel = ({
   enableGPS,
   onGPSToggle,
   travelers = [],
+  travelersReadOnly = false,
   onUpdateTravelers,
   currentTheme,
   onThemeChange,
@@ -93,6 +94,7 @@ const SettingsPanel = ({
   if (!isOpen) return null;
 
   const handleAddTraveler = () => {
+    if (travelersReadOnly) return;
     const name = newTravelerName.trim();
     if (!name) return;
     onUpdateTravelers([
@@ -106,6 +108,7 @@ const SettingsPanel = ({
   };
 
   const handleDeleteTraveler = async (id) => {
+    if (travelersReadOnly) return;
     const target = travelers.find((traveler) => traveler.id === id);
     if (!target) return;
     const shouldDelete = await confirm({
@@ -342,6 +345,7 @@ const SettingsPanel = ({
                 travelers.map((traveler) => (
                   <div key={traveler.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/70">
                     <span className="font-semibold text-slate-800 dark:text-slate-100">{traveler.name}</span>
+                    {!travelersReadOnly && (
                     <button
                       type="button"
                       onClick={() => handleDeleteTraveler(traveler.id)}
@@ -351,11 +355,13 @@ const SettingsPanel = ({
                     >
                       <Trash2 size={16} />
                     </button>
+                    )}
                   </div>
                 ))
               )}
             </div>
 
+            {!travelersReadOnly && (
             <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
               <Input
                 type="text"
@@ -375,6 +381,7 @@ const SettingsPanel = ({
                 新增
               </Button>
             </div>
+            )}
           </Section>
 
           <Section

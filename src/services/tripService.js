@@ -102,6 +102,20 @@ export const getTripMemberRole = async (tripId, uid) => {
   return memberSnap.exists() ? memberSnap.data()?.role || '' : '';
 };
 
+export const updateTripMemberProfile = async ({ tripId, user, displayName = '', photoURL = '' }) => {
+  requireUser(user);
+  if (!tripId) return false;
+
+  await updateDoc(getMemberDocRef(tripId, user.uid), {
+    uid: user.uid,
+    email: user.email || '',
+    displayName: String(displayName || '').trim() || getUserName(user),
+    photoURL: photoURL || user.photoURL || '',
+    updatedAt: new Date().toISOString()
+  });
+  return true;
+};
+
 export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' }) => {
   requireUser(user);
 

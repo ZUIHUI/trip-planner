@@ -8,7 +8,7 @@ const ExpensesTab = () => {
     itinerary,
     expenses,
     setExpenses,
-    tripDetails,
+    memberTravelers,
     exchangeRate,
     setIsExpenseModalOpen
   } = useTripWorkspace();
@@ -20,7 +20,7 @@ const ExpensesTab = () => {
         itinerary={itinerary}
         expenses={expenses}
         setExpenses={setExpenses}
-        travelers={tripDetails?.travelers || []}
+        travelers={memberTravelers || []}
         exchangeRate={exchangeRate}
         onModalOpenChange={setIsExpenseModalOpen}
       />
