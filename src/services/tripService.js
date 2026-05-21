@@ -316,7 +316,9 @@ export const createTripShare = async ({ tripId, permission = 'view', user }) => 
   const token = `share-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   const now = new Date().toISOString();
   const normalizedPermission = permission === 'edit' ? 'edit' : 'view';
-  await setDoc(doc(db, 'tripShares', token), {
+  const batch = writeBatch(db);
+
+  batch.set(doc(db, 'tripShares', token), {
     token,
     tripId,
     permission: normalizedPermission,
@@ -325,25 +327,66 @@ export const createTripShare = async ({ tripId, permission = 'view', user }) => 
     createdAt: now,
     updatedAt: now
   });
+  batch.set(getTripDocRef(tripId), {
+    collaboration: {
+      enabled: true,
+      shareToken: token,
+      permission: normalizedPermission,
+      createdAt: now,
+      updatedAt: now
+    },
+    updatedAt: now
+  }, { merge: true });
+
+  await batch.commit();
   return { token, permission: normalizedPermission };
 };
 
-export const updateTripSharePermission = async ({ token, permission }) => {
+export const updateTripSharePermission = async ({ token, permission, tripId = '' }) => {
   if (!token) return false;
-  await updateDoc(doc(db, 'tripShares', token), {
-    permission: permission === 'edit' ? 'edit' : 'view',
+  const normalizedPermission = permission === 'edit' ? 'edit' : 'view';
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+
+  batch.update(doc(db, 'tripShares', token), {
+    permission: normalizedPermission,
     enabled: true,
-    updatedAt: new Date().toISOString()
+    updatedAt: now
   });
+
+  if (tripId) {
+    batch.update(getTripDocRef(tripId), {
+      'collaboration.enabled': true,
+      'collaboration.shareToken': token,
+      'collaboration.permission': normalizedPermission,
+      'collaboration.updatedAt': now,
+      updatedAt: now
+    });
+  }
+
+  await batch.commit();
   return true;
 };
 
-export const disableTripShare = async (token) => {
+export const disableTripShare = async ({ token, tripId = '' }) => {
   if (!token) return false;
-  await updateDoc(doc(db, 'tripShares', token), {
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+
+  batch.update(doc(db, 'tripShares', token), {
     enabled: false,
-    updatedAt: new Date().toISOString()
+    updatedAt: now
   });
+
+  if (tripId) {
+    batch.update(getTripDocRef(tripId), {
+      'collaboration.enabled': false,
+      'collaboration.updatedAt': now,
+      updatedAt: now
+    });
+  }
+
+  await batch.commit();
   return true;
 };
 

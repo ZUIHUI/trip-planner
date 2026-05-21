@@ -135,6 +135,11 @@ const ShareCollaborationCard = ({
   };
 
   const handleCreateLink = async () => {
+    if (settings.shareToken && settings.enabled) {
+      setMessage('目前邀請連結已可使用，可以直接複製給旅伴。');
+      return;
+    }
+
     const share = await runOwnerAction(() => createTripShare({
       tripId,
       permission: settings.permission,
@@ -159,6 +164,7 @@ const ShareCollaborationCard = ({
     }
 
     const updated = await runOwnerAction(() => updateTripSharePermission({
+      tripId,
       token: settings.shareToken,
       permission
     }));
@@ -179,7 +185,10 @@ const ShareCollaborationCard = ({
 
   const handleDisableSharing = async () => {
     if (!settings.shareToken) return;
-    const disabled = await runOwnerAction(() => disableTripShare(settings.shareToken));
+    const disabled = await runOwnerAction(() => disableTripShare({
+      tripId,
+      token: settings.shareToken
+    }));
     if (!disabled) return;
 
     persistSettings({ enabled: false });
