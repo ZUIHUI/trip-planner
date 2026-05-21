@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, functions } from './firebase';
 import {
   collection,
   collectionGroup,
@@ -14,6 +14,7 @@ import {
   where,
   writeBatch
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import {
   buildTripDocumentFromAppState,
   buildTripListItem,
@@ -339,6 +340,19 @@ export const redeemShareToken = async ({ tripId, shareToken, user, profile }) =>
 export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   requireUser(user);
   if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
+    throw new Error('只有主要帳號可以綁定既有旅程。');
+  }
+
+  const callable = httpsCallable(functions, 'claimExistingTrips');
+  const response = await callable({
+    forceOwned: true,
+    displayName: getUserName(user, profile),
+    photoURL: user.photoURL || ''
+  });
+
+  return response.data || { claimed: 0, reassigned: 0, skipped: 0 };
+  /*
+  if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {
     throw new Error('目前帳號不是主要資料擁有者');
   }
 
@@ -381,6 +395,7 @@ export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   await commitInChunks(operations);
 
   return { claimed, skipped };
+  */
 };
 
 export const isPrimaryOwnerAccount = (user) => Boolean(PRIMARY_OWNER_EMAIL && getUserEmail(user) === PRIMARY_OWNER_EMAIL);

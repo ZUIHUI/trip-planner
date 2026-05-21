@@ -190,6 +190,8 @@ UI path:
 2. Open the trip list.
 3. Use the `既有雲端旅程 Owner 綁定` card.
 
+The UI button calls the `claimExistingTrips` Cloud Function. The function uses Admin SDK after verifying the signed-in email is `sky32439@gmail.com`, so the browser does not need permission to scan or rewrite every `trips` document directly.
+
 Admin script path:
 
 ```bash

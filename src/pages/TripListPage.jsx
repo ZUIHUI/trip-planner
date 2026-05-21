@@ -379,7 +379,7 @@ const TripListPage = () => {
     setMigrationStatus(null);
     try {
       const result = await claimOwnerlessTrips({ user: currentUser, profile: userProfile });
-      setMigrationStatus(`已綁定 ${result.claimed} 筆旅程，略過 ${result.skipped} 筆已有 Owner 的旅程。`);
+      setMigrationStatus(`已綁定 ${result.claimed || 0} 筆 ownerless 旅程，修復 ${result.reassigned || 0} 筆已有舊 Owner 的旅程，略過 ${result.skipped || 0} 筆。`);
       const remoteTrips = await listTrips({ user: currentUser });
       setTrips(remoteTrips);
       saveLocalTrips(uid, remoteTrips);
@@ -418,7 +418,7 @@ const TripListPage = () => {
               <div>
                 <h2 className="tp-section-title">既有雲端旅程 Owner 綁定</h2>
                 <p className="tp-section-subtitle mt-1">
-                  只會綁定尚未有 Owner 的舊旅程，已有 Owner 的旅程不會覆蓋。
+                  會將既有雲端旅程綁定到目前主要帳號；若舊資料已被測試 Owner 綁住，也會修復為目前帳號。
                 </p>
               </div>
               <Button onClick={handleClaimOwnerlessTrips} disabled={isClaimingOwnerlessTrips} className="justify-center">
