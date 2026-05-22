@@ -108,6 +108,7 @@ const LoginPage = () => {
   const [code, setCode] = useState('');
   const [challengeId, setChallengeId] = useState('');
   const [loginStep, setLoginStep] = useState(isCompletingLink ? 'link' : 'email');
+  const [showEmailBackup, setShowEmailBackup] = useState(isCompletingLink);
   const [rememberDevice, setRememberDevice] = useState(() => getRememberDevicePreference());
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
@@ -224,11 +225,14 @@ const LoginPage = () => {
 
   const handleBackToEmail = () => {
     setLoginStep('email');
+    setShowEmailBackup(true);
     setCode('');
     setChallengeId('');
     setError('');
     setStatus('');
   };
+
+  const emailPanelOpen = showEmailBackup || loginStep === 'code' || isCompletingLink;
 
   if (isAuthLoading) {
     return (
@@ -248,85 +252,105 @@ const LoginPage = () => {
             </div>
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              使用 Email 驗證碼或 Google 帳號登入，之後就能在不同裝置查看自己的旅程。
+              建議使用 Google 帳號登入，之後就能在不同裝置查看自己的旅程。
             </p>
           </div>
 
-          {loginStep === 'code' ? (
-            <form onSubmit={handleVerifyCode} className="grid gap-3">
-              <Field label="Email" htmlFor="login-email-confirm">
-                <Input
-                  id="login-email-confirm"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  required
-                />
-              </Field>
-              <Field label="驗證碼" htmlFor="login-code" hint="請輸入信中的 6 位數字。">
-                <Input
-                  id="login-code"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  value={code}
-                  onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
-                  autoComplete="one-time-code"
-                  required
-                />
-              </Field>
-              <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
-                <Mail size={16} />
-                完成登入
-              </Button>
-              <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
-                <RefreshCw size={16} />
-                重新寄送驗證碼
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={isCompletingLink ? handleCompleteLink : handleRequestCode} className="grid gap-3">
-              <Field label="Email" htmlFor="login-email">
-                <Input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  required
-                />
-              </Field>
-              <label className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={rememberDevice}
-                  onChange={(event) => setRememberDevice(event.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-                />
-                在此裝置保持登入
-              </label>
-              <Button type="submit" disabled={isSubmitting} className="justify-center">
-                <Mail size={16} />
-                {isCompletingLink ? '完成舊登入連結' : '寄送驗證碼'}
-              </Button>
-            </form>
-          )}
+          <label className="mb-3 flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">
+            <input
+              type="checkbox"
+              checked={rememberDevice}
+              onChange={(event) => setRememberDevice(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            在此裝置保持登入
+          </label>
 
-          <div className="my-4 flex items-center gap-3 text-xs font-bold text-slate-400">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-            或
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-          </div>
-
-          <Button variant="secondary" onClick={handleGoogleLogin} disabled={isSubmitting} className="w-full justify-center">
+          <Button onClick={handleGoogleLogin} disabled={isSubmitting} className="w-full justify-center">
             <Link2 size={16} />
             使用 Google 登入
           </Button>
+
+          <div className="my-4 flex items-center gap-3 text-xs font-bold text-slate-400">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+            備用
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowEmailBackup((open) => !open)}
+            className="w-full justify-center"
+            aria-expanded={emailPanelOpen}
+          >
+            <Mail size={16} />
+            Email 驗證碼
+          </Button>
+
+          {emailPanelOpen && (
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+              <p className="mb-3 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">
+                如果收不到驗證碼，請改用 Google 登入。
+              </p>
+
+              {loginStep === 'code' ? (
+                <form onSubmit={handleVerifyCode} className="grid gap-3">
+                  <Field label="Email" htmlFor="login-email-confirm">
+                    <Input
+                      id="login-email-confirm"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      required
+                    />
+                  </Field>
+                  <Field label="驗證碼" htmlFor="login-code" hint="請輸入信中的 6 位數字。">
+                    <Input
+                      id="login-code"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={code}
+                      onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="123456"
+                      autoComplete="one-time-code"
+                      required
+                    />
+                  </Field>
+                  <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
+                    <Mail size={16} />
+                    完成登入
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
+                    <RefreshCw size={16} />
+                    重新寄送驗證碼
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={isCompletingLink ? handleCompleteLink : handleRequestCode} className="grid gap-3">
+                  <Field label="Email" htmlFor="login-email">
+                    <Input
+                      id="login-email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      required
+                    />
+                  </Field>
+                  <Button type="submit" disabled={isSubmitting} className="justify-center">
+                    <Mail size={16} />
+                    {isCompletingLink ? '完成舊登入連結' : '寄送驗證碼'}
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
 
           {status && (
             <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200">
