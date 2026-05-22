@@ -1,55 +1,60 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Trip Planner app icon">
   <defs>
-    <linearGradient id="background" x1="94" y1="48" x2="405" y2="462" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#58c8ff"/>
-      <stop offset="0.48" stop-color="#4387f2"/>
-      <stop offset="1" stop-color="#8667f4"/>
+    <linearGradient id="sky" x1="72" y1="48" x2="432" y2="464" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4fd1c5"/>
+      <stop offset="0.55" stop-color="#2f8cf5"/>
+      <stop offset="1" stop-color="#6d5dfc"/>
     </linearGradient>
-    <radialGradient id="topGlow" cx="34%" cy="20%" r="72%">
-      <stop offset="0" stop-color="#90dcff" stop-opacity="0.56"/>
-      <stop offset="0.55" stop-color="#60b9ff" stop-opacity="0.12"/>
-      <stop offset="1" stop-color="#60b9ff" stop-opacity="0"/>
+    <radialGradient id="sun" cx="74%" cy="21%" r="42%">
+      <stop offset="0" stop-color="#ffd66b" stop-opacity="0.95"/>
+      <stop offset="0.36" stop-color="#ffb84d" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#ffb84d" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="greenPin" x1="356" y1="137" x2="392" y2="213" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#cfff00"/>
-      <stop offset="0.56" stop-color="#9fe400"/>
-      <stop offset="1" stop-color="#79c800"/>
-    </linearGradient>
-    <linearGradient id="starFill" x1="235" y1="164" x2="278" y2="340" gradientUnits="userSpaceOnUse">
+    <linearGradient id="mapFace" x1="142" y1="142" x2="371" y2="383" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="0.58" stop-color="#fbfdff"/>
-      <stop offset="1" stop-color="#eaf4ff"/>
+      <stop offset="1" stop-color="#edf8ff"/>
     </linearGradient>
-    <filter id="symbolShadow" x="-25%" y="-25%" width="150%" height="150%">
-      <feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#255dca" flood-opacity="0.32"/>
+    <linearGradient id="pin" x1="324" y1="134" x2="378" y2="265" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff7b5f"/>
+      <stop offset="1" stop-color="#f04f73"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#1c4f8f" flood-opacity="0.28"/>
     </filter>
-    <filter id="nodeShadow" x="-45%" y="-45%" width="190%" height="190%">
-      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#244a95" flood-opacity="0.24"/>
+    <filter id="pinShadow" x="-35%" y="-25%" width="170%" height="175%">
+      <feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#1f3c72" flood-opacity="0.3"/>
     </filter>
   </defs>
 
-  <rect width="512" height="512" fill="url(#background)"/>
-  <rect width="512" height="512" fill="url(#topGlow)"/>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <rect width="512" height="512" fill="url(#sun)"/>
 
-  <g filter="url(#symbolShadow)">
+  <g filter="url(#softShadow)">
     <path
-      d="M309.6 127.4A143 143 0 1 0 368.7 172"
+      d="M116 172 209 138l94 34 93-34v214l-93 34-94-34-93 34Z"
+      fill="url(#mapFace)"
+    />
+    <path d="m209 138 94 34v214l-94-34Z" fill="#f5fbff"/>
+    <path d="m303 172 93-34v214l-93 34Z" fill="#eaf7ff"/>
+    <path d="M209 138v214M303 172v214" fill="none" stroke="#d8edf8" stroke-width="5" stroke-linecap="round"/>
+    <path
+      d="M154 313c37-52 77-58 113-32 29 21 58 5 80-54"
       fill="none"
-      stroke="#ffffff"
-      stroke-width="31"
+      stroke="#16b8a6"
+      stroke-width="16"
       stroke-linecap="round"
+      stroke-linejoin="round"
     />
-
-    <path
-      d="M256 169C267 224 283 240 338 251C283 262 267 278 256 333C245 278 229 262 174 251C229 240 245 224 256 169Z"
-      fill="url(#starFill)"
-    />
+    <circle cx="154" cy="313" r="15" fill="#16b8a6"/>
+    <circle cx="154" cy="313" r="7" fill="#ffffff"/>
   </g>
 
-  <g filter="url(#nodeShadow)">
-    <circle cx="113.3" cy="270" r="34" fill="#ffffff"/>
-    <circle cx="275.9" cy="401.6" r="35" fill="#ffffff"/>
-    <circle cx="368.7" cy="172" r="43" fill="#ffffff"/>
-    <circle cx="368.7" cy="172" r="28" fill="url(#greenPin)"/>
+  <g filter="url(#pinShadow)">
+    <path
+      d="M348 126c-43 0-77 34-77 76 0 56 77 123 77 123s77-67 77-123c0-42-34-76-77-76Z"
+      fill="url(#pin)"
+    />
+    <circle cx="348" cy="202" r="34" fill="#ffffff"/>
+    <circle cx="348" cy="202" r="18" fill="#ffcf4a"/>
   </g>
 </svg>
