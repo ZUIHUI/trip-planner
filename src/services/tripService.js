@@ -134,12 +134,8 @@ export const updateCurrentUserMemberProfiles = async ({ user, displayName = '', 
   return { updated: snapshot.size };
 };
 
-export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' }) => {
+export const ensureTripAccess = async ({ tripId, user, profile }) => {
   requireUser(user);
-
-  if (shareToken) {
-    return redeemShareToken({ tripId, shareToken, user, profile });
-  }
 
   const tripRef = getTripDocRef(tripId);
   const memberRef = getMemberDocRef(tripId, user.uid);
@@ -182,7 +178,7 @@ export const ensureTripAccess = async ({ tripId, user, profile, shareToken = '' 
       return { role: memberSnap.data()?.role || 'view', claimedOwner: false };
     }
 
-    throw new Error('你還沒有加入這趟旅程，請使用邀請連結進入。');
+    throw new Error('你還沒有加入這趟旅程，請回首頁輸入邀請碼加入。');
   });
 };
 
@@ -311,105 +307,39 @@ export const updateShoppingCategories = async (tripId, shoppingCategories) => {
   );
 };
 
-export const createTripShare = async ({ tripId, permission = 'view', user }) => {
+export const createTripInviteCode = async ({ tripId, permission = 'view', user }) => {
   requireUser(user);
-  const token = `share-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-  const now = new Date().toISOString();
-  const normalizedPermission = permission === 'edit' ? 'edit' : 'view';
-  const batch = writeBatch(db);
-
-  batch.set(doc(db, 'tripShares', token), {
-    token,
+  const callable = httpsCallable(functions, 'createTripInviteCode');
+  const response = await callable({
     tripId,
-    permission: normalizedPermission,
-    enabled: true,
-    createdByUid: user.uid,
-    createdAt: now,
-    updatedAt: now
+    permission: permission === 'edit' ? 'edit' : 'view'
   });
-  batch.set(getTripDocRef(tripId), {
-    collaboration: {
-      enabled: true,
-      shareToken: token,
-      permission: normalizedPermission,
-      createdAt: now,
-      updatedAt: now
-    },
-    updatedAt: now
-  }, { merge: true });
-
-  await batch.commit();
-  return { token, permission: normalizedPermission };
+  return response.data || {};
 };
 
-export const updateTripSharePermission = async ({ token, permission, tripId = '' }) => {
-  if (!token) return false;
-  const normalizedPermission = permission === 'edit' ? 'edit' : 'view';
-  const now = new Date().toISOString();
-  const batch = writeBatch(db);
-
-  batch.update(doc(db, 'tripShares', token), {
-    permission: normalizedPermission,
-    enabled: true,
-    updatedAt: now
-  });
-
-  if (tripId) {
-    batch.update(getTripDocRef(tripId), {
-      'collaboration.enabled': true,
-      'collaboration.shareToken': token,
-      'collaboration.permission': normalizedPermission,
-      'collaboration.updatedAt': now,
-      updatedAt: now
-    });
-  }
-
-  await batch.commit();
-  return true;
-};
-
-export const disableTripShare = async ({ token, tripId = '' }) => {
-  if (!token) return false;
-  const now = new Date().toISOString();
-  const batch = writeBatch(db);
-
-  batch.update(doc(db, 'tripShares', token), {
-    enabled: false,
-    updatedAt: now
-  });
-
-  if (tripId) {
-    batch.update(getTripDocRef(tripId), {
-      'collaboration.enabled': false,
-      'collaboration.updatedAt': now,
-      updatedAt: now
-    });
-  }
-
-  await batch.commit();
-  return true;
-};
-
-export const redeemShareToken = async ({ tripId, shareToken, user, profile }) => {
+export const getTripInviteCode = async ({ tripId, user }) => {
   requireUser(user);
-  const shareRef = doc(db, 'tripShares', shareToken);
-  const memberRef = getMemberDocRef(tripId, user.uid);
+  const callable = httpsCallable(functions, 'getTripInviteCode');
+  const response = await callable({ tripId });
+  return response.data || {};
+};
 
-  return runTransaction(db, async (transaction) => {
-    const shareSnap = await transaction.get(shareRef);
-    if (!shareSnap.exists()) {
-      throw new Error('分享連結不存在');
-    }
+export const disableTripInviteCode = async ({ tripId, user }) => {
+  requireUser(user);
+  const callable = httpsCallable(functions, 'disableTripInviteCode');
+  const response = await callable({ tripId });
+  return response.data || {};
+};
 
-    const share = shareSnap.data();
-    if (!share.enabled || share.tripId !== tripId) {
-      throw new Error('分享連結已停用或不符合此旅程');
-    }
-
-    const role = share.permission === 'edit' ? 'editor' : 'view';
-    transaction.set(memberRef, memberPayload({ user, profile, role, shareToken }), { merge: true });
-    return { role, claimedOwner: false };
+export const redeemTripInviteCode = async ({ code, user, profile }) => {
+  requireUser(user);
+  const callable = httpsCallable(functions, 'redeemTripInviteCode');
+  const response = await callable({
+    code,
+    displayName: getUserName(user, profile),
+    photoURL: user.photoURL || ''
   });
+  return response.data || {};
 };
 
 export const claimOwnerlessTrips = async ({ user, profile } = {}) => {

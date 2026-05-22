@@ -1,20 +1,26 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   GoogleAuthProvider,
+  browserLocalPersistence,
+  browserSessionPersistence,
   isSignInWithEmailLink,
   onAuthStateChanged,
   sendSignInLinkToEmail,
+  setPersistence,
+  signInWithCustomToken,
   signInWithEmailLink,
   signInWithPopup,
   signOut,
   updateProfile
 } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../services/firebase';
+import { auth, db, functions } from '../services/firebase';
 
 const AuthContext = createContext(null);
 const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
 const REDIRECT_AFTER_SIGN_IN_KEY = 'trip_planner_redirect_after_sign_in';
+const REMEMBER_DEVICE_KEY = 'trip_planner_remember_device';
 
 const getProfileName = (user) => (
   user?.displayName ||
@@ -33,11 +39,27 @@ const normalizeRedirectPath = (redirectPath = '/') => {
   return rawPath.startsWith('/') ? rawPath : fallback;
 };
 
+const readRememberDevicePreference = () => {
+  try {
+    return localStorage.getItem(REMEMBER_DEVICE_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
+const writeRememberDevicePreference = (rememberDevice) => {
+  try {
+    localStorage.setItem(REMEMBER_DEVICE_KEY, rememberDevice ? 'true' : 'false');
+  } catch {
+    // Storage may be unavailable in private browser modes.
+  }
+};
+
 const buildProfileFromUser = (user, patch = {}) => ({
   uid: user.uid,
-  email: user.email || '',
+  email: user.email || patch.email || '',
   displayName: patch.displayName ?? getProfileName(user),
-  photoURL: user.photoURL || '',
+  photoURL: user.photoURL || patch.photoURL || '',
   providerIds: user.providerData?.map((provider) => provider.providerId).filter(Boolean) || [],
   updatedAt: new Date().toISOString(),
   ...patch
@@ -65,9 +87,15 @@ const syncUserProfile = async (user, patch = {}) => {
   const snapshot = await getDoc(profileRef);
   const now = new Date().toISOString();
   const existing = snapshot.exists() ? snapshot.data() : {};
+  const nextProviderIds = Array.from(new Set([
+    ...(Array.isArray(existing.providerIds) ? existing.providerIds : []),
+    ...buildProfileFromUser(user).providerIds,
+    ...(Array.isArray(patch.providerIds) ? patch.providerIds : [])
+  ].filter(Boolean)));
   const nextProfile = {
     ...existing,
     ...buildProfileFromUser(user, patch),
+    providerIds: nextProviderIds,
     createdAt: existing.createdAt || now,
     updatedAt: now
   };
@@ -106,12 +134,80 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const sendMagicLink = useCallback(async (email, redirectPath = '/') => {
+  const applyAuthPersistence = useCallback(async (rememberDevice = true) => {
+    const shouldRemember = rememberDevice !== false;
+    writeRememberDevicePreference(shouldRemember);
+    await setPersistence(
+      auth,
+      shouldRemember ? browserLocalPersistence : browserSessionPersistence
+    );
+  }, []);
+
+  const requestEmailCode = useCallback(async (email, redirectPath = '/') => {
+    const safeEmail = String(email || '').trim().toLowerCase();
+    if (!safeEmail) {
+      throw new Error('請輸入 Email');
+    }
+
+    const safeRedirectPath = normalizeRedirectPath(redirectPath);
+    const callable = httpsCallable(functions, 'requestEmailLoginCode');
+    const response = await callable({
+      email: safeEmail,
+      redirectPath: safeRedirectPath
+    });
+
+    localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, safeEmail);
+    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, safeRedirectPath);
+    return response.data || {};
+  }, []);
+
+  const verifyEmailCode = useCallback(async ({
+    email,
+    code,
+    challengeId,
+    rememberDevice = true,
+    redirectPath = '/'
+  }) => {
+    const safeEmail = String(email || '').trim().toLowerCase();
+    const safeCode = String(code || '').replace(/\D/g, '');
+    const safeRedirectPath = normalizeRedirectPath(redirectPath);
+
+    if (!safeEmail || !safeCode || !challengeId) {
+      throw new Error('請輸入 Email 與驗證碼');
+    }
+
+    await applyAuthPersistence(rememberDevice);
+    const callable = httpsCallable(functions, 'verifyEmailLoginCode');
+    const response = await callable({
+      email: safeEmail,
+      code: safeCode,
+      challengeId
+    });
+    const data = response.data || {};
+
+    if (!data.customToken) {
+      throw new Error('無法完成登入，請重新取得驗證碼');
+    }
+
+    const credential = await signInWithCustomToken(auth, data.customToken);
+    localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+    localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, safeRedirectPath);
+    const profile = await syncUserProfile(credential.user, {
+      email: data.email || credential.user.email || safeEmail,
+      displayName: data.displayName || getProfileName(credential.user),
+      providerIds: ['email-code']
+    });
+    setUserProfile(profile);
+    return credential.user;
+  }, [applyAuthPersistence]);
+
+  const sendMagicLink = useCallback(async (email, redirectPath = '/', rememberDevice = true) => {
     const safeEmail = String(email || '').trim();
     if (!safeEmail) {
       throw new Error('請輸入 Email');
     }
 
+    await applyAuthPersistence(rememberDevice);
     const safeRedirectPath = normalizeRedirectPath(redirectPath);
     const url = new URL('/login', window.location.origin);
     url.searchParams.set('redirect', safeRedirectPath);
@@ -123,9 +219,13 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, safeEmail);
     localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, safeRedirectPath);
-  }, []);
+  }, [applyAuthPersistence]);
 
-  const completeEmailLink = useCallback(async (email, href = window.location.href) => {
+  const completeEmailLink = useCallback(async (
+    email,
+    href = window.location.href,
+    rememberDevice = readRememberDevicePreference()
+  ) => {
     const storedEmail = localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY) || '';
     const safeEmail = String(email || storedEmail).trim();
 
@@ -137,15 +237,17 @@ export const AuthProvider = ({ children }) => {
       throw new Error('請輸入收到登入信的 Email，才能完成驗證。');
     }
 
+    await applyAuthPersistence(rememberDevice);
     const credential = await signInWithEmailLink(auth, safeEmail, href);
     localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
     localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, readRedirectFromEmailLink(href));
     const profile = await syncUserProfile(credential.user);
     setUserProfile(profile);
     return credential.user;
-  }, []);
+  }, [applyAuthPersistence]);
 
-  const signInWithGoogle = useCallback(async (redirectPath = '/') => {
+  const signInWithGoogle = useCallback(async (redirectPath = '/', rememberDevice = true) => {
+    await applyAuthPersistence(rememberDevice);
     localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, normalizeRedirectPath(redirectPath));
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
@@ -153,7 +255,7 @@ export const AuthProvider = ({ children }) => {
     const profile = await syncUserProfile(credential.user);
     setUserProfile(profile);
     return credential.user;
-  }, []);
+  }, [applyAuthPersistence]);
 
   const updateDisplayName = useCallback(async (displayName) => {
     const safeName = String(displayName || '').trim();
@@ -178,6 +280,8 @@ export const AuthProvider = ({ children }) => {
     isAuthLoading,
     authError,
     setAuthError,
+    requestEmailCode,
+    verifyEmailCode,
     sendMagicLink,
     completeEmailLink,
     signInWithGoogle,
@@ -185,12 +289,16 @@ export const AuthProvider = ({ children }) => {
     logout,
     isEmailLink: (href = window.location.href) => isSignInWithEmailLink(auth, href),
     getRedirectAfterSignIn: readStoredRedirect,
-    clearRedirectAfterSignIn: () => localStorage.removeItem(REDIRECT_AFTER_SIGN_IN_KEY)
+    clearRedirectAfterSignIn: () => localStorage.removeItem(REDIRECT_AFTER_SIGN_IN_KEY),
+    getRememberDevicePreference: readRememberDevicePreference,
+    setRememberDevicePreference: writeRememberDevicePreference
   }), [
     currentUser,
     userProfile,
     isAuthLoading,
     authError,
+    requestEmailCode,
+    verifyEmailCode,
     sendMagicLink,
     completeEmailLink,
     signInWithGoogle,

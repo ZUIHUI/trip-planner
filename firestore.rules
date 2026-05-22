@@ -24,10 +24,6 @@ service cloud.firestore {
       return /databases/$(database)/documents/trips/$(tripId)/members/$(uid);
     }
 
-    function sharePath(token) {
-      return /databases/$(database)/documents/tripShares/$(token);
-    }
-
     function hasOwner(data) {
       return data.keys().hasAny(['access'])
         && data.access.keys().hasAny(['ownerUid'])
@@ -62,22 +58,6 @@ service cloud.firestore {
     function isTripEditor(tripId) {
       return isTripMember(tripId)
         && (memberRole(tripId) == 'editor' || memberRole(tripId) == 'edit');
-    }
-
-    function isViewerRole(role) {
-      return role == 'view' || role == 'viewer';
-    }
-
-    function validShareMembership(tripId, role, token) {
-      return token is string
-        && token != ''
-        && exists(sharePath(token))
-        && get(sharePath(token)).data.enabled == true
-        && get(sharePath(token)).data.tripId == tripId
-        && (
-          (get(sharePath(token)).data.permission == 'edit' && (role == 'editor' || role == 'edit'))
-          || (get(sharePath(token)).data.permission == 'view' && isViewerRole(role))
-        );
     }
 
     match /userProfiles/{uid} {
@@ -138,17 +118,8 @@ service cloud.firestore {
         allow create: if signedIn()
           && request.resource.data.uid == uid
           && request.resource.data.uid == request.auth.uid
-          && (
-            (
-              request.resource.data.role == 'owner'
-              && isTripOwnerAfter(tripId)
-            )
-            || validShareMembership(
-              tripId,
-              request.resource.data.role,
-              request.resource.data.shareToken
-            )
-          );
+          && request.resource.data.role == 'owner'
+          && isTripOwnerAfter(tripId);
 
         allow update, delete: if signedIn() && isTripOwner(tripId);
 
@@ -166,20 +137,23 @@ service cloud.firestore {
     }
 
     match /tripShares/{token} {
-      allow get: if signedIn()
-        && resource.data.enabled == true;
+      allow read, write: if false;
+    }
 
-      allow list: if false;
+    match /tripInviteCodes/{inviteId} {
+      allow read, write: if false;
+    }
 
-      allow create: if signedIn()
-        && request.resource.data.createdByUid == request.auth.uid
-        && request.resource.data.tripId is string
-        && request.resource.data.permission in ['view', 'edit']
-        && request.resource.data.enabled == true
-        && isTripOwner(request.resource.data.tripId);
+    match /inviteCodeRateLimits/{uid} {
+      allow read, write: if false;
+    }
 
-      allow update, delete: if signedIn()
-        && isTripOwner(resource.data.tripId);
+    match /emailLoginChallenges/{challengeId} {
+      allow read, write: if false;
+    }
+
+    match /emailLoginRateLimits/{rateLimitId} {
+      allow read, write: if false;
     }
 
     match /appMeta/{documentId} {

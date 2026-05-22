@@ -129,7 +129,7 @@ const TripDetailPage = () => {
   const location = useLocation();
   const { confirm, toast } = useFeedback();
   const { currentUser, userProfile, updateDisplayName, logout } = useAuth();
-  const shareToken = useMemo(
+  const legacyShareToken = useMemo(
     () => new URLSearchParams(location.search).get('share') || '',
     [location.search]
   );
@@ -201,8 +201,7 @@ const TripDetailPage = () => {
     saveNow
   } = useTrip(tripId, defaultTripDetails, defaultItinerary, {
     currentUser,
-    userProfile,
-    shareToken
+    userProfile
   });
   const {
     onlineMembers,
@@ -712,7 +711,7 @@ const TripDetailPage = () => {
     userProfile,
     updateDisplayName,
     logout,
-    isSharedSession: Boolean(shareToken),
+    isSharedSession: false,
     accessRole,
     canEdit,
     isReadOnly,
@@ -769,7 +768,6 @@ const TripDetailPage = () => {
     userProfile,
     updateDisplayName,
     logout,
-    shareToken,
     accessRole,
     canEdit,
     isReadOnly,
@@ -810,11 +808,14 @@ const TripDetailPage = () => {
   }
 
   if (accessError) {
+    const description = legacyShareToken
+      ? '這個舊邀請連結已不再使用。請向主辦人索取邀請碼，回首頁輸入邀請碼加入旅程。'
+      : accessError;
     return (
       <div className="tp-page-shell flex min-h-screen items-center justify-center p-4 font-sans">
         <ErrorState
           title="無法開啟旅程"
-          description={accessError}
+          description={description}
           actionLabel="回旅程列表"
           onAction={() => navigate('/')}
           className="w-full max-w-md"
@@ -841,7 +842,7 @@ const TripDetailPage = () => {
         <div className="pt-4">
           {isReadOnly && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
-              你目前可以查看這趟旅程；若要一起規劃，請建立者重新分享可編輯連結。
+              你目前只能查看這趟旅程；若要一起編輯，請主辦人重新產生可以一起編輯的邀請碼。
             </div>
           )}
 

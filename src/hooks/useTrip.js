@@ -113,8 +113,7 @@ const applyNormalizedData = ({
 
 export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   currentUser,
-  userProfile,
-  shareToken = ''
+  userProfile
 } = {}) => {
   const safeTripId = typeof tripId === 'string' ? tripId.trim() : '';
   const uid = currentUser?.uid || '';
@@ -219,8 +218,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         const accessResult = await ensureTripAccess({
           tripId: safeTripId,
           user: currentUser,
-          profile: userProfile,
-          shareToken
+          profile: userProfile
         });
         if (cancelled) return;
         setAccessRole(accessResult.role || '');
@@ -298,7 +296,6 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     storageKey,
     currentUser,
     userProfile,
-    shareToken,
     fallbackData,
     initialTripDetails,
     initialItinerary,

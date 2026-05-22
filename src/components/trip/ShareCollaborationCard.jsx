@@ -1,20 +1,26 @@
-import React, { useMemo, useState } from 'react';
-import { CheckCircle2, Copy, Link2, Share2, UsersRound, Vote, XCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { CheckCircle2, Copy, KeyRound, RefreshCw, Send, Share2, UsersRound, Vote, XCircle } from 'lucide-react';
 import {
-  createTripShare,
-  disableTripShare,
-  updateTripMemberProfile,
-  updateTripSharePermission
+  createTripInviteCode,
+  disableTripInviteCode,
+  getTripInviteCode,
+  updateTripMemberProfile
 } from '../../services/tripService';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 
 const defaultCollaboration = {
   enabled: false,
-  shareToken: '',
   permission: 'view',
   votesEnabled: true,
   createdAt: '',
   updatedAt: ''
+};
+
+const defaultInvite = {
+  inviteId: '',
+  code: '',
+  permission: 'view',
+  enabled: false
 };
 
 const tabLabels = {
@@ -33,14 +39,6 @@ const normalizeSettings = (settings = {}) => ({
   permission: settings.permission === 'edit' ? 'edit' : 'view',
   votesEnabled: settings.votesEnabled === undefined ? true : Boolean(settings.votesEnabled)
 });
-
-const buildShareUrl = ({ tripId, shareToken, permission }) => {
-  if (typeof window === 'undefined' || !tripId || !shareToken) return '';
-  const url = new URL(`/trip/${encodeURIComponent(tripId)}`, window.location.origin);
-  url.searchParams.set('share', shareToken);
-  url.searchParams.set('access', permission === 'edit' ? 'edit' : 'view');
-  return url.toString();
-};
 
 const writeClipboardText = async (text) => {
   if (navigator.clipboard?.writeText) {
@@ -61,10 +59,14 @@ const writeClipboardText = async (text) => {
 };
 
 const getRoleLabel = (role) => {
-  if (role === 'owner') return '管理者';
-  if (role === 'editor' || role === 'edit') return '可一起規劃';
-  return '可查看';
+  if (role === 'owner') return '主辦人';
+  if (role === 'editor' || role === 'edit') return '可以一起編輯';
+  return '只能查看';
 };
+
+const getPermissionLabel = (permission) => (
+  permission === 'edit' ? '可以一起編輯' : '只能查看'
+);
 
 const getMemberName = (member = {}) => (
   member.displayName ||
@@ -79,6 +81,10 @@ const formatEditingTarget = (target = '') => {
   return '正在編輯';
 };
 
+const buildInviteText = (code) => (
+  `打開 Trip Planner，輸入邀請碼 ${code} 加入我的旅行規劃。`
+);
+
 const ShareCollaborationCard = ({
   tripId,
   collaboration,
@@ -86,7 +92,6 @@ const ShareCollaborationCard = ({
   currentUser,
   userProfile,
   updateDisplayName,
-  isSharedSession = false,
   accessRole = '',
   members = [],
   onlineMembers = [],
@@ -97,13 +102,46 @@ const ShareCollaborationCard = ({
   const [message, setMessage] = useState('');
   const [isWorking, setIsWorking] = useState(false);
   const [displayNameDraft, setDisplayNameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
-  const canManageSharing = accessRole === 'owner';
+  const [invite, setInvite] = useState(defaultInvite);
+  const [selectedPermission, setSelectedPermission] = useState(settings.permission);
+  const canManageInvite = accessRole === 'owner';
   const memberRows = Array.isArray(members) ? members : [];
   const onlineCount = Array.isArray(onlineMembers) ? onlineMembers.length : 0;
-  const shareUrl = useMemo(
-    () => (settings.enabled ? buildShareUrl({ tripId, shareToken: settings.shareToken, permission: settings.permission }) : ''),
-    [tripId, settings.enabled, settings.shareToken, settings.permission]
-  );
+  const inviteText = invite.code ? buildInviteText(invite.code) : '';
+
+  useEffect(() => {
+    setDisplayNameDraft(userProfile?.displayName || currentUser?.displayName || '');
+  }, [userProfile?.displayName, currentUser?.displayName]);
+
+  useEffect(() => {
+    if (!canManageInvite || !tripId || !currentUser?.uid) return undefined;
+
+    let cancelled = false;
+    setIsWorking(true);
+    getTripInviteCode({ tripId, user: currentUser })
+      .then((result) => {
+        if (cancelled) return;
+        const nextInvite = {
+          ...defaultInvite,
+          ...result,
+          permission: result.permission === 'edit' ? 'edit' : 'view'
+        };
+        setInvite(nextInvite);
+        setSelectedPermission(nextInvite.permission);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setMessage(error?.message || '讀取邀請碼失敗，請稍後再試。');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsWorking(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canManageInvite, tripId, currentUser]);
 
   const persistSettings = (patch) => {
     const now = new Date().toISOString();
@@ -118,8 +156,8 @@ const ShareCollaborationCard = ({
   };
 
   const runOwnerAction = async (action) => {
-    if (!canManageSharing) {
-      setMessage('這項設定只能由建立旅程的人調整。');
+    if (!canManageInvite) {
+      setMessage('這項設定只能由主辦人調整。');
       return null;
     }
 
@@ -127,107 +165,123 @@ const ShareCollaborationCard = ({
     try {
       return await action();
     } catch (error) {
-      setMessage(error?.message || '邀請設定更新失敗，請稍後再試。');
+      setMessage(error?.message || '邀請碼設定更新失敗，請稍後再試。');
       return null;
     } finally {
       setIsWorking(false);
     }
   };
 
-  const handleCreateLink = async () => {
-    if (settings.shareToken && settings.enabled) {
-      setMessage('目前邀請連結已可使用，可以直接複製給旅伴。');
-      return;
-    }
-
-    const share = await runOwnerAction(() => createTripShare({
+  const handleCreateInvite = async () => {
+    const result = await runOwnerAction(() => createTripInviteCode({
       tripId,
-      permission: settings.permission,
+      permission: selectedPermission,
       user: currentUser
     }));
-    if (!share?.token) return;
-
-    persistSettings({
-      enabled: true,
-      shareToken: share.token,
-      permission: share.permission || settings.permission
+    if (!result?.code) return;
+    setInvite({
+      ...defaultInvite,
+      ...result,
+      permission: result.permission === 'edit' ? 'edit' : 'view'
     });
-    setMessage('邀請連結已建立。對方登入後即可加入這趟旅程。');
+    setSelectedPermission(result.permission === 'edit' ? 'edit' : 'view');
+    setMessage(invite.code ? '新的邀請碼已建立，舊邀請碼已失效。' : '邀請碼已建立。');
+  };
+
+  const handleDisableInvite = async () => {
+    if (!invite.enabled) return;
+    const result = await runOwnerAction(() => disableTripInviteCode({
+      tripId,
+      user: currentUser
+    }));
+    if (!result) return;
+    setInvite((prev) => ({
+      ...prev,
+      enabled: false
+    }));
+    setMessage('已停止接受新旅伴加入，已加入的旅伴不受影響。');
   };
 
   const handlePermissionChange = async (event) => {
     const permission = event.target.value === 'edit' ? 'edit' : 'view';
-    if (!settings.shareToken) {
-      persistSettings({ permission, enabled: settings.enabled });
-      setMessage('已先記住這個加入方式，建立連結後會套用。');
+    setSelectedPermission(permission);
+
+    if (!invite.enabled) {
+      setMessage(`建立邀請碼後，新旅伴會是「${getPermissionLabel(permission)}」。`);
       return;
     }
 
-    const updated = await runOwnerAction(() => updateTripSharePermission({
+    const result = await runOwnerAction(() => createTripInviteCode({
       tripId,
-      token: settings.shareToken,
-      permission
+      permission,
+      user: currentUser
     }));
-    if (!updated) return;
-
-    persistSettings({ permission, enabled: true });
-    setMessage(permission === 'edit' ? '新旅伴加入後可以一起規劃。' : '新旅伴加入後只能查看。');
+    if (!result?.code) return;
+    setInvite({
+      ...defaultInvite,
+      ...result,
+      permission
+    });
+    setMessage(`加入方式已改成「${getPermissionLabel(permission)}」，並已重新產生邀請碼。`);
   };
 
   const handleVotesToggle = () => {
-    if (!canManageSharing) {
-      setMessage('這項設定只能由建立旅程的人調整。');
+    if (!canManageInvite) {
+      setMessage('這項設定只能由主辦人調整。');
       return;
     }
     const nextSettings = persistSettings({ votesEnabled: !settings.votesEnabled, enabled: settings.enabled });
     setMessage(nextSettings.votesEnabled ? '地點投票已開啟。' : '地點投票已關閉。');
   };
 
-  const handleDisableSharing = async () => {
-    if (!settings.shareToken) return;
-    const disabled = await runOwnerAction(() => disableTripShare({
-      tripId,
-      token: settings.shareToken
-    }));
-    if (!disabled) return;
-
-    persistSettings({ enabled: false });
-    setMessage('邀請連結已停用，已加入的旅伴不受影響。');
-  };
-
-  const handleCopyLink = async () => {
-    let nextSettings = settings;
-    if (!nextSettings.shareToken || !nextSettings.enabled) {
-      const share = await runOwnerAction(() => createTripShare({
-        tripId,
-        permission: settings.permission,
-        user: currentUser
-      }));
-      if (!share?.token) return;
-      nextSettings = persistSettings({
-        enabled: true,
-        shareToken: share.token,
-        permission: share.permission || settings.permission
-      });
-    }
-
-    const nextUrl = buildShareUrl({
-      tripId,
-      shareToken: nextSettings.shareToken,
-      permission: nextSettings.permission
-    });
-
-    if (!nextUrl) {
-      setMessage('目前無法產生邀請連結。');
+  const handleCopyInviteText = async () => {
+    if (!inviteText) {
+      setMessage('請先建立邀請碼。');
       return;
     }
 
     try {
-      const copied = await writeClipboardText(nextUrl);
-      setMessage(copied ? '邀請連結已複製。' : '無法自動複製，請手動選取連結。');
+      const copied = await writeClipboardText(inviteText);
+      setMessage(copied ? '邀請文字已複製。' : '無法自動複製，請手動選取邀請文字。');
     } catch {
-      setMessage('無法自動複製，請手動選取連結。');
+      setMessage('無法自動複製，請手動選取邀請文字。');
     }
+  };
+
+  const handleCopyInviteCode = async () => {
+    if (!invite.code) {
+      setMessage('請先建立邀請碼。');
+      return;
+    }
+
+    try {
+      const copied = await writeClipboardText(invite.code);
+      setMessage(copied ? '邀請碼已複製。' : '無法自動複製，請手動選取邀請碼。');
+    } catch {
+      setMessage('無法自動複製，請手動選取邀請碼。');
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (!inviteText) {
+      setMessage('請先建立邀請碼。');
+      return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Trip Planner 邀請',
+          text: inviteText
+        });
+        setMessage('邀請文字已送到分享面板。');
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
+
+    await handleCopyInviteText();
   };
 
   const handleSaveDisplayName = async () => {
@@ -262,53 +316,63 @@ const ShareCollaborationCard = ({
             <Share2 size={20} />
           </div>
           <div className="min-w-0">
-            <h3 className="tp-section-title">共同規劃</h3>
+            <h3 className="tp-section-title">旅伴</h3>
             <p className="tp-section-subtitle mt-1">
-              {canManageSharing
-                ? '邀請旅伴一起查看或規劃，這裡也會顯示誰正在旅程中。'
+              {canManageInvite
+                ? '用邀請碼讓旅伴加入，這裡也會顯示誰正在旅程中。'
                 : '查看一起旅行的人，也可以調整自己的顯示名稱。'}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {isSharedSession && <Badge variant="info">從邀請加入</Badge>}
-          <Badge variant={canManageSharing ? 'success' : 'muted'}>{getRoleLabel(accessRole)}</Badge>
-          {canManageSharing && (
-            <Badge variant={settings.enabled ? 'success' : 'muted'}>{settings.enabled ? '可邀請' : '未開放邀請'}</Badge>
+          <Badge variant={canManageInvite ? 'success' : 'muted'}>{getRoleLabel(accessRole)}</Badge>
+          {canManageInvite && (
+            <Badge variant={invite.enabled ? 'success' : 'muted'}>{invite.enabled ? '可邀請' : '未開放邀請'}</Badge>
           )}
           <Badge variant={onlineCount ? 'success' : 'muted'}>{onlineCount} 人在線</Badge>
         </div>
       </div>
 
-      {canManageSharing && (
+      {canManageInvite && (
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
-          <Field label="邀請連結" htmlFor="trip-share-url" hint="把連結傳給旅伴，對方登入後就會出現在這趟旅程。">
-            <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+          <Field label="邀請碼" htmlFor="trip-invite-code" hint="旅伴打開 Trip Planner，在首頁輸入邀請碼就能加入。">
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
               <Input
-                id="trip-share-url"
-                value={shareUrl || '尚未建立邀請連結'}
+                id="trip-invite-code"
+                value={invite.enabled && invite.code ? invite.code : '尚未建立邀請碼'}
                 readOnly
-                className="font-mono text-xs"
+                className="font-mono text-lg font-black uppercase tracking-widest"
                 onFocus={(event) => event.target.select()}
               />
-              <Button variant="secondary" onClick={handleCopyLink} disabled={isWorking} className="justify-center">
+              <Button variant="secondary" onClick={handleCopyInviteCode} disabled={isWorking || !invite.code} className="justify-center">
                 <Copy size={16} />
-                複製
+                複製碼
+              </Button>
+              <Button onClick={handleNativeShare} disabled={isWorking || !invite.code || !invite.enabled} className="justify-center">
+                <Send size={16} />
+                分享
               </Button>
             </div>
           </Field>
 
-          <Field label="新旅伴加入後" htmlFor="trip-share-permission">
+          <Field label="新旅伴加入後" htmlFor="trip-invite-permission">
             <Select
-              id="trip-share-permission"
-              value={settings.permission}
+              id="trip-invite-permission"
+              value={selectedPermission}
               onChange={handlePermissionChange}
               disabled={isWorking}
             >
               <option value="view">只能查看</option>
-              <option value="edit">可以一起規劃</option>
+              <option value="edit">可以一起編輯</option>
             </Select>
           </Field>
+        </div>
+      )}
+
+      {canManageInvite && inviteText && (
+        <div className="mt-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">分享文字</p>
+          <p className="mt-1 break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{inviteText}</p>
         </div>
       )}
 
@@ -322,23 +386,23 @@ const ShareCollaborationCard = ({
           />
         </Field>
 
-        <div className={`grid gap-2 ${canManageSharing ? 'sm:grid-cols-4' : ''}`}>
+        <div className={`grid gap-2 ${canManageInvite ? 'sm:grid-cols-4' : ''}`}>
           <Button variant="secondary" onClick={handleSaveDisplayName} disabled={isWorking} className="justify-center">
             儲存名稱
           </Button>
-          {canManageSharing && (
+          {canManageInvite && (
             <>
-              <Button onClick={handleCreateLink} disabled={isWorking} className="justify-center">
-                <Link2 size={16} />
-                建立連結
+              <Button onClick={handleCreateInvite} disabled={isWorking} className="justify-center">
+                <KeyRound size={16} />
+                {invite.code ? '重新產生' : '建立邀請碼'}
               </Button>
-              <Button variant="ghost" onClick={handleDisableSharing} disabled={isWorking || !settings.enabled} className="justify-center">
+              <Button variant="secondary" onClick={handleCopyInviteText} disabled={isWorking || !inviteText} className="justify-center">
+                <RefreshCw size={16} />
+                複製文字
+              </Button>
+              <Button variant="ghost" onClick={handleDisableInvite} disabled={isWorking || !invite.enabled} className="justify-center">
                 <XCircle size={16} />
                 停用
-              </Button>
-              <Button variant={settings.votesEnabled ? 'secondary' : 'ghost'} onClick={handleVotesToggle} disabled={isWorking} className="justify-center">
-                <Vote size={16} />
-                {settings.votesEnabled ? '投票開啟' : '投票關閉'}
               </Button>
             </>
           )}
@@ -369,6 +433,15 @@ const ShareCollaborationCard = ({
           </p>
         </div>
       </div>
+
+      {canManageInvite && (
+        <div className="mt-3">
+          <Button variant={settings.votesEnabled ? 'secondary' : 'ghost'} onClick={handleVotesToggle} disabled={isWorking} className="justify-center">
+            <Vote size={16} />
+            {settings.votesEnabled ? '關閉地點投票' : '開啟地點投票'}
+          </Button>
+        </div>
+      )}
 
       <div className="mt-4 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="border-b border-slate-100 px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">

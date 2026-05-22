@@ -6,6 +6,7 @@ import {
   Check,
   Clock3,
   Compass,
+  KeyRound,
   MapPin,
   Pencil,
   PlaneTakeoff,
@@ -19,6 +20,7 @@ import {
   createTrip,
   deleteTrip,
   listTrips,
+  redeemTripInviteCode,
   updateCurrentUserMemberProfiles
 } from '../services/tripService';
 import { createTripAppData } from '../domain/tripSchema';
@@ -51,6 +53,12 @@ const setLastOpenedTripId = (tripId) => {
   if (!tripId) return;
   localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
 };
+
+const normalizeInviteCodeInput = (value) => String(value || '')
+  .toUpperCase()
+  .replace(/[^A-Z0-9]/g, '')
+  .slice(0, 8)
+  .replace(/(.{4})(.+)/, '$1-$2');
 
 const statusConfig = {
   planning: { label: '規劃中', variant: 'warning' },
@@ -206,6 +214,8 @@ const TripListPage = () => {
   const [nicknameDraft, setNicknameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [isSavingNickname, setIsSavingNickname] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [isJoiningInvite, setIsJoiningInvite] = useState(false);
 
   useEffect(() => {
     setNicknameDraft(userProfile?.displayName || currentUser?.displayName || '');
@@ -328,6 +338,47 @@ const TripListPage = () => {
         description: '已回滾本地資料，請稍後再試。'
       });
       console.error(error);
+    }
+  };
+
+  const handleJoinByInviteCode = async (event) => {
+    event.preventDefault();
+    const code = normalizeInviteCodeInput(inviteCode);
+
+    if (code.replace('-', '').length !== 8) {
+      toast({
+        variant: 'warning',
+        title: '請輸入 8 碼邀請碼'
+      });
+      return;
+    }
+
+    setIsJoiningInvite(true);
+    try {
+      const result = await redeemTripInviteCode({
+        code,
+        user: currentUser,
+        profile: userProfile
+      });
+      if (!result.tripId) {
+        throw new Error('邀請碼已接受，但沒有取得旅程資訊。');
+      }
+      setInviteCode('');
+      setLastOpenedTripId(result.tripId);
+      toast({
+        variant: 'success',
+        title: result.alreadyMember ? '你已經在這趟旅程中' : '已加入旅程',
+        description: result.tripTitle || ''
+      });
+      navigate(`/trip/${result.tripId}`);
+    } catch (error) {
+      toast({
+        variant: 'danger',
+        title: '無法加入旅程',
+        description: error.message || '請確認邀請碼是否正確。'
+      });
+    } finally {
+      setIsJoiningInvite(false);
     }
   };
 
@@ -495,6 +546,39 @@ const TripListPage = () => {
             </form>
           )}
         </div>
+
+        <section className="mb-4 rounded-lg border border-cyan-100 bg-white p-4 shadow-sm dark:border-cyan-900/60 dark:bg-slate-900">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(280px,1fr)] lg:items-center">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="tp-icon-chip bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-300">
+                <KeyRound size={18} />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base font-black text-slate-950 dark:text-white">加入旅程</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  向主辦人索取邀請碼，在這裡輸入後就會加入旅伴清單。
+                </p>
+              </div>
+            </div>
+            <form onSubmit={handleJoinByInviteCode} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+              <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
+              <Input
+                id="trip-invite-code"
+                type="text"
+                inputMode="text"
+                value={inviteCode}
+                onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
+                placeholder="YK82-P7Q9"
+                className="font-mono uppercase tracking-wider"
+                autoComplete="off"
+              />
+              <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
+                <KeyRound size={16} />
+                {isJoiningInvite ? '加入中...' : '加入旅程'}
+              </Button>
+            </form>
+          </div>
+        </section>
 
         <section className="overflow-hidden rounded-lg border border-brand-100 bg-white shadow-sm dark:border-brand-900/60 dark:bg-slate-900">
           <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
