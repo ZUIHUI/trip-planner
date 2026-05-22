@@ -1,60 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Trip Planner app icon">
   <defs>
-    <linearGradient id="sky" x1="72" y1="48" x2="432" y2="464" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#4fd1c5"/>
-      <stop offset="0.55" stop-color="#2f8cf5"/>
-      <stop offset="1" stop-color="#6d5dfc"/>
+    <linearGradient id="background" x1="74" y1="52" x2="432" y2="462" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18d6bd"/>
+      <stop offset="0.52" stop-color="#2788f5"/>
+      <stop offset="1" stop-color="#7458ff"/>
     </linearGradient>
-    <radialGradient id="sun" cx="74%" cy="21%" r="42%">
-      <stop offset="0" stop-color="#ffd66b" stop-opacity="0.95"/>
-      <stop offset="0.36" stop-color="#ffb84d" stop-opacity="0.42"/>
-      <stop offset="1" stop-color="#ffb84d" stop-opacity="0"/>
+    <radialGradient id="glowA" cx="30%" cy="16%" r="65%">
+      <stop offset="0" stop-color="#b7fff2" stop-opacity="0.46"/>
+      <stop offset="0.62" stop-color="#b7fff2" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#b7fff2" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="mapFace" x1="142" y1="142" x2="371" y2="383" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#edf8ff"/>
+    <radialGradient id="glowB" cx="78%" cy="24%" r="46%">
+      <stop offset="0" stop-color="#ffe087" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#ffe087" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="destination" x1="342" y1="122" x2="402" y2="242" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff8a5c"/>
+      <stop offset="1" stop-color="#ff4f7b"/>
     </linearGradient>
-    <linearGradient id="pin" x1="324" y1="134" x2="378" y2="265" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ff7b5f"/>
-      <stop offset="1" stop-color="#f04f73"/>
-    </linearGradient>
-    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#1c4f8f" flood-opacity="0.28"/>
+    <filter id="markShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="15" stdDeviation="14" flood-color="#153e7a" flood-opacity="0.28"/>
     </filter>
-    <filter id="pinShadow" x="-35%" y="-25%" width="170%" height="175%">
-      <feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#1f3c72" flood-opacity="0.3"/>
+    <filter id="dotShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#153e7a" flood-opacity="0.26"/>
     </filter>
   </defs>
 
-  <rect width="512" height="512" fill="url(#sky)"/>
-  <rect width="512" height="512" fill="url(#sun)"/>
+  <rect width="512" height="512" fill="url(#background)"/>
+  <rect width="512" height="512" fill="url(#glowA)"/>
+  <rect width="512" height="512" fill="url(#glowB)"/>
 
-  <g filter="url(#softShadow)">
+  <g filter="url(#markShadow)">
     <path
-      d="M116 172 209 138l94 34 93-34v214l-93 34-94-34-93 34Z"
-      fill="url(#mapFace)"
-    />
-    <path d="m209 138 94 34v214l-94-34Z" fill="#f5fbff"/>
-    <path d="m303 172 93-34v214l-93 34Z" fill="#eaf7ff"/>
-    <path d="M209 138v214M303 172v214" fill="none" stroke="#d8edf8" stroke-width="5" stroke-linecap="round"/>
-    <path
-      d="M154 313c37-52 77-58 113-32 29 21 58 5 80-54"
+      d="M142 306C186 366 231 382 277 344C319 309 321 247 365 209"
       fill="none"
-      stroke="#16b8a6"
-      stroke-width="16"
+      stroke="#ffffff"
+      stroke-width="48"
       stroke-linecap="round"
       stroke-linejoin="round"
     />
-    <circle cx="154" cy="313" r="15" fill="#16b8a6"/>
-    <circle cx="154" cy="313" r="7" fill="#ffffff"/>
   </g>
 
-  <g filter="url(#pinShadow)">
-    <path
-      d="M348 126c-43 0-77 34-77 76 0 56 77 123 77 123s77-67 77-123c0-42-34-76-77-76Z"
-      fill="url(#pin)"
-    />
-    <circle cx="348" cy="202" r="34" fill="#ffffff"/>
-    <circle cx="348" cy="202" r="18" fill="#ffcf4a"/>
+  <g filter="url(#dotShadow)">
+    <circle cx="142" cy="306" r="34" fill="#ffffff"/>
+    <circle cx="142" cy="306" r="14" fill="#15b9a7"/>
+    <circle cx="365" cy="209" r="58" fill="url(#destination)"/>
+    <circle cx="365" cy="209" r="24" fill="#ffffff"/>
+    <circle cx="365" cy="209" r="10" fill="#ffcf49"/>
   </g>
 </svg>
