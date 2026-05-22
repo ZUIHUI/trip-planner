@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   CheckSquare,
+  Compass,
   DollarSign,
   LayoutDashboard,
   Luggage,
@@ -12,19 +13,29 @@ import {
 } from 'lucide-react';
 
 const mainTabs = [
-  { id: 'summary', label: '總覽', icon: LayoutDashboard },
+  { id: 'today', label: '旅途', icon: Compass },
   { id: 'itinerary', label: '行程', icon: Map },
   { id: 'expenses', label: '記帳', icon: DollarSign },
   { id: 'shopping', label: '購物', icon: ShoppingCart }
 ];
 
 const secondaryTabs = [
+  { id: 'summary', label: '總覽', icon: LayoutDashboard },
   { id: 'preTrip', label: '行前', icon: CheckSquare },
   { id: 'packing', label: '行李', icon: Luggage },
   { id: 'flights', label: '資訊', icon: Ticket }
 ];
 
-const allTabs = [...mainTabs, ...secondaryTabs];
+const allTabs = [
+  mainTabs[0],
+  secondaryTabs[0],
+  mainTabs[1],
+  secondaryTabs[3],
+  secondaryTabs[1],
+  secondaryTabs[2],
+  mainTabs[2],
+  mainTabs[3]
+];
 
 const PresenceTabMarker = ({ count = 0 }) => {
   if (!count) return null;
@@ -42,6 +53,7 @@ const PresenceTabMarker = ({ count = 0 }) => {
 
 const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenceByTab = {} }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const hasActiveSecondaryTab = secondaryTabs.some((tab) => tab.id === activeTab);
 
   const handleTabChange = (tabId) => {
     onTabChange(tabId);
@@ -91,7 +103,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
             type="button"
             onClick={() => setShowMenu((prev) => !prev)}
             className={`touch-target flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition active:scale-[0.98] ${
-              showMenu
+              showMenu || hasActiveSecondaryTab
                 ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                 : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
             }`}

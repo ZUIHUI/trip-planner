@@ -7,6 +7,7 @@ import EditEventForm from '../components/EditEventForm';
 import EventDetailView from '../components/EventDetailView';
 import SettingsPanel from '../components/SettingsPanel';
 import BottomNavigation from '../components/BottomNavigation';
+import TodayTab from '../components/trip/TodayTab';
 import SummaryTab from '../components/trip/SummaryTab';
 import ItineraryTab from '../components/trip/ItineraryTab';
 import LogisticsTab from '../components/trip/LogisticsTab';
@@ -134,7 +135,7 @@ const TripDetailPage = () => {
     () => new URLSearchParams(location.search).get('share') || '',
     [location.search]
   );
-  const [activeTab, setActiveTab] = useState('itinerary');
+  const [activeTab, setActiveTab] = useState('today');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -877,6 +878,10 @@ const TripDetailPage = () => {
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'today' && (
+            <TodayTab />
           )}
 
           {activeTab === 'summary' && (

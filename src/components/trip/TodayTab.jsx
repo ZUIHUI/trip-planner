@@ -1,0 +1,627 @@
+import React, { useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+  Info,
+  Map,
+  MapPin,
+  Navigation,
+  Plus,
+  StickyNote,
+  Wallet
+} from 'lucide-react';
+import WeatherWidget from '../WeatherWidget';
+import { Badge, Button, Card } from '../ui';
+import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import {
+  buildGoogleMapsMultiStopDirectionsUrl,
+  normalizePlaceText
+} from '../../services/googleMapsService';
+import {
+  formatDailyCost,
+  formatEventCost,
+  getEventDestination,
+  getEventLocationText,
+  getEventMemoText,
+  pickNextEvent,
+  sortEventsByTime
+} from '../../utils/tripEvents';
+
+const getRouteStop = (event) => {
+  const destination = getEventDestination(event);
+  const text = normalizePlaceText(destination);
+  if (!text) return null;
+
+  return {
+    id: event.id,
+    title: event.title || text,
+    time: event.time || '--:--',
+    destination,
+    text
+  };
+};
+
+const getChecklistRemaining = (items = []) => (
+  Array.isArray(items) ? items.filter((item) => !item.done).length : 0
+);
+
+const buildReminders = ({
+  events,
+  routeStops,
+  tripDetails,
+  budgetTarget,
+  remainingBudget,
+  checklists
+}) => {
+  const reminders = [];
+  const accommodation = tripDetails?.accommodation || {};
+
+  if (!events.length) {
+    reminders.push({
+      id: 'empty-day',
+      tone: 'info',
+      title: '今日還沒有行程',
+      description: '先新增下一站，旅途中首頁就會顯示導航與天氣。'
+    });
+  }
+
+  if (!accommodation.address && !accommodation.name) {
+    reminders.push({
+      id: 'accommodation',
+      tone: 'warning',
+      title: '住宿資訊未補',
+      description: '補上住宿地址後，今日路線會更好用。'
+    });
+  }
+
+  if (events.length > 0 && routeStops.length === 0) {
+    reminders.push({
+      id: 'route',
+      tone: 'warning',
+      title: '今日行程缺地點',
+      description: '至少替一個行程補上地址，才能快速開路線。'
+    });
+  }
+
+  if (budgetTarget > 0 && remainingBudget < 0) {
+    reminders.push({
+      id: 'budget',
+      tone: 'danger',
+      title: '旅程預算已超支',
+      description: `目前超出 ${Math.abs(remainingBudget).toLocaleString()} 元。`
+    });
+  }
+
+  const preTripRemaining = getChecklistRemaining(checklists?.preTrip);
+  if (preTripRemaining > 0) {
+    reminders.push({
+      id: 'pre-trip',
+      tone: 'info',
+      title: '行前待辦尚未完成',
+      description: `還有 ${preTripRemaining} 件出發前事項。`
+    });
+  }
+
+  return reminders.slice(0, 3);
+};
+
+const reminderClasses = {
+  danger: 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200',
+  info: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-200',
+  warning: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100'
+};
+
+const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, onSelectDay }) => {
+  const currentIndex = itinerary.findIndex((day) => day.day === selectedDay);
+  const hasMultipleDays = itinerary.length > 1;
+  const previousDay = hasMultipleDays
+    ? itinerary[(currentIndex <= 0 ? itinerary.length : currentIndex) - 1]
+    : null;
+  const nextDay = hasMultipleDays
+    ? itinerary[((currentIndex >= 0 ? currentIndex : 0) + 1) % itinerary.length]
+    : null;
+
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white/90 p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+      <button
+        type="button"
+        onClick={() => previousDay && onSelectDay(previousDay.day)}
+        disabled={!previousDay}
+        className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+        aria-label="前一天"
+        title="前一天"
+      >
+        <ChevronLeft size={19} />
+      </button>
+
+      <div className="min-w-0 text-center">
+        <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">
+          Day {selectedDay}
+        </p>
+        <h2 className="truncate text-base font-black text-slate-950 dark:text-white">{currentDayTitle}</h2>
+        <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{currentDayDate}</p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => nextDay && onSelectDay(nextDay.day)}
+        disabled={!nextDay}
+        className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+        aria-label="下一天"
+        title="下一天"
+      >
+        <ChevronRight size={19} />
+      </button>
+    </div>
+  );
+};
+
+const TodayHero = ({
+  currentDayData,
+  currentDayDate,
+  currentLocation,
+  events,
+  nextEvent,
+  onAddEvent,
+  onNavigateNext,
+  tripDetails,
+  canEdit
+}) => {
+  const nextLocationText = getEventLocationText(nextEvent);
+  const weatherLocation = nextLocationText || tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京';
+  const memoText = getEventMemoText(nextEvent);
+
+  if (!nextEvent) {
+    return (
+      <section className="overflow-hidden rounded-lg border border-brand-400/50 bg-gradient-to-br from-brand-600 via-brand-600 to-sky-700 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-slate-900">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-wide text-brand-100">旅途中</p>
+            <h3 className="mt-1 text-2xl font-black leading-tight">今天還沒有行程</h3>
+            <p className="mt-1 text-sm font-semibold text-brand-50">{currentDayDate || currentDayData?.date || '未設定日期'}</p>
+          </div>
+          <CalendarDays size={26} className="shrink-0 text-white/80" />
+        </div>
+
+        <div className="mt-4 border-t border-white/20 pt-4">
+          <WeatherWidget
+            variant="compact"
+            date={currentDayDate || currentDayData?.date}
+            currentLocation={currentLocation}
+            accommodation={weatherLocation}
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={onAddEvent}
+          disabled={!canEdit}
+          className="touch-target mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
+        >
+          <Plus size={18} />
+          新增第一個行程
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-brand-400/50 bg-gradient-to-br from-brand-600 via-brand-600 to-sky-700 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-slate-900">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-black uppercase tracking-wide text-brand-100">下一站</p>
+          <h3 className="mt-1 break-words text-2xl font-black leading-tight">
+            {nextEvent.title || '未命名行程'}
+          </h3>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-brand-50">
+            <Clock size={15} className="shrink-0" />
+            <span className="font-mono">{nextEvent.time || '--:--'}</span>
+            {nextLocationText && (
+              <>
+                <span className="text-white/40">/</span>
+                <MapPin size={15} className="shrink-0" />
+                <span className="min-w-0 truncate">{nextLocationText}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {nextLocationText && (
+          <button
+            type="button"
+            onClick={onNavigateNext}
+            className="touch-target inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white transition hover:bg-white/30 active:scale-95"
+            aria-label="導航到下一站"
+            title="導航"
+          >
+            <Navigation size={22} />
+          </button>
+        )}
+      </div>
+
+      <div className="mt-4 border-t border-white/20 pt-4">
+        <WeatherWidget
+          variant="compact"
+          date={currentDayDate || currentDayData?.date}
+          currentLocation={currentLocation}
+          accommodation={tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || weatherLocation}
+          firstEventLocation={nextLocationText}
+          selectedEventLocation={nextLocationText}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-brand-100">
+            <Wallet size={13} />
+            <span>本行程</span>
+          </div>
+          <p className="mt-1 text-sm font-black">{formatEventCost(nextEvent)}</p>
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-brand-100">
+            <CalendarDays size={13} />
+            <span>今日預估</span>
+          </div>
+          <p className="mt-1 text-sm font-black">{formatDailyCost(events)}</p>
+        </div>
+      </div>
+
+      {memoText && (
+        <div className="mt-4 flex items-start gap-2 border-t border-white/20 pt-3 text-sm font-semibold text-brand-50">
+          <StickyNote size={16} className="mt-0.5 shrink-0 text-white/80" />
+          <p className="line-clamp-2 whitespace-pre-wrap">{memoText}</p>
+        </div>
+      )}
+    </section>
+  );
+};
+
+const QuickActions = ({ canEdit, nextEvent, routeUrl, onAddEvent, onNavigateNext }) => {
+  const hasNextDestination = Boolean(getEventLocationText(nextEvent));
+
+  return (
+    <div className="grid grid-cols-3 gap-2" aria-label="旅途中快速操作">
+      <Button
+        variant="secondary"
+        onClick={onNavigateNext}
+        disabled={!hasNextDestination}
+        className="min-w-0 !px-2 text-xs"
+      >
+        <Navigation size={16} />
+        導航
+      </Button>
+      {routeUrl ? (
+        <Button
+          as="a"
+          href={routeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="secondary"
+          className="min-w-0 !px-2 text-xs"
+        >
+          <Map size={16} />
+          路線
+        </Button>
+      ) : (
+        <Button variant="secondary" disabled className="min-w-0 !px-2 text-xs">
+          <Map size={16} />
+          路線
+        </Button>
+      )}
+      <Button onClick={onAddEvent} disabled={!canEdit} className="min-w-0 !px-2 text-xs">
+        <Plus size={16} />
+        新增
+      </Button>
+    </div>
+  );
+};
+
+const ReminderStrip = ({ reminders }) => {
+  if (!reminders.length) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100">
+        <CheckCircle2 size={19} className="mt-0.5 shrink-0" />
+        <div className="min-w-0">
+          <p className="text-sm font-black">今天看起來準備好了</p>
+          <p className="mt-0.5 text-xs font-semibold text-emerald-700/80 dark:text-emerald-100/75">
+            下一站、路線與旅程資訊都可以直接使用。
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <section className="space-y-2" aria-label="重要提醒">
+      <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+        <AlertTriangle size={17} className="text-amber-600 dark:text-amber-300" />
+        重要提醒
+      </div>
+      {reminders.map((reminder) => (
+        <div
+          key={reminder.id}
+          className={`rounded-lg border px-3 py-2 ${reminderClasses[reminder.tone] || reminderClasses.info}`}
+        >
+          <p className="text-sm font-black">{reminder.title}</p>
+          <p className="mt-0.5 text-xs font-semibold opacity-85">{reminder.description}</p>
+        </div>
+      ))}
+    </section>
+  );
+};
+
+const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
+  return (
+    <Card className="p-4">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="tp-icon-chip bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300">
+            <Clock size={20} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="tp-section-title">今日行程</h3>
+            <p className="tp-section-subtitle mt-1">{events.length ? `${events.length} 個安排` : '還沒有安排'}</p>
+          </div>
+        </div>
+        <Badge variant={events.length ? 'info' : 'muted'}>{events.length || 0}</Badge>
+      </div>
+
+      {events.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          新增行程後，這裡會變成旅途中使用的精簡時間線。
+        </div>
+      ) : (
+        <ol className="space-y-3">
+          {events.map((event, index) => {
+            const locationText = getEventLocationText(event);
+            const previousEvent = index > 0 ? events[index - 1] : null;
+            const previousLocation = previousEvent
+              ? getEventDestination(previousEvent)
+              : tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
+
+            return (
+              <li key={event.id || `${event.time}-${event.title}-${index}`} className="flex min-w-0 gap-3">
+                <div className="w-12 shrink-0 pt-1 text-right font-mono text-sm font-black text-slate-700 dark:text-slate-200">
+                  {event.time || '--:--'}
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-brand-600 ring-4 ring-brand-50 dark:bg-brand-300 dark:ring-brand-950/50" />
+                  {index < events.length - 1 && <span className="mt-1 h-full min-h-10 w-px bg-slate-200 dark:bg-slate-800" />}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenEvent(event, true)}
+                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left transition hover:border-brand-200 hover:bg-brand-50 dark:border-slate-800 dark:bg-slate-950/50 dark:hover:border-brand-800 dark:hover:bg-brand-950/20"
+                >
+                  <span className="block break-words text-sm font-black text-slate-950 dark:text-white">
+                    {event.title || '未命名行程'}
+                  </span>
+                  {locationText && (
+                    <span className="mt-1 flex min-w-0 items-start gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <MapPin size={13} className="mt-0.5 shrink-0" />
+                      <span className="line-clamp-2 break-words">{locationText}</span>
+                    </span>
+                  )}
+                  {locationText && (
+                    <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-black text-brand-700 dark:bg-brand-950/40 dark:text-brand-200">
+                      <Info size={12} />
+                      查看詳情
+                    </span>
+                  )}
+                </button>
+                {locationText && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenMaps(previousLocation, getEventDestination(event))}
+                    className="touch-target mt-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-brand-100 bg-brand-50 text-brand-700 transition hover:bg-brand-100 dark:border-brand-900/70 dark:bg-brand-950/30 dark:text-brand-300"
+                    aria-label={`導航到 ${event.title || locationText}`}
+                    title="導航"
+                  >
+                    <Navigation size={17} />
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </Card>
+  );
+};
+
+const TodayRouteCard = ({ routeStops, routeUrl }) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const previewQuery = routeStops[0]?.text || '';
+  const mapPreviewUrl = previewQuery
+    ? `https://www.google.com/maps?q=${encodeURIComponent(previewQuery)}&output=embed`
+    : '';
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="tp-icon-chip bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+              <Map size={20} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="tp-section-title">今日路線</h3>
+              <p className="tp-section-subtitle mt-1">
+                {routeStops.length ? `${routeStops.length} 個可導航地點` : '今日行程尚未設定地點'}
+              </p>
+            </div>
+          </div>
+          {routeUrl && (
+            <Button
+              as="a"
+              href={routeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="secondary"
+              size="sm"
+              className="shrink-0"
+            >
+              <Map size={14} />
+              開路線
+            </Button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowDetails((open) => !open)}
+          className="touch-target mt-4 inline-flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          aria-expanded={showDetails}
+        >
+          路線細節
+          {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+
+        {showDetails && (
+          <div className="mt-4 space-y-2">
+            {routeStops.length ? routeStops.map((stop, index) => (
+              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+                <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-black text-white">
+                  {index + 1}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-black text-slate-900 dark:text-white">
+                    {stop.time} / {stop.title}
+                  </span>
+                  <span className="mt-0.5 block break-words text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {stop.text}
+                  </span>
+                </span>
+              </div>
+            )) : (
+              <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                替行程補上地點後，這裡會顯示今日路線。
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {showDetails && mapPreviewUrl && (
+        <div className="h-56 border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+          <iframe
+            title="today-route-map-preview"
+            src={mapPreviewUrl}
+            className="h-full w-full"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      )}
+    </Card>
+  );
+};
+
+const TodayTab = () => {
+  const {
+    itinerary,
+    selectedDay,
+    setSelectedDay,
+    currentDayData,
+    currentDayTitle,
+    currentDayDate,
+    tripDetails,
+    currentLocation,
+    checklists,
+    budgetTarget,
+    remainingBudget,
+    canEdit,
+    openAddModal,
+    openEditModal,
+    handleOpenGoogleMaps
+  } = useTripWorkspace();
+
+  const events = useMemo(
+    () => sortEventsByTime(currentDayData?.events || []),
+    [currentDayData]
+  );
+  const nextEvent = useMemo(() => pickNextEvent(events), [events]);
+  const routeStops = useMemo(() => events.map(getRouteStop).filter(Boolean), [events]);
+  const origin = currentLocation?.locationName ||
+    tripDetails?.accommodation?.address ||
+    tripDetails?.accommodation?.name ||
+    '';
+  const routeUrl = buildGoogleMapsMultiStopDirectionsUrl(
+    origin,
+    routeStops.map((stop) => stop.destination)
+  );
+  const reminders = useMemo(
+    () => buildReminders({
+      events,
+      routeStops,
+      tripDetails,
+      budgetTarget,
+      remainingBudget,
+      checklists
+    }),
+    [events, routeStops, tripDetails, budgetTarget, remainingBudget, checklists]
+  );
+
+  const handleNavigateNext = () => {
+    const destination = getEventDestination(nextEvent);
+    if (!destination) return;
+    handleOpenGoogleMaps(origin, destination);
+  };
+
+  return (
+    <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
+      <div className="flex items-center gap-2 text-sm font-black text-brand-700 dark:text-brand-300">
+        <Info size={16} />
+        旅途中首頁
+      </div>
+
+      <DaySwitcher
+        itinerary={itinerary}
+        selectedDay={selectedDay}
+        currentDayTitle={currentDayTitle}
+        currentDayDate={currentDayDate}
+        onSelectDay={setSelectedDay}
+      />
+
+      <TodayHero
+        currentDayData={currentDayData}
+        currentDayDate={currentDayDate}
+        currentLocation={currentLocation}
+        events={events}
+        nextEvent={nextEvent}
+        onAddEvent={openAddModal}
+        onNavigateNext={handleNavigateNext}
+        tripDetails={tripDetails}
+        canEdit={canEdit}
+      />
+
+      <QuickActions
+        canEdit={canEdit}
+        nextEvent={nextEvent}
+        routeUrl={routeUrl}
+        onAddEvent={openAddModal}
+        onNavigateNext={handleNavigateNext}
+      />
+
+      <ReminderStrip reminders={reminders} />
+
+      <TodayTimeline
+        events={events}
+        tripDetails={tripDetails}
+        onOpenEvent={openEditModal}
+        onOpenMaps={handleOpenGoogleMaps}
+      />
+
+      <TodayRouteCard routeStops={routeStops} routeUrl={routeUrl} />
+    </div>
+  );
+};
+
+export default TodayTab;

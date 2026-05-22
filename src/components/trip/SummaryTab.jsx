@@ -276,7 +276,7 @@ const CommandCenterCard = ({
               {completedSteps}/{steps.length} 個關鍵資料
             </span>
           </div>
-          <h2 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">旅程控制台</h2>
+          <h2 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">規劃總覽</h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
             {nextStep ? `下一步：補齊${nextStep.label}` : '核心資料已就緒，可以直接進入旅途中使用。'}
           </p>

@@ -2,7 +2,6 @@ import React from 'react';
 import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, Wallet } from 'lucide-react';
 import DaySelector from '../DaySelector';
 import EventCard from '../EventCard';
-import NextEventWidget from '../NextEventWidget';
 import ItineraryRoutePanel from './ItineraryRoutePanel';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
@@ -74,25 +73,6 @@ const ItineraryTab = () => {
 
   return (
     <>
-      <NextEventWidget
-        itinerary={itinerary}
-        selectedDay={selectedDay}
-        currentDayData={currentDayData}
-        currentDayDate={currentDayDate}
-        tripDetails={tripDetails}
-        currentLocation={currentLocation}
-        onAddEvent={openAddModal}
-        onNavigate={(destination) =>
-          handleOpenGoogleMaps(
-            currentLocation?.locationName ||
-              tripDetails?.accommodation?.address ||
-              tripDetails?.accommodation?.name ||
-              '',
-            destination
-          )
-        }
-      />
-
       <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
       {nextDayItem && (
         <div className="mt-2 px-4 sm:hidden">
@@ -191,7 +171,7 @@ const ItineraryTab = () => {
             <EmptyState
               icon={CalendarDays}
               title="目前尚無行程"
-              description="新增第一個行程後，旅途中模式會自動顯示下一個地點、備註、天氣和預估花費。"
+              description="新增第一個行程後，旅途首頁會自動顯示下一個地點、備註、天氣和預估花費。"
               actionLabel="新增第一個行程"
               onAction={openAddModal}
             />

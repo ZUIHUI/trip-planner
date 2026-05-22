@@ -1,69 +1,14 @@
 import React, { useMemo } from 'react';
 import { CalendarDays, Clock, MapPin, Navigation, Plus, StickyNote, Wallet } from 'lucide-react';
 import WeatherWidget from './WeatherWidget';
-
-const readCost = (event) => {
-  const rawAmount = event?.cost?.amount ?? event?.cost;
-  const amount = Number(rawAmount);
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return null;
-  }
-
-  return {
-    amount,
-    currency: event?.cost?.currency || event?.currency || 'JPY'
-  };
-};
-
-const formatCurrencyAmount = ({ amount, currency }) => {
-  const formattedAmount = amount.toLocaleString();
-  return currency === 'TWD' ? `NT$${formattedAmount}` : `¥${formattedAmount}`;
-};
-
-const formatEventCost = (event) => {
-  const cost = readCost(event);
-  return cost ? formatCurrencyAmount(cost) : '未設定';
-};
-
-const formatDailyCost = (events = []) => {
-  const totals = events.reduce((acc, event) => {
-    const cost = readCost(event);
-    if (!cost) return acc;
-    acc[cost.currency] = (acc[cost.currency] || 0) + cost.amount;
-    return acc;
-  }, {});
-
-  const parts = Object.entries(totals).map(([currency, amount]) =>
-    formatCurrencyAmount({ amount, currency })
-  );
-
-  return parts.length > 0 ? parts.join(' / ') : '未設定';
-};
-
-const getMemoText = (event) => {
-  const firstMemo = Array.isArray(event?.memos) ? event.memos[0] : null;
-  const memoText = typeof firstMemo === 'string'
-    ? firstMemo
-    : firstMemo?.text || firstMemo?.note || '';
-  return event?.desc || memoText || '尚無備註';
-};
-
-const getLocationText = (event) => {
-  if (!event) return '';
-  if (typeof event.location === 'string') return event.location;
-  return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
-};
-
-const pickNextEvent = (events = []) => {
-  if (events.length === 0) return null;
-
-  const sortedEvents = [...events].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
-  const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-  return sortedEvents.find((event) => String(event.time || '') > currentTime) || sortedEvents[0];
-};
+import {
+  formatDailyCost,
+  formatEventCost,
+  getEventDestination,
+  getEventLocationText,
+  getEventMemoText,
+  pickNextEvent
+} from '../utils/tripEvents';
 
 const NextEventWidget = ({
   itinerary = [],
@@ -82,7 +27,7 @@ const NextEventWidget = ({
 
   const events = currentDayData?.events || [];
   const nextEvent = useMemo(() => pickNextEvent(events), [events]);
-  const nextLocationText = getLocationText(nextEvent);
+  const nextLocationText = getEventLocationText(nextEvent);
   const weatherLocation = nextLocationText || tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京';
 
   if (!nextEvent) {
@@ -140,7 +85,7 @@ const NextEventWidget = ({
         {nextLocationText && (
           <button
             type="button"
-            onClick={() => onNavigate?.(nextEvent.locationPlace || nextEvent.location)}
+            onClick={() => onNavigate?.(getEventDestination(nextEvent))}
             className="touch-target shrink-0 rounded-full border border-white/30 bg-white/20 p-3 transition hover:bg-white/30 active:scale-95"
             title="導航到此地點"
             aria-label="導航到此地點"
@@ -181,7 +126,7 @@ const NextEventWidget = ({
       <div className="mt-4 border-t border-white/20 pt-3">
         <div className="flex items-start gap-2 text-sm text-brand-50">
           <StickyNote size={16} className="mt-0.5 shrink-0 text-white/80" />
-          <p className="line-clamp-3 whitespace-pre-wrap">{getMemoText(nextEvent)}</p>
+          <p className="line-clamp-3 whitespace-pre-wrap">{getEventMemoText(nextEvent) || '尚無備註'}</p>
         </div>
       </div>
     </section>

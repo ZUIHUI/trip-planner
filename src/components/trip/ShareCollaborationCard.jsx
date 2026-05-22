@@ -24,6 +24,7 @@ const defaultInvite = {
 };
 
 const tabLabels = {
+  today: '旅途中',
   summary: '控制台',
   itinerary: '每日行程',
   preTrip: '行前',
