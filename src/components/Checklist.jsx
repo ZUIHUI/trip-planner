@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { Button, EmptyState, Input } from './ui';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { plainTextInputProps } from '../utils/mobileInputProps';
 
 const Checklist = ({
   items = [],
@@ -13,6 +14,7 @@ const Checklist = ({
 }) => {
   const { confirm, toast } = useFeedback();
   const [inputValue, setInputValue] = useState('');
+  const inputRef = useRef(null);
   const safeItems = Array.isArray(items) ? items : [];
   const doneCount = useMemo(() => safeItems.filter((item) => item.done).length, [safeItems]);
 
@@ -37,6 +39,9 @@ const Checklist = ({
       ]);
     }
     setInputValue('');
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => inputRef.current?.focus(), 0);
+    }
   };
 
   const toggleItem = (id) => {
@@ -139,7 +144,8 @@ const Checklist = ({
 
       <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
         <Input
-          type="text"
+          ref={inputRef}
+          {...plainTextInputProps}
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           onKeyDown={(event) => {
@@ -150,6 +156,7 @@ const Checklist = ({
           }}
           placeholder="新增待辦事項"
           aria-label="新增待辦事項"
+          enterKeyHint="done"
         />
         <Button onClick={addItem} disabled={!inputValue.trim()}>
           <Plus size={16} />

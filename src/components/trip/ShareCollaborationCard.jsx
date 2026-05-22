@@ -7,6 +7,7 @@ import {
   updateTripMemberProfile
 } from '../../services/tripService';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
+import { inviteCodeInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 
 const defaultCollaboration = {
   enabled: false,
@@ -382,6 +383,7 @@ const ShareCollaborationCard = ({
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
               <Input
                 id="trip-invite-code"
+                {...inviteCodeInputProps}
                 value={invite.enabled && invite.code ? invite.code : '尚未建立邀請碼'}
                 readOnly
                 className="font-mono text-lg font-black uppercase tracking-widest"
@@ -423,9 +425,11 @@ const ShareCollaborationCard = ({
         <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在旅伴清單、大家想去的地方與在線狀態中。">
           <Input
             id="member-display-name"
+            {...plainTextInputProps}
             value={displayNameDraft}
             onChange={(event) => setDisplayNameDraft(event.target.value)}
             placeholder={currentUser?.email || '例如 Alex'}
+            enterKeyHint="done"
           />
         </Field>
 

@@ -17,6 +17,7 @@ import {
 import { MAX_COVER_IMAGE_FILE_SIZE_BYTES, normalizeCoverImageUrl } from '../utils/coverImage';
 import { Button, Field, Input, Select } from './ui';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { moneyInputProps, plainTextInputProps } from '../utils/mobileInputProps';
 
 const ALLOWED_IMAGE_TYPES = new Set([
   'image/jpeg',
@@ -255,7 +256,7 @@ const SettingsPanel = ({
                 <div className="flex items-center gap-2">
                   <Input
                     id="exchange-rate"
-                    type="number"
+                    {...moneyInputProps}
                     step="0.001"
                     value={exchangeRate || ''}
                     onChange={(event) => onExchangeRateChange(parseFloat(event.target.value) || 0)}
@@ -364,7 +365,7 @@ const SettingsPanel = ({
             {!travelersReadOnly && (
             <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
               <Input
-                type="text"
+                {...plainTextInputProps}
                 value={newTravelerName}
                 onChange={(event) => setNewTravelerName(event.target.value)}
                 onKeyDown={(event) => {
@@ -375,6 +376,7 @@ const SettingsPanel = ({
                 }}
                 placeholder="輸入旅伴姓名"
                 aria-label="輸入旅伴姓名"
+                enterKeyHint="done"
               />
               <Button onClick={handleAddTraveler} disabled={!newTravelerName.trim()}>
                 <Plus size={16} />

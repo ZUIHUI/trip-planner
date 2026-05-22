@@ -124,6 +124,10 @@ const ReservationImportCard = ({ tripDetails, setTripDetails }) => {
             }}
             rows={7}
             placeholder="貼上 Booking.com、航空公司或活動平台的確認文字..."
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="done"
           />
         </Field>
 

@@ -17,6 +17,7 @@ import {
   X
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, Field, Input, Select, Textarea } from './ui';
+import { moneyInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
 
 const EXPENSE_CATEGORIES = [
   { id: 'food', label: '餐飲', className: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-900/70' },
@@ -242,6 +243,7 @@ const ExpenseFilters = ({
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
         <Input
+          {...searchInputProps}
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           placeholder="搜尋名稱、付款人、備註"
@@ -490,12 +492,13 @@ const ExpenseFormModal = ({
             <Field label="支出名稱" htmlFor="expense-title">
               <Input
                 id="expense-title"
-                type="text"
+                {...plainTextInputProps}
                 name="title"
                 value={formData.title || ''}
                 onChange={(event) => setFormData((prev) => ({ ...prev, title: event.target.value }))}
                 placeholder="例如：拉麵、車票、門票"
                 aria-invalid={Boolean(errors.title)}
+                enterKeyHint="next"
                 autoFocus
               />
               <FieldError>{errors.title}</FieldError>
@@ -527,7 +530,7 @@ const ExpenseFormModal = ({
             <Field label="金額" htmlFor="expense-amount">
               <Input
                 id="expense-amount"
-                type="number"
+                {...moneyInputProps}
                 name="amount"
                 value={formData.amount || ''}
                 onChange={(event) => setFormData((prev) => ({ ...prev, amount: event.target.value }))}
@@ -589,6 +592,7 @@ const ExpenseFormModal = ({
               onChange={(event) => setFormData((prev) => ({ ...prev, note: event.target.value }))}
               placeholder="例如：收據、付款方式、同行者備註"
               rows="2"
+              enterKeyHint="done"
             />
           </Field>
 
@@ -661,10 +665,12 @@ const ExpenseFormModal = ({
             </div>
           </section>
 
-          <Button type="submit" className="w-full">
-            <Save size={18} />
-            {editingId ? '更新支出' : '新增支出'}
-          </Button>
+          <div className="sticky bottom-0 -mx-4 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
+            <Button type="submit" className="w-full">
+              <Save size={18} />
+              {editingId ? '更新支出' : '新增支出'}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

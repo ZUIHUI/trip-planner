@@ -15,6 +15,7 @@ import {
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
 import { getFlightLookupAvailability } from '../../services/flightService';
+import { moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
@@ -233,7 +234,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
         <Field label="旅程名稱" htmlFor={`${idPrefix}trip-title`}>
           <Input
             id={`${idPrefix}trip-title`}
-            type="text"
+            {...plainTextInputProps}
             placeholder="旅程名稱"
             value={tripDetails?.title || ''}
             onChange={(event) =>
@@ -252,6 +253,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
               type="date"
               className="tp-date-input"
               value={startDate}
+              enterKeyHint="next"
               onChange={(event) =>
                 setTripDetails((prev) => {
                   const start = event.target.value;
@@ -271,6 +273,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
               type="date"
               className="tp-date-input"
               value={endDate}
+              enterKeyHint="next"
               onChange={(event) =>
                 setTripDetails((prev) => {
                   const end = event.target.value;
@@ -312,7 +315,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
           <Field label="旅程預算" htmlFor={`${idPrefix}trip-budget`}>
             <Input
               id={`${idPrefix}trip-budget`}
-              type="number"
+              {...moneyInputProps}
               min="0"
               placeholder="例如 50000"
               value={tripDetails?.budget?.total || ''}
@@ -359,7 +362,7 @@ const AccommodationCard = ({
       <Field label="飯店名稱" htmlFor={`${idPrefix}hotel-name`}>
         <Input
           id={`${idPrefix}hotel-name`}
-          type="text"
+          {...plainTextInputProps}
           placeholder="飯店名稱"
           value={tripDetails?.accommodation?.name || ''}
           onChange={(event) =>
@@ -393,7 +396,7 @@ const AccommodationCard = ({
           <Field label="Check-in" htmlFor={`${idPrefix}hotel-check-in`}>
             <Input
               id={`${idPrefix}hotel-check-in`}
-              type="text"
+              {...plainTextInputProps}
               placeholder="例如 2/23 16:00"
               value={tripDetails?.accommodation?.checkIn || ''}
               onChange={(event) =>
@@ -407,7 +410,7 @@ const AccommodationCard = ({
           <Field label="Check-out" htmlFor={`${idPrefix}hotel-check-out`}>
             <Input
               id={`${idPrefix}hotel-check-out`}
-              type="text"
+              {...plainTextInputProps}
               placeholder="例如 2/28 10:00"
               value={tripDetails?.accommodation?.checkOut || ''}
               onChange={(event) =>
@@ -438,6 +441,12 @@ const FlightField = ({
     <Input
       id={`${idPrefix}flight-${direction}-${field}`}
       type={type}
+      inputMode={field === 'date' || field.toLowerCase().includes('time') ? 'numeric' : 'text'}
+      autoComplete="off"
+      autoCapitalize={field === 'code' ? 'characters' : 'none'}
+      autoCorrect="off"
+      spellCheck={false}
+      enterKeyHint="next"
       placeholder={placeholder}
       value={value || ''}
       onChange={(event) =>

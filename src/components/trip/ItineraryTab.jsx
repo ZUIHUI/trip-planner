@@ -5,6 +5,7 @@ import EventCard from '../EventCard';
 import ItineraryRoutePanel from './ItineraryRoutePanel';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { plainTextInputProps } from '../../utils/mobileInputProps';
 
 const currencySymbol = (currency) => (currency === 'TWD' ? 'NT$' : '¥');
 
@@ -109,20 +110,22 @@ const ItineraryTab = () => {
                     <label className="tp-label" htmlFor="day-title">Day 標題</label>
                     <Input
                       id="day-title"
-                      type="text"
+                      {...plainTextInputProps}
                       value={dayMetaDraft.title}
                       onChange={(event) => setDayMetaDraft({ ...dayMetaDraft, title: event.target.value })}
                       placeholder={`Day ${selectedDay}`}
+                      enterKeyHint="next"
                     />
                   </div>
                   <div>
                     <label className="tp-label" htmlFor="day-date">日期</label>
                     <Input
                       id="day-date"
-                      type="text"
+                      {...plainTextInputProps}
                       value={dayMetaDraft.date}
                       onChange={(event) => setDayMetaDraft({ ...dayMetaDraft, date: event.target.value })}
                       placeholder={`Day ${selectedDay}`}
+                      enterKeyHint="done"
                     />
                   </div>
                   <div className="flex gap-2">

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import DaySelector from './DaySelector';
 import { Button, EmptyState, Input, Select } from './ui';
+import { plainTextInputProps } from '../utils/mobileInputProps';
 
 const CATEGORIES = [
   {
@@ -352,10 +353,11 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <Input
-                type="text"
+                {...plainTextInputProps}
                 autoFocus
                 value={editingText}
                 aria-label="編輯物品名稱"
+                enterKeyHint="done"
                 onChange={(event) => {
                   setEditingText(event.target.value);
                   if (editError) setEditError('');
@@ -578,10 +580,12 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
         {addPanelOpen && (
           <form onSubmit={handleAddSubmit} className="mt-4 space-y-3">
             <Input
+              {...plainTextInputProps}
               value={newItemText}
               onChange={(event) => setNewItemText(event.target.value)}
               placeholder="輸入物品名稱"
               aria-label="新增行李物品名稱"
+              enterKeyHint="done"
             />
             <Select
               value={newItemAssignedTo}
@@ -712,6 +716,10 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                       <div className="relative hidden sm:block">
                         <input
                           type="text"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          enterKeyHint="done"
                           placeholder={`+ 新增到 ${group.name}`}
                           className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-3 pr-10 text-sm text-slate-900 transition focus:border-brand-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                           onKeyDown={(event) => {

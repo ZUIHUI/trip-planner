@@ -299,3 +299,13 @@ html, body {
     margin-left: 8px;
   }
 }
+
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea,
+  .tp-input,
+  .tp-select {
+    font-size: 16px;
+  }
+}

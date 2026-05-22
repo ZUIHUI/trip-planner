@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Link2, Mail, PlaneTakeoff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
 import InstallAppPrompt from '../components/InstallAppPrompt';
+import { codeInputProps, emailInputProps } from '../utils/mobileInputProps';
 
 const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
 
@@ -114,10 +115,17 @@ const LoginPage = () => {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const codeInputRef = useRef(null);
 
   useEffect(() => {
     setRememberDevicePreference(rememberDevice);
   }, [rememberDevice, setRememberDevicePreference]);
+
+  useEffect(() => {
+    if (loginStep !== 'code' || typeof window === 'undefined') return undefined;
+    const timer = window.setTimeout(() => codeInputRef.current?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, [loginStep]);
 
   useEffect(() => {
     if (isAuthLoading || !currentUser) return;
@@ -300,25 +308,21 @@ const LoginPage = () => {
                   <Field label="Email" htmlFor="login-email-confirm">
                     <Input
                       id="login-email-confirm"
-                      type="email"
+                      {...emailInputProps}
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="you@example.com"
-                      autoComplete="email"
                       required
                     />
                   </Field>
                   <Field label="驗證碼" htmlFor="login-code" hint="請輸入信中的 6 位數字。">
                     <Input
                       id="login-code"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={6}
+                      ref={codeInputRef}
+                      {...codeInputProps}
                       value={code}
                       onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="123456"
-                      autoComplete="one-time-code"
                       required
                     />
                   </Field>
@@ -336,11 +340,10 @@ const LoginPage = () => {
                   <Field label="Email" htmlFor="login-email">
                     <Input
                       id="login-email"
-                      type="email"
+                      {...emailInputProps}
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="you@example.com"
-                      autoComplete="email"
                       required
                     />
                   </Field>

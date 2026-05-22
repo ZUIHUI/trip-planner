@@ -52,6 +52,9 @@ const GooglePlaceInput = ({
   className = '',
   name,
   ariaLabel,
+  enterKeyHint = 'search',
+  autoFocus = false,
+  onSubmitSearch,
   placeTypes = DEFAULT_PLACE_TYPES,
   helperText = defaultHelperText,
   emptyMessage = defaultEmptyMessage,
@@ -177,6 +180,23 @@ const GooglePlaceInput = ({
       return;
     }
 
+    if (event.key === 'Enter' && suggestions.length && activeIndex >= 0) {
+      event.preventDefault();
+      handleSelectSuggestion(suggestions[activeIndex]);
+      return;
+    }
+
+    if (event.key === 'Enter' && onSubmitSearch) {
+      event.preventDefault();
+      onSubmitSearch(query);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      return;
+    }
+
     if (!suggestions.length) return;
 
     if (event.key === 'ArrowDown') {
@@ -191,10 +211,6 @@ const GooglePlaceInput = ({
       return;
     }
 
-    if (event.key === 'Enter' && activeIndex >= 0) {
-      event.preventDefault();
-      handleSelectSuggestion(suggestions[activeIndex]);
-    }
   };
 
   const handleBlur = () => {
@@ -208,7 +224,8 @@ const GooglePlaceInput = ({
     <div className="relative min-w-0 max-w-full">
       <input
         id={inputId}
-        type="text"
+        type="search"
+        inputMode="search"
         name={name}
         value={value || ''}
         onChange={(event) => onTextChange?.(event.target.value, event)}
@@ -218,6 +235,11 @@ const GooglePlaceInput = ({
         disabled={disabled}
         placeholder={placeholder}
         autoComplete="off"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint={enterKeyHint}
+        autoFocus={autoFocus}
         aria-label={ariaLabel}
         aria-autocomplete="list"
         aria-controls={listboxId}

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ExternalLink, Link as LinkIcon, MapPin, Navigation, Save, Wallet } from 'lucide-react';
 import GooglePlaceInput from './GooglePlaceInput';
 import { Button, Field, Input, Select, Textarea } from './ui';
+import { moneyInputProps, plainTextInputProps, urlInputProps } from '../utils/mobileInputProps';
 
 const DEFAULT_EVENT = {
   time: '',
@@ -163,6 +164,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               value={formData.time || ''}
               onChange={handleChange}
               disabled={readOnly}
+              enterKeyHint="next"
             />
           </Field>
 
@@ -185,12 +187,13 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           <Field label="標題" htmlFor="event-title">
             <Input
               id="event-title"
-              type="text"
+              {...plainTextInputProps}
               name="title"
               value={formData.title || ''}
               onChange={handleChange}
               disabled={readOnly}
               placeholder="輸入行程名稱"
+              enterKeyHint="next"
             />
           </Field>
         </div>
@@ -269,6 +272,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               disabled={readOnly}
               placeholder="輸入詳細資訊、集合地點、訂位資訊..."
               rows="3"
+              enterKeyHint="done"
             />
           </Field>
         </div>
@@ -279,7 +283,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               <LinkIcon size={16} className="pointer-events-none absolute left-3 top-3.5 text-slate-400 dark:text-slate-500" />
               <Input
                 id="event-url"
-                type="url"
+                {...urlInputProps}
                 name="url"
                 value={formData.url || ''}
                 onChange={handleChange}
@@ -298,6 +302,11 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
             <Input
               id="event-transport-duration"
               type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="next"
               name="transport.duration"
               value={formData.transport?.duration || ''}
               onChange={handleChange}
@@ -325,12 +334,13 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           <Field label="路線備註" htmlFor="event-transport-route">
             <Input
               id="event-transport-route"
-              type="text"
+              {...plainTextInputProps}
               name="transport.route"
               value={formData.transport?.route || ''}
               onChange={handleChange}
               disabled={readOnly}
               placeholder="例如：山手線往池袋，轉乘一次"
+              enterKeyHint="next"
             />
           </Field>
         </div>
@@ -354,7 +364,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           <Field label="預估金額" htmlFor="event-cost">
             <Input
               id="event-cost"
-              type="number"
+              {...moneyInputProps}
               name="cost"
               value={formData.cost || ''}
               onChange={handleChange}
@@ -367,7 +377,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
       </FormSection>
 
       {readOnly ? (
-        <div className="grid min-w-0 gap-2 pt-1 sm:grid-cols-2">
+        <div className="sticky bottom-0 z-10 -mx-4 grid min-w-0 gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:grid-cols-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
           <Button type="button" variant="secondary" onClick={onCancel} className="w-full">
             關閉
           </Button>
@@ -378,7 +388,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           )}
         </div>
       ) : (
-        <div className="grid min-w-0 gap-2 pt-1 sm:grid-cols-2">
+        <div className="sticky bottom-0 z-10 -mx-4 grid min-w-0 gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:grid-cols-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
           <Button type="button" variant="secondary" onClick={onCancel} className="w-full">
             取消
           </Button>

@@ -40,6 +40,7 @@ import {
   Select,
   Textarea
 } from './ui';
+import { integerInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
 
 const DEFAULT_CATEGORIES = ['藥妝', '伴手禮', '零食', '票券', '衣物', '3C 配件', '其他'];
 
@@ -208,7 +209,7 @@ const ShoppingControls = ({
           <div className="relative">
             <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
-              type="text"
+              {...searchInputProps}
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="搜尋商品、店家或備註"
@@ -341,7 +342,7 @@ const ManageCategoriesModal = ({
 
       <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
         <Input
-          type="text"
+          {...plainTextInputProps}
           value={newCategoryName}
           onChange={(event) => setNewCategoryName(event.target.value)}
           onKeyDown={(event) => {
@@ -352,6 +353,7 @@ const ManageCategoriesModal = ({
           }}
           placeholder="新增分類名稱"
           aria-label="新增分類名稱"
+          enterKeyHint="done"
         />
         <Button onClick={onAddCategory} disabled={!newCategoryName.trim()}>
           <Plus size={16} />
@@ -454,13 +456,14 @@ const ShoppingItemFormModal = ({
           <Field label="商品名稱" htmlFor="shopping-item-name">
             <Input
               id="shopping-item-name"
-              type="text"
+              {...plainTextInputProps}
               value={formData.name}
               onChange={(event) => {
                 setFormData({ ...formData, name: event.target.value });
                 if (formError) setFormError('');
               }}
               placeholder="例如：限定餅乾、藥妝、交通票券"
+              enterKeyHint="next"
               autoFocus
               aria-invalid={Boolean(formError)}
             />
@@ -512,7 +515,7 @@ const ShoppingItemFormModal = ({
             <Field label="數量" htmlFor="shopping-item-quantity">
               <Input
                 id="shopping-item-quantity"
-                type="number"
+                {...integerInputProps}
                 min="1"
                 value={formData.quantity}
                 onChange={(event) => setFormData({ ...formData, quantity: parseInt(event.target.value, 10) || 1 })}
@@ -523,10 +526,11 @@ const ShoppingItemFormModal = ({
           <Field label="店家 / 地點" htmlFor="shopping-item-shop" className="mt-3">
             <Input
               id="shopping-item-shop"
-              type="text"
+              {...plainTextInputProps}
               value={formData.shop}
               onChange={(event) => setFormData({ ...formData, shop: event.target.value })}
               placeholder="例如：藥妝店、機場、百貨公司"
+              enterKeyHint="next"
             />
           </Field>
         </section>
@@ -539,6 +543,7 @@ const ShoppingItemFormModal = ({
               onChange={(event) => setFormData({ ...formData, notes: event.target.value })}
               placeholder="規格、顏色、網址、價格線索..."
               rows="3"
+              enterKeyHint="done"
             />
           </Field>
 
@@ -572,9 +577,11 @@ const ShoppingItemFormModal = ({
           </Field>
         </section>
 
-        <Button type="submit" className="w-full">
-          {editingId ? '儲存修改' : '加入購物清單'}
-        </Button>
+        <div className="sticky bottom-0 -mx-4 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
+          <Button type="submit" className="w-full">
+            {editingId ? '儲存修改' : '加入購物清單'}
+          </Button>
+        </div>
       </div>
     </form>
   </div>
@@ -884,11 +891,11 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
   };
 
   const handleSaveItem = () => {
-    if (readOnly) return;
+    if (readOnly) return false;
     const name = formData.name.trim();
     if (!name) {
       setFormError('請輸入商品名稱');
-      return;
+      return false;
     }
 
     const normalizedItem = {
@@ -905,6 +912,8 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
       updateItems(safeItems.map((item) => (
         getId(item.id) === getId(editingId) ? { ...item, ...normalizedItem } : item
       )));
+      resetForm();
+      return true;
     } else {
       updateItems([
         {
@@ -916,7 +925,13 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
         ...safeItems
       ]);
     }
-    resetForm();
+    setFormData(buildFormData(categories, { category: normalizedItem.category }));
+    setImagePreview(null);
+    setFormError('');
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      window.setTimeout(() => document.getElementById('shopping-item-name')?.focus(), 0);
+    }
+    return true;
   };
 
   const handleEditItem = (item) => {

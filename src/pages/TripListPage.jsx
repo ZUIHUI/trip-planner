@@ -29,6 +29,7 @@ import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } f
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
 import InstallAppPrompt from '../components/InstallAppPrompt';
+import { inviteCodeInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
 
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 
@@ -531,12 +532,13 @@ const TripListPage = () => {
                 <label className="min-w-0 flex-1">
                   <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
                   <Input
-                    type="text"
+                    {...plainTextInputProps}
                     value={nicknameDraft}
                     onChange={(event) => setNicknameDraft(event.target.value)}
                     placeholder="設定你的暱稱"
                     aria-label="設定你的暱稱"
                     className="h-10 text-sm"
+                    enterKeyHint="done"
                     autoFocus
                   />
                 </label>
@@ -572,13 +574,11 @@ const TripListPage = () => {
               <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
               <Input
                 id="trip-invite-code"
-                type="text"
-                inputMode="text"
+                {...inviteCodeInputProps}
                 value={inviteCode}
                 onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
                 placeholder="YK82-P7Q9"
                 className="font-mono uppercase tracking-wider"
-                autoComplete="off"
               />
               <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
                 <KeyRound size={16} />
@@ -609,10 +609,11 @@ const TripListPage = () => {
                 <Input
                   id="new-trip-title"
                   ref={newTripInputRef}
-                  type="text"
+                  {...plainTextInputProps}
                   value={newTripTitle}
                   onChange={(event) => setNewTripTitle(event.target.value)}
                   placeholder="例如：2026 東京賞櫻"
+                  enterKeyHint="go"
                 />
                 <Button type="submit" size="lg">
                   <Plus size={18} />
@@ -651,7 +652,7 @@ const TripListPage = () => {
               <label className="sr-only" htmlFor="trip-search">搜尋旅程</label>
               <Input
                 id="trip-search"
-                type="text"
+                {...searchInputProps}
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="搜尋名稱、狀態或日期"
