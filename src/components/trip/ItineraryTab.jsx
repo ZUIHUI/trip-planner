@@ -52,7 +52,8 @@ const ItineraryTab = () => {
     openAddModal,
     openEditModal,
     handleDeleteEvent,
-    handleOpenGoogleMaps
+    handleOpenGoogleMaps,
+    editingByEventId
   } = useTripWorkspace();
 
   const todayCostItems = (currentDayData?.events || [])
@@ -209,6 +210,7 @@ const ItineraryTab = () => {
                   onEdit={openEditModal}
                   onDelete={handleDeleteEvent}
                   onOpenGoogleMaps={handleOpenGoogleMaps}
+                  editingMembers={editingByEventId?.[event.id] || []}
                 />
               );
             })

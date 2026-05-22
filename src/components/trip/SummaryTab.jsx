@@ -14,6 +14,7 @@ import {
   Plus,
   ReceiptText,
   ShoppingCart,
+  UsersRound,
   Wallet
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '../ui';
@@ -472,6 +473,55 @@ const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
   );
 };
 
+const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
+  const others = presenceUi?.otherOnlineMembers || [];
+  const selfOnline = Boolean(presenceUi?.selfOnline);
+
+  return (
+    <Card className="order-4 p-4">
+      <SectionHeader
+        icon={UsersRound}
+        title="即時動態"
+        description="看看旅伴目前在哪裡規劃。"
+        iconClass="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
+      />
+
+      {presenceError ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
+          在線狀態暫時無法顯示，旅程內容仍可正常使用。
+        </div>
+      ) : others.length ? (
+        <div className="grid gap-2">
+          {others.map((person) => (
+            <div key={person.uid} className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-50 text-xs font-black text-brand-700 dark:bg-brand-950/50 dark:text-brand-200">
+                  {person.photoURL ? (
+                    <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" />
+                  ) : (
+                    person.initials
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-black text-slate-900 dark:text-white">{person.name}</p>
+                  <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {person.detailText || '在線'}
+                  </p>
+                </div>
+              </div>
+              <Badge variant={person.editingLabel ? 'success' : 'info'}>{person.editingLabel || person.tabLabel}</Badge>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
+          {selfOnline ? '目前只有你在線。' : '目前沒有旅伴在線。'}
+        </div>
+      )}
+    </Card>
+  );
+};
+
 const TripOverviewCard = ({ tripDisplayDates, itinerary, onTabChange }) => (
   <Card className="order-4 p-4">
     <SectionHeader
@@ -660,6 +710,7 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     members,
     onlineMembers,
     presenceByUid,
+    presenceUi,
     presenceError,
     handleOpenGoogleMaps
   } = useTripWorkspace();
@@ -695,6 +746,8 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
       <ReadinessCard items={readinessItems} onTabChange={onTabChange} />
 
       <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
+
+      <RealtimeActivityCard presenceUi={presenceUi} presenceError={presenceError} />
 
       <ShareCollaborationCard
         tripId={tripId}

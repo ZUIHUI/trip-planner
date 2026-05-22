@@ -26,7 +26,21 @@ const secondaryTabs = [
 
 const allTabs = [...mainTabs, ...secondaryTabs];
 
-const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
+const PresenceTabMarker = ({ count = 0 }) => {
+  if (!count) return null;
+
+  return (
+    <span
+      className="absolute right-1.5 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900"
+      title={`${count} 位旅伴在這裡`}
+      aria-label={`${count} 位旅伴在這裡`}
+    >
+      {count > 1 ? count : ''}
+    </span>
+  );
+};
+
+const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenceByTab = {} }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleTabChange = (tabId) => {
@@ -57,7 +71,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                className={`touch-target flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition active:scale-[0.98] ${
+                className={`touch-target relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition active:scale-[0.98] ${
                   isActive
                     ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
@@ -66,6 +80,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
                 aria-label={tab.label}
                 title={tab.label}
               >
+                <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
                 <Icon size={22} />
                 <span className="truncate">{tab.label}</span>
               </button>
@@ -98,7 +113,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                className={`touch-target flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition active:scale-[0.98] ${
+                className={`touch-target relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition active:scale-[0.98] ${
                   isActive
                     ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                     : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
@@ -107,6 +122,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
                 aria-label={tab.label}
                 title={tab.label}
               >
+                <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
                 <Icon size={21} />
                 <span className="max-w-full truncate">{tab.label}</span>
               </button>
@@ -138,12 +154,13 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false }) => {
                     key={tab.id}
                     type="button"
                     onClick={() => handleTabChange(tab.id)}
-                    className={`touch-target flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
+                    className={`touch-target relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
                       isActive
                         ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                         : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
                     }`}
                   >
+                    <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
                     <Icon size={20} />
                     <span>{tab.label}</span>
                   </button>

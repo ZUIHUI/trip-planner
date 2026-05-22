@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Train,
   Trash2,
+  UsersRound,
   Wallet
 } from 'lucide-react';
 import { Badge, Button, Card } from './ui';
@@ -59,13 +60,20 @@ const normalizeExternalUrl = (url) => {
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 };
 
-const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) => {
+const getEditingMembersText = (members = []) => {
+  if (!members.length) return '';
+  if (members.length === 1) return `${members[0].name} 正在編輯`;
+  return `${members.length} 位旅伴正在編輯`;
+};
+
+const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, editingMembers = [] }) => {
   const [showMenu, setShowMenu] = useState(false);
   const meta = getEventMeta(event.type);
   const Icon = meta.icon;
   const locationText = getLocationText(event);
   const costText = formatCost(event);
   const externalUrl = normalizeExternalUrl(event.url);
+  const editingText = getEditingMembersText(editingMembers);
 
   const handleCardClick = () => {
     onEdit(event, true);
@@ -118,6 +126,15 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps }) 
               <h3 className="mt-1.5 break-words text-lg font-black leading-tight text-slate-950 sm:mt-2 sm:text-xl dark:text-white">
                 {event.title || '未命名行程'}
               </h3>
+              {editingText && (
+                <div
+                  className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200"
+                  title={editingMembers.map((member) => member.name).join('、')}
+                >
+                  <UsersRound size={13} className="shrink-0" />
+                  <span className="truncate">{editingText}</span>
+                </div>
+              )}
             </div>
           </div>
 

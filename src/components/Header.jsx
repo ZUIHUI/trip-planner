@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { ArrowLeft, Calendar, Home, MapPin, RefreshCw, Settings } from 'lucide-react';
+import { ArrowLeft, Calendar, Home, MapPin, RefreshCw, Settings, UsersRound } from 'lucide-react';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { Badge, Button, PageContainer } from './ui';
 
@@ -9,6 +9,45 @@ const statusConfig = {
   done: { label: '已完成', variant: 'muted' }
 };
 
+const PresencePill = ({ presenceUi, cover = false }) => {
+  const summaryText = presenceUi?.summaryText || '目前離線';
+  const people = presenceUi?.otherOnlineMembers?.slice(0, 3) || [];
+  const title = people.length
+    ? people.map((person) => `${person.name}：${person.detailText || '在線'}`).join('\n')
+    : summaryText;
+  const baseClass = cover
+    ? 'border-white/25 bg-white/15 text-white'
+    : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200';
+
+  return (
+    <div
+      className={`inline-flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold shadow-sm ${baseClass}`}
+      title={title}
+      aria-label={summaryText}
+    >
+      <UsersRound size={14} className="shrink-0" />
+      {people.length > 0 && (
+        <div className="flex -space-x-1.5">
+          {people.map((person) => (
+            <span
+              key={person.uid}
+              className={`inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border text-[10px] font-black ${cover ? 'border-white/50 bg-black/25 text-white' : 'border-white bg-brand-50 text-brand-700 dark:border-slate-900 dark:bg-brand-950/50 dark:text-brand-200'}`}
+              title={person.name}
+            >
+              {person.photoURL ? (
+                <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" />
+              ) : (
+                person.initials
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+      <span className="max-w-[8.5rem] truncate sm:max-w-[11rem]">{summaryText}</span>
+    </div>
+  );
+};
+
 const Header = forwardRef(({
   details,
   onSettingsOpen,
@@ -16,7 +55,8 @@ const Header = forwardRef(({
   isSaving,
   children,
   coverImageUrl,
-  shouldShowCoverBackground
+  shouldShowCoverBackground,
+  presenceUi
 }, ref) => {
   const displayDates = getTripDisplayDates(details);
   const status = statusConfig[details?.status] || statusConfig.planning;
@@ -87,12 +127,13 @@ const Header = forwardRef(({
                   儲存中
                 </span>
               )}
+              <PresencePill presenceUi={presenceUi} cover={shouldShowCoverBackground} />
               <Button
                 variant={shouldShowCoverBackground ? 'ghost' : 'secondary'}
                 onClick={onSettingsOpen}
                 aria-label="開啟設定"
                 title="設定"
-                className={shouldShowCoverBackground ? 'w-full border border-white/25 bg-white/15 text-white hover:bg-white/25 sm:w-auto' : 'w-full sm:w-auto'}
+                className={shouldShowCoverBackground ? 'shrink-0 border border-white/25 bg-white/15 text-white hover:bg-white/25' : 'shrink-0'}
               >
                 <Settings size={18} />
                 設定

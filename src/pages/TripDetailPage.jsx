@@ -25,6 +25,7 @@ import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../servi
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
+import { buildPresenceUiState } from '../utils/presence';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -219,6 +220,15 @@ const TripDetailPage = () => {
   const memberTravelers = useMemo(
     () => buildTravelersFromMembers(members, currentUser, userProfile),
     [members, currentUser, userProfile]
+  );
+  const presenceUi = useMemo(
+    () => buildPresenceUiState({
+      onlineMembers,
+      presenceByUid,
+      members,
+      currentUser
+    }),
+    [onlineMembers, presenceByUid, members, currentUser]
   );
 
   const budgetInfo = useBudget(itinerary, expenses, exchangeRate);
@@ -719,6 +729,11 @@ const TripDetailPage = () => {
     memberTravelers,
     onlineMembers,
     presenceByUid,
+    presenceUi,
+    otherOnlineMembers: presenceUi.otherOnlineMembers,
+    onlineByTab: presenceUi.onlineByTab,
+    editingByEventId: presenceUi.editingByEventId,
+    presenceSummaryText: presenceUi.summaryText,
     presenceError,
     updatePresenceEditingTarget,
     syncConflict,
@@ -775,6 +790,7 @@ const TripDetailPage = () => {
     memberTravelers,
     onlineMembers,
     presenceByUid,
+    presenceUi,
     presenceError,
     updatePresenceEditingTarget,
     syncConflict,
@@ -836,6 +852,7 @@ const TripDetailPage = () => {
         isSaving={isSaving}
         coverImageUrl={coverImageUrl}
         shouldShowCoverBackground={shouldShowCoverBackground}
+        presenceUi={presenceUi}
       />
 
       <PageContainer className="pb-24 lg:pb-36">
@@ -1033,7 +1050,12 @@ const TripDetailPage = () => {
         </div>
       )}
 
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} isModalOpen={isAnyModalOpen} />
+      <BottomNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isModalOpen={isAnyModalOpen}
+        presenceByTab={presenceUi.onlineByTab}
+      />
 
       {/* GPS 位置監視 - 當啟用 GPS 時顯示狀態 */}
       {enableGPS && (
