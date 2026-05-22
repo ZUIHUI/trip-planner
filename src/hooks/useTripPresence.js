@@ -10,6 +10,10 @@ import {
 } from '../services/presenceService';
 import { onValue } from 'firebase/database';
 
+const PRESENCE_HEARTBEAT_MS = 25000;
+const PRESENCE_STALE_MS = 75000;
+const PRESENCE_RECHECK_MS = 15000;
+
 const normalizeConnection = (connection = {}) => ({
   state: connection.state || 'offline',
   activeTab: connection.activeTab || '',
@@ -18,8 +22,18 @@ const normalizeConnection = (connection = {}) => ({
   lastActiveAt: Number(connection.lastActiveAt || 0)
 });
 
-const normalizePresenceSnapshot = (snapshot) => {
-  const value = snapshot.val() || {};
+const getConnectionActivityAt = (connection = {}) => (
+  Number(connection.lastActiveAt || connection.startedAt || 0)
+);
+
+const isFreshConnection = (connection, now = Date.now()) => {
+  const activityAt = getConnectionActivityAt(connection);
+  return connection.state === 'online'
+    && activityAt > 0
+    && now - activityAt <= PRESENCE_STALE_MS;
+};
+
+const normalizePresenceValue = (value = {}, now = Date.now()) => {
   const byUid = {};
   const onlineMembers = [];
 
@@ -27,8 +41,8 @@ const normalizePresenceSnapshot = (snapshot) => {
     const connections = entry?.connections || {};
     const activeConnections = Object.entries(connections)
       .map(([clientId, connection]) => ({ clientId, ...normalizeConnection(connection) }))
-      .filter((connection) => connection.state === 'online')
-      .sort((a, b) => Number(b.lastActiveAt || 0) - Number(a.lastActiveAt || 0));
+      .filter((connection) => isFreshConnection(connection, now))
+      .sort((a, b) => getConnectionActivityAt(b) - getConnectionActivityAt(a));
 
     const current = activeConnections[0] || null;
     const presence = {
@@ -38,7 +52,7 @@ const normalizePresenceSnapshot = (snapshot) => {
       connectionCount: activeConnections.length,
       activeTab: current?.activeTab || '',
       editingTarget: current?.editingTarget || '',
-      lastActiveAt: current?.lastActiveAt || 0,
+      lastActiveAt: getConnectionActivityAt(current),
       connections: activeConnections
     };
 
@@ -50,9 +64,13 @@ const normalizePresenceSnapshot = (snapshot) => {
 
   return {
     presenceByUid: byUid,
-    onlineMembers
+    onlineMembers: onlineMembers.sort((a, b) => Number(b.lastActiveAt || 0) - Number(a.lastActiveAt || 0))
   };
 };
+
+const normalizePresenceSnapshot = (snapshot) => (
+  normalizePresenceValue(snapshot.val() || {})
+);
 
 export const useTripPresence = ({
   tripId,
@@ -64,6 +82,7 @@ export const useTripPresence = ({
 }) => {
   const clientIdRef = useRef(createPresenceClientId());
   const latestStateRef = useRef({ activeTab, editingTarget: '' });
+  const latestPresenceValueRef = useRef({});
   const [editingTarget, setEditingTarget] = useState('');
   const [presenceByUid, setPresenceByUid] = useState({});
   const [onlineMembers, setOnlineMembers] = useState([]);
@@ -78,17 +97,25 @@ export const useTripPresence = ({
 
   useEffect(() => {
     if (!isEnabled) {
+      latestPresenceValueRef.current = {};
       setPresenceByUid({});
       setOnlineMembers([]);
       return undefined;
     }
 
     let cancelled = false;
-    let connectionStarted = false;
+    let startInFlight = false;
+    let isConnected = false;
 
-    const connectedUnsubscribe = onValue(getConnectedRef(), async (snapshot) => {
-      if (cancelled || snapshot.val() !== true || connectionStarted) return;
-      connectionStarted = true;
+    const publishPresenceValue = (value) => {
+      const normalized = normalizePresenceValue(value || {});
+      setPresenceByUid(normalized.presenceByUid);
+      setOnlineMembers(normalized.onlineMembers);
+    };
+
+    const startConnection = async () => {
+      if (cancelled || startInFlight) return;
+      startInFlight = true;
 
       try {
         await startPresenceConnection({
@@ -99,16 +126,35 @@ export const useTripPresence = ({
           activeTab: latestStateRef.current.activeTab,
           editingTarget: latestStateRef.current.editingTarget
         });
+        if (cancelled || !isConnected) return;
         setConnectionReady(true);
         setPresenceError('');
       } catch (error) {
-        setPresenceError(error?.message || 'Presence connection failed');
+        if (!cancelled) {
+          setPresenceError(error?.message || 'Presence connection failed');
+        }
+      } finally {
+        startInFlight = false;
       }
+    };
+
+    const connectedUnsubscribe = onValue(getConnectedRef(), (snapshot) => {
+      if (cancelled) return;
+
+      if (snapshot.val() === true) {
+        isConnected = true;
+        void startConnection();
+        return;
+      }
+
+      isConnected = false;
+      setConnectionReady(false);
     });
 
     const presenceUnsubscribe = subscribeToTripPresence(
       tripId,
       (snapshot) => {
+        latestPresenceValueRef.current = snapshot.val() || {};
         const normalized = normalizePresenceSnapshot(snapshot);
         setPresenceByUid(normalized.presenceByUid);
         setOnlineMembers(normalized.onlineMembers);
@@ -118,9 +164,14 @@ export const useTripPresence = ({
       }
     );
 
+    const recheckTimer = window.setInterval(() => {
+      publishPresenceValue(latestPresenceValueRef.current);
+    }, PRESENCE_RECHECK_MS);
+
     return () => {
       cancelled = true;
       setConnectionReady(false);
+      window.clearInterval(recheckTimer);
       connectedUnsubscribe?.();
       presenceUnsubscribe?.();
       void stopPresenceConnection({
@@ -130,6 +181,40 @@ export const useTripPresence = ({
       }).catch(() => {});
     };
   }, [isEnabled, tripId, uid, currentUser, userProfile]);
+
+  useEffect(() => {
+    if (!isEnabled || !connectionReady) return undefined;
+
+    const pushHeartbeat = () => {
+      void updatePresenceConnection({
+        tripId,
+        uid,
+        clientId: clientIdRef.current,
+        activeTab: latestStateRef.current.activeTab,
+        editingTarget: latestStateRef.current.editingTarget
+      }).catch((error) => {
+        setPresenceError(error?.message || 'Presence update failed');
+      });
+    };
+
+    pushHeartbeat();
+    const heartbeatTimer = window.setInterval(pushHeartbeat, PRESENCE_HEARTBEAT_MS);
+    const handleFocus = () => pushHeartbeat();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        pushHeartbeat();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(heartbeatTimer);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isEnabled, connectionReady, tripId, uid]);
 
   useEffect(() => {
     if (!isEnabled || !connectionReady) return;

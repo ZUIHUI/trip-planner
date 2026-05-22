@@ -106,7 +106,13 @@ const ShareCollaborationCard = ({
   const [selectedPermission, setSelectedPermission] = useState(settings.permission);
   const canManageInvite = accessRole === 'owner';
   const memberRows = Array.isArray(members) ? members : [];
-  const onlineCount = Array.isArray(onlineMembers) ? onlineMembers.length : 0;
+  const currentUid = currentUser?.uid || '';
+  const onlineRows = Array.isArray(onlineMembers) ? onlineMembers : [];
+  const selfOnline = currentUid ? Boolean(presenceByUid?.[currentUid]?.online) : false;
+  const otherOnlineCount = onlineRows.filter((member) => member.uid && member.uid !== currentUid).length;
+  const onlineBadgeText = otherOnlineCount
+    ? `${otherOnlineCount} 位旅伴在線`
+    : selfOnline ? '自己在線' : '目前離線';
   const inviteText = invite.code ? buildInviteText(invite.code) : '';
 
   useEffect(() => {
@@ -329,7 +335,7 @@ const ShareCollaborationCard = ({
           {canManageInvite && (
             <Badge variant={invite.enabled ? 'success' : 'muted'}>{invite.enabled ? '可邀請' : '未開放邀請'}</Badge>
           )}
-          <Badge variant={onlineCount ? 'success' : 'muted'}>{onlineCount} 人在線</Badge>
+          <Badge variant={selfOnline || otherOnlineCount ? 'success' : 'muted'}>{onlineBadgeText}</Badge>
         </div>
       </div>
 
