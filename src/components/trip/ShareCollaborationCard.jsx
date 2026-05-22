@@ -81,9 +81,27 @@ const formatEditingTarget = (target = '') => {
   return '正在編輯';
 };
 
+const getAppShareUrl = () => {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return 'https://trip-planner-36455.web.app';
+};
+
 const buildInviteText = (code) => (
   `打開 Trip Planner，輸入邀請碼 ${code} 加入我的旅行規劃。`
 );
+
+const buildInviteClipboardText = (code) => (
+  `${buildInviteText(code)}\n${getAppShareUrl()}`
+);
+
+const buildNativeShareData = (code) => ({
+  title: 'Trip Planner 邀請',
+  text: buildInviteText(code),
+  url: getAppShareUrl()
+});
 
 const ShareCollaborationCard = ({
   tripId,
@@ -113,7 +131,7 @@ const ShareCollaborationCard = ({
   const onlineBadgeText = otherOnlineCount
     ? `${otherOnlineCount} 位旅伴在線`
     : selfOnline ? '自己在線' : '目前離線';
-  const inviteText = invite.code ? buildInviteText(invite.code) : '';
+  const inviteText = invite.code ? buildInviteClipboardText(invite.code) : '';
 
   useEffect(() => {
     setDisplayNameDraft(userProfile?.displayName || currentUser?.displayName || '');
@@ -269,17 +287,27 @@ const ShareCollaborationCard = ({
   };
 
   const handleNativeShare = async () => {
-    if (!inviteText) {
+    if (!invite.code || !inviteText) {
       setMessage('請先建立邀請碼。');
       return;
     }
 
-    if (navigator.share) {
+    const copyInviteAsFallback = async (successMessage) => {
       try {
-        await navigator.share({
-          title: 'Trip Planner 邀請',
-          text: inviteText
-        });
+        const copied = await writeClipboardText(inviteText);
+        setMessage(copied ? successMessage : '無法開啟分享面板，也無法自動複製。請手動複製邀請文字。');
+      } catch {
+        setMessage('無法開啟分享面板，也無法自動複製。請手動複製邀請文字。');
+      }
+    };
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      const shareData = buildNativeShareData(invite.code);
+      const canShareData = typeof navigator.canShare !== 'function' || navigator.canShare(shareData);
+      const payload = canShareData ? shareData : { title: shareData.title, text: inviteText };
+
+      try {
+        await navigator.share(payload);
         setMessage('邀請文字已送到分享面板。');
         return;
       } catch (error) {
@@ -287,7 +315,7 @@ const ShareCollaborationCard = ({
       }
     }
 
-    await handleCopyInviteText();
+    await copyInviteAsFallback('這個瀏覽器無法開啟原生分享，已改為複製邀請文字。');
   };
 
   const handleSaveDisplayName = async () => {
