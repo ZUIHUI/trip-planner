@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Save, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Plus, Save, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
@@ -39,6 +39,7 @@ const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
 const getTripIndexKey = (uid) => `trip_planner_trip_index_${uid || 'guest'}`;
+const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping']);
 
 const getDateRangeDays = (startDate, endDate) => {
   if (!startDate || !endDate) return 0;
@@ -878,6 +879,7 @@ const TripDetailPage = () => {
   }
 
   const isAnyModalOpen = isEditModalOpen || isSettingsOpen || isExpenseModalOpen || isShoppingModalOpen;
+  const showMoreBackButton = MORE_CHILD_TABS.has(activeTab);
 
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
@@ -913,6 +915,20 @@ const TripDetailPage = () => {
                   </Button>
                 </div>
               )}
+            </div>
+          )}
+
+          {showMoreBackButton && (
+            <div className="mx-auto mb-3 flex max-w-3xl px-4 sm:px-6 lg:hidden">
+              <button
+                type="button"
+                onClick={() => setActiveTab('more')}
+                className="touch-target inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 active:scale-95 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                aria-label="回到更多"
+                title="回到更多"
+              >
+                <ChevronLeft size={22} />
+              </button>
             </div>
           )}
 

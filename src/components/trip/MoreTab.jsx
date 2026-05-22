@@ -100,11 +100,6 @@ const MoreTab = ({ onTabChange, onOpenSettings }) => {
 
   return (
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
-      <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-        <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">更多工具</p>
-        <h1 className="mt-1 text-2xl font-black text-slate-950 dark:text-white">更多</h1>
-      </div>
-
       <ModuleSection title="旅行準備">
         <ModuleButton
           icon={LayoutDashboard}
