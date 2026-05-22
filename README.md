@@ -28,7 +28,8 @@
 - React Router
 - Vite 5
 - Tailwind CSS
-- Firebase（相依套件已整合）
+- Firebase Authentication / Firestore / Realtime Database / Cloud Functions
+- Vercel serverless API（航班查詢）
 
 ## 專案結構
 
@@ -40,7 +41,10 @@ src/
   services/        天氣、地點、匯率、行程等服務
   styles/          全域樣式
 
-database/          SQL 結構定義
+api/               Vercel serverless API（例如航班查詢）
+functions/         Firebase Cloud Functions
+docs/              Firebase 部署、資料模型與重構說明
+database/          Legacy / reference SQL schema
 public/            靜態資源
 ```
 
@@ -74,7 +78,13 @@ npm run preview
 
 ## 環境變數
 
-航班查詢使用 FlightAPI.io，API key 必須放在 server-side environment，不要加上 `VITE_` 前綴：
+請以 `.env.example` 作為完整範本。常用設定分成三類：
+
+- 前端 Vite 變數：Firebase web app 設定、Realtime Database URL、主要 owner email、Google Maps key，皆使用 `VITE_` 前綴。
+- Server-side 變數：航班查詢使用 FlightAPI.io，API key 必須放在 server-side environment，不要加上 `VITE_` 前綴。
+- Firebase Functions secrets：Email 驗證碼、邀請碼與寄信服務使用 `RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER` 等 secrets。
+
+航班查詢範例：
 
 ```env
 FLIGHTAPI_IO_KEY=your_flightapi_io_key_here
@@ -82,13 +92,29 @@ FLIGHTAPI_IO_KEY=your_flightapi_io_key_here
 
 本機若要測試 `/api/flight-lookup`，請使用 Vercel dev server 或部署到 Vercel 後測試；一般 `npm run dev` 只會啟動 Vite 前端。
 
-## 資料庫說明
+## 資料與後端
 
-資料表結構定義位於：
+- Cloud Firestore 是目前旅程資料的主要來源。
+- Realtime Database 只用於旅伴 presence / 線上狀態。
+- Firebase Authentication 支援 Google 登入與 Email 驗證碼登入。
+- Cloud Functions 負責 Email 驗證碼、邀請碼、owner claim 與 presence ACL 同步。
+- `database/schema.sql` 是 legacy / reference schema，不是目前 app 的主要資料來源。
 
-- `database/schema.sql`
+## 部署
 
-可依此檔案在本地資料庫初始化所需表結構。
+Firebase Hosting 使用 `dist` 目錄，SPA fallback 設定在 `firebase.json`。
+
+```bash
+npm run deploy:hosting
+```
+
+完整 Firebase deploy 會同時部署 Firestore rules、Realtime Database rules、Functions 與 Hosting，只有在後端、rules 或 functions 有變更時才需要：
+
+```bash
+npm run deploy
+```
+
+Vercel 部署使用 `vercel.json`，包含 Firebase Auth helper rewrites 與 `/trip/*`、`/login` 的 SPA rewrites。更完整的 Firebase 設定與 portable Node 流程請見 `docs/firebase-deployment.md`。
 
 ## 其他文件
 
