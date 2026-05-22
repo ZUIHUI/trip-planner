@@ -91,7 +91,15 @@ const getAppShareUrl = () => {
 };
 
 const buildInviteText = (code) => (
-  `打開 Trip Planner，輸入邀請碼 ${code} 加入我的旅行規劃。`
+  [
+    '一起來規劃這趟旅行吧',
+    '',
+    `邀請碼：${code}`,
+    '打開 Trip Planner 輸入邀請碼，就能加入行程。',
+    '',
+    '加入後可以到「大家想去的地方」',
+    '按「我想去」一起選。'
+  ].join('\n')
 );
 
 const buildInviteClipboardText = (code) => (
@@ -99,7 +107,7 @@ const buildInviteClipboardText = (code) => (
 );
 
 const buildNativeShareData = (code) => ({
-  title: 'Trip Planner 邀請',
+  title: 'Trip Planner 旅行邀請',
   text: buildInviteText(code),
   url: getAppShareUrl()
 });
@@ -256,7 +264,7 @@ const ShareCollaborationCard = ({
       return;
     }
     const nextSettings = persistSettings({ votesEnabled: !settings.votesEnabled, enabled: settings.enabled });
-    setMessage(nextSettings.votesEnabled ? '地點投票已開啟。' : '地點投票已關閉。');
+    setMessage(nextSettings.votesEnabled ? '已開放旅伴按「我想去」。' : '已停止旅伴按「我想去」。');
   };
 
   const handleCopyInviteText = async () => {
@@ -407,12 +415,12 @@ const ShareCollaborationCard = ({
       {canManageInvite && inviteText && (
         <div className="mt-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400">分享文字</p>
-          <p className="mt-1 break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{inviteText}</p>
+          <p className="mt-1 whitespace-pre-line break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{inviteText}</p>
         </div>
       )}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在旅伴清單、地點投票與在線狀態中。">
+        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在旅伴清單、大家想去的地方與在線狀態中。">
           <Input
             id="member-display-name"
             value={displayNameDraft}
@@ -461,7 +469,7 @@ const ShareCollaborationCard = ({
           </p>
         </div>
         <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">地點投票</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">我想去回應</p>
           <p className="mt-0.5 inline-flex items-center gap-1 text-sm font-black text-slate-900 dark:text-white">
             {settings.votesEnabled && <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-300" />}
             {settings.votesEnabled ? '已開啟' : '已關閉'}
@@ -473,7 +481,7 @@ const ShareCollaborationCard = ({
         <div className="mt-3">
           <Button variant={settings.votesEnabled ? 'secondary' : 'ghost'} onClick={handleVotesToggle} disabled={isWorking} className="justify-center">
             <Vote size={16} />
-            {settings.votesEnabled ? '關閉地點投票' : '開啟地點投票'}
+            {settings.votesEnabled ? '停止我想去回應' : '開放我想去回應'}
           </Button>
         </div>
       )}

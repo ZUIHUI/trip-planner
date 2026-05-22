@@ -135,7 +135,7 @@ const TripDetailPage = () => {
     () => new URLSearchParams(location.search).get('share') || '',
     [location.search]
   );
-  const [activeTab, setActiveTab] = useState('today');
+  const [activeTab, setActiveTab] = useState(() => location.state?.initialTab || 'today');
   const [selectedDay, setSelectedDay] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -218,6 +218,39 @@ const TripDetailPage = () => {
     activeTab,
     enabled: !isLoading && !accessError
   });
+
+  useEffect(() => {
+    const initialTab = location.state?.initialTab;
+    const focusTarget = location.state?.focusTarget;
+    if (isLoading || accessError || (!initialTab && !focusTarget)) return undefined;
+
+    if (initialTab && activeTab !== initialTab) {
+      setActiveTab(initialTab);
+      return undefined;
+    }
+
+    if (focusTarget === 'placeIdeas' && activeTab === 'summary') {
+      const timer = window.setTimeout(() => {
+        document.getElementById('trip-place-ideas')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+        navigate(`${location.pathname}${location.search}`, { replace: true, state: {} });
+      }, 150);
+
+      return () => window.clearTimeout(timer);
+    }
+
+    return undefined;
+  }, [
+    activeTab,
+    accessError,
+    isLoading,
+    location.pathname,
+    location.search,
+    location.state,
+    navigate
+  ]);
   const memberTravelers = useMemo(
     () => buildTravelersFromMembers(members, currentUser, userProfile),
     [members, currentUser, userProfile]

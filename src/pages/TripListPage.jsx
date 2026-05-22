@@ -369,9 +369,16 @@ const TripListPage = () => {
       toast({
         variant: 'success',
         title: result.alreadyMember ? '你已經在這趟旅程中' : '已加入旅程',
-        description: result.tripTitle || ''
+        description: result.alreadyMember
+          ? (result.tripTitle || '')
+          : '可以先到「大家想去的地方」按「我想去」，告訴旅伴你想去哪。'
       });
-      navigate(`/trip/${result.tripId}`);
+      navigate(`/trip/${result.tripId}`, {
+        state: {
+          initialTab: 'summary',
+          focusTarget: 'placeIdeas'
+        }
+      });
     } catch (error) {
       toast({
         variant: 'danger',

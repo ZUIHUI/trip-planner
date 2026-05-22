@@ -342,6 +342,17 @@ export const redeemTripInviteCode = async ({ code, user, profile }) => {
   return response.data || {};
 };
 
+export const togglePlaceVote = async ({ tripId, placeId, user, profile }) => {
+  requireUser(user);
+  const callable = httpsCallable(functions, 'togglePlaceVote');
+  const response = await callable({
+    tripId,
+    placeId,
+    displayName: getUserName(user, profile)
+  });
+  return response.data || {};
+};
+
 export const claimOwnerlessTrips = async ({ user, profile } = {}) => {
   requireUser(user);
   if (!PRIMARY_OWNER_EMAIL || getUserEmail(user) !== PRIMARY_OWNER_EMAIL) {

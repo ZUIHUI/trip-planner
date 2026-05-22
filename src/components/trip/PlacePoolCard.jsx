@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, ThumbsUp, Trash2, UsersRound } from 'lucide-react';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
+import { togglePlaceVote } from '../../services/tripService';
 import { Badge, Button, Card, Field } from '../ui';
 
 const makePlaceId = () => `place-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -54,7 +55,7 @@ const createEventFromPlace = (place) => {
       lat: typeof place.lat === 'number' ? place.lat : null,
       lng: typeof place.lng === 'number' ? place.lng : null
     },
-    desc: place.note ? `地點池備註：${place.note}` : '',
+    desc: place.note ? `想去地點備註：${place.note}` : '',
     urgent: false,
     url: '',
     currency: 'JPY',
@@ -72,7 +73,11 @@ const PlacePoolItem = ({
   onVote,
   votesEnabled = true,
   voterId,
-  canEdit = true
+  canVote = true,
+  canDelete = true,
+  canSchedule = true,
+  isVoting = false,
+  topVoteScore = 0
 }) => {
   const title = readPlaceName(place) || '未命名地點';
   const address = readPlaceAddress(place);
@@ -82,6 +87,7 @@ const PlacePoolItem = ({
   const voteScore = getVoteScore(votes);
   const votedByMe = votes.some((vote) => vote.voterId === voterId && Number(vote.value) > 0);
   const voterNames = getVoteNames(votes).slice(0, 3);
+  const isTopPlace = voteScore > 0 && voteScore === topVoteScore;
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
@@ -98,7 +104,13 @@ const PlacePoolItem = ({
             {voteScore > 0 && (
               <Badge variant="info">
                 <ThumbsUp size={12} />
-                {voteScore} 票
+                {voteScore} 位想去
+              </Badge>
+            )}
+            {isTopPlace && (
+              <Badge variant="success">
+                <Star size={12} />
+                最多人想去
               </Badge>
             )}
           </div>
@@ -109,7 +121,7 @@ const PlacePoolItem = ({
             </p>
           )}
         </div>
-        {canEdit && (
+        {canDelete && (
           <button
             type="button"
             onClick={() => onDelete(place.id)}
@@ -127,33 +139,35 @@ const PlacePoolItem = ({
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
               <UsersRound size={13} />
-              {voterNames.length ? voterNames.join('、') : '還沒有人投票'}
+              {voterNames.length ? voterNames.join('、') : '還沒有人想去'}
             </p>
           </div>
           <Button
             variant={votedByMe ? 'secondary' : 'ghost'}
             size="sm"
             onClick={() => onVote(place.id, 1)}
-            disabled={!canEdit}
+            disabled={!canVote || isVoting}
             className="justify-center"
           >
             <ThumbsUp size={14} />
-            {votedByMe ? '已投票' : '想去'}
+            {isVoting ? '更新中...' : (votedByMe ? '已想去' : '我想去')}
           </Button>
         </div>
       )}
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <Button
-          variant={isPlannedForCurrentDay ? 'secondary' : 'primary'}
-          size="sm"
-          onClick={() => onSchedule(place)}
-          disabled={!canEdit || isPlannedForCurrentDay}
-          className="w-full justify-center"
-        >
-          <CalendarPlus size={14} />
-          {isPlannedForCurrentDay ? `已排入 Day ${selectedDay}` : `排入 Day ${selectedDay}`}
-        </Button>
+        {canSchedule && (
+          <Button
+            variant={isPlannedForCurrentDay ? 'secondary' : 'primary'}
+            size="sm"
+            onClick={() => onSchedule(place)}
+            disabled={isPlannedForCurrentDay}
+            className="w-full justify-center"
+          >
+            <CalendarPlus size={14} />
+            {isPlannedForCurrentDay ? `已排入 Day ${selectedDay}` : `排入 Day ${selectedDay}`}
+          </Button>
+        )}
         {mapsUrl && (
           <Button
             as="a"
@@ -184,12 +198,18 @@ const PlacePoolCard = ({
   collaboration = {},
   currentUser,
   userProfile,
-  canEdit = true,
-  isReadOnly = false
+  canVote = false,
+  canManageIdeas = false,
+  canScheduleIdeas = false
 }) => {
   const [draftText, setDraftText] = React.useState('');
   const [selectedPlace, setSelectedPlace] = React.useState(null);
+  const [pendingVoteIds, setPendingVoteIds] = React.useState({});
+  const [voteError, setVoteError] = React.useState('');
   const safePlacePool = Array.isArray(placePool) ? placePool : [];
+  const topVoteScore = useMemo(() => safePlacePool.reduce((maxScore, place) => (
+    Math.max(maxScore, getVoteScore(place.votes))
+  ), 0), [safePlacePool]);
   const visiblePlaces = useMemo(() => safePlacePool
     .slice()
     .sort((a, b) => {
@@ -199,7 +219,7 @@ const PlacePoolCard = ({
     })
     .slice(0, 8), [safePlacePool]);
   const targetDay = selectedDay || itinerary[0]?.day || 1;
-  const canAdd = canEdit && Boolean(String(draftText || '').trim() || selectedPlace);
+  const canAdd = canManageIdeas && Boolean(String(draftText || '').trim() || selectedPlace);
   const votesEnabled = collaboration?.votesEnabled !== false;
   const voterId = currentUser?.uid || '';
   const voterName = (
@@ -221,7 +241,7 @@ const PlacePoolCard = ({
   };
 
   const handleSchedulePlace = (place) => {
-    if (!canEdit) return;
+    if (!canScheduleIdeas) return;
     const nextEvent = createEventFromPlace(place);
 
     setItinerary((prev) => (Array.isArray(prev) ? prev : []).map((day) => {
@@ -245,13 +265,11 @@ const PlacePoolCard = ({
   };
 
   const handleDeletePlace = (placeId) => {
-    if (!canEdit) return;
+    if (!canManageIdeas) return;
     setPlacePool((prev) => (Array.isArray(prev) ? prev : []).filter((item) => item.id !== placeId));
   };
 
-  const handleVotePlace = (placeId, value) => {
-    if (!canEdit || !votesEnabled || !voterId) return;
-
+  const toggleLocalVote = (placeId, value) => {
     setPlacePool((prev) => (Array.isArray(prev) ? prev : []).map((item) => {
       if (item.id !== placeId) return item;
 
@@ -276,47 +294,86 @@ const PlacePoolCard = ({
     }));
   };
 
+  const handleVotePlace = async (placeId, value) => {
+    if (!canVote || !votesEnabled || !voterId || pendingVoteIds[placeId]) return;
+    setVoteError('');
+
+    if (canManageIdeas) {
+      toggleLocalVote(placeId, value);
+      return;
+    }
+
+    setPendingVoteIds((prev) => ({ ...prev, [placeId]: true }));
+    try {
+      await togglePlaceVote({
+        tripId,
+        placeId,
+        user: currentUser,
+        profile: userProfile
+      });
+    } catch (error) {
+      setVoteError(error?.message || '更新想去狀態失敗，請稍後再試。');
+    } finally {
+      setPendingVoteIds((prev) => {
+        const next = { ...prev };
+        delete next[placeId];
+        return next;
+      });
+    }
+  };
+
   return (
-    <Card className="order-4 p-4">
+    <Card id="trip-place-ideas" className="order-4 p-4 scroll-mt-24">
       <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="tp-icon-chip bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
             <Star size={20} />
           </div>
           <div className="min-w-0">
-            <h3 className="tp-section-title">想去地點池</h3>
+            <h3 className="tp-section-title">大家想去的地方</h3>
             <p className="tp-section-subtitle mt-1">
-              先收藏想去的地方，再依照每天路線排入行程。
+              按「我想去」一起決定要去哪。
             </p>
           </div>
         </div>
         <Badge variant="muted">{safePlacePool.length} 個</Badge>
       </div>
 
-      <div className="grid gap-3">
-        <Field label="加入地點" htmlFor="place-pool-input">
-          <GooglePlaceInput
-            id="place-pool-input"
-            value={draftText}
-            onTextChange={(value) => {
-              setDraftText(value);
-              setSelectedPlace(null);
-            }}
-            onPlaceSelect={setSelectedPlace}
-            selectedPlace={selectedPlace}
-            onClearPlace={() => setSelectedPlace(null)}
-            placeholder={isReadOnly ? '你目前只能查看地點池' : '輸入景點、餐廳或地址'}
-            ariaLabel="加入想去地點"
-            className="tp-input"
-            disabled={isReadOnly}
-          />
-        </Field>
+      {canManageIdeas ? (
+        <div className="grid gap-3">
+          <Field label="加入地點" htmlFor="place-pool-input">
+            <GooglePlaceInput
+              id="place-pool-input"
+              value={draftText}
+              onTextChange={(value) => {
+                setDraftText(value);
+                setSelectedPlace(null);
+              }}
+              onPlaceSelect={setSelectedPlace}
+              selectedPlace={selectedPlace}
+              onClearPlace={() => setSelectedPlace(null)}
+              placeholder="輸入景點、餐廳或地址"
+              ariaLabel="加入想去地點"
+              className="tp-input"
+            />
+          </Field>
 
-        <Button onClick={handleAddPlace} disabled={!canAdd} className="w-full justify-center sm:w-auto sm:justify-start">
-          <Plus size={16} />
-          加入地點池
-        </Button>
-      </div>
+          <Button onClick={handleAddPlace} disabled={!canAdd} className="w-full justify-center sm:w-auto sm:justify-start">
+            <Plus size={16} />
+            加入想去地點
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
+          你可以按「我想去」，但不能修改行程。
+        </div>
+      )}
+
+      {voteError && (
+        <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200">
+          {voteError}
+        </p>
+      )}
 
       <div className="mt-4 grid gap-3">
         {visiblePlaces.length ? (
@@ -330,18 +387,26 @@ const PlacePoolCard = ({
               onVote={handleVotePlace}
               votesEnabled={votesEnabled}
               voterId={voterId}
-              canEdit={canEdit}
+              canVote={canVote}
+              canDelete={canManageIdeas}
+              canSchedule={canScheduleIdeas}
+              isVoting={Boolean(pendingVoteIds[place.id])}
+              topVoteScore={topVoteScore}
             />
           ))
         ) : (
           <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            還沒有收藏地點。可以先搜尋景點或直接新增行程。
-            <div className="mt-3">
-              <Button variant="secondary" size="sm" onClick={onAddEvent} disabled={!canEdit}>
-                <Plus size={14} />
-                新增行程
-              </Button>
-            </div>
+            {canManageIdeas
+              ? '先加入幾個景點或餐廳，旅伴就能一起選。'
+              : '目前還沒有地點，請主辦人或編輯者先加入幾個景點或餐廳。'}
+            {canScheduleIdeas && (
+              <div className="mt-3">
+                <Button variant="secondary" size="sm" onClick={onAddEvent}>
+                  <Plus size={14} />
+                  新增行程
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

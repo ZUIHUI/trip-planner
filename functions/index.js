@@ -216,6 +216,14 @@ const buildMemberPayloadFromRequest = ({ request, role, inviteId, inviteCode }) 
   };
 };
 
+const getMemberDisplayName = ({ request, member = {} }) => (
+  String(request.data?.displayName || '').trim()
+  || String(member.displayName || '').trim()
+  || String(request.auth?.token?.name || '').trim()
+  || String(request.auth?.token?.email || '').split('@')[0]
+  || '旅伴'
+);
+
 const assertInviteRedeemRateLimit = async (uid) => {
   const now = Date.now();
   const rateRef = firestore.collection('inviteCodeRateLimits').doc(uid);
@@ -647,6 +655,101 @@ exports.redeemTripInviteCode = onCall(
     };
   }
 );
+
+exports.togglePlaceVote = onCall(async (request) => {
+  const uid = requireSignedIn(request);
+  const tripId = String(request.data?.tripId || '').trim();
+  const placeId = String(request.data?.placeId || '').trim();
+
+  if (!tripId || !placeId) {
+    throw new HttpsError('invalid-argument', '請提供旅程與地點。');
+  }
+
+  const tripRef = firestore.collection('trips').doc(tripId);
+  const memberRef = tripRef.collection('members').doc(uid);
+  let result = null;
+
+  await firestore.runTransaction(async (transaction) => {
+    const [tripSnap, memberSnap] = await Promise.all([
+      transaction.get(tripRef),
+      transaction.get(memberRef)
+    ]);
+
+    if (!tripSnap.exists) {
+      throw new HttpsError('not-found', '找不到這趟旅程。');
+    }
+
+    const trip = tripSnap.data() || {};
+    const isOwner = trip.access?.ownerUid === uid;
+    if (!isOwner && !memberSnap.exists) {
+      throw new HttpsError('permission-denied', '你還沒有加入這趟旅程。');
+    }
+
+    const collaboration = trip.planning?.collaboration || trip.collaboration || {};
+    if (collaboration.votesEnabled === false) {
+      throw new HttpsError('failed-precondition', '這趟旅程目前沒有開放想去回應。');
+    }
+
+    const placePool = Array.isArray(trip.planning?.placePool)
+      ? trip.planning.placePool
+      : (Array.isArray(trip.placePool) ? trip.placePool : []);
+    const placeIndex = placePool.findIndex((place) => String(place?.id || '') === placeId);
+
+    if (placeIndex < 0) {
+      throw new HttpsError('not-found', '找不到這個地點。');
+    }
+
+    const now = new Date().toISOString();
+    const place = placePool[placeIndex] || {};
+    const votes = Array.isArray(place.votes) ? place.votes : [];
+    const existingVote = votes.find((vote) => vote?.voterId === uid && Number(vote.value || 0) > 0);
+    const votesWithoutCurrentUser = votes.filter((vote) => vote?.voterId !== uid);
+    const voted = !existingVote;
+    const nextVotes = voted
+      ? [
+          ...votesWithoutCurrentUser,
+          {
+            voterId: uid,
+            name: getMemberDisplayName({
+              request,
+              member: memberSnap.exists ? memberSnap.data() : {}
+            }),
+            value: 1,
+            votedAt: now
+          }
+        ]
+      : votesWithoutCurrentUser;
+    const nextPlacePool = placePool.map((item, index) => (
+      index === placeIndex
+        ? {
+            ...item,
+            votes: nextVotes
+          }
+        : item
+    ));
+    const revision = Number(trip.syncMeta?.revision || 0) + 1;
+
+    transaction.update(tripRef, {
+      'planning.placePool': nextPlacePool,
+      placePool: nextPlacePool,
+      'meta.updatedAt': now,
+      updatedAt: now,
+      'syncMeta.revision': revision,
+      'syncMeta.updatedByUid': uid,
+      'syncMeta.updatedByClientId': 'server:togglePlaceVote',
+      'syncMeta.updatedAt': now
+    });
+
+    result = {
+      placeId,
+      voted,
+      voteCount: nextVotes.filter((vote) => Number(vote?.value || 0) > 0).length,
+      revision
+    };
+  });
+
+  return result;
+});
 
 exports.claimExistingTrips = onCall(async (request) => {
   const uid = request.auth?.uid || '';

@@ -251,9 +251,12 @@ const CommandCenterCard = ({
     },
     {
       id: 'ideas',
-      label: '想去地點',
+      label: '想去清單',
       done: safePlacePool.length > 0 || totalEvents > 0,
-      action: () => document.getElementById('place-pool-input')?.focus()
+      action: () => {
+        document.getElementById('trip-place-ideas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('place-pool-input')?.focus();
+      }
     },
     {
       id: 'itinerary',
@@ -306,7 +309,7 @@ const CommandCenterCard = ({
           </div>
           <div className="grid grid-cols-3 gap-2 sm:w-44 sm:grid-cols-1">
             <InfoPill label="行程" value={`${totalEvents} 個`} />
-            <InfoPill label="地點池" value={`${safePlacePool.length} 個`} />
+            <InfoPill label="想去" value={`${safePlacePool.length} 個`} />
             <InfoPill label="預算" value={budgetProgress ? `${budgetProgress}%` : '未設定'} />
           </div>
         </div>
@@ -705,8 +708,6 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     updateDisplayName,
     isSharedSession,
     accessRole,
-    canEdit,
-    isReadOnly,
     members,
     onlineMembers,
     presenceByUid,
@@ -724,6 +725,9 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     () => getReadinessItems({ tripDetails, itinerary, checklists, budgetTarget, remainingBudget }),
     [tripDetails, itinerary, checklists, budgetTarget, remainingBudget]
   );
+  const canVote = Boolean(accessRole);
+  const canManageIdeas = accessRole === 'owner' || accessRole === 'editor' || accessRole === 'edit';
+  const canScheduleIdeas = canManageIdeas;
 
   return (
     <div className="flex min-w-0 flex-col gap-4 px-4 pb-10 sm:px-6 lg:px-8">
@@ -741,6 +745,22 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
         onAddEvent={onAddEvent}
         onOpenMaps={handleOpenGoogleMaps}
         onTabChange={onTabChange}
+      />
+
+      <PlacePoolCard
+        tripId={tripId}
+        placePool={placePool}
+        setPlacePool={setPlacePool}
+        itinerary={itinerary}
+        setItinerary={setItinerary}
+        selectedDay={selectedDay}
+        onAddEvent={onAddEvent}
+        collaboration={collaboration}
+        currentUser={currentUser}
+        userProfile={userProfile}
+        canVote={canVote}
+        canManageIdeas={canManageIdeas}
+        canScheduleIdeas={canScheduleIdeas}
       />
 
       <ReadinessCard items={readinessItems} onTabChange={onTabChange} />
@@ -762,21 +782,6 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
         onlineMembers={onlineMembers}
         presenceByUid={presenceByUid}
         presenceError={presenceError}
-      />
-
-      <PlacePoolCard
-        tripId={tripId}
-        placePool={placePool}
-        setPlacePool={setPlacePool}
-        itinerary={itinerary}
-        setItinerary={setItinerary}
-        selectedDay={selectedDay}
-        onAddEvent={onAddEvent}
-        collaboration={collaboration}
-        currentUser={currentUser}
-        userProfile={userProfile}
-        canEdit={canEdit}
-        isReadOnly={isReadOnly}
       />
 
       <TripOverviewCard
