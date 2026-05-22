@@ -256,7 +256,7 @@ const LoginPage = () => {
       <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
         <Card className="w-full max-w-md p-5 sm:p-6">
           <div className="mb-6">
-            <div className="tp-icon-chip mb-4 bg-brand-50 text-brand-700 dark:bg-brand-950/30 dark:text-brand-300">
+            <div className="tp-icon-chip mb-4">
               <PlaneTakeoff size={22} />
             </div>
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
@@ -265,7 +265,7 @@ const LoginPage = () => {
             </p>
           </div>
 
-          <label className="mb-3 flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">
+          <label className="mb-3 flex items-center gap-3 rounded-lg border border-cyan-100 bg-sky-50/50 px-3 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300">
             <input
               type="checkbox"
               checked={rememberDevice}
@@ -281,9 +281,9 @@ const LoginPage = () => {
           </Button>
 
           <div className="my-4 flex items-center gap-3 text-xs font-bold text-slate-400">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+            <div className="h-px flex-1 bg-cyan-100 dark:bg-slate-800" />
             備用
-            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+            <div className="h-px flex-1 bg-cyan-100 dark:bg-slate-800" />
           </div>
 
           <Button
@@ -298,7 +298,7 @@ const LoginPage = () => {
           </Button>
 
           {emailPanelOpen && (
-            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+            <div className="mt-3 rounded-lg border border-cyan-100 bg-sky-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
               {loginStep === 'code' ? (
                 <form onSubmit={handleVerifyCode} className="grid gap-3">
                   <Field label="Email" htmlFor="login-email-confirm">

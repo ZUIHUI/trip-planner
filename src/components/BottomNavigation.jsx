@@ -77,7 +77,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-slate-200 bg-white/95 pb-2 shadow-2xl transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(960px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:pb-0 dark:border-slate-800 dark:bg-slate-900/95 ${
+        className={`fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-cyan-100 bg-white/95 pb-2 shadow-[0_-18px_44px_-34px_rgba(14,165,233,0.72)] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(960px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-cyan-100 lg:pb-0 dark:border-slate-800 dark:bg-slate-900/95 ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
@@ -93,8 +93,8 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 onClick={() => handleTabChange(tab.id)}
                 className={`touch-target relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition active:scale-[0.98] ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+                    ? 'bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-800 shadow-sm ring-1 ring-cyan-100 dark:from-brand-950/40 dark:via-slate-900 dark:to-violet-950/30 dark:text-brand-200 dark:ring-brand-900/60'
+                    : 'text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
@@ -119,8 +119,8 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 onClick={() => handleTabChange(tab.id)}
                 className={`touch-target relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition active:scale-[0.98] ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+                    ? 'bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-800 shadow-sm ring-1 ring-cyan-100 dark:from-brand-950/40 dark:via-slate-900 dark:to-violet-950/30 dark:text-brand-200 dark:ring-brand-900/60'
+                    : 'text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}

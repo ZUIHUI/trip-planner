@@ -13,7 +13,7 @@ export const EmptyState = ({
 }) => (
   <div className={cx('tp-empty-state', className)} role="status">
     {Icon && (
-      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+      <div className="tp-icon-chip mx-auto mb-3 h-11 w-11">
         <Icon size={22} />
       </div>
     )}

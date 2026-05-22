@@ -18,7 +18,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     <section className="px-4 sm:px-6 lg:px-8" aria-label="選擇行程日期">
       <div
         ref={scrollContainerRef}
-        className="no-scrollbar flex gap-2 overflow-x-auto scroll-smooth rounded-lg border border-slate-200 bg-white/85 p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900/85"
+        className="tp-panel no-scrollbar flex gap-2 overflow-x-auto scroll-smooth p-2"
       >
         {itinerary.map((item) => {
           const isSelected = selectedDay === item.day;
@@ -35,8 +35,8 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               aria-pressed={isSelected}
               className={`touch-target min-w-[5.75rem] rounded-lg px-3 py-2 text-left transition active:scale-[0.98] ${
                 isSelected
-                  ? 'bg-brand-600 text-white shadow-sm dark:bg-brand-500 dark:text-slate-950'
-                  : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  ? 'bg-gradient-to-br from-brand-500 to-sky-500 text-white shadow-sm dark:from-brand-500 dark:to-sky-400 dark:text-slate-950'
+                  : 'bg-white/75 text-slate-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >
               <span className="block text-xs font-bold opacity-80">Day {item.day}</span>

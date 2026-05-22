@@ -125,8 +125,8 @@ const TripCard = ({
             onError={onCoverError}
           />
         ) : (
-          <div className="flex h-36 w-full items-center justify-center bg-gradient-to-br from-brand-50 via-sky-50 to-white text-brand-700 sm:h-40 dark:from-brand-900/40 dark:via-slate-900 dark:to-slate-950">
-            <div className="rounded-lg bg-white/80 p-3 shadow-sm dark:bg-slate-900/80">
+          <div className="flex h-36 w-full items-center justify-center bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-700 sm:h-40 dark:from-brand-900/40 dark:via-slate-900 dark:to-violet-950/30">
+            <div className="rounded-lg bg-white/90 p-3 shadow-sm ring-1 ring-white/70 dark:bg-slate-900/80 dark:ring-slate-700/60">
               <Compass size={28} />
             </div>
           </div>
@@ -147,11 +147,11 @@ const TripCard = ({
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+            <div className="rounded-lg bg-sky-50/80 px-3 py-2 dark:bg-slate-800/70">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
             </div>
-            <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+            <div className="rounded-lg bg-rose-50/70 px-3 py-2 dark:bg-slate-800/70">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
@@ -159,12 +159,12 @@ const TripCard = ({
         </div>
       </button>
 
-      <div className="border-t border-slate-100 px-4 py-3 dark:border-slate-800">
+      <div className="border-t border-cyan-100 px-4 py-3 dark:border-slate-800">
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={onToggleExpanded}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
             aria-expanded={expanded}
           >
             {expanded ? '收合資訊' : '更多資訊'}
@@ -176,7 +176,7 @@ const TripCard = ({
         </div>
 
         {expanded && (
-          <div className="mt-3 flex flex-col gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <div className="mt-3 flex flex-col gap-3 border-t border-cyan-100 pt-3 dark:border-slate-800">
             <div className="grid gap-2 text-sm text-slate-500 sm:grid-cols-2 dark:text-slate-400">
               <span className="inline-flex items-center gap-2">
                 <Clock3 size={15} />
@@ -498,10 +498,10 @@ const TripListPage = () => {
   return (
     <main className="tp-page-shell">
       <PageContainer className="py-6 sm:py-8">
-        <div className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="tp-panel mb-4 p-3">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="tp-icon-chip bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              <div className="tp-icon-chip">
                 <UserRound size={18} />
               </div>
               <div className="min-w-0">
@@ -527,7 +527,7 @@ const TripListPage = () => {
           </div>
 
           {isEditingNickname && (
-            <form onSubmit={handleSaveNickname} className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+            <form onSubmit={handleSaveNickname} className="mt-3 border-t border-cyan-100 pt-3 dark:border-slate-800">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <label className="min-w-0 flex-1">
                   <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
@@ -557,10 +557,10 @@ const TripListPage = () => {
           )}
         </div>
 
-        <section className="mb-4 rounded-lg border border-cyan-100 bg-white p-4 shadow-sm dark:border-cyan-900/60 dark:bg-slate-900">
+        <section className="tp-panel mb-4 p-4">
           <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(280px,1fr)] lg:items-center">
             <div className="flex min-w-0 items-start gap-3">
-              <div className="tp-icon-chip bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-300">
+              <div className="tp-icon-chip">
                 <KeyRound size={18} />
               </div>
               <div className="min-w-0">
@@ -590,10 +590,10 @@ const TripListPage = () => {
 
         <InstallAppPrompt className="mb-4" />
 
-        <section className="overflow-hidden rounded-lg border border-brand-100 bg-white shadow-sm dark:border-brand-900/60 dark:bg-slate-900">
+        <section className="tp-card overflow-hidden">
           <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="p-5 sm:p-7">
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-800 dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-200">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-800 dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-200">
                 <PlaneTakeoff size={14} />
                 Trip Planner
               </div>
@@ -622,14 +622,14 @@ const TripListPage = () => {
               </form>
             </div>
 
-            <div className="border-t border-brand-100 bg-gradient-to-br from-brand-50 via-sky-50 to-white p-5 sm:p-7 lg:border-l lg:border-t-0 dark:border-brand-900/60 dark:from-brand-950/30 dark:via-slate-900 dark:to-slate-950">
+            <div className="border-t border-cyan-100 bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 p-5 sm:p-7 lg:border-l lg:border-t-0 dark:border-brand-900/60 dark:from-brand-950/30 dark:via-slate-900 dark:to-violet-950/30">
               <p className="text-sm font-semibold text-brand-800 dark:text-brand-200">目前工作台</p>
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-white/85 p-4 shadow-sm dark:bg-slate-900/80">
+                <div className="rounded-lg border border-white/70 bg-white/90 p-4 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/80">
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">旅程數</p>
                   <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{trips.length}</p>
                 </div>
-                <div className="rounded-lg bg-white/85 p-4 shadow-sm dark:bg-slate-900/80">
+                <div className="rounded-lg border border-white/70 bg-white/90 p-4 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/80">
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">搜尋結果</p>
                   <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{sortedAndFilteredTrips.length}</p>
                 </div>

@@ -17,7 +17,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
     : summaryText;
   const baseClass = cover
     ? 'border-white/25 bg-white/15 text-white'
-    : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200';
+    : 'border-cyan-100 bg-white/90 text-slate-700 shadow-[0_10px_24px_-22px_rgba(14,165,233,0.85)] dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200';
 
   return (
     <div
@@ -31,7 +31,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
           {people.map((person) => (
             <span
               key={person.uid}
-              className={`inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border text-[10px] font-black ${cover ? 'border-white/50 bg-black/25 text-white' : 'border-white bg-brand-50 text-brand-700 dark:border-slate-900 dark:bg-brand-950/50 dark:text-brand-200'}`}
+              className={`inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border text-[10px] font-black ${cover ? 'border-white/50 bg-black/25 text-white' : 'border-white bg-gradient-to-br from-sky-50 to-rose-50 text-brand-700 dark:border-slate-900 dark:from-brand-950/50 dark:to-violet-950/40 dark:text-brand-200'}`}
               title={person.name}
             >
               {person.photoURL ? (
@@ -63,7 +63,7 @@ const Header = forwardRef(({
 
   const headerStyle = shouldShowCoverBackground
     ? {
-        backgroundImage: `linear-gradient(120deg, rgba(15, 23, 42, 0.70), rgba(15, 118, 110, 0.44)), url(${coverImageUrl})`,
+        backgroundImage: `linear-gradient(120deg, rgba(12, 74, 110, 0.68), rgba(14, 165, 170, 0.36), rgba(236, 72, 153, 0.28)), url(${coverImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
@@ -71,12 +71,12 @@ const Header = forwardRef(({
     : undefined;
 
   return (
-    <header ref={ref} className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+    <header ref={ref} className="sticky top-0 z-30 border-b border-cyan-100 bg-white/90 shadow-[0_16px_34px_-30px_rgba(14,165,233,0.9)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
       <div
         style={headerStyle}
         className={shouldShowCoverBackground
           ? 'text-white'
-          : 'bg-gradient-to-br from-white via-brand-50 to-sky-50 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-brand-950/30 dark:text-white'}
+          : 'bg-gradient-to-br from-white via-sky-50 to-rose-50 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-brand-950/30 dark:text-white'}
       >
         <PageContainer className="py-3 sm:py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -122,7 +122,7 @@ const Header = forwardRef(({
 
             <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
               {isSaving && (
-                <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-200'}`}>
+                <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-cyan-100 bg-sky-50 text-brand-700 dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}>
                   <RefreshCw size={13} className="animate-spin" />
                   儲存中
                 </span>
@@ -144,7 +144,7 @@ const Header = forwardRef(({
       </div>
 
       {children && (
-        <div className="border-t border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <div className="border-t border-cyan-100 bg-white/95 dark:border-slate-800 dark:bg-slate-950">
           <PageContainer>{children}</PageContainer>
         </div>
       )}

@@ -179,7 +179,7 @@ const TodayHero = ({
 
   if (!nextEvent) {
     return (
-      <section className="overflow-hidden rounded-lg border border-brand-400/50 bg-gradient-to-br from-brand-600 via-brand-600 to-sky-700 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-slate-900">
+      <section className="overflow-hidden rounded-lg border border-cyan-200/70 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-violet-950/70">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-wide text-brand-100">旅途中</p>
@@ -212,7 +212,7 @@ const TodayHero = ({
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-brand-400/50 bg-gradient-to-br from-brand-600 via-brand-600 to-sky-700 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-slate-900">
+    <section className="overflow-hidden rounded-lg border border-cyan-200/70 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-violet-950/70">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-black uppercase tracking-wide text-brand-100">下一站</p>
