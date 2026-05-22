@@ -10,6 +10,8 @@ import BottomNavigation from '../components/BottomNavigation';
 import TodayTab from '../components/trip/TodayTab';
 import SummaryTab from '../components/trip/SummaryTab';
 import ItineraryTab from '../components/trip/ItineraryTab';
+import IdeasTab from '../components/trip/IdeasTab';
+import MoreTab from '../components/trip/MoreTab';
 import LogisticsTab from '../components/trip/LogisticsTab';
 import PreTripTab from '../components/trip/PreTripTab';
 import PackingTab from '../components/trip/PackingTab';
@@ -223,13 +225,14 @@ const TripDetailPage = () => {
     const initialTab = location.state?.initialTab;
     const focusTarget = location.state?.focusTarget;
     if (isLoading || accessError || (!initialTab && !focusTarget)) return undefined;
+    const targetTab = focusTarget === 'placeIdeas' ? 'ideas' : initialTab;
 
-    if (initialTab && activeTab !== initialTab) {
-      setActiveTab(initialTab);
+    if (targetTab && activeTab !== targetTab) {
+      setActiveTab(targetTab);
       return undefined;
     }
 
-    if (focusTarget === 'placeIdeas' && activeTab === 'summary') {
+    if (focusTarget === 'placeIdeas' && activeTab === 'ideas') {
       const timer = window.setTimeout(() => {
         document.getElementById('trip-place-ideas')?.scrollIntoView({
           behavior: 'smooth',
@@ -923,6 +926,17 @@ const TripDetailPage = () => {
 
           {activeTab === 'itinerary' && (
             <ItineraryTab />
+          )}
+
+          {activeTab === 'ideas' && (
+            <IdeasTab />
+          )}
+
+          {activeTab === 'more' && (
+            <MoreTab
+              onTabChange={setActiveTab}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
           )}
 
           {activeTab === 'preTrip' && (

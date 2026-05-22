@@ -19,8 +19,6 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
-import PlacePoolCard from './PlacePoolCard';
-import ShareCollaborationCard from './ShareCollaborationCard';
 
 const emptyText = '未設定';
 const eventTypeLabels = {
@@ -253,10 +251,7 @@ const CommandCenterCard = ({
       id: 'ideas',
       label: '想去清單',
       done: safePlacePool.length > 0 || totalEvents > 0,
-      action: () => {
-        document.getElementById('trip-place-ideas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        document.getElementById('place-pool-input')?.focus();
-      }
+      action: () => onTabChange?.('ideas')
     },
     {
       id: 'itinerary',
@@ -435,6 +430,7 @@ const ReadinessCard = ({ items, onTabChange }) => (
 const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
   const actions = [
     { label: '新增行程', description: '排下一個點', icon: Plus, onClick: onAddEvent, primary: true },
+    { label: '大家想去', description: '一起選地點', icon: MapPin, tabId: 'ideas' },
     { label: '補旅程資訊', description: '住宿與航班', icon: Info, tabId: 'flights' },
     { label: '行前待辦', description: '票券與文件', icon: CheckSquare, tabId: 'preTrip' },
     { label: '行李清單', description: '打包進度', icon: Luggage, tabId: 'packing' },
@@ -688,7 +684,6 @@ const FlightsCard = ({ flights, onTabChange }) => (
 
 const SummaryTab = ({ onTabChange, onAddEvent }) => {
   const {
-    tripId,
     tripDetails,
     itinerary,
     selectedDay,
@@ -699,18 +694,6 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     remainingBudget,
     budgetProgress,
     placePool,
-    setPlacePool,
-    setItinerary,
-    collaboration,
-    setCollaboration,
-    currentUser,
-    userProfile,
-    updateDisplayName,
-    isSharedSession,
-    accessRole,
-    members,
-    onlineMembers,
-    presenceByUid,
     presenceUi,
     presenceError,
     handleOpenGoogleMaps
@@ -725,9 +708,6 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     () => getReadinessItems({ tripDetails, itinerary, checklists, budgetTarget, remainingBudget }),
     [tripDetails, itinerary, checklists, budgetTarget, remainingBudget]
   );
-  const canVote = Boolean(accessRole);
-  const canManageIdeas = accessRole === 'owner' || accessRole === 'editor' || accessRole === 'edit';
-  const canScheduleIdeas = canManageIdeas;
 
   return (
     <div className="flex min-w-0 flex-col gap-4 px-4 pb-10 sm:px-6 lg:px-8">
@@ -747,42 +727,11 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
         onTabChange={onTabChange}
       />
 
-      <PlacePoolCard
-        tripId={tripId}
-        placePool={placePool}
-        setPlacePool={setPlacePool}
-        itinerary={itinerary}
-        setItinerary={setItinerary}
-        selectedDay={selectedDay}
-        onAddEvent={onAddEvent}
-        collaboration={collaboration}
-        currentUser={currentUser}
-        userProfile={userProfile}
-        canVote={canVote}
-        canManageIdeas={canManageIdeas}
-        canScheduleIdeas={canScheduleIdeas}
-      />
-
       <ReadinessCard items={readinessItems} onTabChange={onTabChange} />
 
       <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
 
       <RealtimeActivityCard presenceUi={presenceUi} presenceError={presenceError} />
-
-      <ShareCollaborationCard
-        tripId={tripId}
-        collaboration={collaboration}
-        setCollaboration={setCollaboration}
-        currentUser={currentUser}
-        userProfile={userProfile}
-        updateDisplayName={updateDisplayName}
-        isSharedSession={isSharedSession}
-        accessRole={accessRole}
-        members={members}
-        onlineMembers={onlineMembers}
-        presenceByUid={presenceByUid}
-        presenceError={presenceError}
-      />
 
       <TripOverviewCard
         tripDisplayDates={tripDisplayDates}

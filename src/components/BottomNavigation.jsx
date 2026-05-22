@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   CheckSquare,
   Compass,
@@ -8,33 +8,37 @@ import {
   Map,
   Menu,
   ShoppingCart,
+  Star,
   Ticket,
-  X
 } from 'lucide-react';
 
-const mainTabs = [
+const mobileTabs = [
   { id: 'today', label: '旅途', icon: Compass },
   { id: 'itinerary', label: '行程', icon: Map },
+  { id: 'ideas', label: '想去', icon: Star },
+  { id: 'more', label: '更多', icon: Menu }
+];
+
+const desktopTabs = [
+  { id: 'today', label: '旅途', icon: Compass },
+  { id: 'summary', label: '總覽', icon: LayoutDashboard },
+  { id: 'itinerary', label: '行程', icon: Map },
+  { id: 'ideas', label: '想去', icon: Star },
+  { id: 'flights', label: '資訊', icon: Ticket },
+  { id: 'preTrip', label: '行前', icon: CheckSquare },
+  { id: 'packing', label: '行李', icon: Luggage },
   { id: 'expenses', label: '記帳', icon: DollarSign },
   { id: 'shopping', label: '購物', icon: ShoppingCart }
 ];
 
-const secondaryTabs = [
-  { id: 'summary', label: '總覽', icon: LayoutDashboard },
-  { id: 'preTrip', label: '行前', icon: CheckSquare },
-  { id: 'packing', label: '行李', icon: Luggage },
-  { id: 'flights', label: '資訊', icon: Ticket }
-];
-
-const allTabs = [
-  mainTabs[0],
-  secondaryTabs[0],
-  mainTabs[1],
-  secondaryTabs[3],
-  secondaryTabs[1],
-  secondaryTabs[2],
-  mainTabs[2],
-  mainTabs[3]
+const mobileMoreTabIds = [
+  'summary',
+  'flights',
+  'preTrip',
+  'packing',
+  'expenses',
+  'shopping',
+  'more'
 ];
 
 const PresenceTabMarker = ({ count = 0 }) => {
@@ -52,19 +56,23 @@ const PresenceTabMarker = ({ count = 0 }) => {
 };
 
 const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenceByTab = {} }) => {
-  const [showMenu, setShowMenu] = useState(false);
-  const hasActiveSecondaryTab = secondaryTabs.some((tab) => tab.id === activeTab);
-
   const handleTabChange = (tabId) => {
     onTabChange(tabId);
-    setShowMenu(false);
   };
 
-  useEffect(() => {
-    if (isModalOpen) {
-      setShowMenu(false);
+  const getMobilePresenceCount = (tabId) => {
+    if (tabId === 'more') {
+      return mobileMoreTabIds.reduce((total, id) => total + Number(presenceByTab?.[id] || 0), 0);
     }
-  }, [isModalOpen]);
+
+    return Number(presenceByTab?.[tabId] || 0);
+  };
+
+  const isMobileTabActive = (tabId) => (
+    tabId === 'more'
+      ? mobileMoreTabIds.includes(activeTab)
+      : activeTab === tabId
+  );
 
   return (
     <>
@@ -75,9 +83,9 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
         aria-label="主要功能導覽"
       >
         <div className="mx-auto flex h-16 max-w-3xl items-center gap-1 px-2 lg:hidden">
-          {mainTabs.map((tab) => {
+          {mobileTabs.map((tab) => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+            const isActive = isMobileTabActive(tab.id);
             return (
               <button
                 key={tab.id}
@@ -92,32 +100,16 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 aria-label={tab.label}
                 title={tab.label}
               >
-                <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
+                <PresenceTabMarker count={getMobilePresenceCount(tab.id)} />
                 <Icon size={22} />
                 <span className="truncate">{tab.label}</span>
               </button>
             );
           })}
-
-          <button
-            type="button"
-            onClick={() => setShowMenu((prev) => !prev)}
-            className={`touch-target flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition active:scale-[0.98] ${
-              showMenu || hasActiveSecondaryTab
-                ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
-            }`}
-            aria-expanded={showMenu}
-            aria-label="更多功能"
-            title="更多"
-          >
-            <Menu size={22} />
-            <span>更多</span>
-          </button>
         </div>
 
-        <div className="mx-auto hidden h-16 max-w-5xl items-center gap-1 px-2 lg:flex">
-          {allTabs.map((tab) => {
+        <div className="mx-auto hidden h-16 max-w-6xl items-center gap-1 px-2 lg:flex">
+          {desktopTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -141,46 +133,6 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
             );
           })}
         </div>
-
-        {showMenu && (
-          <div className="absolute bottom-full right-2 mb-2 w-52 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl lg:hidden dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 p-3 dark:border-slate-800">
-              <h3 className="font-bold text-slate-900 dark:text-white">更多選項</h3>
-              <button
-                type="button"
-                onClick={() => setShowMenu(false)}
-                className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                aria-label="關閉更多選單"
-                title="關閉"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-1.5">
-              {secondaryTabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => handleTabChange(tab.id)}
-                    className={`touch-target relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
-                      isActive
-                        ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                        : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
-                    <Icon size={20} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </nav>
 
       <div className="h-16 lg:h-24" />

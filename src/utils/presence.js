@@ -2,6 +2,8 @@ export const presenceTabLabels = {
   today: '旅途',
   summary: '總覽',
   itinerary: '行程',
+  ideas: '想去',
+  more: '更多',
   preTrip: '行前',
   packing: '行李',
   flights: '資訊',

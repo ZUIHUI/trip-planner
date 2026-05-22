@@ -103,11 +103,11 @@ const Header = forwardRef(({
                   </span>
                 </div>
 
-                <h1 className="mt-2 truncate text-2xl font-black tracking-tight sm:text-3xl">
+                <h1 className="mt-2 truncate text-xl font-black tracking-tight sm:text-3xl">
                   {details?.title || '我的旅程'}
                 </h1>
 
-                <div className={`mt-2 grid gap-1 text-sm sm:flex sm:items-center sm:gap-4 ${shouldShowCoverBackground ? 'text-white/85' : 'text-slate-600 dark:text-slate-300'}`}>
+                <div className={`mt-2 hidden gap-1 text-sm sm:flex sm:items-center sm:gap-4 ${shouldShowCoverBackground ? 'text-white/85' : 'text-slate-600 dark:text-slate-300'}`}>
                   <span className="inline-flex min-w-0 items-center gap-1.5">
                     <Home size={15} className="shrink-0" />
                     <span className="truncate">{details?.accommodation?.name || '尚未設定住宿'}</span>
@@ -136,7 +136,7 @@ const Header = forwardRef(({
                 className={shouldShowCoverBackground ? 'shrink-0 border border-white/25 bg-white/15 text-white hover:bg-white/25' : 'shrink-0'}
               >
                 <Settings size={18} />
-                設定
+                <span className="hidden sm:inline">設定</span>
               </Button>
             </div>
           </div>

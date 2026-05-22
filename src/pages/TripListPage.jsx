@@ -376,7 +376,7 @@ const TripListPage = () => {
       });
       navigate(`/trip/${result.tripId}`, {
         state: {
-          initialTab: 'summary',
+          initialTab: 'ideas',
           focusTarget: 'placeIdeas'
         }
       });

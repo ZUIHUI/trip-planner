@@ -28,6 +28,8 @@ const tabLabels = {
   today: '旅途中',
   summary: '控制台',
   itinerary: '每日行程',
+  ideas: '想去',
+  more: '更多',
   preTrip: '行前',
   packing: '打包',
   flights: '交通住宿',
