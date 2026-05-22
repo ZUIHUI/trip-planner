@@ -862,7 +862,7 @@ const TripDetailPage = () => {
 
   if (accessError) {
     const description = legacyShareToken
-      ? '這個舊邀請連結已不再使用。請向主辦人索取邀請碼，回首頁輸入邀請碼加入旅程。'
+      ? '舊邀請連結已停用。請向主辦人索取邀請碼。'
       : accessError;
     return (
       <div className="tp-page-shell flex min-h-screen items-center justify-center p-4 font-sans">

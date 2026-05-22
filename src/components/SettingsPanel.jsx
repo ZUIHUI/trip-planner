@@ -38,7 +38,7 @@ const Section = ({ icon: Icon, title, description, children }) => (
       </div>
       <div>
         <h3 className="tp-section-title">{title}</h3>
-        {description && <p className="tp-section-subtitle mt-1">{description}</p>}
+        {description && <p className="tp-section-subtitle mt-1 hidden sm:block">{description}</p>}
       </div>
     </div>
     {children}
@@ -194,7 +194,7 @@ const SettingsPanel = ({
           <Section
             icon={Palette}
             title="外觀模式"
-            description="切換日間或夜間模式，適合不同光線環境。"
+            description="日間或夜間模式。"
           >
             <div className="flex items-center justify-between gap-4 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
               <div className="flex items-center gap-3">
@@ -219,13 +219,13 @@ const SettingsPanel = ({
           <Section
             icon={Type}
             title="介面大小"
-            description="依照螢幕大小或閱讀習慣調整資訊密度。"
+            description="調整資訊密度。"
           >
             <div className="grid gap-2 sm:grid-cols-3">
               {[
-                { id: 'small', name: '精簡', description: '顯示更多內容', sizeClass: 'text-sm' },
-                { id: 'medium', name: '標準', description: '預設閱讀尺寸', sizeClass: 'text-base' },
-                { id: 'large', name: '寬鬆', description: '較大字級間距', sizeClass: 'text-lg' }
+                { id: 'small', name: '精簡', description: '更多內容', sizeClass: 'text-sm' },
+                { id: 'medium', name: '標準', description: '預設', sizeClass: 'text-base' },
+                { id: 'large', name: '寬鬆', description: '較大字級', sizeClass: 'text-lg' }
               ].map((size) => (
                 <button
                   key={size.id}
@@ -249,7 +249,7 @@ const SettingsPanel = ({
           <Section
             icon={RefreshCw}
             title="匯率設定"
-            description="用於預算總覽與日幣換算。"
+            description="預算與換算。"
           >
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <Field label="1 日圓等於多少台幣" htmlFor="exchange-rate">
@@ -282,7 +282,7 @@ const SettingsPanel = ({
           <Section
             icon={ImageIcon}
             title="背景圖片"
-            description="用於旅程詳情頁 Header，建議使用壓縮後的橫幅圖片。"
+            description="旅程封面。"
           >
             <div className="space-y-3">
               <input
@@ -335,7 +335,7 @@ const SettingsPanel = ({
           <Section
             icon={Users}
             title="旅伴"
-            description="會用於行李分配與費用分帳。"
+            description="行李與分帳。"
           >
             <div className="space-y-2">
               {travelers.length === 0 ? (
@@ -389,7 +389,7 @@ const SettingsPanel = ({
           <Section
             icon={MapPin}
             title="位置設定"
-            description="啟用後可用目前位置輔助天氣與旅途中資訊。"
+            description="天氣與旅途資訊。"
           >
             <div className="flex items-center justify-between gap-4 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
               <div>

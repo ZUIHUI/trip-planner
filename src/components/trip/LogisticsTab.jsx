@@ -134,7 +134,7 @@ const CompletionPanel = ({ tripDetails }) => {
             出發前資訊
           </h2>
           <p className="mt-1 hidden text-sm leading-6 text-slate-500 dark:text-slate-400 sm:block">
-            先補齊旅程、住宿與航班，旅途中查看資料會更快。
+            待補資料與狀態。
           </p>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
             {missingTasks.length ? `待補：${missingTasks.map((task) => task.label).join('、')}` : '資訊已完整'}
@@ -221,7 +221,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
       <SectionHeading
         icon={Info}
         title="旅程資訊"
-        description="設定旅程名稱、日期、狀態與預算。"
+        description="名稱、日期與預算。"
         compactDescription={compact}
         aside={tripDetails?.dates && (
           <Badge variant="info" className="self-start">
@@ -349,7 +349,7 @@ const AccommodationCard = ({
     <SectionHeading
       icon={Bed}
       title="住宿資訊"
-      description="先填住宿名稱與地址，入住時間可稍後補。"
+      description="住宿名稱與地址。"
       compactDescription={compact}
     />
 
@@ -384,8 +384,8 @@ const AccommodationCard = ({
           selectedPlace={tripDetails?.accommodation?.placeId ? tripDetails.accommodation : null}
           onClearPlace={onClearPlace}
           ariaLabel="住宿地址"
-          helperText="輸入 2 個字以上搜尋 Google 地點，或直接手動輸入。"
-          emptyMessage="找不到建議，仍可手動輸入地址。"
+          helperText="可搜尋或手動輸入。"
+          emptyMessage="找不到地點，可手動輸入。"
           className="tp-input"
         />
       </Field>
@@ -714,7 +714,7 @@ const FlightSection = ({
         <SectionHeading
           icon={Plane}
           title="航班資訊"
-          description="先填航班號與機場，再查詢航班。"
+          description="航班號與機場。"
           compactDescription
         />
 
@@ -767,7 +767,7 @@ const FlightSection = ({
       <SectionHeading
         icon={Plane}
         title="航班資訊"
-        description="輸入航班代號與機場後，可用旅程日期查詢航班資料。"
+        description="航班號與機場。"
       />
 
       <div className="space-y-4">

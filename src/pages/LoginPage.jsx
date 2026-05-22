@@ -261,7 +261,7 @@ const LoginPage = () => {
             </div>
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              建議使用 Google 帳號登入，之後就能在不同裝置查看自己的旅程。
+              登入後可跨裝置同步旅程。
             </p>
           </div>
 
@@ -299,10 +299,6 @@ const LoginPage = () => {
 
           {emailPanelOpen && (
             <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
-              <p className="mb-3 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">
-                如果收不到驗證碼，請改用 Google 登入。
-              </p>
-
               {loginStep === 'code' ? (
                 <form onSubmit={handleVerifyCode} className="grid gap-3">
                   <Field label="Email" htmlFor="login-email-confirm">
@@ -315,7 +311,7 @@ const LoginPage = () => {
                       required
                     />
                   </Field>
-                  <Field label="驗證碼" htmlFor="login-code" hint="請輸入信中的 6 位數字。">
+                  <Field label="驗證碼" htmlFor="login-code" hint="6 位數字。">
                     <Input
                       id="login-code"
                       ref={codeInputRef}

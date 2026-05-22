@@ -44,7 +44,7 @@ const getLogisticsStatus = (tripDetails = {}) => {
   return '尚未補齊';
 };
 
-const ModuleButton = ({ icon: Icon, title, description, meta, onClick }) => (
+const ModuleButton = ({ icon: Icon, title, meta, onClick }) => (
   <button
     type="button"
     onClick={onClick}
@@ -55,9 +55,6 @@ const ModuleButton = ({ icon: Icon, title, description, meta, onClick }) => (
     </span>
     <span className="min-w-0 flex-1">
       <span className="block truncate text-sm font-black text-slate-950 dark:text-white">{title}</span>
-      <span className="mt-0.5 block line-clamp-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-        {description}
-      </span>
     </span>
     {meta && (
       <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -105,10 +102,7 @@ const MoreTab = ({ onTabChange, onOpenSettings }) => {
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
       <div className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
         <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">更多工具</p>
-        <h1 className="mt-1 text-2xl font-black text-slate-950 dark:text-white">把低頻功能收在這裡</h1>
-        <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
-          旅行中先看旅途和行程；需要整理資料、記帳、購物或邀請旅伴時，再回到這裡。
-        </p>
+        <h1 className="mt-1 text-2xl font-black text-slate-950 dark:text-white">更多</h1>
       </div>
 
       <ModuleSection title="旅行準備">

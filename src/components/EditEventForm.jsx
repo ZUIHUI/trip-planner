@@ -73,7 +73,7 @@ const FormSection = ({ title, description, icon: Icon, children }) => (
       )}
       <div className="min-w-0">
         <h4 className="text-sm font-black text-slate-900 dark:text-white">{title}</h4>
-        {description && <p className="mt-0.5 break-words text-xs leading-5 text-slate-500 dark:text-slate-400">{description}</p>}
+        {description && <p className="mt-0.5 hidden break-words text-xs leading-5 text-slate-500 dark:text-slate-400 sm:block">{description}</p>}
       </div>
     </div>
     {children}
@@ -154,7 +154,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
 
   return (
     <form onSubmit={handleSubmit} className="min-w-0 max-w-full space-y-4 overflow-x-hidden text-slate-700 dark:text-slate-200">
-      <FormSection title="基本資訊" description="先填時間與類型，行程卡會依這裡排序與顯示。">
+      <FormSection title="基本資訊" description="時間、類型與名稱。">
         <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)]">
           <Field label="時間" htmlFor="event-time">
             <Input
@@ -212,8 +212,8 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </label>
       </FormSection>
 
-      <FormSection title="地點與備註" description="選 Google Maps 地點後，導航與旅途中模式會更準確。" icon={MapPin}>
-        <Field label="地點" htmlFor="event-location" hint="可輸入地名，或從 Google Maps 自動完成選擇。">
+      <FormSection title="地點與備註" description="地點、連結與備註。" icon={MapPin}>
+        <Field label="地點" htmlFor="event-location" hint="搜尋或輸入地點。">
           <div className="relative min-w-0 max-w-full">
             <MapPin size={16} className="pointer-events-none absolute left-3 top-3.5 text-slate-400 dark:text-slate-500" />
             <GooglePlaceInput
@@ -227,8 +227,8 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               disabled={readOnly}
               placeholder="輸入 Google Maps 地點名稱"
               ariaLabel="行程地點"
-              helperText="輸入 2 個字搜尋 Google 地點；找不到時仍可直接手動輸入。"
-              emptyMessage="找不到推薦地點，可先手動輸入地址或地點名稱。"
+              helperText="可搜尋或手動輸入。"
+              emptyMessage="找不到地點，可手動輸入。"
               className="tp-input pl-10"
             />
           </div>
@@ -296,7 +296,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </div>
       </FormSection>
 
-      <FormSection title="交通資訊" description="讓行程卡能提示下一段路線與預估時間。" icon={Navigation}>
+      <FormSection title="交通資訊" description="下一段路線。" icon={Navigation}>
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <Field label="預估時間" htmlFor="event-transport-duration">
             <Input
@@ -346,7 +346,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </div>
       </FormSection>
 
-      <FormSection title="預估花費" description="這裡記錄的是行程預算，不會混入實際記帳。" icon={Wallet}>
+      <FormSection title="預估花費" description="行程預算。" icon={Wallet}>
         <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)]">
           <Field label="幣別" htmlFor="event-currency">
             <Select

@@ -146,7 +146,7 @@ const ShoppingSummary = ({ stats, sortMode, onToggleSort }) => (
         </div>
         <div>
           <h2 className="tp-section-title">購物清單</h2>
-          <p className="tp-section-subtitle">集中管理待買、已買與店家備註。</p>
+          <p className="tp-section-subtitle">待買與已買。</p>
         </div>
       </div>
       <Button
@@ -478,7 +478,7 @@ const ShoppingItemFormModal = ({
             <div className="mt-3">
               <p className="mb-2 flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400">
                 <Sparkles size={14} />
-                快速建議
+                常用項目
               </p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((suggestion) => (
@@ -1091,7 +1091,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
         <EmptyState
           icon={ShoppingCart}
           title={safeItems.length ? '沒有符合條件的商品' : '目前沒有購物項目'}
-          description={safeItems.length ? '可以清除搜尋或切換篩選條件。' : '新增第一個商品，旅行購物就不容易漏買。'}
+          description={safeItems.length ? '清除搜尋或切換篩選。' : '新增第一個商品。'}
           actionLabel={safeItems.length ? '清除篩選' : '新增第一個商品'}
           onAction={safeItems.length ? clearFilters : () => openAddForm()}
         />

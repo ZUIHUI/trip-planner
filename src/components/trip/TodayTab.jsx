@@ -67,7 +67,7 @@ const buildReminders = ({
       id: 'empty-day',
       tone: 'info',
       title: '今日還沒有行程',
-      description: '先新增下一站，旅途中首頁就會顯示導航與天氣。'
+      description: '新增下一站。'
     });
   }
 
@@ -76,7 +76,7 @@ const buildReminders = ({
       id: 'accommodation',
       tone: 'warning',
       title: '住宿資訊未補',
-      description: '補上住宿地址後，今日路線會更好用。'
+      description: '補住宿地址。'
     });
   }
 
@@ -85,7 +85,7 @@ const buildReminders = ({
       id: 'route',
       tone: 'warning',
       title: '今日行程缺地點',
-      description: '至少替一個行程補上地址，才能快速開路線。'
+      description: '補上地點。'
     });
   }
 
@@ -104,7 +104,7 @@ const buildReminders = ({
       id: 'pre-trip',
       tone: 'info',
       title: '行前待辦尚未完成',
-      description: `還有 ${preTripRemaining} 件出發前事項。`
+      description: `還有 ${preTripRemaining} 項。`
     });
   }
 
@@ -331,7 +331,7 @@ const ReminderStrip = ({ reminders }) => {
         <div className="min-w-0">
           <p className="text-sm font-black">今天看起來準備好了</p>
           <p className="mt-0.5 text-xs font-semibold text-emerald-700/80 dark:text-emerald-100/75">
-            下一站、路線與旅程資訊都可以直接使用。
+            已就緒。
           </p>
         </div>
       </div>
@@ -375,7 +375,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
 
       {events.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          新增行程後，這裡會變成旅途中使用的精簡時間線。
+          新增行程後顯示。
         </div>
       ) : (
         <ol className="space-y-3">
@@ -502,7 +502,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
               </div>
             )) : (
               <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                替行程補上地點後，這裡會顯示今日路線。
+                補上地點後顯示。
               </div>
             )}
           </div>
@@ -579,7 +579,7 @@ const TodayTab = () => {
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
       <div className="flex items-center gap-2 text-sm font-black text-brand-700 dark:text-brand-300">
         <Info size={16} />
-        旅途中首頁
+        旅途
       </div>
 
       <DaySwitcher

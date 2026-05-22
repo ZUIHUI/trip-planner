@@ -31,7 +31,7 @@ const IdeasTab = () => {
         <div className="min-w-0">
           <h2 className="text-base font-black">大家想去的地方</h2>
           <p className="mt-1 text-sm font-semibold leading-6 opacity-85">
-            先把景點和餐廳放進來，旅伴按「我想去」後，再排進每天行程。
+            按「我想去」一起選。
           </p>
         </div>
       </div>

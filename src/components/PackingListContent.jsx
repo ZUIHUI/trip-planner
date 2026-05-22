@@ -562,7 +562,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
           <div>
             <h3 className="text-sm font-black text-slate-900 dark:text-white">快速新增物品</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              會加入目前分類{activeCategory === 'clothing' ? ` Day ${selectedDay}` : ''}
+              {activeCategory === 'clothing' ? `Day ${selectedDay}` : '目前分類'}
             </p>
           </div>
           <Button
@@ -610,7 +610,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
           <div className="mt-4">
             <p className="mb-2 flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400">
               <Sparkles size={14} />
-              快速建議
+              常用項目
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((suggestion) => (
@@ -653,7 +653,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             <EmptyState
               icon={Package}
               title="目前沒有符合條件的物品"
-              description="可以切換篩選，或用上方快速新增把第一個物品加進清單。"
+              description="切換篩選或快速新增。"
               className="py-8"
             />
           ) : (
@@ -707,7 +707,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                     <div className="space-y-2 px-3 pb-3">
                       {groupItems.length === 0 ? (
                         <p className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-4 text-sm font-semibold text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-500">
-                          這個區塊目前沒有符合篩選的物品。
+                          沒有符合篩選的物品。
                         </p>
                       ) : (
                         groupItems.map(renderItem)

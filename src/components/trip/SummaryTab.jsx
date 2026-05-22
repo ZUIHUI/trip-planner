@@ -86,7 +86,7 @@ const getReadinessItems = ({
     items.push({
       id: 'dates',
       title: '缺旅程日期',
-      description: '補上開始與結束日期，天數和航班查詢才會準確。',
+      description: '設定開始與結束日。',
       tabId: 'flights',
       actionLabel: '補日期',
       tone: 'warning'
@@ -97,7 +97,7 @@ const getReadinessItems = ({
     items.push({
       id: 'accommodation',
       title: '未填住宿',
-      description: '補上住宿名稱或地址，導航與旅途中資訊會更好用。',
+      description: '補住宿名稱或地址。',
       tabId: 'flights',
       actionLabel: '補住宿',
       tone: 'warning'
@@ -108,7 +108,7 @@ const getReadinessItems = ({
     items.push({
       id: 'outbound-flight',
       title: '缺去程航班',
-      description: '補上去程航班與機場，總覽就能看到航廈與時間。',
+      description: '補去程航班。',
       tabId: 'flights',
       actionLabel: '補航班',
       tone: 'warning'
@@ -119,7 +119,7 @@ const getReadinessItems = ({
     items.push({
       id: 'inbound-flight',
       title: '缺回程航班',
-      description: '補上回程資料，旅行結束日安排會更清楚。',
+      description: '補回程資料。',
       tabId: 'flights',
       actionLabel: '補航班',
       tone: 'warning'
@@ -130,7 +130,7 @@ const getReadinessItems = ({
     items.push({
       id: 'itinerary',
       title: '尚無行程',
-      description: '先新增第一個行程，旅途中模式才有下一步提示。',
+      description: '新增第一個行程。',
       tabId: 'itinerary',
       actionLabel: '排行程',
       tone: 'info'
@@ -141,7 +141,7 @@ const getReadinessItems = ({
     items.push({
       id: 'budget',
       title: '預算已超出',
-      description: `目前超出 ${Math.abs(remainingBudget).toLocaleString()} 元，可到記帳頁確認分類與分帳。`,
+      description: `超出 ${Math.abs(remainingBudget).toLocaleString()} 元。`,
       tabId: 'expenses',
       actionLabel: '看記帳',
       tone: 'danger'
@@ -152,7 +152,7 @@ const getReadinessItems = ({
     items.push({
       id: 'pretrip-empty',
       title: '行前待辦未建立',
-      description: '建立簽證、票券、保險等待辦，出發前比較不會漏。',
+      description: '建立出發前待辦。',
       tabId: 'preTrip',
       actionLabel: '看行前',
       tone: 'info'
@@ -161,7 +161,7 @@ const getReadinessItems = ({
     items.push({
       id: 'pretrip',
       title: '行前待辦未完成',
-      description: `還有 ${preTripProgress.remaining} 項待辦未完成。`,
+      description: `還有 ${preTripProgress.remaining} 項。`,
       tabId: 'preTrip',
       actionLabel: '去勾選',
       tone: 'info'
@@ -172,7 +172,7 @@ const getReadinessItems = ({
     items.push({
       id: 'packing-empty',
       title: '行李清單未建立',
-      description: '先建立行李清單，打包時可以直接照著勾。',
+      description: '建立行李清單。',
       tabId: 'packing',
       actionLabel: '看行李',
       tone: 'info'
@@ -181,7 +181,7 @@ const getReadinessItems = ({
     items.push({
       id: 'packing',
       title: '行李尚未打包完成',
-      description: `還有 ${packingProgress.remaining} 項未打包。`,
+      description: `還有 ${packingProgress.remaining} 項。`,
       tabId: 'packing',
       actionLabel: '去打包',
       tone: 'info'
@@ -205,7 +205,7 @@ const SectionHeader = ({ icon: Icon, title, description, iconClass = '', action 
       </div>
       <div className="min-w-0">
         <h3 className="tp-section-title">{title}</h3>
-        {description && <p className="tp-section-subtitle mt-1">{description}</p>}
+        {description && <p className="tp-section-subtitle mt-1 hidden sm:block">{description}</p>}
       </div>
     </div>
     {action}
@@ -276,7 +276,7 @@ const CommandCenterCard = ({
           </div>
           <h2 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">規劃總覽</h2>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
-            {nextStep ? `下一步：補齊${nextStep.label}` : '核心資料已就緒，可以直接進入旅途中使用。'}
+            {nextStep ? `下一步：補齊${nextStep.label}` : '資料已就緒。'}
           </p>
         </div>
 
@@ -375,7 +375,7 @@ const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
         <EmptyState
           icon={CalendarDays}
           title="目前尚無行程"
-          description="先新增第一個行程，總覽就會顯示下一步與地點提示。"
+          description="新增第一個行程。"
           actionLabel="新增行程"
           onAction={onAddEvent}
           className="py-6"
@@ -390,7 +390,7 @@ const ReadinessCard = ({ items, onTabChange }) => (
     <SectionHeader
       icon={AlertTriangle}
       title="需要處理"
-      description="先補最影響旅途使用的資料。"
+      description="先補必要資料。"
       iconClass={items.length ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'}
     />
 
@@ -400,7 +400,7 @@ const ReadinessCard = ({ items, onTabChange }) => (
         <div>
           <p className="font-black">目前看起來都準備好了</p>
           <p className="mt-1 text-sm font-semibold text-emerald-700/80 dark:text-emerald-200/75">
-            可以直接從行程、記帳或購物清單開始操作。
+            直接開始。
           </p>
         </div>
       </div>
@@ -429,13 +429,13 @@ const ReadinessCard = ({ items, onTabChange }) => (
 
 const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
   const actions = [
-    { label: '新增行程', description: '排下一個點', icon: Plus, onClick: onAddEvent, primary: true },
-    { label: '大家想去', description: '一起選地點', icon: MapPin, tabId: 'ideas' },
-    { label: '補旅程資訊', description: '住宿與航班', icon: Info, tabId: 'flights' },
-    { label: '行前待辦', description: '票券與文件', icon: CheckSquare, tabId: 'preTrip' },
-    { label: '行李清單', description: '打包進度', icon: Luggage, tabId: 'packing' },
-    { label: '記帳', description: '支出分帳', icon: ReceiptText, tabId: 'expenses' },
-    { label: '購物清單', description: '待買項目', icon: ShoppingCart, tabId: 'shopping' }
+    { label: '新增行程', icon: Plus, onClick: onAddEvent, primary: true },
+    { label: '大家想去', icon: MapPin, tabId: 'ideas' },
+    { label: '補旅程資訊', icon: Info, tabId: 'flights' },
+    { label: '行前待辦', icon: CheckSquare, tabId: 'preTrip' },
+    { label: '行李清單', icon: Luggage, tabId: 'packing' },
+    { label: '記帳', icon: ReceiptText, tabId: 'expenses' },
+    { label: '購物清單', icon: ShoppingCart, tabId: 'shopping' }
   ];
 
   return (
@@ -443,11 +443,11 @@ const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
       <SectionHeader
         icon={Plus}
         title="快速操作"
-        description="常用入口集中在這裡。"
+        description="常用入口。"
         iconClass="bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300"
       />
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {actions.map(({ label, description, icon: Icon, tabId, onClick, primary }) => (
+        {actions.map(({ label, icon: Icon, tabId, onClick, primary }) => (
           <button
             key={label}
             type="button"
@@ -461,9 +461,6 @@ const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
             <span className="flex items-center gap-2 font-black">
               <Icon size={17} />
               {label}
-            </span>
-            <span className={`mt-1 block text-xs font-semibold ${primary ? 'text-white/75' : 'text-slate-500 dark:text-slate-400'}`}>
-              {description}
             </span>
           </button>
         ))}
@@ -481,7 +478,7 @@ const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
       <SectionHeader
         icon={UsersRound}
         title="即時動態"
-        description="看看旅伴目前在哪裡規劃。"
+        description="旅伴在線狀態。"
         iconClass="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
       />
 

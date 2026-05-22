@@ -64,7 +64,7 @@ const InstallAppPrompt = ({ className = '' }) => {
             加入主畫面，之後用起來更像 App
           </p>
           <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">
-            手機上從主畫面開啟，比瀏覽器分頁更適合保留登入與查看邀請碼。
+            登入更穩，查看更快。
           </p>
         </div>
         <button

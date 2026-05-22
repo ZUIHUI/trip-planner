@@ -713,7 +713,7 @@ const SettlementModal = ({ settlements, onClose }) => {
             />
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-slate-500 dark:text-slate-400">依照目前分帳方式，建議用以下轉帳完成結算。</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">轉帳清單：</p>
               {settlements.map((transfer, index) => (
                 <div key={`${transfer.from}-${transfer.to}-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/70">
                   <div className="flex items-center justify-between gap-3">

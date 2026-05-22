@@ -221,7 +221,7 @@ const ShareCollaborationCard = ({
       permission: result.permission === 'edit' ? 'edit' : 'view'
     });
     setSelectedPermission(result.permission === 'edit' ? 'edit' : 'view');
-    setMessage(invite.code ? '新的邀請碼已建立，舊邀請碼已失效。' : '邀請碼已建立。');
+    setMessage(invite.code ? '新邀請碼已建立。' : '邀請碼已建立。');
   };
 
   const handleDisableInvite = async () => {
@@ -365,8 +365,8 @@ const ShareCollaborationCard = ({
             <h3 className="tp-section-title">旅伴</h3>
             <p className="tp-section-subtitle mt-1">
               {canManageInvite
-                ? '用邀請碼讓旅伴加入，這裡也會顯示誰正在旅程中。'
-                : '查看一起旅行的人，也可以調整自己的顯示名稱。'}
+                ? '邀請旅伴加入。'
+                : '旅伴與顯示名稱。'}
             </p>
           </div>
         </div>
@@ -381,7 +381,7 @@ const ShareCollaborationCard = ({
 
       {canManageInvite && (
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
-          <Field label="邀請碼" htmlFor="trip-invite-code" hint="旅伴打開 Trip Planner，在首頁輸入邀請碼就能加入。">
+          <Field label="邀請碼" htmlFor="trip-invite-code" hint="在首頁輸入邀請碼加入。">
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
               <Input
                 id="trip-invite-code"
@@ -424,7 +424,7 @@ const ShareCollaborationCard = ({
       )}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="會顯示在旅伴清單、大家想去的地方與在線狀態中。">
+        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="旅伴看得到。">
           <Input
             id="member-display-name"
             {...plainTextInputProps}

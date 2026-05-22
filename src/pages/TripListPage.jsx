@@ -372,7 +372,7 @@ const TripListPage = () => {
         title: result.alreadyMember ? '你已經在這趟旅程中' : '已加入旅程',
         description: result.alreadyMember
           ? (result.tripTitle || '')
-          : '可以先到「大家想去的地方」按「我想去」，告訴旅伴你想去哪。'
+          : '到「大家想去」按「我想去」。'
       });
       navigate(`/trip/${result.tripId}`, {
         state: {
@@ -566,7 +566,7 @@ const TripListPage = () => {
               <div className="min-w-0">
                 <h2 className="text-base font-black text-slate-950 dark:text-white">加入旅程</h2>
                 <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  向主辦人索取邀請碼，在這裡輸入後就會加入旅伴清單。
+                  輸入邀請碼加入。
                 </p>
               </div>
             </div>
@@ -601,7 +601,7 @@ const TripListPage = () => {
                 規劃下一趟旅程
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base dark:text-slate-300">
-                建立旅程、安排每日行程、管理行前清單和花費。所有重點都放在一眼能看懂的位置。
+                建立旅程，開始排行程。
               </p>
 
               <form onSubmit={handleCreateTrip} className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
@@ -634,9 +634,6 @@ const TripListPage = () => {
                   <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{sortedAndFilteredTrips.length}</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                建議先設定旅程日期，日期完成後會自動產生天數，接著就能逐日加入行程。
-              </p>
             </div>
           </div>
         </section>
@@ -645,7 +642,6 @@ const TripListPage = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="tp-section-title">我的旅程</h2>
-              <p className="tp-section-subtitle mt-1">快速回到正在規劃或旅途中使用的旅程。</p>
             </div>
             <div className="relative w-full sm:max-w-sm">
               <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -668,7 +664,7 @@ const TripListPage = () => {
               <EmptyState
                 icon={Compass}
                 title={hasTrips && hasSearch ? '找不到符合條件的旅程' : '目前尚無旅程'}
-                description={hasTrips && hasSearch ? '試著換一個關鍵字，或清除搜尋條件。' : '輸入旅程名稱後，就可以新增第一趟旅程。'}
+                description={hasTrips && hasSearch ? '換個關鍵字。' : '輸入名稱後建立旅程。'}
                 actionLabel={hasTrips && hasSearch ? '清除搜尋' : '新增第一個旅程'}
                 onAction={() => {
                   if (hasTrips && hasSearch) {
