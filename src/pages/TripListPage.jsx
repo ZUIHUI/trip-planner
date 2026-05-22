@@ -28,6 +28,7 @@ import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
+import InstallAppPrompt from '../components/InstallAppPrompt';
 
 const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 
@@ -579,6 +580,8 @@ const TripListPage = () => {
             </form>
           </div>
         </section>
+
+        <InstallAppPrompt className="mb-4" />
 
         <section className="overflow-hidden rounded-lg border border-brand-100 bg-white shadow-sm dark:border-brand-900/60 dark:bg-slate-900">
           <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">

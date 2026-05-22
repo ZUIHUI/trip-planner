@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Link2, Mail, PlaneTakeoff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
+import InstallAppPrompt from '../components/InstallAppPrompt';
 
 const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
 
@@ -244,7 +245,7 @@ const LoginPage = () => {
 
   return (
     <main className="tp-page-shell min-h-screen">
-      <PageContainer className="flex min-h-screen items-center justify-center py-10">
+      <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
         <Card className="w-full max-w-md p-5 sm:p-6">
           <div className="mb-6">
             <div className="tp-icon-chip mb-4 bg-brand-50 text-brand-700 dark:bg-brand-950/30 dark:text-brand-300">
@@ -363,6 +364,7 @@ const LoginPage = () => {
             </p>
           )}
         </Card>
+        <InstallAppPrompt className="w-full max-w-md" />
       </PageContainer>
     </main>
   );
