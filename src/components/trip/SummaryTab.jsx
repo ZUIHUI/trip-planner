@@ -511,7 +511,7 @@ const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
         </div>
       ) : (
         <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
-          {selfOnline ? '目前只有你在線。' : '目前沒有旅伴在線。'}
+          {selfOnline ? '你在線，目前沒有其他旅伴在線。' : '同步在線狀態中...'}
         </div>
       )}
     </Card>

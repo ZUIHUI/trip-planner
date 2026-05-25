@@ -10,7 +10,7 @@ const statusConfig = {
 };
 
 const PresencePill = ({ presenceUi, cover = false }) => {
-  const summaryText = presenceUi?.summaryText || '目前離線';
+  const summaryText = presenceUi?.summaryText || '同步在線狀態中';
   const people = presenceUi?.otherOnlineMembers?.slice(0, 3) || [];
   const title = people.length
     ? people.map((person) => `${person.name}：${person.detailText || '在線'}`).join('\n')

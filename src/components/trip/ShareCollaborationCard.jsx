@@ -152,7 +152,7 @@ const ShareCollaborationCard = ({
   const otherOnlineCount = onlineRows.filter((member) => member.uid && member.uid !== currentUid).length;
   const onlineBadgeText = otherOnlineCount
     ? `${otherOnlineCount} 位旅伴在線`
-    : selfOnline ? '自己在線' : '目前離線';
+    : selfOnline ? '你在線' : '同步中';
   const inviteText = invite.code ? buildInviteClipboardText(invite.code) : '';
 
   useEffect(() => {

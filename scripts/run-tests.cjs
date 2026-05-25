@@ -13,6 +13,7 @@ const {
   createTripAppData,
   normalizeTripDocumentForApp
 } = require('../src/domain/tripSchema.js');
+const { buildPresenceUiState } = require('../src/utils/presence.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -51,6 +52,36 @@ test('builds schema v2 trip documents while preserving shopping data', () => {
   const normalized = normalizeTripDocumentForApp(document);
   assert.equal(normalized.shoppingList[0].id, 'item-1');
   assert.equal(normalized.shoppingCategories[1], '伴手禮');
+});
+
+test('summarizes presence without treating self-only usage as offline', () => {
+  const selfOnly = buildPresenceUiState({
+    currentUser: { uid: 'owner-1' },
+    presenceByUid: {
+      'owner-1': { uid: 'owner-1', online: true }
+    },
+    onlineMembers: [
+      { uid: 'owner-1', online: true, profile: { displayName: 'Owner' }, connections: [] }
+    ]
+  });
+
+  assert.equal(selfOnly.selfOnline, true);
+  assert.equal(selfOnly.otherOnlineMembers.length, 0);
+  assert.equal(selfOnly.summaryText, '你在線');
+
+  const withCompanion = buildPresenceUiState({
+    currentUser: { uid: 'owner-1' },
+    presenceByUid: {
+      'owner-1': { uid: 'owner-1', online: true },
+      'member-1': { uid: 'member-1', online: true }
+    },
+    onlineMembers: [
+      { uid: 'owner-1', online: true, profile: { displayName: 'Owner' }, connections: [] },
+      { uid: 'member-1', online: true, profile: { displayName: 'Member' }, connections: [] }
+    ]
+  });
+
+  assert.equal(withCompanion.summaryText, '1 位旅伴在線');
 });
 
 let failed = 0;

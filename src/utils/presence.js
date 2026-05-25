@@ -127,6 +127,6 @@ export const buildPresenceUiState = ({
     editingByEventId,
     summaryText: otherOnlineMembers.length
       ? `${otherOnlineMembers.length} 位旅伴在線`
-      : selfOnline ? '自己在線' : '目前離線'
+      : selfOnline ? '你在線' : '同步在線狀態中'
   };
 };
