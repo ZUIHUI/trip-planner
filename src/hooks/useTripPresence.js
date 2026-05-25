@@ -15,6 +15,7 @@ import { onValue } from 'firebase/database';
 const PRESENCE_HEARTBEAT_MS = 25000;
 const PRESENCE_STALE_MS = 75000;
 const PRESENCE_RECHECK_MS = 15000;
+const PRESENCE_START_TIMEOUT_MS = 12000;
 const PRESENCE_SYNC_ERROR = '在線狀態暫時無法同步';
 
 const normalizeConnection = (connection = {}) => ({
@@ -75,6 +76,19 @@ const normalizePresenceSnapshot = (snapshot) => (
   normalizePresenceValue(snapshot.val() || {})
 );
 
+const withTimeout = (promise, timeoutMs) => new Promise((resolve, reject) => {
+  const timer = window.setTimeout(() => reject(new Error('presence-timeout')), timeoutMs);
+  promise
+    .then((result) => {
+      window.clearTimeout(timer);
+      resolve(result);
+    })
+    .catch((error) => {
+      window.clearTimeout(timer);
+      reject(error);
+    });
+});
+
 export const useTripPresence = ({
   tripId,
   currentUser,
@@ -123,9 +137,43 @@ export const useTripPresence = ({
       setOnlineMembers(normalized.onlineMembers);
     };
 
+    const publishLocalSelfPresence = () => {
+      const now = Date.now();
+      const activeConnection = {
+        state: 'online',
+        activeTab: latestStateRef.current.activeTab || 'summary',
+        editingTarget: latestStateRef.current.editingTarget || '',
+        startedAt: now,
+        lastActiveAt: now
+      };
+      const profile = {
+        uid,
+        displayName: userProfile?.displayName || currentUser?.displayName || currentUser?.email || 'Member',
+        email: currentUser?.email || '',
+        photoURL: userProfile?.photoURL || currentUser?.photoURL || ''
+      };
+      const nextPresenceValue = {
+        ...(latestPresenceValueRef.current || {}),
+        [uid]: {
+          ...((latestPresenceValueRef.current || {})[uid] || {}),
+          profile,
+          connections: {
+            ...(((latestPresenceValueRef.current || {})[uid]?.connections) || {}),
+            [clientIdRef.current]: activeConnection
+          }
+        }
+      };
+
+      latestPresenceValueRef.current = nextPresenceValue;
+      publishPresenceValue(nextPresenceValue);
+    };
+
     const ensurePresenceAccess = async () => {
       if (!accessInFlight) {
-        accessInFlight = ensureTripPresenceAccess({ tripId })
+        accessInFlight = withTimeout(
+          ensureTripPresenceAccess({ tripId }),
+          PRESENCE_START_TIMEOUT_MS
+        )
           .then((result) => {
             if (!result?.ready) {
               throw new Error(PRESENCE_SYNC_ERROR);
@@ -182,15 +230,19 @@ export const useTripPresence = ({
       let shouldRetryAfterAccess = false;
 
       try {
-        await startPresenceConnection({
-          tripId,
-          user: currentUser,
-          profile: userProfile,
-          clientId: clientIdRef.current,
-          activeTab: latestStateRef.current.activeTab,
-          editingTarget: latestStateRef.current.editingTarget
-        });
-        if (cancelled || !isConnected) return;
+        await withTimeout(
+          startPresenceConnection({
+            tripId,
+            user: currentUser,
+            profile: userProfile,
+            clientId: clientIdRef.current,
+            activeTab: latestStateRef.current.activeTab,
+            editingTarget: latestStateRef.current.editingTarget
+          }),
+          PRESENCE_START_TIMEOUT_MS
+        );
+        if (cancelled) return;
+        publishLocalSelfPresence();
         setConnectionReady(true);
         setPresenceError('');
       } catch (error) {
@@ -211,7 +263,7 @@ export const useTripPresence = ({
         startInFlight = false;
       }
 
-      if (shouldRetryAfterAccess && !cancelled && isConnected) {
+      if (shouldRetryAfterAccess && !cancelled) {
         void startConnection();
       }
     };
@@ -243,6 +295,7 @@ export const useTripPresence = ({
         recheckTimer = window.setInterval(() => {
           publishPresenceValue(latestPresenceValueRef.current);
         }, PRESENCE_RECHECK_MS);
+        void startConnection();
       } catch (error) {
         if (!cancelled) {
           setPresenceError(PRESENCE_SYNC_ERROR);
