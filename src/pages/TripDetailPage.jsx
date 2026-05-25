@@ -20,6 +20,7 @@ import ExpensesTab from '../components/trip/ExpensesTab';
 import { TripWorkspaceProvider } from '../contexts/TripWorkspaceContext';
 import { useTrip } from '../hooks/useTrip';
 import { useTripPresence } from '../hooks/useTripPresence';
+import { useTripRealtime } from '../hooks/useTripRealtime';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { useFlightLookup } from '../hooks/useFlightLookup';
@@ -224,6 +225,23 @@ const TripDetailPage = () => {
     tripId,
     currentUser,
     userProfile,
+    accessRole,
+    activeTab,
+    enabled: !isLoading && !accessError
+  });
+  const {
+    placeVotesByPlaceId,
+    checklistStatusByListId,
+    shoppingItemStatusById,
+    realtimeEditingByTarget,
+    recentActivities,
+    realtimeError,
+    updateRealtimeEditingTarget,
+    publishChecklistItemStatus,
+    publishShoppingItemStatus
+  } = useTripRealtime({
+    tripId,
+    currentUser,
     accessRole,
     activeTab,
     enabled: !isLoading && !accessError
@@ -514,13 +532,24 @@ const TripDetailPage = () => {
   useEffect(() => {
     if (!isEditModalOpen || isEventViewMode) {
       updatePresenceEditingTarget('');
+      void updateRealtimeEditingTarget('');
       return undefined;
     }
 
     const target = editingEvent?.id ? `event:${editingEvent.id}` : 'event:new';
     updatePresenceEditingTarget(target);
-    return () => updatePresenceEditingTarget('');
-  }, [isEditModalOpen, isEventViewMode, editingEvent?.id, updatePresenceEditingTarget]);
+    void updateRealtimeEditingTarget(target);
+    return () => {
+      updatePresenceEditingTarget('');
+      void updateRealtimeEditingTarget('');
+    };
+  }, [
+    isEditModalOpen,
+    isEventViewMode,
+    editingEvent?.id,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  ]);
 
   const handleSaveEvent = (eventData) => {
     if (!canEdit) {
@@ -742,7 +771,16 @@ const TripDetailPage = () => {
     editingByEventId: presenceUi.editingByEventId,
     presenceSummaryText: presenceUi.summaryText,
     presenceError,
+    placeVotesByPlaceId,
+    checklistStatusByListId,
+    shoppingItemStatusById,
+    realtimeEditingByTarget,
+    recentActivities,
+    realtimeError,
     updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
+    publishChecklistItemStatus,
+    publishShoppingItemStatus,
     syncConflict,
     resolveConflict,
     exchangeRate,
@@ -801,7 +839,16 @@ const TripDetailPage = () => {
     presenceByUid,
     presenceUi,
     presenceError,
+    placeVotesByPlaceId,
+    checklistStatusByListId,
+    shoppingItemStatusById,
+    realtimeEditingByTarget,
+    recentActivities,
+    realtimeError,
     updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
+    publishChecklistItemStatus,
+    publishShoppingItemStatus,
     syncConflict,
     resolveConflict,
     selectedDay,

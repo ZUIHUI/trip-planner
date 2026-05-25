@@ -14,6 +14,12 @@ const {
   normalizeTripDocumentForApp
 } = require('../src/domain/tripSchema.js');
 const { buildPresenceUiState } = require('../src/utils/presence.js');
+const {
+  mergeRealtimeChecklistStatus,
+  mergeRealtimeShoppingStatus,
+  mergeRealtimeVotesIntoPlaces,
+  normalizeTripRealtimeValue
+} = require('../src/utils/tripRealtime.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -82,6 +88,63 @@ test('summarizes presence without treating self-only usage as offline', () => {
   });
 
   assert.equal(withCompanion.summaryText, '1 位旅伴在線');
+});
+
+test('normalizes realtime trip overlays without replacing canonical records', () => {
+  const normalized = normalizeTripRealtimeValue({
+    placeVotes: {
+      placeA: {
+        updatedAt: 10,
+        votes: {
+          userA: { voterId: 'userA', name: 'Ada', value: 1, votedAt: '2026-05-25T08:00:00.000Z' },
+          userB: { voterId: 'userB', name: 'Ben', value: 0 }
+        }
+      },
+      placeB: {
+        updatedAt: 20,
+        votes: {}
+      }
+    },
+    checklistStatus: {
+      preTrip: {
+        itemA: {
+          userA: { done: false, updatedAt: 10 },
+          userB: { done: true, updatedAt: 20 }
+        }
+      }
+    },
+    shoppingStatus: {
+      itemB: {
+        userA: { purchased: true, updatedAt: 30 }
+      }
+    }
+  });
+
+  assert.deepEqual(normalized.placeVotesByPlaceId.placeA, [
+    { voterId: 'userA', name: 'Ada', value: 1, votedAt: '2026-05-25T08:00:00.000Z' }
+  ]);
+  assert.deepEqual(normalized.placeVotesByPlaceId.placeB, []);
+  assert.equal(normalized.checklistStatusByListId.preTrip.itemA.done, true);
+  assert.equal(normalized.shoppingItemStatusById.itemB.purchased, true);
+});
+
+test('merges realtime overlays into UI-only copies', () => {
+  const places = [{ id: 'placeA', votes: [{ voterId: 'old', value: 1 }] }, { id: 'placeB', votes: [] }];
+  const mergedPlaces = mergeRealtimeVotesIntoPlaces(places, {
+    placeA: [{ voterId: 'userA', value: 1, name: 'Ada', votedAt: '' }]
+  });
+  assert.equal(mergedPlaces[0].votes[0].voterId, 'userA');
+  assert.equal(places[0].votes[0].voterId, 'old');
+
+  const checklist = mergeRealtimeChecklistStatus([{ id: 1, done: false }], {
+    1: { done: true, updatedAt: 10 }
+  });
+  assert.equal(checklist[0].done, true);
+
+  const shopping = mergeRealtimeShoppingStatus([{ id: 'milk', purchased: false }], {
+    milk: { purchased: true, updatedAt: 10 }
+  });
+  assert.equal(shopping[0].purchased, true);
 });
 
 let failed = 0;

@@ -176,6 +176,81 @@ const writePresenceAcl = async ({ tripId, uid, role, source }) => {
   });
 };
 
+const writeTripRealtimeAcl = async ({ tripId, uid, role, source }) => {
+  await realtimeDb.ref(`tripRealtimeAcl/${tripId}/${uid}`).set({
+    uid,
+    role: normalizeRole(role),
+    updatedAt: serverTimestamp,
+    source
+  });
+};
+
+const writeRealtimeAccess = async ({ tripId, uid, role, source }) => Promise.all([
+  writePresenceAcl({ tripId, uid, role, source }),
+  writeTripRealtimeAcl({ tripId, uid, role, source })
+]);
+
+const getTripRoleForUid = async ({ tripId, uid }) => {
+  const tripRef = firestore.collection('trips').doc(tripId);
+  const memberRef = tripRef.collection('members').doc(uid);
+  const [tripSnap, memberSnap] = await Promise.all([
+    tripRef.get(),
+    memberRef.get()
+  ]);
+
+  if (!tripSnap.exists) {
+    throw new HttpsError('not-found', 'Trip not found.');
+  }
+
+  const trip = tripSnap.data() || {};
+  const role = trip.access?.ownerUid === uid
+    ? 'owner'
+    : (memberSnap.exists ? normalizeRole(memberSnap.data()?.role) : '');
+
+  if (!role) {
+    throw new HttpsError('permission-denied', 'You do not have access to this trip.');
+  }
+
+  return { tripRef, memberRef, trip, member: memberSnap.exists ? memberSnap.data() || {} : {}, role };
+};
+
+const syncRealtimePlaceVotes = async ({ tripId, placeId, votes }) => {
+  const voteMap = {};
+  (Array.isArray(votes) ? votes : []).forEach((vote) => {
+    if (!vote?.voterId || Number(vote?.value || 0) <= 0) return;
+    voteMap[vote.voterId] = {
+      voterId: vote.voterId,
+      name: String(vote.name || 'Member').slice(0, 120),
+      value: 1,
+      votedAt: vote.votedAt || new Date().toISOString(),
+      updatedAt: serverTimestamp
+    };
+  });
+
+  await realtimeDb.ref(`tripRealtime/${tripId}/placeVotes/${placeId}`).set({
+    votes: voteMap,
+    updatedAt: serverTimestamp
+  });
+};
+
+const appendRealtimeActivity = async ({ tripId, activity }) => {
+  const activityRef = realtimeDb.ref(`tripRealtime/${tripId}/activityLog`);
+  await activityRef.push({
+    ...activity,
+    createdAt: serverTimestamp,
+    updatedAt: serverTimestamp
+  });
+
+  const snapshot = await activityRef.orderByChild('createdAt').once('value');
+  const keys = [];
+  snapshot.forEach((child) => {
+    keys.push(child.key);
+  });
+
+  const staleKeys = keys.slice(0, Math.max(0, keys.length - 80));
+  await Promise.all(staleKeys.map((key) => activityRef.child(key).remove()));
+};
+
 const normalizeInvitePermission = (permission) => (permission === 'edit' ? 'edit' : 'view');
 
 const generateUniqueInviteCode = async () => {
@@ -930,32 +1005,34 @@ exports.ensureTripPresenceAccess = onCall(async (request) => {
     throw new HttpsError('invalid-argument', 'Trip id is required.');
   }
 
-  const tripRef = firestore.collection('trips').doc(tripId);
-  const memberRef = tripRef.collection('members').doc(uid);
-  const [tripSnap, memberSnap] = await Promise.all([
-    tripRef.get(),
-    memberRef.get()
-  ]);
-
-  if (!tripSnap.exists) {
-    throw new HttpsError('not-found', 'Trip not found.');
-  }
-
-  const trip = tripSnap.data() || {};
-  const isOwner = trip.access?.ownerUid === uid;
-  const role = isOwner
-    ? 'owner'
-    : (memberSnap.exists ? normalizeRole(memberSnap.data()?.role) : '');
-
-  if (!role) {
-    throw new HttpsError('permission-denied', 'You do not have access to this trip.');
-  }
-
-  await writePresenceAcl({
+  const { role } = await getTripRoleForUid({ tripId, uid });
+  await writeRealtimeAccess({
     tripId,
     uid,
     role,
     source: 'ensure-presence-access'
+  });
+
+  return {
+    ready: true,
+    role
+  };
+});
+
+exports.ensureTripRealtimeAccess = onCall(async (request) => {
+  const uid = requireSignedIn(request);
+  const tripId = String(request.data?.tripId || '').trim();
+
+  if (!tripId) {
+    throw new HttpsError('invalid-argument', 'Trip id is required.');
+  }
+
+  const { role } = await getTripRoleForUid({ tripId, uid });
+  await writeTripRealtimeAcl({
+    tripId,
+    uid,
+    role,
+    source: 'ensure-trip-realtime-access'
   });
 
   return {
@@ -1051,10 +1128,46 @@ exports.togglePlaceVote = onCall(async (request) => {
     result = {
       placeId,
       voted,
+      placeName: String(place.name || place.address || '').slice(0, 160),
+      actorName: getMemberDisplayName({
+        request,
+        member: memberSnap.exists ? memberSnap.data() : {}
+      }),
+      votes: nextVotes,
       voteCount: nextVotes.filter((vote) => Number(vote?.value || 0) > 0).length,
       revision
     };
   });
+
+  if (result) {
+    try {
+      await Promise.all([
+        syncRealtimePlaceVotes({
+          tripId,
+          placeId,
+          votes: result.votes
+        }),
+        appendRealtimeActivity({
+          tripId,
+          activity: {
+            type: 'place-vote',
+            actorUid: uid,
+            actorName: result.actorName,
+            placeId,
+            placeName: result.placeName,
+            voted: result.voted
+          }
+        })
+      ]);
+    } catch (error) {
+      console.error('Failed to sync realtime vote state', {
+        tripId,
+        placeId,
+        uid,
+        code: error?.code || ''
+      });
+    }
+  }
 
   return result;
 });
@@ -1175,19 +1288,23 @@ exports.syncPresenceAclOnMemberWrite = onDocumentWritten(
     const { tripId, uid } = event.params;
     const beforeExists = event.data.before.exists;
     const afterExists = event.data.after.exists;
-    const aclRef = realtimeDb.ref(`presenceAcl/${tripId}/${uid}`);
+    const presenceAclRef = realtimeDb.ref(`presenceAcl/${tripId}/${uid}`);
+    const realtimeAclRef = realtimeDb.ref(`tripRealtimeAcl/${tripId}/${uid}`);
     const userPresenceRef = realtimeDb.ref(`tripPresence/${tripId}/${uid}`);
+    const userEditingRef = realtimeDb.ref(`tripRealtime/${tripId}/editing/${uid}`);
 
     if (!afterExists) {
       await Promise.all([
-        aclRef.remove(),
-        userPresenceRef.remove()
+        presenceAclRef.remove(),
+        realtimeAclRef.remove(),
+        userPresenceRef.remove(),
+        userEditingRef.remove()
       ]);
       return;
     }
 
     const member = event.data.after.data() || {};
-    await writePresenceAcl({
+    await writeRealtimeAccess({
       tripId,
       uid,
       role: normalizeRole(member.role),
@@ -1202,7 +1319,9 @@ exports.cleanupPresenceOnTripDelete = onDocumentDeleted(
     const { tripId } = event.params;
     await Promise.all([
       realtimeDb.ref(`presenceAcl/${tripId}`).remove(),
-      realtimeDb.ref(`tripPresence/${tripId}`).remove()
+      realtimeDb.ref(`tripPresence/${tripId}`).remove(),
+      realtimeDb.ref(`tripRealtimeAcl/${tripId}`).remove(),
+      realtimeDb.ref(`tripRealtime/${tripId}`).remove()
     ]);
   }
 );

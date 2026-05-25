@@ -3,6 +3,7 @@ import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, ThumbsUp, Trash2, Users
 import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { togglePlaceVote } from '../../services/tripService';
+import { mergeRealtimeVotesIntoPlaces } from '../../utils/tripRealtime';
 import { Badge, Button, Card, Field } from '../ui';
 
 const makePlaceId = () => `place-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -198,6 +199,8 @@ const PlacePoolCard = ({
   collaboration = {},
   currentUser,
   userProfile,
+  placeVotesByPlaceId = {},
+  realtimeError = '',
   canVote = false,
   canManageIdeas = false,
   canScheduleIdeas = false
@@ -206,7 +209,10 @@ const PlacePoolCard = ({
   const [selectedPlace, setSelectedPlace] = React.useState(null);
   const [pendingVoteIds, setPendingVoteIds] = React.useState({});
   const [voteError, setVoteError] = React.useState('');
-  const safePlacePool = Array.isArray(placePool) ? placePool : [];
+  const safePlacePool = useMemo(
+    () => mergeRealtimeVotesIntoPlaces(placePool, placeVotesByPlaceId),
+    [placePool, placeVotesByPlaceId]
+  );
   const topVoteScore = useMemo(() => safePlacePool.reduce((maxScore, place) => (
     Math.max(maxScore, getVoteScore(place.votes))
   ), 0), [safePlacePool]);
@@ -269,39 +275,9 @@ const PlacePoolCard = ({
     setPlacePool((prev) => (Array.isArray(prev) ? prev : []).filter((item) => item.id !== placeId));
   };
 
-  const toggleLocalVote = (placeId, value) => {
-    setPlacePool((prev) => (Array.isArray(prev) ? prev : []).map((item) => {
-      if (item.id !== placeId) return item;
-
-      const votes = Array.isArray(item.votes) ? item.votes : [];
-      const existingVote = votes.find((vote) => vote.voterId === voterId);
-      const nextVotes = existingVote?.value === value
-        ? votes.filter((vote) => vote.voterId !== voterId)
-        : [
-            ...votes.filter((vote) => vote.voterId !== voterId),
-            {
-              voterId,
-              name: voterName,
-              value,
-              votedAt: new Date().toISOString()
-            }
-          ];
-
-      return {
-        ...item,
-        votes: nextVotes
-      };
-    }));
-  };
-
   const handleVotePlace = async (placeId, value) => {
     if (!canVote || !votesEnabled || !voterId || pendingVoteIds[placeId]) return;
     setVoteError('');
-
-    if (canManageIdeas) {
-      toggleLocalVote(placeId, value);
-      return;
-    }
 
     setPendingVoteIds((prev) => ({ ...prev, [placeId]: true }));
     try {
@@ -372,6 +348,12 @@ const PlacePoolCard = ({
       {voteError && (
         <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200">
           {voteError}
+        </p>
+      )}
+
+      {realtimeError && (
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+          {realtimeError}
         </p>
       )}
 

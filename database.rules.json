@@ -10,6 +10,14 @@
         }
       }
     },
+    "tripRealtimeAcl": {
+      "$tripId": {
+        "$uid": {
+          ".read": false,
+          ".write": false
+        }
+      }
+    },
     "tripPresence": {
       "$tripId": {
         ".read": "auth != null && root.child('presenceAcl/' + $tripId + '/' + auth.uid).exists()",
@@ -59,6 +67,81 @@
           "$other": {
             ".validate": false
           }
+        }
+      }
+    },
+    "tripRealtime": {
+      "$tripId": {
+        ".read": "auth != null && root.child('tripRealtimeAcl/' + $tripId + '/' + auth.uid).exists()",
+        "editing": {
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid && root.child('tripRealtimeAcl/' + $tripId + '/' + auth.uid).exists()",
+            ".validate": "newData.hasChildren(['target', 'activeTab', 'updatedAt'])",
+            "target": {
+              ".validate": "newData.isString() && newData.val().length <= 160"
+            },
+            "label": {
+              ".validate": "newData.isString() && newData.val().length <= 160"
+            },
+            "activeTab": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "updatedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "checklistStatus": {
+          "$listId": {
+            "$itemId": {
+              "$uid": {
+                ".write": "auth != null && auth.uid == $uid && (root.child('tripRealtimeAcl/' + $tripId + '/' + auth.uid + '/role').val() == 'owner' || root.child('tripRealtimeAcl/' + $tripId + '/' + auth.uid + '/role').val() == 'editor')",
+                ".validate": "newData.hasChildren(['done', 'updatedAt'])",
+                "done": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "updatedAt": {
+                  ".validate": "newData.isNumber()"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            }
+          }
+        },
+        "shoppingStatus": {
+          "$itemId": {
+            "$uid": {
+              ".write": "auth != null && auth.uid == $uid && (root.child('tripRealtimeAcl/' + $tripId + '/' + auth.uid + '/role').val() == 'owner' || root.child('tripRealtimeAcl/' + $tripId + '/' + auth.uid + '/role').val() == 'editor')",
+              ".validate": "newData.hasChildren(['purchased', 'updatedAt'])",
+              "purchased": {
+                ".validate": "newData.isBoolean()"
+              },
+              "updatedAt": {
+                ".validate": "newData.isNumber()"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        },
+        "placeVotes": {
+          "$placeId": {
+            ".write": false
+          }
+        },
+        "activityLog": {
+          "$activityId": {
+            ".write": false
+          }
+        },
+        "$other": {
+          ".validate": false
         }
       }
     }

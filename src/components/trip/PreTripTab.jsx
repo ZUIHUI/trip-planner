@@ -1,11 +1,37 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { CheckSquare } from 'lucide-react';
 import Checklist from '../Checklist';
 import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { mergeRealtimeChecklistStatus } from '../../utils/tripRealtime';
 
 const PreTripTab = () => {
-  const { checklists, setChecklists } = useTripWorkspace();
+  const {
+    checklists,
+    setChecklists,
+    checklistStatusByListId,
+    publishChecklistItemStatus
+  } = useTripWorkspace();
+  const visibleItems = useMemo(
+    () => mergeRealtimeChecklistStatus(checklists.preTrip, checklistStatusByListId?.preTrip),
+    [checklists.preTrip, checklistStatusByListId]
+  );
+  const handleUpdate = useCallback((newItems) => {
+    const previousById = new Map(
+      visibleItems.map((item) => [String(item?.id ?? ''), Boolean(item?.done)])
+    );
+
+    newItems.forEach((item) => {
+      const itemId = String(item?.id ?? '');
+      if (!itemId) return;
+      const nextDone = Boolean(item?.done);
+      if (previousById.has(itemId) && previousById.get(itemId) !== nextDone) {
+        void publishChecklistItemStatus?.({ listId: 'preTrip', itemId, done: nextDone });
+      }
+    });
+
+    setChecklists((prev) => ({ ...prev, preTrip: newItems }));
+  }, [publishChecklistItemStatus, setChecklists, visibleItems]);
 
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
@@ -20,10 +46,8 @@ const PreTripTab = () => {
           </div>
         </div>
         <Checklist
-          items={checklists.preTrip}
-          onUpdate={(newItems) =>
-            setChecklists((prev) => ({ ...prev, preTrip: newItems }))
-          }
+          items={visibleItems}
+          onUpdate={handleUpdate}
         />
       </Card>
     </div>

@@ -60,18 +60,25 @@ const run = async () => {
       updatedAt: admin.database.ServerValue.TIMESTAMP,
       source: 'backfill'
     };
+    updates[`tripRealtimeAcl/${tripRef.id}/${uid}`] = {
+      uid,
+      role: normalizeRole(member.role),
+      updatedAt: admin.database.ServerValue.TIMESTAMP,
+      source: 'backfill'
+    };
   });
 
   const count = Object.keys(updates).length;
+  const memberCount = count / 2;
   if (dryRun) {
-    console.log(`[dry-run] Would backfill ${count} presence ACL entries.`);
+    console.log(`[dry-run] Would backfill ${memberCount} presence/realtime ACL member entries.`);
     return;
   }
 
   if (count > 0) {
     await realtimeDb.ref().update(updates);
   }
-  console.log(`Backfilled ${count} presence ACL entries.`);
+  console.log(`Backfilled ${memberCount} presence/realtime ACL member entries.`);
 };
 
 run().catch((error) => {

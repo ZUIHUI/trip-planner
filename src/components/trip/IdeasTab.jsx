@@ -15,6 +15,8 @@ const IdeasTab = () => {
     currentUser,
     userProfile,
     accessRole,
+    placeVotesByPlaceId,
+    realtimeError,
     openAddModal
   } = useTripWorkspace();
 
@@ -47,6 +49,8 @@ const IdeasTab = () => {
         collaboration={collaboration}
         currentUser={currentUser}
         userProfile={userProfile}
+        placeVotesByPlaceId={placeVotesByPlaceId}
+        realtimeError={realtimeError}
         canVote={canVote}
         canManageIdeas={canManageIdeas}
         canScheduleIdeas={canScheduleIdeas}
