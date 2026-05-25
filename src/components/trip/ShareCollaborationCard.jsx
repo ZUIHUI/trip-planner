@@ -24,6 +24,12 @@ const defaultInvite = {
   enabled: false
 };
 
+const CANONICAL_APP_ORIGIN = 'https://trip-planner-36455.firebaseapp.com';
+const LEGACY_APP_HOSTS = new Set([
+  'trip-planner-36455.web.app',
+  'trip-planner-mu-red.vercel.app'
+]);
+
 const tabLabels = {
   today: '旅途中',
   summary: '控制台',
@@ -87,10 +93,14 @@ const formatEditingTarget = (target = '') => {
 
 const getAppShareUrl = () => {
   if (typeof window !== 'undefined' && window.location?.origin) {
+    if (LEGACY_APP_HOSTS.has(window.location.hostname)) {
+      return CANONICAL_APP_ORIGIN;
+    }
+
     return window.location.origin;
   }
 
-  return 'https://trip-planner-36455.web.app';
+  return CANONICAL_APP_ORIGIN;
 };
 
 const buildInviteText = (code) => (
