@@ -167,6 +167,15 @@ const getTripForOwner = async (tripId, uid) => {
   return { tripRef, trip };
 };
 
+const writePresenceAcl = async ({ tripId, uid, role, source }) => {
+  await realtimeDb.ref(`presenceAcl/${tripId}/${uid}`).set({
+    uid,
+    role: normalizeRole(role),
+    updatedAt: serverTimestamp,
+    source
+  });
+};
+
 const normalizeInvitePermission = (permission) => (permission === 'edit' ? 'edit' : 'view');
 
 const generateUniqueInviteCode = async () => {
@@ -913,6 +922,48 @@ exports.redeemTripInviteCode = onCall(
   }
 );
 
+exports.ensureTripPresenceAccess = onCall(async (request) => {
+  const uid = requireSignedIn(request);
+  const tripId = String(request.data?.tripId || '').trim();
+
+  if (!tripId) {
+    throw new HttpsError('invalid-argument', 'Trip id is required.');
+  }
+
+  const tripRef = firestore.collection('trips').doc(tripId);
+  const memberRef = tripRef.collection('members').doc(uid);
+  const [tripSnap, memberSnap] = await Promise.all([
+    tripRef.get(),
+    memberRef.get()
+  ]);
+
+  if (!tripSnap.exists) {
+    throw new HttpsError('not-found', 'Trip not found.');
+  }
+
+  const trip = tripSnap.data() || {};
+  const isOwner = trip.access?.ownerUid === uid;
+  const role = isOwner
+    ? 'owner'
+    : (memberSnap.exists ? normalizeRole(memberSnap.data()?.role) : '');
+
+  if (!role) {
+    throw new HttpsError('permission-denied', 'You do not have access to this trip.');
+  }
+
+  await writePresenceAcl({
+    tripId,
+    uid,
+    role,
+    source: 'ensure-presence-access'
+  });
+
+  return {
+    ready: true,
+    role
+  };
+});
+
 exports.togglePlaceVote = onCall(async (request) => {
   const uid = requireSignedIn(request);
   const tripId = String(request.data?.tripId || '').trim();
@@ -1136,10 +1187,10 @@ exports.syncPresenceAclOnMemberWrite = onDocumentWritten(
     }
 
     const member = event.data.after.data() || {};
-    await aclRef.set({
+    await writePresenceAcl({
+      tripId,
       uid,
       role: normalizeRole(member.role),
-      updatedAt: serverTimestamp,
       source: beforeExists ? 'member-update' : 'member-create'
     });
   }

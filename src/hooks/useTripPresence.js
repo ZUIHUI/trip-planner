@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createPresenceClientId,
+  ensureTripPresenceAccess,
   getConnectedRef,
   hasRealtimeDatabase,
+  isPresencePermissionError,
   startPresenceConnection,
   stopPresenceConnection,
   subscribeToTripPresence,
@@ -13,6 +15,7 @@ import { onValue } from 'firebase/database';
 const PRESENCE_HEARTBEAT_MS = 25000;
 const PRESENCE_STALE_MS = 75000;
 const PRESENCE_RECHECK_MS = 15000;
+const PRESENCE_SYNC_ERROR = '在線狀態暫時無法同步';
 
 const normalizeConnection = (connection = {}) => ({
   state: connection.state || 'offline',
@@ -100,11 +103,18 @@ export const useTripPresence = ({
       latestPresenceValueRef.current = {};
       setPresenceByUid({});
       setOnlineMembers([]);
+      setPresenceError('');
+      setConnectionReady(false);
       return undefined;
     }
 
     let cancelled = false;
+    let connectedUnsubscribe = null;
+    let presenceUnsubscribe = null;
+    let recheckTimer = null;
     let startInFlight = false;
+    let accessInFlight = null;
+    let accessRefreshAttempts = 0;
     let isConnected = false;
 
     const publishPresenceValue = (value) => {
@@ -113,9 +123,63 @@ export const useTripPresence = ({
       setOnlineMembers(normalized.onlineMembers);
     };
 
+    const ensurePresenceAccess = async () => {
+      if (!accessInFlight) {
+        accessInFlight = ensureTripPresenceAccess({ tripId })
+          .then((result) => {
+            if (!result?.ready) {
+              throw new Error(PRESENCE_SYNC_ERROR);
+            }
+            return result;
+          })
+          .finally(() => {
+            accessInFlight = null;
+          });
+      }
+      return accessInFlight;
+    };
+
+    const handlePresenceError = async (error) => {
+      if (cancelled) return;
+
+      if (isPresencePermissionError(error) && accessRefreshAttempts < 1) {
+        accessRefreshAttempts += 1;
+        try {
+          await ensurePresenceAccess();
+          if (cancelled) return;
+          setPresenceError('');
+          presenceUnsubscribe?.();
+          subscribePresence();
+          if (isConnected) {
+            void startConnection();
+          }
+          return;
+        } catch {
+          // Fall through to the friendly sync error below.
+        }
+      }
+
+      setPresenceError(PRESENCE_SYNC_ERROR);
+    };
+
+    const subscribePresence = () => {
+      presenceUnsubscribe = subscribeToTripPresence(
+        tripId,
+        (snapshot) => {
+          latestPresenceValueRef.current = snapshot.val() || {};
+          const normalized = normalizePresenceSnapshot(snapshot);
+          setPresenceByUid(normalized.presenceByUid);
+          setOnlineMembers(normalized.onlineMembers);
+          setPresenceError('');
+        },
+        handlePresenceError
+      );
+    };
+
     const startConnection = async () => {
       if (cancelled || startInFlight) return;
       startInFlight = true;
+      let shouldRetryAfterAccess = false;
 
       try {
         await startPresenceConnection({
@@ -130,48 +194,70 @@ export const useTripPresence = ({
         setConnectionReady(true);
         setPresenceError('');
       } catch (error) {
-        if (!cancelled) {
-          setPresenceError(error?.message || 'Presence connection failed');
+        if (isPresencePermissionError(error) && accessRefreshAttempts < 2) {
+          accessRefreshAttempts += 1;
+          try {
+            await ensurePresenceAccess();
+            shouldRetryAfterAccess = true;
+          } catch {
+            if (!cancelled) {
+              setPresenceError(PRESENCE_SYNC_ERROR);
+            }
+          }
+        } else if (!cancelled) {
+          setPresenceError(PRESENCE_SYNC_ERROR);
         }
       } finally {
         startInFlight = false;
       }
+
+      if (shouldRetryAfterAccess && !cancelled && isConnected) {
+        void startConnection();
+      }
     };
 
-    const connectedUnsubscribe = onValue(getConnectedRef(), (snapshot) => {
-      if (cancelled) return;
+    const initializePresence = async () => {
+      try {
+        await ensurePresenceAccess();
+        if (cancelled) return;
+        setPresenceError('');
 
-      if (snapshot.val() === true) {
-        isConnected = true;
-        void startConnection();
-        return;
+        connectedUnsubscribe = onValue(
+          getConnectedRef(),
+          (snapshot) => {
+            if (cancelled) return;
+
+            if (snapshot.val() === true) {
+              isConnected = true;
+              void startConnection();
+              return;
+            }
+
+            isConnected = false;
+            setConnectionReady(false);
+          },
+          handlePresenceError
+        );
+
+        subscribePresence();
+        recheckTimer = window.setInterval(() => {
+          publishPresenceValue(latestPresenceValueRef.current);
+        }, PRESENCE_RECHECK_MS);
+      } catch (error) {
+        if (!cancelled) {
+          setPresenceError(PRESENCE_SYNC_ERROR);
+        }
       }
+    };
 
-      isConnected = false;
-      setConnectionReady(false);
-    });
-
-    const presenceUnsubscribe = subscribeToTripPresence(
-      tripId,
-      (snapshot) => {
-        latestPresenceValueRef.current = snapshot.val() || {};
-        const normalized = normalizePresenceSnapshot(snapshot);
-        setPresenceByUid(normalized.presenceByUid);
-        setOnlineMembers(normalized.onlineMembers);
-      },
-      (error) => {
-        setPresenceError(error?.message || 'Presence read failed');
-      }
-    );
-
-    const recheckTimer = window.setInterval(() => {
-      publishPresenceValue(latestPresenceValueRef.current);
-    }, PRESENCE_RECHECK_MS);
+    void initializePresence();
 
     return () => {
       cancelled = true;
       setConnectionReady(false);
-      window.clearInterval(recheckTimer);
+      if (recheckTimer) {
+        window.clearInterval(recheckTimer);
+      }
       connectedUnsubscribe?.();
       presenceUnsubscribe?.();
       void stopPresenceConnection({
@@ -185,24 +271,40 @@ export const useTripPresence = ({
   useEffect(() => {
     if (!isEnabled || !connectionReady) return undefined;
 
-    const pushHeartbeat = () => {
-      void updatePresenceConnection({
-        tripId,
-        uid,
-        clientId: clientIdRef.current,
-        activeTab: latestStateRef.current.activeTab,
-        editingTarget: latestStateRef.current.editingTarget
-      }).catch((error) => {
-        setPresenceError(error?.message || 'Presence update failed');
-      });
+    const pushHeartbeat = async (retryOnPermission = true) => {
+      try {
+        await updatePresenceConnection({
+          tripId,
+          uid,
+          clientId: clientIdRef.current,
+          activeTab: latestStateRef.current.activeTab,
+          editingTarget: latestStateRef.current.editingTarget
+        });
+        setPresenceError('');
+      } catch (error) {
+        if (retryOnPermission && isPresencePermissionError(error)) {
+          try {
+            await ensureTripPresenceAccess({ tripId });
+            await pushHeartbeat(false);
+            return;
+          } catch {
+            // Fall through to the friendly sync error below.
+          }
+        }
+        setPresenceError(PRESENCE_SYNC_ERROR);
+      }
     };
 
-    pushHeartbeat();
-    const heartbeatTimer = window.setInterval(pushHeartbeat, PRESENCE_HEARTBEAT_MS);
-    const handleFocus = () => pushHeartbeat();
+    const queueHeartbeat = () => {
+      void pushHeartbeat();
+    };
+
+    queueHeartbeat();
+    const heartbeatTimer = window.setInterval(queueHeartbeat, PRESENCE_HEARTBEAT_MS);
+    const handleFocus = () => queueHeartbeat();
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        pushHeartbeat();
+        queueHeartbeat();
       }
     };
 
@@ -218,15 +320,32 @@ export const useTripPresence = ({
 
   useEffect(() => {
     if (!isEnabled || !connectionReady) return;
-    void updatePresenceConnection({
-      tripId,
-      uid,
-      clientId: clientIdRef.current,
-      activeTab,
-      editingTarget
-    }).catch((error) => {
-      setPresenceError(error?.message || 'Presence update failed');
-    });
+
+    const pushStateUpdate = async (retryOnPermission = true) => {
+      try {
+        await updatePresenceConnection({
+          tripId,
+          uid,
+          clientId: clientIdRef.current,
+          activeTab,
+          editingTarget
+        });
+        setPresenceError('');
+      } catch (error) {
+        if (retryOnPermission && isPresencePermissionError(error)) {
+          try {
+            await ensureTripPresenceAccess({ tripId });
+            await pushStateUpdate(false);
+            return;
+          } catch {
+            // Fall through to the friendly sync error below.
+          }
+        }
+        setPresenceError(PRESENCE_SYNC_ERROR);
+      }
+    };
+
+    void pushStateUpdate();
   }, [isEnabled, connectionReady, tripId, uid, activeTab, editingTarget]);
 
   const updatePresenceEditingTarget = useCallback((target = '') => {

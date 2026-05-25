@@ -8,7 +8,8 @@ import {
   set,
   update
 } from 'firebase/database';
-import { rtdb } from './firebase';
+import { httpsCallable } from 'firebase/functions';
+import { functions, rtdb } from './firebase';
 import { PRESENCE_CLIENT_ID_KEY } from '../utils/storageKeys';
 
 export const hasRealtimeDatabase = () => Boolean(rtdb);
@@ -44,6 +45,21 @@ export const subscribeToTripPresence = (tripId, callback, onError) => {
   if (!rtdb || !tripId) return () => {};
   const presenceRef = getTripPresenceRef(tripId);
   return onValue(presenceRef, callback, onError);
+};
+
+export const ensureTripPresenceAccess = async ({ tripId }) => {
+  if (!tripId) return { ready: false, role: '' };
+  const callable = httpsCallable(functions, 'ensureTripPresenceAccess');
+  const response = await callable({ tripId });
+  return response.data || { ready: false, role: '' };
+};
+
+export const isPresencePermissionError = (error) => {
+  const code = String(error?.code || '').toLowerCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code.includes('permission')
+    || message.includes('permission_denied')
+    || message.includes('permission denied');
 };
 
 export const startPresenceConnection = async ({
