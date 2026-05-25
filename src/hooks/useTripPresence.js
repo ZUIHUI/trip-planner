@@ -72,10 +72,6 @@ const normalizePresenceValue = (value = {}, now = Date.now()) => {
   };
 };
 
-const normalizePresenceSnapshot = (snapshot) => (
-  normalizePresenceValue(snapshot.val() || {})
-);
-
 const withTimeout = (promise, timeoutMs) => new Promise((resolve, reject) => {
   const timer = window.setTimeout(() => reject(new Error('presence-timeout')), timeoutMs);
   promise
@@ -100,6 +96,7 @@ export const useTripPresence = ({
   const clientIdRef = useRef(createPresenceClientId());
   const latestStateRef = useRef({ activeTab, editingTarget: '' });
   const latestPresenceValueRef = useRef({});
+  const localSelfOnlineRef = useRef(false);
   const [editingTarget, setEditingTarget] = useState('');
   const [presenceByUid, setPresenceByUid] = useState({});
   const [onlineMembers, setOnlineMembers] = useState([]);
@@ -114,6 +111,7 @@ export const useTripPresence = ({
 
   useEffect(() => {
     if (!isEnabled) {
+      localSelfOnlineRef.current = false;
       latestPresenceValueRef.current = {};
       setPresenceByUid({});
       setOnlineMembers([]);
@@ -131,42 +129,57 @@ export const useTripPresence = ({
     let accessRefreshAttempts = 0;
     let isConnected = false;
 
+    localSelfOnlineRef.current = true;
+
+    const mergeLocalSelfPresence = (value = {}) => {
+      if (!localSelfOnlineRef.current || !uid) return value || {};
+
+      const now = Date.now();
+      const entry = (value || {})[uid] || {};
+      const connections = entry.connections || {};
+      return {
+        ...(value || {}),
+        [uid]: {
+          ...entry,
+          profile: {
+            ...(entry.profile || {}),
+            uid,
+            displayName: entry.profile?.displayName
+              || userProfile?.displayName
+              || currentUser?.displayName
+              || currentUser?.email
+              || 'Member',
+            email: entry.profile?.email || currentUser?.email || '',
+            photoURL: entry.profile?.photoURL || userProfile?.photoURL || currentUser?.photoURL || ''
+          },
+          connections: {
+            ...connections,
+            [clientIdRef.current]: {
+              ...(connections[clientIdRef.current] || {}),
+              state: 'online',
+              activeTab: latestStateRef.current.activeTab || 'summary',
+              editingTarget: latestStateRef.current.editingTarget || '',
+              startedAt: Number(connections[clientIdRef.current]?.startedAt || now),
+              lastActiveAt: now
+            }
+          }
+        }
+      };
+    };
+
     const publishPresenceValue = (value) => {
-      const normalized = normalizePresenceValue(value || {});
+      const nextValue = mergeLocalSelfPresence(value || {});
+      latestPresenceValueRef.current = nextValue;
+      const normalized = normalizePresenceValue(nextValue);
       setPresenceByUid(normalized.presenceByUid);
       setOnlineMembers(normalized.onlineMembers);
     };
 
     const publishLocalSelfPresence = () => {
-      const now = Date.now();
-      const activeConnection = {
-        state: 'online',
-        activeTab: latestStateRef.current.activeTab || 'summary',
-        editingTarget: latestStateRef.current.editingTarget || '',
-        startedAt: now,
-        lastActiveAt: now
-      };
-      const profile = {
-        uid,
-        displayName: userProfile?.displayName || currentUser?.displayName || currentUser?.email || 'Member',
-        email: currentUser?.email || '',
-        photoURL: userProfile?.photoURL || currentUser?.photoURL || ''
-      };
-      const nextPresenceValue = {
-        ...(latestPresenceValueRef.current || {}),
-        [uid]: {
-          ...((latestPresenceValueRef.current || {})[uid] || {}),
-          profile,
-          connections: {
-            ...(((latestPresenceValueRef.current || {})[uid]?.connections) || {}),
-            [clientIdRef.current]: activeConnection
-          }
-        }
-      };
-
-      latestPresenceValueRef.current = nextPresenceValue;
-      publishPresenceValue(nextPresenceValue);
+      publishPresenceValue(latestPresenceValueRef.current || {});
     };
+
+    publishLocalSelfPresence();
 
     const ensurePresenceAccess = async () => {
       if (!accessInFlight) {
@@ -214,10 +227,7 @@ export const useTripPresence = ({
       presenceUnsubscribe = subscribeToTripPresence(
         tripId,
         (snapshot) => {
-          latestPresenceValueRef.current = snapshot.val() || {};
-          const normalized = normalizePresenceSnapshot(snapshot);
-          setPresenceByUid(normalized.presenceByUid);
-          setOnlineMembers(normalized.onlineMembers);
+          publishPresenceValue(snapshot.val() || {});
           setPresenceError('');
         },
         handlePresenceError
@@ -307,6 +317,7 @@ export const useTripPresence = ({
 
     return () => {
       cancelled = true;
+      localSelfOnlineRef.current = false;
       setConnectionReady(false);
       if (recheckTimer) {
         window.clearInterval(recheckTimer);
