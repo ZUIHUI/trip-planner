@@ -69,10 +69,6 @@ service cloud.firestore {
       return !data.keys().hasAny([key]) || data[key] is number;
     }
 
-    function optionalBool(data, key) {
-      return !data.keys().hasAny([key]) || data[key] is bool;
-    }
-
     function validUserProfile(data) {
       return data.keys().hasOnly([
           'uid',
