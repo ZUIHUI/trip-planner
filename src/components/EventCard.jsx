@@ -96,8 +96,8 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
   };
 
   return (
-    <div className="relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800">
-      <span className={`absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
+    <div className="tp-animate-enter relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800">
+      <span className={`tp-soft-pulse absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
         event.urgent ? 'border-red-500' : 'border-brand-400'
       }`} />
 
@@ -141,7 +141,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
                 clickEvent.stopPropagation();
                 setShowMenu((prev) => !prev);
               }}
-              className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               title="更多操作"
               aria-label="更多操作"
               aria-expanded={showMenu}
@@ -150,7 +150,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 top-11 z-20 w-36 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+              <div className="tp-slide-up absolute right-0 top-11 z-20 w-36 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
                 <button
                   type="button"
                   onClick={handleEditClick}

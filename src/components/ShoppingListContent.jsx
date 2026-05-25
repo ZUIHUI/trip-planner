@@ -298,12 +298,12 @@ const ConfirmDialog = ({ target, onCancel, onConfirm }) => {
 
   return renderToBody(
     <div
-      className="fixed inset-0 z-[140] flex items-end justify-center bg-slate-950/55 p-4 sm:items-center"
+      className="tp-fade-in fixed inset-0 z-[140] flex items-end justify-center bg-slate-950/55 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="shopping-confirm-title"
     >
-      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <div className="tp-slide-up w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
         <h3 id="shopping-confirm-title" className="text-lg font-black text-slate-900 dark:text-white">
           {target.title}
         </h3>
@@ -328,12 +328,12 @@ const ManageCategoriesModal = ({
   onClose
 }) => renderToBody(
   <div
-    className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
+    className="tp-fade-in fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
     role="dialog"
     aria-modal="true"
     aria-label="管理分類"
   >
-    <div className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-sm sm:rounded-lg dark:border-slate-800 dark:bg-slate-900">
+    <div className="tp-slide-up max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-sm sm:rounded-lg dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-black text-slate-900 dark:text-white">管理分類</h3>
@@ -394,7 +394,7 @@ const ManageCategoriesModal = ({
 
 const ImageZoomModal = ({ image, onClose }) => renderToBody(
   <div
-    className="fixed inset-0 z-[130] flex cursor-pointer items-center justify-center bg-black/90 p-4"
+    className="tp-fade-in fixed inset-0 z-[130] flex cursor-pointer items-center justify-center bg-black/90 p-4"
     onClick={onClose}
     role="dialog"
     aria-modal="true"
@@ -429,7 +429,7 @@ const ShoppingItemFormModal = ({
   onClose
 }) => renderToBody(
   <div
-    className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
+    className="tp-fade-in fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
     role="dialog"
     aria-modal="true"
     aria-label={editingId ? '編輯購物項目' : '新增購物項目'}
@@ -439,7 +439,7 @@ const ShoppingItemFormModal = ({
         event.preventDefault();
         onSave();
       }}
-      className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
+      className="tp-slide-up max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
@@ -619,7 +619,7 @@ const ShoppingItemCard = ({
     <Card
       as="article"
       interactive
-      className={`overflow-hidden p-0 ${
+      className={`tp-animate-enter tp-motion-panel overflow-hidden p-0 ${
         purchased ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/70 dark:bg-emerald-950/20' : ''
       } ${isDragging ? 'opacity-60 ring-2 ring-orange-200 dark:ring-orange-900/70' : ''}`}
       draggable
@@ -635,7 +635,7 @@ const ShoppingItemCard = ({
           onTouchStart={(event) => onTouchStart(event, item.id)}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          className={`h-11 w-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400 ${
+          className={`tp-press-feedback h-11 w-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400 ${
             sortMode ? 'flex' : 'hidden sm:flex'
           }`}
         >
@@ -646,7 +646,7 @@ const ShoppingItemCard = ({
           type="checkbox"
           checked={purchased}
           onChange={() => onTogglePurchased(item.id)}
-          className="mt-2 h-5 w-5 shrink-0 rounded border-slate-300 text-orange-600 focus:ring-orange-500 dark:border-slate-700 dark:bg-slate-900"
+          className="tp-press-feedback mt-2 h-5 w-5 shrink-0 rounded border-slate-300 text-orange-600 focus:ring-orange-500 checked:scale-110 dark:border-slate-700 dark:bg-slate-900"
           aria-label={`標記 ${item.name} 為${purchased ? '未購買' : '已購買'}`}
         />
 
@@ -660,14 +660,14 @@ const ShoppingItemCard = ({
               onTogglePurchased(item.id);
             }
           }}
-          className="min-w-0 flex-1 rounded-lg px-1 py-1 text-left focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
+          className="tp-press-feedback min-w-0 flex-1 rounded-lg px-1 py-1 text-left focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
           aria-label={`切換 ${item.name} 購買狀態`}
         >
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
             {purchased ? <CheckCircle2 size={14} /> : <Circle size={14} />}
             {statusLabel}
           </div>
-          <h3 className={`mt-1 break-words text-base font-black leading-tight sm:text-lg ${
+          <h3 className={`mt-1 break-words text-base font-black leading-tight transition-all duration-200 sm:text-lg ${
             purchased ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-900 dark:text-white'
           }`}>
             {item.name}
@@ -684,7 +684,7 @@ const ShoppingItemCard = ({
             <button
               type="button"
               onClick={() => onZoomImage(item.image)}
-              className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
+              className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
               title={`查看 ${item.name} 圖片`}
               aria-label={`查看 ${item.name} 圖片`}
             >
@@ -694,7 +694,7 @@ const ShoppingItemCard = ({
           <button
             type="button"
             onClick={() => onEdit(item)}
-            className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
+            className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
             title={`編輯 ${item.name}`}
             aria-label={`編輯 ${item.name}`}
           >
@@ -703,7 +703,7 @@ const ShoppingItemCard = ({
           <button
             type="button"
             onClick={() => onDelete(item)}
-            className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+            className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
             title={`刪除 ${item.name}`}
             aria-label={`刪除 ${item.name}`}
           >

@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
-import { ArrowLeft, Calendar, Home, MapPin, RefreshCw, Settings, UsersRound } from 'lucide-react';
+import { ArrowLeft, Calendar, Home, MapPin, RefreshCw, Settings } from 'lucide-react';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { Badge, Button, PageContainer } from './ui';
+import { PresenceAvatar, PresenceStatusDot } from './PresenceStatus';
 
 const statusConfig = {
   planning: { label: '規劃中', variant: 'warning' },
@@ -10,40 +11,37 @@ const statusConfig = {
 };
 
 const PresencePill = ({ presenceUi, cover = false }) => {
-  const summaryText = presenceUi?.summaryText || '同步在線狀態中';
-  const people = presenceUi?.otherOnlineMembers?.slice(0, 3) || [];
-  const title = people.length
-    ? people.map((person) => `${person.name}：${person.detailText || '在線'}`).join('\n')
-    : summaryText;
-  const baseClass = cover
+  const nextSummaryText = presenceUi?.summaryText || '在線狀態同步中';
+  const selfStatus = presenceUi?.selfStatus || {};
+  const selfState = selfStatus.status || (presenceUi?.selfOnline ? 'online' : 'syncing');
+  const activePeople = presenceUi?.otherOnlineMembers?.slice(0, 3) || [];
+  const nextTitle = activePeople.length
+    ? activePeople.map((person) => `${person.name}: ${person.detailText || person.statusLabel || '在線'}`).join('\n')
+    : nextSummaryText;
+  const nextBaseClass = cover
     ? 'border-white/25 bg-white/15 text-white'
     : 'border-cyan-100 bg-white/90 text-slate-700 shadow-[0_10px_24px_-22px_rgba(14,165,233,0.85)] dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200';
 
   return (
     <div
-      className={`inline-flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold shadow-sm ${baseClass}`}
-      title={title}
-      aria-label={summaryText}
+      className={`tp-motion-panel tp-pop inline-flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold shadow-sm ${nextBaseClass}`}
+      title={nextTitle}
+      aria-label={nextSummaryText}
     >
-      <UsersRound size={14} className="shrink-0" />
-      {people.length > 0 && (
+      <PresenceStatusDot status={selfState} size="sm" label={selfStatus.statusLabel || nextSummaryText} />
+      {activePeople.length > 0 && (
         <div className="flex -space-x-1.5">
-          {people.map((person) => (
-            <span
+          {activePeople.map((person) => (
+            <PresenceAvatar
               key={person.uid}
-              className={`inline-flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border text-[10px] font-black ${cover ? 'border-white/50 bg-black/25 text-white' : 'border-white bg-gradient-to-br from-sky-50 to-rose-50 text-brand-700 dark:border-slate-900 dark:from-brand-950/50 dark:to-violet-950/40 dark:text-brand-200'}`}
-              title={person.name}
-            >
-              {person.photoURL ? (
-                <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" />
-              ) : (
-                person.initials
-              )}
-            </span>
+              person={person}
+              size="sm"
+              className={cover ? 'border-white/50 bg-black/25 text-white' : ''}
+            />
           ))}
         </div>
       )}
-      <span className="max-w-[8.5rem] truncate sm:max-w-[11rem]">{summaryText}</span>
+      <span className="max-w-[8.5rem] truncate sm:max-w-[11rem]">{nextSummaryText}</span>
     </div>
   );
 };

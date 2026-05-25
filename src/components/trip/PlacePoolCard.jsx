@@ -91,7 +91,7 @@ const PlacePoolItem = ({
   const isTopPlace = voteScore > 0 && voteScore === topVoteScore;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="tp-animate-enter tp-motion-panel rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -126,7 +126,7 @@ const PlacePoolItem = ({
           <button
             type="button"
             onClick={() => onDelete(place.id)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+            className="tp-press-feedback inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 dark:hover:bg-red-950/30 dark:hover:text-red-300"
             aria-label={`刪除 ${title}`}
             title="刪除"
           >
@@ -148,7 +148,7 @@ const PlacePoolItem = ({
             size="sm"
             onClick={() => onVote(place.id, 1)}
             disabled={!canVote || isVoting}
-            className="justify-center"
+            className="tp-press-feedback justify-center"
           >
             <ThumbsUp size={14} />
             {isVoting ? '更新中...' : (votedByMe ? '已想去' : '我想去')}
@@ -163,7 +163,7 @@ const PlacePoolItem = ({
             size="sm"
             onClick={() => onSchedule(place)}
             disabled={isPlannedForCurrentDay}
-            className="w-full justify-center"
+            className="tp-press-feedback w-full justify-center"
           >
             <CalendarPlus size={14} />
             {isPlannedForCurrentDay ? `已排入 Day ${selectedDay}` : `排入 Day ${selectedDay}`}

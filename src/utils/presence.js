@@ -19,6 +19,14 @@ const getMemberByUid = (members = []) => (
   }, {})
 );
 
+const presenceStatusLabels = {
+  online: '在線',
+  editing: '正在編輯',
+  offline: '離線',
+  syncing: '同步中',
+  error: '同步失敗'
+};
+
 export const getPresenceName = (presence = {}, member = {}) => (
   presence?.profile?.displayName ||
   member?.displayName ||
@@ -61,12 +69,22 @@ const normalizePresencePerson = (presence = {}, membersByUid = {}, now = Date.no
   const editingLabel = getEditingTargetLabel(presence.editingTarget);
   const tabLabel = getPresenceTabLabel(presence.activeTab);
   const lastActiveLabel = formatLastActiveAt(presence.lastActiveAt, now);
+  const online = presence.online !== false;
+  const status = editingLabel ? 'editing' : online ? 'online' : 'offline';
+  const connections = Array.isArray(presence.connections) ? presence.connections : [];
 
   return {
     uid: presence.uid || '',
     name,
     initials: getPresenceInitials(name),
     photoURL: presence?.profile?.photoURL || member?.photoURL || '',
+    email: presence?.profile?.email || member?.email || '',
+    role: member?.role || member?.permission || '',
+    online,
+    editing: Boolean(editingLabel),
+    status,
+    statusLabel: presenceStatusLabels[status] || presenceStatusLabels.offline,
+    connectionCount: Number(presence.connectionCount || connections.length || 0),
     activeTab: presence.activeTab || '',
     tabLabel,
     editingTarget: presence.editingTarget || '',
@@ -82,6 +100,84 @@ const addUniquePerson = (collection, person) => {
   collection.push(person);
 };
 
+const normalizeOfflineMember = (member = {}, currentUser = null) => {
+  const uid = member?.uid || member?.id || currentUser?.uid || '';
+  const name = (
+    member?.displayName ||
+    currentUser?.displayName ||
+    member?.email ||
+    currentUser?.email ||
+    uid ||
+    '旅伴'
+  );
+
+  return {
+    uid,
+    name,
+    initials: getPresenceInitials(name),
+    photoURL: member?.photoURL || currentUser?.photoURL || '',
+    email: member?.email || currentUser?.email || '',
+    role: member?.role || member?.permission || '',
+    online: false,
+    editing: false,
+    status: 'offline',
+    statusLabel: presenceStatusLabels.offline,
+    connectionCount: 0,
+    activeTab: '',
+    tabLabel: '',
+    editingTarget: '',
+    editingLabel: '',
+    lastActiveAt: 0,
+    lastActiveLabel: '',
+    detailText: member?.email || currentUser?.email || presenceStatusLabels.offline
+  };
+};
+
+const buildPresenceRoster = ({
+  normalizedOnlineMembers = [],
+  presenceByUid = {},
+  membersByUid = {},
+  currentUser = null,
+  now = Date.now()
+} = {}) => {
+  const roster = [];
+  const onlineByUid = normalizedOnlineMembers.reduce((acc, person) => {
+    if (person?.uid) acc[person.uid] = person;
+    return acc;
+  }, {});
+
+  Object.values(membersByUid).forEach((member) => {
+    const uid = member?.uid || member?.id || '';
+    if (!uid) return;
+    addUniquePerson(roster, onlineByUid[uid] || normalizeOfflineMember(member));
+  });
+
+  if (currentUser?.uid && !roster.some((person) => person.uid === currentUser.uid)) {
+    addUniquePerson(
+      roster,
+      onlineByUid[currentUser.uid] || normalizeOfflineMember({
+        uid: currentUser.uid,
+        displayName: currentUser.displayName,
+        email: currentUser.email,
+        photoURL: currentUser.photoURL,
+        role: 'owner'
+      }, currentUser)
+    );
+  }
+
+  Object.values(presenceByUid || {}).forEach((presence) => {
+    if (!presence?.uid || roster.some((person) => person.uid === presence.uid)) return;
+    addUniquePerson(roster, normalizePresencePerson(presence, membersByUid, now));
+  });
+
+  return roster.sort((a, b) => {
+    const rank = { editing: 0, online: 1, syncing: 2, error: 3, offline: 4 };
+    const statusDiff = (rank[a.status] ?? 5) - (rank[b.status] ?? 5);
+    if (statusDiff !== 0) return statusDiff;
+    return String(a.name || '').localeCompare(String(b.name || ''));
+  });
+};
+
 export const buildPresenceUiState = ({
   onlineMembers = [],
   presenceByUid = {},
@@ -92,9 +188,24 @@ export const buildPresenceUiState = ({
   const now = Date.now();
   const membersByUid = getMemberByUid(members);
   const onlineRows = Array.isArray(onlineMembers) ? onlineMembers : [];
-  const selfOnline = currentUid ? Boolean(presenceByUid?.[currentUid]?.online) : false;
+  const selfOnline = currentUid
+    ? Boolean(presenceByUid?.[currentUid]?.online || onlineRows.some((presence) => presence?.uid === currentUid && presence.online !== false))
+    : false;
   const normalizedOnlineMembers = onlineRows.map((presence) => normalizePresencePerson(presence, membersByUid, now));
   const otherOnlineMembers = normalizedOnlineMembers.filter((person) => person.uid !== currentUid);
+  const roster = buildPresenceRoster({
+    normalizedOnlineMembers,
+    presenceByUid,
+    membersByUid,
+    currentUser,
+    now
+  });
+  const selfStatus = roster.find((person) => person.uid === currentUid) || null;
+  const statusCounts = roster.reduce((acc, person) => {
+    const status = person.status || 'offline';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
   const onlineByTab = {};
   const editingByEventId = {};
 
@@ -123,6 +234,9 @@ export const buildPresenceUiState = ({
     selfOnline,
     onlineMembers: normalizedOnlineMembers,
     otherOnlineMembers,
+    roster,
+    selfStatus,
+    statusCounts,
     onlineByTab,
     editingByEventId,
     summaryText: otherOnlineMembers.length

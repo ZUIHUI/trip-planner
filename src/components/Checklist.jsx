@@ -114,16 +114,16 @@ const Checklist = ({
           {safeItems.map((item) => (
             <div
               key={item.id}
-              className="group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-900/20"
+              className="tp-animate-enter tp-motion-panel group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-900/20"
             >
               <input
                 type="checkbox"
                 checked={item.done || false}
                 onChange={() => toggleItem(item.id)}
-                className="h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-700 dark:bg-slate-900"
+                className="tp-press-feedback h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 checked:scale-110 dark:border-slate-700 dark:bg-slate-900"
                 aria-label={`標記 ${item.text} 完成狀態`}
               />
-              <span className={`min-w-0 flex-1 break-words text-sm font-medium ${
+              <span className={`min-w-0 flex-1 break-words text-sm font-medium transition-all duration-200 ${
                 item.done ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'
               }`}>
                 {item.text}
@@ -131,7 +131,7 @@ const Checklist = ({
               <button
                 type="button"
                 onClick={() => deleteItem(item.id)}
-                className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                className="touch-target tp-press-feedback inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-300"
                 title={`刪除 ${item.text}`}
                 aria-label={`刪除 ${item.text}`}
               >

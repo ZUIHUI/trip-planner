@@ -46,7 +46,7 @@ const PresenceTabMarker = ({ count = 0 }) => {
 
   return (
     <span
-      className="absolute right-1.5 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900"
+      className="tp-status-pulse tp-pop absolute right-1.5 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900"
       title={`${count} 位旅伴在這裡`}
       aria-label={`${count} 位旅伴在這裡`}
     >
@@ -91,7 +91,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                className={`touch-target relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition active:scale-[0.98] ${
+                className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-800 shadow-sm ring-1 ring-cyan-100 dark:from-brand-950/40 dark:via-slate-900 dark:to-violet-950/30 dark:text-brand-200 dark:ring-brand-900/60'
                     : 'text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
@@ -101,7 +101,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 title={tab.label}
               >
                 <PresenceTabMarker count={getMobilePresenceCount(tab.id)} />
-                <Icon size={22} />
+                <Icon size={22} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                 <span className="truncate">{tab.label}</span>
               </button>
             );
@@ -117,7 +117,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                className={`touch-target relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition active:scale-[0.98] ${
+                className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-800 shadow-sm ring-1 ring-cyan-100 dark:from-brand-950/40 dark:via-slate-900 dark:to-violet-950/30 dark:text-brand-200 dark:ring-brand-900/60'
                     : 'text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
@@ -127,7 +127,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 title={tab.label}
               >
                 <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
-                <Icon size={21} />
+                <Icon size={21} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                 <span className="max-w-full truncate">{tab.label}</span>
               </button>
             );

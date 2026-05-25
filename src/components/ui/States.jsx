@@ -11,9 +11,9 @@ export const EmptyState = ({
   onAction,
   className = ''
 }) => (
-  <div className={cx('tp-empty-state', className)} role="status">
+  <div className={cx('tp-empty-state tp-animate-enter', className)} role="status">
     {Icon && (
-      <div className="tp-icon-chip mx-auto mb-3 h-11 w-11">
+      <div className="tp-icon-chip tp-soft-pulse mx-auto mb-3 h-11 w-11">
         <Icon size={22} />
       </div>
     )}
@@ -28,14 +28,15 @@ export const EmptyState = ({
 );
 
 export const LoadingState = ({ label = 'Loading...', className = '' }) => (
-  <div className={cx('tp-loading-state', className)} role="status" aria-live="polite">
-    <Loader2 className="mx-auto mb-3 animate-spin text-brand-600" size={28} />
+  <div className={cx('tp-loading-state tp-animate-enter', className)} role="status" aria-live="polite">
+    <Loader2 className="tp-soft-pulse mx-auto mb-3 animate-spin text-brand-600" size={28} />
     <p className="text-sm font-semibold">{label}</p>
+    <div className="tp-shimmer mx-auto mt-3 h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
   </div>
 );
 
 export const ErrorState = ({ title = 'Something went wrong', description, actionLabel, onAction, className = '' }) => (
-  <div className={cx('tp-error-state', className)} role="alert">
+  <div className={cx('tp-error-state tp-animate-enter', className)} role="alert">
     <p className="text-base font-bold">{title}</p>
     {description && <p className="mt-1 text-sm">{description}</p>}
     {actionLabel && onAction && (

@@ -489,7 +489,7 @@ const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
       ) : others.length ? (
         <div className="grid gap-2">
           {others.map((person) => (
-            <div key={person.uid} className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+            <div key={person.uid} className="tp-animate-enter flex min-w-0 items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-50 text-xs font-black text-brand-700 dark:bg-brand-950/50 dark:text-brand-200">
                   {person.photoURL ? (

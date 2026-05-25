@@ -8,6 +8,7 @@ import {
 } from '../../services/tripService';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 import { inviteCodeInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
+import { PresenceStatusDot } from '../PresenceStatus';
 
 const defaultCollaboration = {
   enabled: false,
@@ -512,10 +513,10 @@ const ShareCollaborationCard = ({
             const online = Boolean(presence?.online);
             const editingText = formatEditingTarget(presence?.editingTarget);
             return (
-              <div key={member.uid || member.id || member.email} className="flex min-w-0 items-center justify-between gap-3 px-3 py-2">
+              <div key={member.uid || member.id || member.email} className="tp-animate-enter flex min-w-0 items-center justify-between gap-3 px-3 py-2">
                 <div className="min-w-0">
                   <p className="flex min-w-0 items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${online ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                    <PresenceStatusDot status={editingText ? 'editing' : online ? 'online' : 'offline'} size="sm" label={editingText || (online ? '在線' : '離線')} />
                     <span className="truncate">{getMemberName(member)}</span>
                   </p>
                   <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">

@@ -328,7 +328,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
         onDragStart={(event) => handleDragStart(event, item.id)}
         onDragOver={handleDragOver}
         onDrop={(event) => handleDrop(event, item.id)}
-        className={`group flex items-center gap-2 rounded-lg border p-2.5 transition sm:gap-3 ${
+        className={`tp-animate-enter tp-motion-panel group flex items-center gap-2 rounded-lg border p-2.5 transition sm:gap-3 ${
           item.done
             ? 'border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/50'
             : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/30 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/20'
@@ -341,7 +341,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             onTouchStart={(event) => handleTouchStart(event, item.id)}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className={`h-11 w-9 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 active:cursor-grabbing dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300 ${
+            className={`tp-press-feedback h-11 w-9 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 active:cursor-grabbing dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300 ${
               sortMode ? 'flex' : 'hidden sm:flex'
             }`}
           >
@@ -398,11 +398,11 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 type="checkbox"
                 checked={Boolean(item.done)}
                 onChange={() => handleToggleItem(item.id)}
-                className={`h-5 w-5 rounded border-slate-300 bg-white text-brand-600 ${currentCategory.ring} dark:border-slate-600 dark:bg-slate-800`}
+                className={`tp-press-feedback h-5 w-5 rounded border-slate-300 bg-white text-brand-600 checked:scale-110 ${currentCategory.ring} dark:border-slate-600 dark:bg-slate-800`}
               />
               <span className="min-w-0 flex-1">
                 <span
-                  className={`block truncate text-base font-semibold sm:text-sm ${
+                  className={`block truncate text-base font-semibold transition-all duration-200 sm:text-sm ${
                     item.done
                       ? 'text-slate-400 line-through dark:text-slate-500'
                       : 'text-slate-800 dark:text-slate-100'
@@ -423,7 +423,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 type="button"
                 onClick={() => handleStartEdit(item)}
                 aria-label={`編輯 ${item.text}`}
-                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-sky-50 hover:text-sky-700 dark:text-slate-400 dark:hover:bg-sky-950/30 dark:hover:text-sky-300 sm:opacity-0 sm:group-hover:opacity-100"
+                className="tp-press-feedback flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-sky-50 hover:text-sky-700 dark:text-slate-400 dark:hover:bg-sky-950/30 dark:hover:text-sky-300 sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <Pencil size={17} />
               </button>
@@ -431,7 +431,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 type="button"
                 onClick={() => setItemToDelete(item)}
                 aria-label={`刪除 ${item.text}`}
-                className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-950/30 dark:hover:text-red-300 sm:opacity-0 sm:group-hover:opacity-100"
+                className="tp-press-feedback flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-950/30 dark:hover:text-red-300 sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <Trash2 size={17} />
               </button>
@@ -745,12 +745,12 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
       {itemToDelete && (
         <div
-          className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-slate-950/45 p-4 sm:items-center"
+          className="tp-fade-in fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-slate-950/45 p-4 sm:items-center"
           role="dialog"
           aria-modal="true"
           aria-labelledby="packing-delete-title"
         >
-          <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <div className="tp-slide-up w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <h3 id="packing-delete-title" className="text-lg font-black text-slate-900 dark:text-white">
               刪除這個物品？
             </h3>

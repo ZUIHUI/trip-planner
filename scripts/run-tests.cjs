@@ -90,6 +90,33 @@ test('summarizes presence without treating self-only usage as offline', () => {
   assert.equal(withCompanion.summaryText, '1 位旅伴在線');
 });
 
+test('builds a roster with online editing and offline member states', () => {
+  const state = buildPresenceUiState({
+    currentUser: { uid: 'owner-1', displayName: 'Owner' },
+    members: [
+      { uid: 'owner-1', displayName: 'Owner', role: 'owner' },
+      { uid: 'member-1', displayName: 'Member', role: 'editor' },
+      { uid: 'viewer-1', displayName: 'Viewer', role: 'viewer' }
+    ],
+    presenceByUid: {
+      'owner-1': { uid: 'owner-1', online: true },
+      'member-1': { uid: 'member-1', online: true, editingTarget: 'event:event-1' }
+    },
+    onlineMembers: [
+      { uid: 'owner-1', online: true, profile: { displayName: 'Owner' }, connections: [] },
+      { uid: 'member-1', online: true, editingTarget: 'event:event-1', profile: { displayName: 'Member' }, connections: [] }
+    ]
+  });
+
+  assert.equal(state.roster.length, 3);
+  assert.equal(state.selfStatus.status, 'online');
+  assert.equal(state.roster.find((person) => person.uid === 'member-1').status, 'editing');
+  assert.equal(state.roster.find((person) => person.uid === 'viewer-1').status, 'offline');
+  assert.equal(state.statusCounts.online, 1);
+  assert.equal(state.statusCounts.editing, 1);
+  assert.equal(state.statusCounts.offline, 1);
+});
+
 test('normalizes realtime trip overlays without replacing canonical records', () => {
   const normalized = normalizeTripRealtimeValue({
     placeVotes: {
