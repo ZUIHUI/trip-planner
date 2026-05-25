@@ -3,13 +3,24 @@ import ShoppingListContent from '../ShoppingListContent';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 
 const ShoppingTab = () => {
-  const { shoppingListRef, tripId, setIsShoppingModalOpen, isReadOnly } = useTripWorkspace();
+  const {
+    shoppingListRef,
+    shoppingList,
+    setShoppingList,
+    shoppingCategories,
+    setShoppingCategories,
+    setIsShoppingModalOpen,
+    isReadOnly
+  } = useTripWorkspace();
 
   return (
     <div className="mt-2 pb-20">
       <ShoppingListContent
         ref={shoppingListRef}
-        tripId={tripId}
+        shoppingList={shoppingList}
+        shoppingCategories={shoppingCategories}
+        onShoppingListChange={setShoppingList}
+        onShoppingCategoriesChange={setShoppingCategories}
         readOnly={isReadOnly}
         onModalOpenChange={setIsShoppingModalOpen}
       />

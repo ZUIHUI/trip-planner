@@ -16,6 +16,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, functions } from '../services/firebase';
+import { logger } from '../utils/logger';
 
 const AuthContext = createContext(null);
 const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
@@ -124,7 +125,7 @@ export const AuthProvider = ({ children }) => {
         const profile = await syncUserProfile(user);
         setUserProfile(profile);
       } catch (error) {
-        console.warn('同步使用者資料失敗', error);
+        logger.warn('同步使用者資料失敗', error);
         setUserProfile(buildProfileFromUser(user));
       } finally {
         setIsAuthLoading(false);

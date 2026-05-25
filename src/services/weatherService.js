@@ -1,7 +1,13 @@
+import { logger } from '../utils/logger';
+
 /**
  * 天氣服務
  * 使用 Open-Meteo 免費天氣 API + GPS 定位
  */
+
+const debugWeather = (...args) => {
+  logger.debug(...args);
+};
 
 // 地點坐標映射 (東京主要地點 + 台灣主要城市)
 const LOCATION_COORDS = {
@@ -141,23 +147,23 @@ const resolveCoordinates = async (locationName) => {
   // 2. 嘗試使用 Geocoding API 搜尋 (Open-Meteo)
   // 這能支援絕大多數的城市、鄉鎮和主要地標
   try {
-    console.log(`🔍 搜尋地點坐標 (Open-Meteo): ${cleanName}`);
+    debugWeather(`搜尋地點坐標 (Open-Meteo): ${cleanName}`);
     const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cleanName)}&count=1&language=zh&format=json`);
     const data = await response.json();
     
     if (data.results && data.results.length > 0) {
       const result = data.results[0];
-      console.log(`✅ 找到地點坐標 (Open-Meteo): ${result.name}`, result);
+      debugWeather(`找到地點坐標 (Open-Meteo): ${result.name}`, result);
       return { lat: result.latitude, lon: result.longitude };
     }
   } catch (error) {
-    console.error('❌ Open-Meteo Geocoding 失敗:', error);
+    logger.error('Open-Meteo Geocoding 失敗:', error);
   }
 
   // 3. 嘗試使用 Nominatim API (OpenStreetMap)
   // 這對於具體的 POI (如景點、商店、車站) 支援度更好，更接近 Google Maps 的體驗
   try {
-    console.log(`🔍 搜尋地點坐標 (Nominatim): ${cleanName}`);
+    debugWeather(`搜尋地點坐標 (Nominatim): ${cleanName}`);
     // Nominatim 需要 User-Agent
     const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanName)}&format=json&limit=1`, {
       headers: {
@@ -168,24 +174,24 @@ const resolveCoordinates = async (locationName) => {
     
     if (data && data.length > 0) {
       const result = data[0];
-      console.log(`✅ 找到地點坐標 (Nominatim): ${result.display_name}`, result);
+      debugWeather(`找到地點坐標 (Nominatim): ${result.display_name}`, result);
       return { lat: parseFloat(result.lat), lon: parseFloat(result.lon) };
     }
   } catch (error) {
-    console.error('❌ Nominatim Geocoding 失敗:', error);
+    logger.error('Nominatim Geocoding 失敗:', error);
   }
 
   // 4. 模糊匹配靜態映射 (作為最後的備選)
   // 例如輸入 "台北101"，如果上面都沒找到，至少匹配到 "台北"
   for (const [key, coords] of Object.entries(LOCATION_COORDS)) {
     if (cleanName.includes(key)) {
-      console.log(`⚠️ 使用模糊匹配: ${cleanName} -> ${key}`);
+      debugWeather(`使用模糊匹配: ${cleanName} -> ${key}`);
       return coords;
     }
   }
   
   // 5. 真的找不到，預設東京
-  console.warn(`⚠️ 找不到地點: ${cleanName}, 使用預設(東京)`);
+  logger.warn(`找不到地點: ${cleanName}, 使用預設(東京)`);
   return LOCATION_COORDS['東京'];
 };
 
@@ -274,7 +280,7 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr, tripDetails = null) => {
     const formattedDate = date.toISOString().split('T')[0];
     const daysFromToday = Math.floor((date - today) / (1000 * 60 * 60 * 24));
     
-    console.log('📍 天氣查詢參數:', {
+    debugWeather('天氣查詢參數:', {
       lat,
       lon,
       dateStr,
@@ -309,7 +315,7 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr, tripDetails = null) => {
       apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&start_date=${formattedDate}&end_date=${formattedDate}&hourly=temperature_2m,weather_code&temperature_unit=celsius&forecast_days=16&timezone=GMT`;
     }
     
-    console.log('🌐 API 終點:', apiUrl.substring(0, 80) + '...');
+    debugWeather('API endpoint:', apiUrl.substring(0, 80) + '...');
     
     const response = await fetch(apiUrl);
     
@@ -320,7 +326,7 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr, tripDetails = null) => {
     const data = await response.json();
     
     if (!data.hourly || !data.hourly.temperature_2m || data.hourly.temperature_2m.length === 0) {
-      console.error('❌ API 回應無效:', data);
+      logger.error('API 回應無效:', data);
       throw new Error('API 返回無效數據');
     }
     
@@ -345,7 +351,7 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr, tripDetails = null) => {
       ? weatherCodes[currentHour]
       : (weatherCodes[12] !== undefined && weatherCodes[12] !== null ? weatherCodes[12] : (weatherCodes.find(c => c !== null) || 0));
     
-    console.log('✅ API 數據成功:', { 
+    debugWeather('API 數據成功:', {
       avgTemp, 
       weatherCode, 
       currentHour,
@@ -363,7 +369,7 @@ const fetchWeatherFromAPI = async (lat, lon, dateStr, tripDetails = null) => {
       source: daysFromToday < 0 ? 'open-meteo-archive' : 'open-meteo-forecast'
     };
   } catch (error) {
-    console.error('❌ Open-Meteo API 錯誤:', error);
+    logger.error('Open-Meteo API 錯誤:', error);
     return null;
   }
 };
@@ -394,7 +400,7 @@ const generateFallbackWeather = (dateStr, locationName) => {
   
   const baseTemp = 8 + (seed % 13);
   
-  console.log('⚠️ 使用備用天氣數據:', { dateStr, locationName, weatherCode, temperature: baseTemp });
+  debugWeather('使用備用天氣數據:', { dateStr, locationName, weatherCode, temperature: baseTemp });
   
   return {
     success: true,
@@ -430,7 +436,7 @@ const fetchCurrentWeather = async (lat, lon) => {
       source: 'open-meteo-current'
     };
   } catch (error) {
-    console.error('❌ Current weather fetch failed:', error);
+    logger.error('Current weather fetch failed:', error);
     return null;
   }
 };
@@ -458,7 +464,7 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
     // 優先使用 GPS 坐標，否則解析地點名稱
     const coords = gpsCoords || await resolveCoordinates(locationName);
     
-    console.log('🌍 開始獲取天氣:', { dateStr, locationName, hasGPS: !!gpsCoords, coords });
+    debugWeather('開始獲取天氣:', { dateStr, locationName, hasGPS: !!gpsCoords, coords });
     
     // 嘗試從 Open-Meteo API 獲取真實天氣數據
     let result = await fetchWeatherFromAPI(coords.lat, coords.lon, dateStr, tripDetails);
@@ -478,7 +484,7 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
     
     // 一般 API 失敗時，改為獲取當前實時天氣作為參考
     if (!result) {
-      console.log('⚠️ 無法獲取目標日期天氣（API 失敗），改為獲取當前實時天氣...');
+      debugWeather('無法獲取目標日期天氣，改為獲取當前實時天氣');
       result = await fetchCurrentWeather(coords.lat, coords.lon);
     }
     
@@ -491,7 +497,7 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
     }
     
     // API 失敗時的備用方案 - 使用模擬天氣
-    console.warn('⚠️ API 無法連接，使用備用天氣數據');
+    logger.warn('API 無法連接，使用備用天氣數據');
     const fallback = generateFallbackWeather(dateStr, locationName);
     
     return {
@@ -500,7 +506,7 @@ export const getWeatherForDate = async (dateStr, locationName = '東京', gpsCoo
       location: locationName,
     };
   } catch (error) {
-    console.error('❌ 獲取天氣失敗:', error);
+    logger.error('獲取天氣失敗:', error);
     
     // 即使發生異常也返回備用天氣
     const fallback = generateFallbackWeather(dateStr, locationName);

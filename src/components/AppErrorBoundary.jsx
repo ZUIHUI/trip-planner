@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from './ui';
+import { logger } from '../utils/logger';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -13,7 +14,7 @@ class AppErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Trip Planner render error:', error, errorInfo);
+    logger.error('Trip Planner render error:', error, errorInfo);
   }
 
   render() {

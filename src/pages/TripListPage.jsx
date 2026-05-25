@@ -30,11 +30,13 @@ import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
 import InstallAppPrompt from '../components/InstallAppPrompt';
 import { inviteCodeInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
-
-const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
-
-const getTripIndexKey = (uid) => `trip_planner_trip_index_${uid || 'guest'}`;
-const getStorageKey = (tripId, uid) => `trip_planner_data_${uid || 'guest'}_${tripId}`;
+import {
+  LAST_OPENED_TRIP_KEY,
+  getTripIndexKey,
+  getTripStorageKey
+} from '../utils/storageKeys';
+import { validateInviteCode, validateRequiredText } from '../utils/validation';
+import { logger } from '../utils/logger';
 
 const loadLocalTrips = (uid) => {
   try {
@@ -261,7 +263,7 @@ const TripListPage = () => {
           saveLocalTrips(uid, mergedTrips);
         }
       } catch (error) {
-        console.warn('讀取雲端旅程列表失敗，改用本地資料', error);
+        logger.warn('讀取雲端旅程列表失敗，改用本地資料', error);
       }
     };
 
@@ -333,24 +335,25 @@ const TripListPage = () => {
     } catch (error) {
       setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
       saveLocalTrips(uid, optimisticTrips.filter((trip) => trip.id !== tripId));
-      localStorage.removeItem(getStorageKey(tripId, uid));
+      localStorage.removeItem(getTripStorageKey(tripId, uid));
       toast({
         variant: 'danger',
         title: '建立旅程失敗',
         description: '已回滾本地資料，請稍後再試。'
       });
-      console.error(error);
+      logger.error(error);
     }
   };
 
   const handleJoinByInviteCode = async (event) => {
     event.preventDefault();
     const code = normalizeInviteCodeInput(inviteCode);
+    const inviteError = validateInviteCode(code);
 
-    if (code.replace('-', '').length !== 8) {
+    if (inviteError) {
       toast({
         variant: 'warning',
-        title: '請輸入 8 碼邀請碼'
+        title: inviteError
       });
       return;
     }
@@ -411,8 +414,8 @@ const TripListPage = () => {
     setTrips(nextTrips);
     saveLocalTrips(uid, nextTrips);
 
-    const localTripRaw = localStorage.getItem(getStorageKey(tripId, uid));
-    localStorage.removeItem(getStorageKey(tripId, uid));
+    const localTripRaw = localStorage.getItem(getTripStorageKey(tripId, uid));
+    localStorage.removeItem(getTripStorageKey(tripId, uid));
 
     try {
       await deleteTrip(tripId);
@@ -425,14 +428,14 @@ const TripListPage = () => {
       setTrips(prevTrips);
       saveLocalTrips(uid, prevTrips);
       if (localTripRaw) {
-        localStorage.setItem(getStorageKey(tripId, uid), localTripRaw);
+        localStorage.setItem(getTripStorageKey(tripId, uid), localTripRaw);
       }
       toast({
         variant: 'danger',
         title: '刪除失敗',
         description: '已回復原始資料，請稍後再試。'
       });
-      console.error(error);
+      logger.error(error);
     }
   };
 
@@ -461,11 +464,12 @@ const TripListPage = () => {
   const handleSaveNickname = async (event) => {
     event.preventDefault();
     const nextName = nicknameDraft.trim();
+    const nameError = validateRequiredText(nextName, '暱稱', { maxLength: 120 });
 
-    if (!nextName) {
+    if (nameError) {
       toast({
         variant: 'warning',
-        title: '請輸入暱稱'
+        title: nameError
       });
       return;
     }

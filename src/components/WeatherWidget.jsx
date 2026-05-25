@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { getWeatherForDate } from '../services/weatherService';
 import CuteWeatherIcon from './CuteWeatherIcon';
+import { logger } from '../utils/logger';
 
 const WeatherWidget = ({ 
   date, 
@@ -64,7 +65,7 @@ const WeatherWidget = ({
         lastRequestKeyRef.current = requestKey;
       } catch (error) {
         if (!isActive) return;
-        console.error('❌ 天氣獲取錯誤:', error);
+        logger.error('天氣獲取錯誤:', error);
         setWeather(null);
       } finally {
         if (isActive) {

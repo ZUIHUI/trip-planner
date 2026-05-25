@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Edit2, ChevronDown, ChevronUp, Upload, ExternalLink } from 'lucide-react';
 import { useFeedback } from '../contexts/FeedbackContext';
+import { logger } from '../utils/logger';
 
 /**
  * 購物清單組件
@@ -21,7 +22,7 @@ const ShoppingList = ({ isOpen, onClose }) => {
       try {
         setLists(JSON.parse(saved));
       } catch (err) {
-        console.error('載入購物清單失敗:', err);
+        logger.error('載入購物清單失敗:', err);
       }
     }
   }, []);

@@ -3,6 +3,7 @@ import { AlertCircle, ExternalLink, Link as LinkIcon, MapPin, Navigation, Save, 
 import GooglePlaceInput from './GooglePlaceInput';
 import { Button, Field, Input, Select, Textarea } from './ui';
 import { moneyInputProps, plainTextInputProps, urlInputProps } from '../utils/mobileInputProps';
+import { validateOptionalUrl, validateRequiredText } from '../utils/validation';
 
 const DEFAULT_EVENT = {
   time: '',
@@ -82,9 +83,11 @@ const FormSection = ({ title, description, icon: Icon, children }) => (
 
 const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdit }) => {
   const [formData, setFormData] = useState(() => getInitialFormState(event));
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     setFormData(getInitialFormState(event));
+    setFormError('');
   }, [event]);
 
   const trimmedLocation = (formData.location || '').trim();
@@ -103,6 +106,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         ...prev,
         [parent]: { ...(prev[parent] || {}), [child]: value }
       }));
+      if (formError) setFormError('');
       return;
     }
 
@@ -110,6 +114,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    if (formError) setFormError('');
   };
 
   const handleLocationTextChange = (value) => {
@@ -141,6 +146,13 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
     submitEvent.preventDefault();
     if (readOnly) return;
 
+    const titleError = validateRequiredText(formData.title, '標題', { maxLength: 160 });
+    const urlError = validateOptionalUrl(formData.url);
+    if (titleError || urlError) {
+      setFormError(titleError || urlError);
+      return;
+    }
+
     onSave({
       ...formData,
       currency: formData.currency || 'JPY',
@@ -154,6 +166,11 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
 
   return (
     <form onSubmit={handleSubmit} className="min-w-0 max-w-full space-y-4 overflow-x-hidden text-slate-700 dark:text-slate-200">
+      {formError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200" role="alert">
+          {formError}
+        </div>
+      )}
       <FormSection title="基本資訊" description="時間、類型與名稱。">
         <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)]">
           <Field label="時間" htmlFor="event-time">

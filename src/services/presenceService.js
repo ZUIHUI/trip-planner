@@ -9,16 +9,16 @@ import {
   update
 } from 'firebase/database';
 import { rtdb } from './firebase';
+import { PRESENCE_CLIENT_ID_KEY } from '../utils/storageKeys';
 
 export const hasRealtimeDatabase = () => Boolean(rtdb);
 
 export const createPresenceClientId = () => {
-  const key = 'trip_planner_presence_client_id';
   try {
-    const existing = sessionStorage.getItem(key);
+    const existing = sessionStorage.getItem(PRESENCE_CLIENT_ID_KEY);
     if (existing) return existing;
     const next = `client-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem(key, next);
+    sessionStorage.setItem(PRESENCE_CLIENT_ID_KEY, next);
     return next;
   } catch {
     return `client-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;

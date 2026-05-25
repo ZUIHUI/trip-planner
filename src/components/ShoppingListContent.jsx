@@ -25,9 +25,6 @@ import {
   X,
   ZoomIn
 } from 'lucide-react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebase';
-import { updateShoppingCategories, updateShoppingList } from '../services/tripService';
 import {
   Badge,
   Button,
@@ -41,6 +38,7 @@ import {
   Textarea
 } from './ui';
 import { integerInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
+import { validateImageFile, validatePositiveInteger, validateRequiredText } from '../utils/validation';
 
 const DEFAULT_CATEGORIES = ['藥妝', '伴手禮', '零食', '票券', '衣物', '3C 配件', '其他'];
 
@@ -89,6 +87,17 @@ const buildFormData = (categories = [], defaults = {}) => {
     quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
     image: defaults.image ?? null
   };
+};
+
+export const normalizeShoppingItems = (items = []) => (
+  Array.isArray(items) ? items : []
+);
+
+export const normalizeShoppingCategories = (categories = []) => {
+  const safeCategories = Array.isArray(categories)
+    ? categories.map((category) => String(category || '').trim()).filter(Boolean)
+    : [];
+  return safeCategories.length ? Array.from(new Set(safeCategories)) : DEFAULT_CATEGORIES;
 };
 
 const renderToBody = (node) => {
@@ -743,9 +752,16 @@ const ShoppingItemCard = ({
   );
 };
 
-const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = false }, ref) => {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+const ShoppingListContent = forwardRef(({
+  shoppingList = [],
+  shoppingCategories = [],
+  onShoppingListChange,
+  onShoppingCategoriesChange,
+  onModalOpenChange,
+  readOnly = false
+}, ref) => {
+  const [items, setItems] = useState(() => normalizeShoppingItems(shoppingList));
+  const loading = false;
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState('All');
@@ -753,7 +769,7 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [categories, setCategories] = useState(() => normalizeShoppingCategories(shoppingCategories));
   const [isManageCategoriesOpen, setIsManageCategoriesOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [formData, setFormData] = useState(() => buildFormData(DEFAULT_CATEGORIES));
@@ -807,47 +823,30 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
   }), [openAddForm]);
 
   useEffect(() => {
-    if (!tripId) {
-      setLoading(false);
-      return undefined;
-    }
+    setItems(normalizeShoppingItems(shoppingList));
+    setError(null);
+  }, [shoppingList]);
 
-    setLoading(true);
-    const unsubscribe = onSnapshot(doc(db, 'trips', tripId), (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setItems(Array.isArray(data.shoppingList) ? data.shoppingList : []);
-        setCategories(Array.isArray(data.shoppingCategories) ? data.shoppingCategories : DEFAULT_CATEGORIES);
-      }
-      setError(null);
-      setLoading(false);
-    }, (err) => {
-      console.error('Error fetching shopping list:', err);
-      setError('無法載入購物清單，請稍後再試。');
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [tripId]);
+  useEffect(() => {
+    const nextCategories = normalizeShoppingCategories(shoppingCategories);
+    setCategories(nextCategories);
+    setFormData((prev) => (
+      nextCategories.includes(prev.category)
+        ? prev
+        : { ...prev, category: getDefaultCategory(nextCategories) }
+    ));
+  }, [shoppingCategories]);
 
   const updateItems = (newItems) => {
     if (readOnly) return;
     setItems(newItems);
-    if (tripId) {
-      updateShoppingList(tripId, newItems).catch((err) => {
-        console.error('Failed to save shopping list:', err);
-      });
-    }
+    onShoppingListChange?.(newItems);
   };
 
   const updateCategories = (newCategories) => {
     if (readOnly) return;
     setCategories(newCategories);
-    if (tripId) {
-      Promise.resolve(updateShoppingCategories(tripId, newCategories)).catch((err) => {
-        console.error('Failed to save shopping categories:', err);
-      });
-    }
+    onShoppingCategoriesChange?.(newCategories);
   };
 
   const handleAddCategory = () => {
@@ -873,6 +872,11 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
     if (readOnly) return;
     const file = event.target.files?.[0];
     if (!file) return;
+    const imageError = validateImageFile(file);
+    if (imageError) {
+      setFormError(imageError);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -893,8 +897,10 @@ const ShoppingListContent = forwardRef(({ tripId, onModalOpenChange, readOnly = 
   const handleSaveItem = () => {
     if (readOnly) return false;
     const name = formData.name.trim();
-    if (!name) {
-      setFormError('請輸入商品名稱');
+    const nameError = validateRequiredText(name, '商品名稱', { maxLength: 120 });
+    const quantityError = validatePositiveInteger(formData.quantity, '數量', { min: 1, max: 999 });
+    if (nameError || quantityError) {
+      setFormError(nameError || quantityError);
       return false;
     }
 

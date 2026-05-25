@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 // 位置服務 - 獲取設備GPS定位 + 地理編碼支持
 
 // 擴展的地點數據庫（台灣 + 日本主要城市）
@@ -67,8 +69,6 @@ export const reverseGeocodeCoordinates = (latitude, longitude) => {
     prev.distance < current.distance ? prev : current
   );
 
-  console.log('📍 反向地理編碼結果:', { latitude, longitude, closestLocation: closest.name, distance: closest.distance });
-
   return closest.name;
 };
 
@@ -99,7 +99,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 export const getDeviceLocation = () => {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      console.warn('設備不支援GPS定位');
+      logger.warn('設備不支援GPS定位');
       resolve(null);
       return;
     }
@@ -110,8 +110,6 @@ export const getDeviceLocation = () => {
         const { latitude, longitude, accuracy } = position.coords;
         const locationName = reverseGeocodeCoordinates(latitude, longitude);
         
-        console.log('GPS定位成功:', { latitude, longitude, locationName, accuracy });
-        
         resolve({
           latitude,
           longitude,
@@ -120,7 +118,7 @@ export const getDeviceLocation = () => {
         });
       },
       (error) => {
-        console.warn('GPS定位失敗:', error.message);
+        logger.warn('GPS定位失敗:', error.message);
         // 定位失敗時返回null，讓應用層決定是否使用備用位置
         resolve(null);
       },
@@ -140,7 +138,7 @@ export const getDeviceLocation = () => {
  */
 export const watchDeviceLocation = (callback) => {
   if (!navigator.geolocation) {
-    console.warn('設備不支援GPS定位');
+    logger.warn('設備不支援GPS定位');
     return () => {};
   }
 
@@ -157,7 +155,7 @@ export const watchDeviceLocation = (callback) => {
       });
     },
     (error) => {
-      console.warn('GPS監聽失敗:', error.message);
+      logger.warn('GPS監聽失敗:', error.message);
     },
     {
       enableHighAccuracy: true,

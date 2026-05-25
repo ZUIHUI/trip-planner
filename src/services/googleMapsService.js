@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 const GOOGLE_MAPS_SCRIPT_ID = 'trip-planner-google-maps-js';
@@ -27,9 +29,7 @@ export const GOOGLE_PLACE_PREDICTION_STATUS = {
 export const hasGoogleMapsApiKey = () => hasText(GOOGLE_MAPS_API_KEY);
 
 const debugGooglePlaces = (message, detail) => {
-  if (import.meta.env.DEV) {
-    console.warn(message, detail);
-  }
+  logger.warn(message, detail);
 };
 
 const buildGooglePlacesError = (status, message, cause = null) => {

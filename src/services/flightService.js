@@ -1,4 +1,5 @@
-const FLIGHT_LOOKUP_API_PATH = '/api/flight-lookup';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from './firebase';
 
 const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
 const normalizeAirportCode = (rawCode = '') => String(rawCode || '').trim().toUpperCase();
@@ -71,12 +72,11 @@ export const mergeFlightLookupResult = (existingFlight = {}, lookupResult = {}) 
   return merged;
 };
 
-const readResponsePayload = async (response) => {
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
-    return response.json();
-  }
-  return { message: await response.text() };
+const toFlightLookupError = (error) => {
+  const message = error?.message || '航班查詢失敗，請稍後再試或手動填寫。';
+  const nextError = new Error(message);
+  nextError.code = error?.code || 'flight_lookup_failed';
+  return nextError;
 };
 
 export const lookupFlightByCode = async (rawCode, rawDepartureDate = '', options = {}) => {
@@ -88,32 +88,34 @@ export const lookupFlightByCode = async (rawCode, rawDepartureDate = '', options
     throw new Error(availability.message);
   }
 
-  const query = new URLSearchParams({
-    code,
-    date: availability.normalizedDate
-  });
-
   const departureAirport = normalizeAirportCode(options.departureAirport);
   const arrivalAirport = normalizeAirportCode(options.arrivalAirport);
+  const request = {
+    code,
+    date: availability.normalizedDate
+  };
+
   if (departureAirport) {
     if (!isAirportCode(departureAirport)) {
       throw new Error('出發機場請輸入 3 碼機場代碼，例如 TPE');
     }
-    query.set('depap', departureAirport);
+    request.depap = departureAirport;
   }
 
   if (arrivalAirport) {
     if (!isAirportCode(arrivalAirport)) {
       throw new Error('抵達機場請輸入 3 碼機場代碼，例如 NRT');
     }
-    query.set('arrap', arrivalAirport);
+    request.arrap = arrivalAirport;
   }
 
-  const response = await fetch(`${FLIGHT_LOOKUP_API_PATH}?${query.toString()}`);
-  const payload = await readResponsePayload(response);
-
-  if (!response.ok) {
-    throw new Error(payload?.message || '航班查詢失敗，請稍後再試或手動填寫。');
+  const callable = httpsCallable(functions, 'lookupFlight');
+  let payload = null;
+  try {
+    const response = await callable(request);
+    payload = response.data || {};
+  } catch (error) {
+    throw toFlightLookupError(error);
   }
 
   if (!payload?.flight) {

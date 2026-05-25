@@ -19,6 +19,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { Badge, Button, Card } from './ui';
+import { normalizeExternalUrl } from '../utils/externalUrl';
 
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
@@ -52,12 +53,6 @@ const getLocationText = (event) => {
   if (!event) return '';
   if (typeof event.location === 'string') return event.location;
   return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
-};
-
-const normalizeExternalUrl = (url) => {
-  const trimmed = String(url || '').trim();
-  if (!trimmed) return '';
-  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 };
 
 const getEditingMembersText = (members = []) => {

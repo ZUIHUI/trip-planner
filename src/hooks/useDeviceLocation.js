@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getDeviceLocation } from '../services/locationService';
+import { logger } from '../utils/logger';
 
 /**
  * 自訂Hook - 用於獲取和管理設備GPS位置
@@ -14,7 +15,6 @@ export const useDeviceLocation = (enableGPS = false) => {
   useEffect(() => {
     // 根據用戶設定決定是否啟用 GPS 定位
     if (!enableGPS) {
-      console.log('GPS 定位未啟用');
       setCurrentLocation(null);
       setIsLocating(false);
       return;
@@ -29,16 +29,14 @@ export const useDeviceLocation = (enableGPS = false) => {
         const location = await getDeviceLocation();
         
         if (location) {
-          console.log('GPS 定位成功:', location);
           setCurrentLocation(location);
-          console.log('位置已更新:', location.locationName);
         } else {
-          console.warn('GPS 定位返回 null');
+          logger.warn('GPS 定位返回 null');
           setLocationError('無法獲取設備位置');
           setCurrentLocation(null);
         }
       } catch (error) {
-        console.error('定位過程出錯:', error);
+        logger.error('定位過程出錯:', error);
         setLocationError(error.message);
         setCurrentLocation(null);
       } finally {

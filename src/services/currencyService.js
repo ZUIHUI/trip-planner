@@ -1,4 +1,6 @@
 
+import { logger } from '../utils/logger';
+
 /**
  * 匯率服務
  * 使用免費的 ExchangeRate-API 獲取即時匯率
@@ -21,7 +23,7 @@ export const fetchJPYRate = async () => {
       success: true
     };
   } catch (error) {
-    console.error('匯率更新失敗:', error);
+    logger.error('匯率更新失敗:', error);
     return {
       success: false,
       error: error.message

@@ -22,8 +22,8 @@ import { useTrip } from '../hooks/useTrip';
 import { useTripPresence } from '../hooks/useTripPresence';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
+import { useFlightLookup } from '../hooks/useFlightLookup';
 import { fetchJPYRate } from '../services/currencyService';
-import { getFlightLookupAvailability, lookupFlightByCode, mergeFlightLookupResult } from '../services/flightService';
 import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../services/googleMapsService';
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
@@ -32,13 +32,18 @@ import { buildPresenceUiState } from '../utils/presence';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  INTERFACE_SIZE_STORAGE_KEY,
+  LAST_OPENED_TRIP_KEY,
+  THEME_STORAGE_KEY,
+  getTripIndexKey
+} from '../utils/storageKeys';
+import { logger } from '../utils/logger';
 
-const LAST_OPENED_TRIP_KEY = 'trip_planner_last_opened_trip_id';
 const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
 const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
-const getTripIndexKey = (uid) => `trip_planner_trip_index_${uid || 'guest'}`;
 const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping']);
 
 const getDateRangeDays = (startDate, endDate) => {
@@ -99,7 +104,7 @@ const syncTripMetaToLocalIndex = (tripId, patch, uid) => {
 
     localStorage.setItem(storageKey, JSON.stringify(safeList));
   } catch (error) {
-    console.warn('⚠️ 更新旅程索引失敗:', error);
+    logger.warn('更新旅程索引失敗:', error);
   }
 };
 
@@ -146,8 +151,8 @@ const TripDetailPage = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('trip_planner_theme') || 'light');
-  const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem('trip_planner_interface_size') || 'medium');
+  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
+  const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem(INTERFACE_SIZE_STORAGE_KEY) || 'medium');
   const [enableGPS, setEnableGPS] = useState(false);
   const [selectedEventLocation, setSelectedEventLocation] = useState(null);
   const [isEditingDayMeta, setIsEditingDayMeta] = useState(false);
@@ -158,8 +163,6 @@ const TripDetailPage = () => {
   const [lastUpdateDate, setLastUpdateDate] = useState('');
   const [isRateUpdating, setIsRateUpdating] = useState(false);
   const [rateUpdateError, setRateUpdateError] = useState('');
-  const [isLookingUpFlight, setIsLookingUpFlight] = useState({ outbound: false, inbound: false });
-  const [flightLookupError, setFlightLookupError] = useState({ outbound: '', inbound: '' });
   const shoppingListRef = useRef(null);
   const expenseTrackerRef = useRef(null);
 
@@ -190,6 +193,10 @@ const TripDetailPage = () => {
     setChecklists,
     expenses,
     setExpenses,
+    shoppingList,
+    setShoppingList,
+    shoppingCategories,
+    setShoppingCategories,
     placePool,
     setPlacePool,
     collaboration,
@@ -220,6 +227,15 @@ const TripDetailPage = () => {
     accessRole,
     activeTab,
     enabled: !isLoading && !accessError
+  });
+  const {
+    isLookingUpFlight,
+    flightLookupError,
+    handleLookupFlight
+  } = useFlightLookup({
+    canEdit,
+    tripDetails,
+    setTripDetails
   });
 
   useEffect(() => {
@@ -335,11 +351,11 @@ const TripDetailPage = () => {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', currentTheme === 'dark');
-    localStorage.setItem('trip_planner_theme', currentTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
   }, [currentTheme]);
 
   useEffect(() => {
-    localStorage.setItem('trip_planner_interface_size', interfaceSize);
+    localStorage.setItem(INTERFACE_SIZE_STORAGE_KEY, interfaceSize);
   }, [interfaceSize]);
 
   useEffect(() => {
@@ -355,7 +371,7 @@ const TripDetailPage = () => {
 
         return cache;
       } catch (error) {
-        console.warn('⚠️ 讀取匯率快取失敗:', error);
+        logger.warn('讀取匯率快取失敗:', error);
         return null;
       }
     };
@@ -370,7 +386,7 @@ const TripDetailPage = () => {
           })
         );
       } catch (error) {
-        console.warn('⚠️ 寫入匯率快取失敗:', error);
+        logger.warn('寫入匯率快取失敗:', error);
       }
     };
 
@@ -676,57 +692,6 @@ const TripDetailPage = () => {
     setShowSecondaryModules((prev) => !prev);
   };
 
-  const handleLookupFlight = async (direction) => {
-    if (!canEdit) {
-      setFlightLookupError((prev) => ({
-        ...prev,
-        [direction]: '你目前只能查看，不能更新航班資料'
-      }));
-      return;
-    }
-
-    const currentFlight = tripDetails?.flights?.[direction] || {};
-    const code = currentFlight.code || '';
-    const departureDate = direction === 'outbound'
-      ? (tripDetails?.dateRange?.start || '')
-      : (tripDetails?.dateRange?.end || '');
-    const availability = getFlightLookupAvailability(departureDate);
-
-    if (!availability.canLookup) {
-      setFlightLookupError((prev) => ({
-        ...prev,
-        [direction]: availability.message
-      }));
-      return;
-    }
-
-    setFlightLookupError((prev) => ({ ...prev, [direction]: '' }));
-    setIsLookingUpFlight((prev) => ({ ...prev, [direction]: true }));
-
-    try {
-      const flightInfo = await lookupFlightByCode(code, departureDate, {
-        departureAirport: currentFlight.dep,
-        arrivalAirport: currentFlight.arr
-      });
-      setTripDetails((prev) => ({
-        ...prev,
-        flights: {
-          ...(prev?.flights || {}),
-          [direction]: {
-            ...mergeFlightLookupResult((prev?.flights && prev.flights[direction]) || {}, flightInfo)
-          }
-        }
-      }));
-    } catch (error) {
-      setFlightLookupError((prev) => ({
-        ...prev,
-        [direction]: error.message || '查詢失敗'
-      }));
-    } finally {
-      setIsLookingUpFlight((prev) => ({ ...prev, [direction]: false }));
-    }
-  };
-
   const editingEventPrevLocation = useMemo(() => {
     if (!editingEvent || !currentDayData?.events?.length) {
       return tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
@@ -751,6 +716,10 @@ const TripDetailPage = () => {
     setChecklists,
     expenses,
     setExpenses,
+    shoppingList,
+    setShoppingList,
+    shoppingCategories,
+    setShoppingCategories,
     placePool,
     setPlacePool,
     collaboration,
@@ -815,6 +784,8 @@ const TripDetailPage = () => {
     itinerary,
     checklists,
     expenses,
+    shoppingList,
+    shoppingCategories,
     placePool,
     collaboration,
     currentUser,

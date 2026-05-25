@@ -16,6 +16,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { Badge, Button } from './ui';
+import { getExternalUrlHost, normalizeExternalUrl } from '../utils/externalUrl';
 
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
@@ -52,21 +53,7 @@ const formatCost = (event) => {
   return `${symbol}${cost.amount.toLocaleString()}`;
 };
 
-const getUrlHost = (url = '') => {
-  const value = String(url || '').trim();
-  if (!value) return '';
-  try {
-    return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`).host;
-  } catch {
-    return value.replace(/^https?:\/\//i, '').split('/')[0];
-  }
-};
-
-const normalizeExternalUrl = (url = '') => {
-  const value = String(url || '').trim();
-  if (!value) return '';
-  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
-};
+const getUrlHost = (url = '') => getExternalUrlHost(url) || String(url || '').replace(/^https?:\/\//i, '').split('/')[0];
 
 const openExternalUrl = (url) => {
   const normalizedUrl = normalizeExternalUrl(url);

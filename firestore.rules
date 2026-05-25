@@ -60,8 +60,128 @@ service cloud.firestore {
         && (memberRole(tripId) == 'editor' || memberRole(tripId) == 'edit');
     }
 
+    function optionalString(data, key, maxLength) {
+      return !data.keys().hasAny([key])
+        || (data[key] is string && data[key].size() <= maxLength);
+    }
+
+    function optionalNumber(data, key) {
+      return !data.keys().hasAny([key]) || data[key] is number;
+    }
+
+    function optionalBool(data, key) {
+      return !data.keys().hasAny([key]) || data[key] is bool;
+    }
+
+    function validUserProfile(data) {
+      return data.keys().hasOnly([
+          'uid',
+          'email',
+          'displayName',
+          'photoURL',
+          'providerIds',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.uid == request.auth.uid
+        && optionalString(data, 'email', 240)
+        && optionalString(data, 'displayName', 120)
+        && optionalString(data, 'photoURL', 1000);
+    }
+
+    function validMember(data, uid) {
+      return data.keys().hasOnly([
+          'uid',
+          'email',
+          'displayName',
+          'photoURL',
+          'role',
+          'shareToken',
+          'inviteId',
+          'inviteCode',
+          'joinedAt',
+          'updatedAt',
+          'source'
+        ])
+        && data.uid == uid
+        && (data.role in ['owner', 'editor', 'edit', 'view'])
+        && optionalString(data, 'email', 240)
+        && optionalString(data, 'displayName', 120)
+        && optionalString(data, 'photoURL', 1000)
+        && optionalString(data, 'shareToken', 200)
+        && optionalString(data, 'inviteId', 120)
+        && optionalString(data, 'inviteCode', 16)
+        && optionalString(data, 'source', 80);
+    }
+
+    function validMeta(meta) {
+      return meta is map
+        && optionalString(meta, 'title', 160)
+        && optionalString(meta, 'status', 40)
+        && optionalString(meta, 'coverImage', 4000)
+        && (!meta.keys().hasAny(['dateRange']) || meta.dateRange is map);
+    }
+
+    function validAccess(access) {
+      return access is map
+        && optionalString(access, 'ownerUid', 160)
+        && optionalString(access, 'ownerEmail', 240)
+        && optionalString(access, 'ownerName', 120)
+        && optionalString(access, 'migratedAt', 80);
+    }
+
+    function validSyncMeta(syncMeta) {
+      return syncMeta is map
+        && optionalNumber(syncMeta, 'revision')
+        && optionalString(syncMeta, 'updatedByUid', 160)
+        && optionalString(syncMeta, 'updatedByClientId', 200)
+        && optionalString(syncMeta, 'updatedAt', 80);
+    }
+
+    function validTripRoot(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'meta',
+          'logistics',
+          'planning',
+          'finance',
+          'itineraryDays',
+          'tripDetails',
+          'itinerary',
+          'placePool',
+          'collaboration',
+          'checklists',
+          'expenses',
+          'shoppingList',
+          'shoppingCategories',
+          'access',
+          'syncMeta',
+          'invite',
+          'savedAt',
+          'createdAt',
+          'updatedAt'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && (!data.keys().hasAny(['meta']) || validMeta(data.meta))
+        && (!data.keys().hasAny(['access']) || validAccess(data.access))
+        && (!data.keys().hasAny(['syncMeta']) || validSyncMeta(data.syncMeta));
+    }
+
+    function editorSafeTripUpdate() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'access',
+        'collaboration',
+        'invite'
+      ]);
+    }
+
     match /userProfiles/{uid} {
-      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn()
+        && request.auth.uid == uid
+        && validUserProfile(request.resource.data);
       allow delete: if false;
     }
 
@@ -86,10 +206,12 @@ service cloud.firestore {
         );
 
       allow create: if signedIn()
+        && validTripRoot(request.resource.data)
         && request.resource.data.access.ownerUid == request.auth.uid
         && request.resource.data.access.ownerEmail == request.auth.token.email;
 
       allow update: if signedIn()
+        && validTripRoot(request.resource.data)
         && (
           isOwnedByCurrentUser(resource.data)
           || (
@@ -99,8 +221,7 @@ service cloud.firestore {
           )
           || (
             isTripEditor(tripId)
-            && request.resource.data.access == resource.data.access
-            && request.resource.data.collaboration == resource.data.collaboration
+            && editorSafeTripUpdate()
           )
         );
 
@@ -116,17 +237,23 @@ service cloud.firestore {
           );
 
         allow create: if signedIn()
+          && validMember(request.resource.data, uid)
           && request.resource.data.uid == uid
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.role == 'owner'
           && isTripOwnerAfter(tripId);
 
-        allow update, delete: if signedIn() && isTripOwner(tripId);
+        allow update: if signedIn()
+          && isTripOwner(tripId)
+          && validMember(request.resource.data, uid);
+
+        allow delete: if signedIn() && isTripOwner(tripId);
 
         allow update: if signedIn()
           && uid == request.auth.uid
           && resource.data.uid == request.auth.uid
           && request.resource.data.uid == request.auth.uid
+          && validMember(request.resource.data, uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'displayName',
             'email',
@@ -145,6 +272,10 @@ service cloud.firestore {
     }
 
     match /inviteCodeRateLimits/{uid} {
+      allow read, write: if false;
+    }
+
+    match /flightLookupRateLimits/{uid} {
       allow read, write: if false;
     }
 

@@ -8,12 +8,12 @@ import {
 } from '../services/tripService';
 import { normalizeTripDateFields } from '../utils/tripDates';
 import { buildTripDocumentFromAppState, normalizeTripDocumentForApp } from '../domain/tripSchema';
-
-const LEGACY_STORAGE_KEY = 'trip_planner_data';
-const STORAGE_KEY_PREFIX = 'trip_planner_data_';
-const CLIENT_ID_KEY = 'trip_planner_client_id';
-
-const getStorageKey = (tripId, uid) => `${STORAGE_KEY_PREFIX}${uid || 'guest'}_${tripId}`;
+import {
+  CLIENT_ID_KEY,
+  LEGACY_TRIP_STORAGE_KEY,
+  getTripStorageKey
+} from '../utils/storageKeys';
+import { logger } from '../utils/logger';
 
 const getClientId = () => {
   try {
@@ -85,6 +85,8 @@ const buildFallbackData = (initialTripDetails, initialItinerary) => ({
   itinerary: initialItinerary,
   checklists: { preTrip: [], packing: [] },
   expenses: [],
+  shoppingList: [],
+  shoppingCategories: [],
   placePool: [],
   collaboration: defaultCollaboration,
   access: {},
@@ -104,6 +106,8 @@ const applyNormalizedData = ({
   setters.setItinerary(ensureItineraryComplete(normalized.itinerary || initialItinerary, normalizedTripDetails));
   setters.setChecklists(normalized.checklists || { preTrip: [], packing: [] });
   setters.setExpenses(normalized.expenses || []);
+  setters.setShoppingList(Array.isArray(normalized.shoppingList) ? normalized.shoppingList : []);
+  setters.setShoppingCategories(Array.isArray(normalized.shoppingCategories) ? normalized.shoppingCategories : []);
   setters.setPlacePool(normalized.placePool || []);
   setters.setCollaboration(normalized.collaboration || defaultCollaboration);
   setters.setAccess(normalized.access || {});
@@ -117,7 +121,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
 } = {}) => {
   const safeTripId = typeof tripId === 'string' ? tripId.trim() : '';
   const uid = currentUser?.uid || '';
-  const storageKey = safeTripId && uid ? getStorageKey(safeTripId, uid) : null;
+  const storageKey = safeTripId && uid ? getTripStorageKey(safeTripId, uid) : null;
   const fallbackData = useMemo(
     () => buildFallbackData(initialTripDetails, initialItinerary),
     [initialTripDetails, initialItinerary]
@@ -139,6 +143,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const [itinerary, setItineraryState] = useState(initialItinerary);
   const [checklists, setChecklistsState] = useState({ preTrip: [], packing: [] });
   const [expenses, setExpensesState] = useState([]);
+  const [shoppingList, setShoppingListState] = useState([]);
+  const [shoppingCategories, setShoppingCategoriesState] = useState([]);
   const [placePool, setPlacePoolState] = useState([]);
   const [collaboration, setCollaborationState] = useState(defaultCollaboration);
   const [access, setAccess] = useState({});
@@ -165,6 +171,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const setItinerary = useMemo(() => wrapSetter(setItineraryState), [wrapSetter]);
   const setChecklists = useMemo(() => wrapSetter(setChecklistsState), [wrapSetter]);
   const setExpenses = useMemo(() => wrapSetter(setExpensesState), [wrapSetter]);
+  const setShoppingList = useMemo(() => wrapSetter(setShoppingListState), [wrapSetter]);
+  const setShoppingCategories = useMemo(() => wrapSetter(setShoppingCategoriesState), [wrapSetter]);
   const setPlacePool = useMemo(() => wrapSetter(setPlacePoolState), [wrapSetter]);
   const setCollaboration = useMemo(() => wrapSetter(setCollaborationState), [wrapSetter]);
 
@@ -173,6 +181,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     setItinerary: setItineraryState,
     setChecklists: setChecklistsState,
     setExpenses: setExpensesState,
+    setShoppingList: setShoppingListState,
+    setShoppingCategories: setShoppingCategoriesState,
     setPlacePool: setPlacePoolState,
     setCollaboration: setCollaborationState,
     setAccess,
@@ -196,7 +206,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       setSaveError(null);
 
       try {
-        const legacyRaw = !localStorage.getItem(storageKey) ? localStorage.getItem(LEGACY_STORAGE_KEY) : null;
+        const legacyRaw = !localStorage.getItem(storageKey) ? localStorage.getItem(LEGACY_TRIP_STORAGE_KEY) : null;
         const localRaw = localStorage.getItem(storageKey) || legacyRaw;
         if (localRaw) {
           const localData = JSON.parse(localRaw);
@@ -211,7 +221,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           applyingRemoteRef.current = false;
         }
       } catch (error) {
-        console.warn('讀取本機旅程快取失敗:', error);
+        logger.warn('讀取本機旅程快取失敗:', error);
       }
 
       try {
@@ -252,11 +262,11 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
             try {
               localStorage.setItem(storageKey, JSON.stringify(normalized));
             } catch (error) {
-              console.warn('寫入本機旅程快取失敗:', error);
+              logger.warn('寫入本機旅程快取失敗:', error);
             }
           },
           (error) => {
-            console.error('旅程即時同步失敗:', error);
+            logger.error('旅程即時同步失敗:', error);
             setAccessError(error.message || '暫時無法載入最新旅程內容，請稍後再試。');
             setIsLoading(false);
           }
@@ -270,11 +280,11 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
             const self = nextMembers.find((member) => member.uid === uid);
             if (self?.role) setAccessRole(self.role);
           },
-          (error) => console.warn('成員同步失敗:', error)
+          (error) => logger.warn('成員同步失敗:', error)
         );
       } catch (error) {
         if (cancelled) return;
-        console.error('旅程存取驗證失敗:', error);
+        logger.error('旅程存取驗證失敗:', error);
         setAccessError(error.message || '你目前無法開啟這趟旅程。');
         setIsLoading(false);
       }
@@ -321,6 +331,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           itinerary,
           checklists,
           expenses,
+          shoppingList,
+          shoppingCategories,
           placePool,
           collaboration,
           access,
@@ -342,7 +354,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           setSyncConflict({ remoteData: error.remoteData });
           setSaveError('另一位旅伴剛更新了旅程，請選擇要使用哪一版。');
         } else {
-          console.error('自動儲存失敗:', error);
+          logger.error('自動儲存失敗:', error);
           setSaveError(error.message || '儲存失敗');
         }
       } finally {
@@ -360,6 +372,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     itinerary,
     checklists,
     expenses,
+    shoppingList,
+    shoppingCategories,
     placePool,
     collaboration,
     access,
@@ -409,6 +423,8 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         itinerary,
         checklists,
         expenses,
+        shoppingList,
+        shoppingCategories,
         placePool,
         collaboration,
         access,
@@ -480,6 +496,10 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     setChecklists,
     expenses,
     setExpenses,
+    shoppingList,
+    setShoppingList,
+    shoppingCategories,
+    setShoppingCategories,
     placePool,
     setPlacePool,
     collaboration,

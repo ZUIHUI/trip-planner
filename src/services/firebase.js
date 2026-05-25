@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
 import { getFunctions } from 'firebase/functions';
+import { logger } from '../utils/logger';
 
 const getRuntimeAuthDomain = () => {
   const configuredAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
@@ -50,7 +51,7 @@ export const getFirebaseAnalytics = async () => {
     const supported = await isSupported();
     return supported ? getAnalytics(app) : null;
   } catch (error) {
-    console.warn('Firebase Analytics 初始化略過:', error);
+    logger.warn('Firebase Analytics 初始化略過:', error);
     return null;
   }
 };

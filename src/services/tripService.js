@@ -9,7 +9,6 @@ import {
   onSnapshot,
   query,
   runTransaction,
-  setDoc,
   updateDoc,
   where,
   writeBatch
@@ -281,30 +280,6 @@ export const saveTrip = async (
       revision: remoteRevision + 1
     };
   });
-};
-
-export const updateShoppingList = async (tripId, shoppingList) => {
-  await setDoc(
-    getTripDocRef(tripId),
-    {
-      planning: { shoppingList },
-      shoppingList,
-      updatedAt: new Date().toISOString()
-    },
-    { merge: true }
-  );
-};
-
-export const updateShoppingCategories = async (tripId, shoppingCategories) => {
-  await setDoc(
-    getTripDocRef(tripId),
-    {
-      planning: { shoppingCategories },
-      shoppingCategories,
-      updatedAt: new Date().toISOString()
-    },
-    { merge: true }
-  );
 };
 
 export const createTripInviteCode = async ({ tripId, permission = 'view', user }) => {
