@@ -1,12 +1,12 @@
 import React from 'react';
-import { AlertCircle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, Wallet } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, Wallet } from 'lucide-react';
 import DaySelector from '../DaySelector';
 import EventCard from '../EventCard';
+import DayReadinessStrip from './DayReadinessStrip';
 import ItineraryRoutePanel from './ItineraryRoutePanel';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { plainTextInputProps } from '../../utils/mobileInputProps';
-import { buildDayReadiness } from '../../utils/eventReadiness';
 
 const currencySymbol = (currency) => (currency === 'TWD' ? 'NT$' : '¥');
 
@@ -30,53 +30,6 @@ const formatCostSummary = (costItems) => {
   return Object.entries(totals)
     .map(([currency, amount]) => `${currencySymbol(currency)}${amount.toLocaleString()}`)
     .join(' / ');
-};
-
-const DayReadinessStrip = ({ readiness, canEdit, onOpenEvent }) => {
-  if (!readiness.totalEvents) return null;
-
-  if (readiness.isComplete) {
-    return (
-      <div className="mt-4 flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100">
-        <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-black">今日行程資料完整</p>
-          <p className="mt-0.5 text-xs font-semibold opacity-80">
-            {readiness.readyCount} 個行程都可用於路線與今日模式。
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const targetEvent = readiness.firstIncompleteEvent;
-  const actionLabel = canEdit ? '補第一個' : '查看';
-
-  return (
-    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <AlertCircle size={18} className="mt-0.5 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-sm font-black">今日還有 {readiness.incompleteCount} 個行程待補</p>
-            <p className="mt-0.5 text-xs font-semibold opacity-85">
-              缺時間 {readiness.missingTimeCount} 個 · 缺地點 {readiness.missingLocationCount} 個
-            </p>
-          </div>
-        </div>
-        {targetEvent && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onOpenEvent(targetEvent, !canEdit)}
-            className="shrink-0 !border-amber-200 !bg-white/80 !text-amber-900 hover:!bg-white dark:!border-amber-900/70 dark:!bg-slate-950/35 dark:!text-amber-100"
-          >
-            {actionLabel}
-          </Button>
-        )}
-      </div>
-    </div>
-  );
 };
 
 const ItineraryTab = () => {
@@ -113,7 +66,6 @@ const ItineraryTab = () => {
   const todayCostSummary = formatCostSummary(todayCostItems);
   const todayCostEventCount = todayCostItems.length;
   const shouldShowCostToggle = todayCostEventCount > 0;
-  const dayReadiness = buildDayReadiness(currentDayData?.events || []);
   const currentDayIndex = itinerary.findIndex((item) => item.day === selectedDay);
   const previousDayItem = currentDayIndex > 0 ? itinerary[currentDayIndex - 1] : null;
   const nextMoveDayItem = currentDayIndex >= 0 && currentDayIndex < itinerary.length - 1
@@ -220,9 +172,10 @@ const ItineraryTab = () => {
         </section>
 
         <DayReadinessStrip
-          readiness={dayReadiness}
+          events={currentDayData?.events || []}
           canEdit={canEdit}
           onOpenEvent={openEditModal}
+          className="mt-4"
         />
 
         <ItineraryRoutePanel

@@ -19,6 +19,7 @@ import {
 import WeatherWidget from '../WeatherWidget';
 import { Badge, Button, Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import DayReadinessStrip from './DayReadinessStrip';
 import {
   buildGoogleMapsMultiStopDirectionsUrl,
   normalizePlaceText
@@ -739,6 +740,12 @@ const TodayTab = () => {
         routeUrl={routeUrl}
         onAddEvent={openAddModal}
         onNavigateNext={handleNavigateNext}
+      />
+
+      <DayReadinessStrip
+        events={dayEvents}
+        canEdit={canEdit}
+        onOpenEvent={openEditModal}
       />
 
       <TravelStatusPanel status={dayStatus} />
