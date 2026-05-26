@@ -211,7 +211,8 @@ const TripDetailPage = () => {
     resolveConflict,
     isSaving,
     saveError,
-    saveNow
+    saveNow,
+    clientId
   } = useTrip(tripId, defaultTripDetails, defaultItinerary, {
     currentUser,
     userProfile
@@ -224,6 +225,7 @@ const TripDetailPage = () => {
   } = useTripPresence({
     tripId,
     currentUser,
+    clientId,
     userProfile,
     accessRole,
     activeTab,
@@ -754,6 +756,7 @@ const TripDetailPage = () => {
     collaboration,
     setCollaboration,
     currentUser,
+    clientId,
     userProfile,
     updateDisplayName,
     logout,
@@ -827,6 +830,7 @@ const TripDetailPage = () => {
     placePool,
     collaboration,
     currentUser,
+    clientId,
     userProfile,
     updateDisplayName,
     logout,

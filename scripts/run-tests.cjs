@@ -20,6 +20,12 @@ const {
   mergeRealtimeVotesIntoPlaces,
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
+const {
+  PLACE_VOTE_OPERATION,
+  isOwnPlaceVoteWrite,
+  mergePlaceVoteIntoPlacePool,
+  shouldTreatRemoteAsConflict
+} = require('../src/utils/tripSync.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -58,6 +64,90 @@ test('builds schema v2 trip documents while preserving shopping data', () => {
   const normalized = normalizeTripDocumentForApp(document);
   assert.equal(normalized.shoppingList[0].id, 'item-1');
   assert.equal(normalized.shoppingCategories[1], '伴手禮');
+});
+
+test('preserves vote sync metadata fields when normalizing trips', () => {
+  const normalized = normalizeTripDocumentForApp({
+    id: 'trip-sync',
+    schemaVersion: 2,
+    syncMeta: {
+      revision: 8,
+      updatedByUid: 'user-1',
+      updatedByClientId: 'client-1',
+      updatedByOperation: PLACE_VOTE_OPERATION,
+      updatedEntityId: 'place-1',
+      updatedAt: '2026-05-25T00:00:00.000Z'
+    }
+  });
+
+  assert.equal(normalized.syncMeta.revision, 8);
+  assert.equal(normalized.syncMeta.updatedByOperation, PLACE_VOTE_OPERATION);
+  assert.equal(normalized.syncMeta.updatedEntityId, 'place-1');
+});
+
+test('does not create a conflict for same-client place vote snapshots', () => {
+  const syncMeta = {
+    updatedByUid: 'user-1',
+    updatedByClientId: 'client-1',
+    updatedByOperation: PLACE_VOTE_OPERATION,
+    updatedEntityId: 'place-1'
+  };
+
+  assert.equal(isOwnPlaceVoteWrite(syncMeta, { uid: 'user-1', clientId: 'client-1' }), true);
+  assert.equal(shouldTreatRemoteAsConflict({
+    hasLocalChanges: true,
+    syncMeta,
+    uid: 'user-1',
+    clientId: 'client-1'
+  }), false);
+});
+
+test('keeps conflict protection for other users and other devices', () => {
+  const syncMeta = {
+    updatedByUid: 'user-1',
+    updatedByClientId: 'client-1',
+    updatedByOperation: PLACE_VOTE_OPERATION,
+    updatedEntityId: 'place-1'
+  };
+
+  assert.equal(shouldTreatRemoteAsConflict({
+    hasLocalChanges: true,
+    syncMeta,
+    uid: 'user-2',
+    clientId: 'client-1'
+  }), true);
+  assert.equal(shouldTreatRemoteAsConflict({
+    hasLocalChanges: true,
+    syncMeta,
+    uid: 'user-1',
+    clientId: 'client-2'
+  }), true);
+});
+
+test('merges own place vote snapshots without overwriting local edits', () => {
+  const result = mergePlaceVoteIntoPlacePool(
+    [
+      { id: 'place-1', name: 'Local draft name', notes: 'keep this', votes: [] },
+      { id: 'place-2', name: 'Other place', votes: [{ voterId: 'old', value: 1 }] }
+    ],
+    [
+      {
+        id: 'place-1',
+        name: 'Remote canonical name',
+        votes: [{ voterId: 'user-1', value: 1, votedAt: '2026-05-25T00:00:00.000Z' }]
+      },
+      { id: 'place-2', name: 'Other place', votes: [] }
+    ],
+    'place-1'
+  );
+
+  assert.equal(result.changed, true);
+  assert.equal(result.placePool[0].name, 'Local draft name');
+  assert.equal(result.placePool[0].notes, 'keep this');
+  assert.deepEqual(result.placePool[0].votes, [
+    { voterId: 'user-1', value: 1, votedAt: '2026-05-25T00:00:00.000Z' }
+  ]);
+  assert.equal(result.placePool[1].votes[0].voterId, 'old');
 });
 
 test('summarizes presence without treating self-only usage as offline', () => {

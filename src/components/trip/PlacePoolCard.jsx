@@ -198,6 +198,7 @@ const PlacePoolCard = ({
   onAddEvent,
   collaboration = {},
   currentUser,
+  clientId = '',
   userProfile,
   placeVotesByPlaceId = {},
   realtimeError = '',
@@ -284,6 +285,7 @@ const PlacePoolCard = ({
       await togglePlaceVote({
         tripId,
         placeId,
+        clientId,
         user: currentUser,
         profile: userProfile
       });

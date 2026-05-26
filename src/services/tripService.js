@@ -317,12 +317,13 @@ export const redeemTripInviteCode = async ({ code, user, profile }) => {
   return response.data || {};
 };
 
-export const togglePlaceVote = async ({ tripId, placeId, user, profile }) => {
+export const togglePlaceVote = async ({ tripId, placeId, user, profile, clientId = '' }) => {
   requireUser(user);
   const callable = httpsCallable(functions, 'togglePlaceVote');
   const response = await callable({
     tripId,
     placeId,
+    clientId,
     displayName: getUserName(user, profile)
   });
   return response.data || {};

@@ -13,6 +13,11 @@ import {
   LEGACY_TRIP_STORAGE_KEY,
   getTripStorageKey
 } from '../utils/storageKeys';
+import {
+  isOwnPlaceVoteWrite,
+  mergePlaceVoteIntoPlacePool,
+  shouldTreatRemoteAsConflict
+} from '../utils/tripSync';
 import { logger } from '../utils/logger';
 
 const getClientId = () => {
@@ -131,6 +136,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const hasLocalChangesRef = useRef(false);
   const applyingRemoteRef = useRef(false);
   const baseRevisionRef = useRef(0);
+  const placePoolRef = useRef([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -152,6 +158,10 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
 
   const canEdit = accessRole === 'owner' || accessRole === 'editor' || accessRole === 'edit';
   const isReadOnly = Boolean(accessRole && !canEdit);
+
+  useEffect(() => {
+    placePoolRef.current = placePool;
+  }, [placePool]);
 
   const markLocalChange = useCallback(() => {
     if (!canEdit) {
@@ -238,9 +248,37 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           (remoteData) => {
             if (!remoteData || cancelled) return;
             const remoteSync = remoteData.syncMeta || {};
-            const isOwnWrite = remoteSync.updatedByClientId && remoteSync.updatedByClientId === clientIdRef.current;
+            const hasLocalChanges = hasLocalChangesRef.current;
+            const ownPlaceVoteWrite = isOwnPlaceVoteWrite(remoteSync, {
+              uid,
+              clientId: clientIdRef.current
+            });
 
-            if (hasLocalChangesRef.current && !isOwnWrite) {
+            if (hasLocalChanges && ownPlaceVoteWrite) {
+              const mergeResult = mergePlaceVoteIntoPlacePool(
+                placePoolRef.current,
+                remoteData.placePool,
+                remoteSync.updatedEntityId
+              );
+
+              if (mergeResult.changed) {
+                placePoolRef.current = mergeResult.placePool;
+                setPlacePoolState(mergeResult.placePool);
+              }
+
+              setSyncMeta(remoteSync);
+              baseRevisionRef.current = Number(remoteSync.revision || baseRevisionRef.current);
+              setSyncConflict(null);
+              setIsLoading(false);
+              return;
+            }
+
+            if (shouldTreatRemoteAsConflict({
+              hasLocalChanges,
+              syncMeta: remoteSync,
+              uid,
+              clientId: clientIdRef.current
+            })) {
               setSyncConflict({ remoteData });
               return;
             }
@@ -506,6 +544,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     setCollaboration,
     access,
     syncMeta,
+    clientId: clientIdRef.current,
     manualRefresh,
     saveNow
   };

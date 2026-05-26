@@ -131,6 +131,8 @@ service cloud.firestore {
         && optionalNumber(syncMeta, 'revision')
         && optionalString(syncMeta, 'updatedByUid', 160)
         && optionalString(syncMeta, 'updatedByClientId', 200)
+        && optionalString(syncMeta, 'updatedByOperation', 80)
+        && optionalString(syncMeta, 'updatedEntityId', 200)
         && optionalString(syncMeta, 'updatedAt', 80);
     }
 

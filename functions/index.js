@@ -53,6 +53,14 @@ const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+const normalizeClientId = (value, fallback = 'server') => {
+  const normalized = String(value || '')
+    .trim()
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .slice(0, 200);
+  return normalized || fallback;
+};
+
 const hashValue = (value) => crypto
   .createHash('sha256')
   .update(value)
@@ -1045,6 +1053,7 @@ exports.togglePlaceVote = onCall(async (request) => {
   const uid = requireSignedIn(request);
   const tripId = String(request.data?.tripId || '').trim();
   const placeId = String(request.data?.placeId || '').trim();
+  const clientId = normalizeClientId(request.data?.clientId, 'server:togglePlaceVote');
 
   if (!tripId || !placeId) {
     throw new HttpsError('invalid-argument', '請提供旅程與地點。');
@@ -1121,7 +1130,9 @@ exports.togglePlaceVote = onCall(async (request) => {
       updatedAt: now,
       'syncMeta.revision': revision,
       'syncMeta.updatedByUid': uid,
-      'syncMeta.updatedByClientId': 'server:togglePlaceVote',
+      'syncMeta.updatedByClientId': clientId,
+      'syncMeta.updatedByOperation': 'place-vote',
+      'syncMeta.updatedEntityId': placeId,
       'syncMeta.updatedAt': now
     });
 

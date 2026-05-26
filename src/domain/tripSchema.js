@@ -135,6 +135,8 @@ const normalizeSyncMeta = (syncMeta = {}) => {
     revision: Number.isFinite(revision) ? revision : 0,
     updatedByUid: cleanString(source.updatedByUid),
     updatedByClientId: cleanString(source.updatedByClientId),
+    updatedByOperation: cleanString(source.updatedByOperation),
+    updatedEntityId: cleanString(source.updatedEntityId),
     updatedAt: cleanString(source.updatedAt)
   };
 };

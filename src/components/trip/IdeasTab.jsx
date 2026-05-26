@@ -13,6 +13,7 @@ const IdeasTab = () => {
     selectedDay,
     collaboration,
     currentUser,
+    clientId,
     userProfile,
     accessRole,
     placeVotesByPlaceId,
@@ -48,6 +49,7 @@ const IdeasTab = () => {
         onAddEvent={openAddModal}
         collaboration={collaboration}
         currentUser={currentUser}
+        clientId={clientId}
         userProfile={userProfile}
         placeVotesByPlaceId={placeVotesByPlaceId}
         realtimeError={realtimeError}
