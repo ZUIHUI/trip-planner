@@ -50,7 +50,7 @@ This repo includes `vercel.json` rewrites for:
 /__/firebase/*
 ```
 
-The app also uses the current `*.vercel.app` host as `authDomain` at runtime. For Vercel deployments, configure these settings:
+The app now pins the Firebase web config in `src/services/firebase.js` and uses `trip-planner-36455.firebaseapp.com` as the default `authDomain`. For Vercel deployments, configure these settings:
 
 Firebase Console > Authentication > Settings > Authorized domains:
 
@@ -69,14 +69,13 @@ https://trip-planner-mu-red.vercel.app
 Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client > Authorized redirect URIs:
 
 ```text
-https://trip-planner-mu-red.vercel.app/__/auth/handler
 https://trip-planner-36455.firebaseapp.com/__/auth/handler
 ```
 
-Vercel environment variables should still point at the Firebase project:
+Do not put Google Maps, Places, Geocoding, or other provider keys in Vercel frontend env vars. Vercel does not need `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, or other Firebase web config overrides for this deployment. If those env vars already exist in Vercel, make sure they do not contain provider API keys; the app ignores them for Firebase initialization.
 
 ```text
-VITE_FIREBASE_AUTH_DOMAIN=trip-planner-36455.firebaseapp.com
+VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH=false
 ```
 
 If you use a custom domain on Vercel, set this env var and add the same domain to Firebase and Google OAuth:
@@ -87,14 +86,13 @@ VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH=true
 
 ## Environment
 
-Set these values before building:
+The Firebase web app config is pinned in `src/services/firebase.js`. Set only app-level frontend options before building:
 
 ```bash
-VITE_FIREBASE_DATABASE_URL=https://your-project-id-default-rtdb.firebaseio.com
 VITE_PRIMARY_OWNER_EMAIL=owner@example.com
 ```
 
-Keep the existing Firebase web app keys in `.env` or `.env.local`.
+Keep provider API keys in Firebase Functions secrets, not in Vercel frontend env vars.
 
 ## Install
 

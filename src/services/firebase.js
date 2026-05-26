@@ -5,8 +5,8 @@ import { getDatabase } from 'firebase/database';
 import { getFunctions } from 'firebase/functions';
 import { logger } from '../utils/logger';
 
-// Firebase web config is public by design. These defaults keep Vercel builds
-// working when dashboard env vars are missing; provider API keys stay server-only.
+// Firebase web config is public by design. Keep this project's config pinned so
+// a provider API key accidentally added to Vercel cannot break Firebase Auth.
 const firebaseConfigDefaults = {
   apiKey: 'AIzaSyAKNaAr-ZH85jusPoiw5HPqMbv_j2W9Mp0',
   authDomain: 'trip-planner-36455.firebaseapp.com',
@@ -18,36 +18,19 @@ const firebaseConfigDefaults = {
   measurementId: 'G-H1NYSN3EYE'
 };
 
-const getEnvValue = (key, fallback) => import.meta.env[key] || fallback;
-
 const getRuntimeAuthDomain = () => {
-  const configuredAuthDomain = getEnvValue(
-    'VITE_FIREBASE_AUTH_DOMAIN',
-    firebaseConfigDefaults.authDomain
-  );
-
   if (typeof window === 'undefined') {
-    return configuredAuthDomain;
+    return firebaseConfigDefaults.authDomain;
   }
 
-  const host = window.location.hostname;
   const shouldUseCurrentHost = import.meta.env.VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH === 'true';
 
-  return shouldUseCurrentHost ? host : configuredAuthDomain;
+  return shouldUseCurrentHost ? window.location.hostname : firebaseConfigDefaults.authDomain;
 };
 
 const firebaseConfig = {
-  apiKey: getEnvValue('VITE_FIREBASE_API_KEY', firebaseConfigDefaults.apiKey),
+  ...firebaseConfigDefaults,
   authDomain: getRuntimeAuthDomain(),
-  databaseURL: getEnvValue('VITE_FIREBASE_DATABASE_URL', firebaseConfigDefaults.databaseURL),
-  projectId: getEnvValue('VITE_FIREBASE_PROJECT_ID', firebaseConfigDefaults.projectId),
-  storageBucket: getEnvValue('VITE_FIREBASE_STORAGE_BUCKET', firebaseConfigDefaults.storageBucket),
-  messagingSenderId: getEnvValue(
-    'VITE_FIREBASE_MESSAGING_SENDER_ID',
-    firebaseConfigDefaults.messagingSenderId
-  ),
-  appId: getEnvValue('VITE_FIREBASE_APP_ID', firebaseConfigDefaults.appId),
-  measurementId: getEnvValue('VITE_FIREBASE_MEASUREMENT_ID', firebaseConfigDefaults.measurementId)
 };
 
 const app = initializeApp(firebaseConfig);
