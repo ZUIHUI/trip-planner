@@ -388,59 +388,117 @@ const StatusMetric = ({ icon: Icon, label, value, tone = 'slate' }) => {
   );
 };
 
-const TravelStatusPanel = ({ status }) => (
-  <Card className="p-4">
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">Travel mode</p>
-        <h3 className="mt-1 text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
+const StatusSummaryPill = ({ icon: Icon, label, value, tone = 'slate' }) => {
+  const toneClasses = {
+    amber: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100',
+    brand: 'border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900/70 dark:bg-brand-950/35 dark:text-brand-100',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100',
+    slate: 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-800/70 dark:text-slate-200',
+    sky: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-100'
+  };
+
+  return (
+    <span className={`inline-flex min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black ${toneClasses[tone] || toneClasses.slate}`}>
+      <Icon size={13} className="shrink-0" />
+      <span className="shrink-0 opacity-75">{label}</span>
+      <span className="min-w-0 truncate">{value}</span>
+    </span>
+  );
+};
+
+const TravelStatusPanel = ({ status }) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const hasRouteWarning = status.missingLocationCount > 0;
+  const hasChecklistWarning = status.checklistRemaining > 0;
+  const summaryText = status.totalEvents
+    ? `${status.completedEvents}/${status.totalEvents} 已過行程，下一站 ${status.nextTime}`
+    : '今天還沒有排程，先新增一個行程。';
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">Travel mode</p>
+          <h3 className="mt-1 text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
+          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{summaryText}</p>
+        </div>
+        <Badge variant={status.totalEvents ? 'info' : 'muted'}>
+          {status.totalEvents ? `${status.progressPercent}%` : '未排程'}
+        </Badge>
       </div>
-      <Badge variant={status.totalEvents ? 'info' : 'muted'}>
-        {status.totalEvents ? `${status.progressPercent}%` : '未排程'}
-      </Badge>
-    </div>
 
-    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-      <div
-        className="h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-emerald-500 transition-all duration-300"
-        style={{ width: `${status.progressPercent}%` }}
-      />
-    </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-emerald-500 transition-all duration-300"
+          style={{ width: `${status.progressPercent}%` }}
+        />
+      </div>
 
-    <div className="mt-3 grid grid-cols-2 gap-2">
-      <StatusMetric
-        icon={CheckCircle2}
-        label="已過行程"
-        value={`${status.completedEvents}/${status.totalEvents}`}
-        tone="emerald"
-      />
-      <StatusMetric
-        icon={Clock}
-        label="下一站"
-        value={status.nextTime}
-        tone="sky"
-      />
-      <StatusMetric
-        icon={Navigation}
-        label="可導航"
-        value={`${status.routeStopCount}/${status.totalEvents}`}
-        tone={status.missingLocationCount ? 'amber' : 'brand'}
-      />
-      <StatusMetric
-        icon={AlertTriangle}
-        label="待確認"
-        value={`${status.checklistRemaining} 項`}
-        tone={status.checklistRemaining ? 'amber' : 'slate'}
-      />
-    </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <StatusSummaryPill
+          icon={Navigation}
+          label="導航"
+          value={`${status.routeStopCount}/${status.totalEvents}`}
+          tone={hasRouteWarning ? 'amber' : 'brand'}
+        />
+        <StatusSummaryPill
+          icon={AlertTriangle}
+          label="待確認"
+          value={`${status.checklistRemaining} 項`}
+          tone={hasChecklistWarning ? 'amber' : 'slate'}
+        />
+      </div>
 
-    {status.missingLocationCount > 0 && (
-      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-        有 {status.missingLocationCount} 個行程還沒有地點，補上後才能產生完整路線。
-      </p>
-    )}
-  </Card>
-);
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowDetails((open) => !open)}
+        aria-expanded={showDetails}
+        className="mt-3 w-full justify-center"
+      >
+        {showDetails ? '收起細節' : '查看細節'}
+        {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+      </Button>
+
+      {showDetails && (
+        <div className="mt-3 space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <StatusMetric
+              icon={CheckCircle2}
+              label="已過行程"
+              value={`${status.completedEvents}/${status.totalEvents}`}
+              tone="emerald"
+            />
+            <StatusMetric
+              icon={Clock}
+              label="下一站"
+              value={status.nextTime}
+              tone="sky"
+            />
+            <StatusMetric
+              icon={Navigation}
+              label="可導航"
+              value={`${status.routeStopCount}/${status.totalEvents}`}
+              tone={hasRouteWarning ? 'amber' : 'brand'}
+            />
+            <StatusMetric
+              icon={AlertTriangle}
+              label="待確認"
+              value={`${status.checklistRemaining} 項`}
+              tone={hasChecklistWarning ? 'amber' : 'slate'}
+            />
+          </div>
+
+          {hasRouteWarning && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+              有 {status.missingLocationCount} 個行程還沒有地點，補上後才能產生完整路線。
+            </p>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+};
 
 const ReminderStrip = ({ reminders }) => {
   if (!reminders.length) {
