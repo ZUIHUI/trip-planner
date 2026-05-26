@@ -8,9 +8,9 @@ import { logger } from '../utils/logger';
 // Firebase web config is public by design. These defaults keep Vercel builds
 // working when dashboard env vars are missing; provider API keys stay server-only.
 const firebaseConfigDefaults = {
-  apiKey: 'AIzaSyDWiG35YXHw6iILQknLp3obXDN--EMj2l4',
+  apiKey: 'AIzaSyAKNaAr-ZH85jusPoiw5HPqMbv_j2W9Mp0',
   authDomain: 'trip-planner-36455.firebaseapp.com',
-  databaseURL: 'https://trip-planner-36455-default-rtdb.firebaseio.com',
+  databaseURL: 'https://trip-planner-36455-default-rtdb.asia-southeast1.firebasedatabase.app',
   projectId: 'trip-planner-36455',
   storageBucket: 'trip-planner-36455.firebasestorage.app',
   messagingSenderId: '160404293548',
