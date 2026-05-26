@@ -51,6 +51,50 @@ const getChecklistRemaining = (items = []) => (
   Array.isArray(items) ? items.filter((item) => !item.done).length : 0
 );
 
+const readEventTimeMinutes = (event) => {
+  const match = String(event?.time || '').trim().match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  if (!match) return null;
+  return Number(match[1]) * 60 + Number(match[2]);
+};
+
+const getCurrentTimeMinutes = (now = new Date()) => (
+  now.getHours() * 60 + now.getMinutes()
+);
+
+const buildDayStatus = ({
+  events,
+  routeStops,
+  checklists,
+  nextEvent,
+  now = new Date()
+}) => {
+  const currentMinutes = getCurrentTimeMinutes(now);
+  const timedEvents = events
+    .map((event) => ({ event, minutes: readEventTimeMinutes(event) }))
+    .filter((item) => item.minutes !== null)
+    .sort((a, b) => a.minutes - b.minutes);
+  const completedTimedEvents = timedEvents.filter((item) => item.minutes < currentMinutes).length;
+  const completedEvents = timedEvents.length
+    ? completedTimedEvents
+    : 0;
+  const totalEvents = events.length;
+  const progressPercent = totalEvents
+    ? Math.min(100, Math.round((completedEvents / totalEvents) * 100))
+    : 0;
+  const missingLocationCount = Math.max(0, totalEvents - routeStops.length);
+  const checklistRemaining = getChecklistRemaining(checklists?.preTrip) + getChecklistRemaining(checklists?.packing);
+
+  return {
+    completedEvents,
+    totalEvents,
+    progressPercent,
+    routeStopCount: routeStops.length,
+    missingLocationCount,
+    checklistRemaining,
+    nextTime: nextEvent?.time || '--:--'
+  };
+};
+
 const buildReminders = ({
   events,
   routeStops,
@@ -323,6 +367,80 @@ const QuickActions = ({ canEdit, nextEvent, routeUrl, onAddEvent, onNavigateNext
   );
 };
 
+const StatusMetric = ({ icon: Icon, label, value, tone = 'slate' }) => {
+  const toneClasses = {
+    amber: 'bg-amber-50 text-amber-800 dark:bg-amber-950/35 dark:text-amber-100',
+    brand: 'bg-brand-50 text-brand-800 dark:bg-brand-950/35 dark:text-brand-100',
+    emerald: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/35 dark:text-emerald-100',
+    slate: 'bg-slate-50 text-slate-800 dark:bg-slate-800/70 dark:text-slate-100',
+    sky: 'bg-sky-50 text-sky-800 dark:bg-sky-950/35 dark:text-sky-100'
+  };
+
+  return (
+    <div className={`rounded-lg px-3 py-2 ${toneClasses[tone] || toneClasses.slate}`}>
+      <div className="flex items-center gap-1.5 text-xs font-black opacity-75">
+        <Icon size={13} />
+        {label}
+      </div>
+      <p className="mt-1 truncate text-base font-black">{value}</p>
+    </div>
+  );
+};
+
+const TravelStatusPanel = ({ status }) => (
+  <Card className="p-4">
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">Travel mode</p>
+        <h3 className="mt-1 text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
+      </div>
+      <Badge variant={status.totalEvents ? 'info' : 'muted'}>
+        {status.totalEvents ? `${status.progressPercent}%` : '未排程'}
+      </Badge>
+    </div>
+
+    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-emerald-500 transition-all duration-300"
+        style={{ width: `${status.progressPercent}%` }}
+      />
+    </div>
+
+    <div className="mt-3 grid grid-cols-2 gap-2">
+      <StatusMetric
+        icon={CheckCircle2}
+        label="已過行程"
+        value={`${status.completedEvents}/${status.totalEvents}`}
+        tone="emerald"
+      />
+      <StatusMetric
+        icon={Clock}
+        label="下一站"
+        value={status.nextTime}
+        tone="sky"
+      />
+      <StatusMetric
+        icon={Navigation}
+        label="可導航"
+        value={`${status.routeStopCount}/${status.totalEvents}`}
+        tone={status.missingLocationCount ? 'amber' : 'brand'}
+      />
+      <StatusMetric
+        icon={AlertTriangle}
+        label="待確認"
+        value={`${status.checklistRemaining} 項`}
+        tone={status.checklistRemaining ? 'amber' : 'slate'}
+      />
+    </div>
+
+    {status.missingLocationCount > 0 && (
+      <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+        有 {status.missingLocationCount} 個行程還沒有地點，補上後才能產生完整路線。
+      </p>
+    )}
+  </Card>
+);
+
 const ReminderStrip = ({ reminders }) => {
   if (!reminders.length) {
     return (
@@ -568,6 +686,15 @@ const TodayTab = () => {
     }),
     [events, routeStops, tripDetails, budgetTarget, remainingBudget, checklists]
   );
+  const dayStatus = useMemo(
+    () => buildDayStatus({
+      events,
+      routeStops,
+      checklists,
+      nextEvent
+    }),
+    [events, routeStops, checklists, nextEvent]
+  );
 
   const handleNavigateNext = () => {
     const destination = getEventDestination(nextEvent);
@@ -609,6 +736,8 @@ const TodayTab = () => {
         onAddEvent={openAddModal}
         onNavigateNext={handleNavigateNext}
       />
+
+      <TravelStatusPanel status={dayStatus} />
 
       <ReminderStrip reminders={reminders} />
 
