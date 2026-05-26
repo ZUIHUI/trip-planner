@@ -22,7 +22,7 @@ const {
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
 const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
-const { buildEventReadiness } = require('../src/utils/eventReadiness.js');
+const { buildDayReadiness, buildEventReadiness } = require('../src/utils/eventReadiness.js');
 const {
   PLACE_VOTE_OPERATION,
   isOwnPlaceVoteWrite,
@@ -103,6 +103,24 @@ test('summarizes event readiness from time and place data', () => {
   const missing = buildEventReadiness({ title: 'Draft' });
   assert.equal(missing.isReadyForRoute, false);
   assert.deepEqual(missing.missingItems.map((item) => item.id), ['time', 'location']);
+});
+
+test('summarizes day readiness for quick itinerary repair', () => {
+  const state = buildDayReadiness([
+    { id: 'ready', time: '09:00', location: 'Tokyo Station' },
+    { id: 'missing-time', location: 'Shibuya' },
+    { id: 'missing-location', time: '12:00' }
+  ]);
+
+  assert.equal(state.totalEvents, 3);
+  assert.equal(state.readyCount, 1);
+  assert.equal(state.incompleteCount, 2);
+  assert.equal(state.missingTimeCount, 1);
+  assert.equal(state.missingLocationCount, 1);
+  assert.equal(state.firstIncompleteEvent.id, 'missing-time');
+  assert.equal(state.isComplete, false);
+
+  assert.equal(buildDayReadiness([{ id: 'ready', time: '10:00', location: 'Ueno' }]).isComplete, true);
 });
 
 test('validates common form fields', () => {
