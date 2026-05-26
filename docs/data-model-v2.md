@@ -96,6 +96,6 @@
 
 ## Google API
 
-- 前端使用 `VITE_GOOGLE_MAPS_API_KEY`。
+- 前端不再使用 `VITE_GOOGLE_MAPS_API_KEY`；Google Places / Geocoding 改由 Firebase Callable Functions 讀取 `GOOGLE_GEOCODING_API_KEY` secret。
 - Google Maps URL 導航不需要 API key；Geocoding 才需要 key。
 - Google 相關邏輯集中在 `src/services/googleMapsService.js`，不要直接散落在 UI 元件中。

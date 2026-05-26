@@ -14,6 +14,7 @@ const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
 const EMAIL_CODE_PEPPER = defineSecret('EMAIL_CODE_PEPPER');
 const INVITE_CODE_PEPPER = defineSecret('INVITE_CODE_PEPPER');
 const FLIGHTAPI_IO_KEY = defineSecret('FLIGHTAPI_IO_KEY');
+const GOOGLE_GEOCODING_API_KEY = defineSecret('GOOGLE_GEOCODING_API_KEY');
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const EMAIL_CODE_RESEND_COOLDOWN_MS = 60 * 1000;
 const EMAIL_CODE_MAX_ATTEMPTS = 5;
@@ -21,9 +22,14 @@ const INVITE_CODE_RATE_WINDOW_MS = 5 * 60 * 1000;
 const INVITE_CODE_MAX_ATTEMPTS = 12;
 const FLIGHT_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
 const FLIGHT_LOOKUP_MAX_ATTEMPTS = 20;
+const GOOGLE_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
+const GOOGLE_LOOKUP_MAX_ATTEMPTS = 120;
 const INVITE_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const DEFAULT_EMAIL_FROM = 'Trip Planner <onboarding@resend.dev>';
 const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
+const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
+const GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+const GOOGLE_PLACE_DETAILS_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/details/json';
 
 const normalizeRole = (role) => {
   if (role === 'owner') return 'owner';
@@ -392,6 +398,35 @@ const assertFlightLookupRateLimit = async (uid) => {
   }
 };
 
+const assertGoogleLookupRateLimit = async (uid) => {
+  const now = Date.now();
+  const rateRef = firestore.collection('googleLookupRateLimits').doc(uid);
+  let waitSeconds = 0;
+
+  await firestore.runTransaction(async (transaction) => {
+    const snap = await transaction.get(rateRef);
+    const data = snap.exists ? snap.data() : {};
+    const windowStartedAtMs = Number(data.windowStartedAtMs || 0);
+    const attempts = Number(data.attempts || 0);
+    const isSameWindow = windowStartedAtMs && now - windowStartedAtMs < GOOGLE_LOOKUP_RATE_WINDOW_MS;
+
+    if (isSameWindow && attempts >= GOOGLE_LOOKUP_MAX_ATTEMPTS) {
+      waitSeconds = Math.ceil((GOOGLE_LOOKUP_RATE_WINDOW_MS - (now - windowStartedAtMs)) / 1000);
+      return;
+    }
+
+    transaction.set(rateRef, {
+      attempts: isSameWindow ? attempts + 1 : 1,
+      windowStartedAtMs: isSameWindow ? windowStartedAtMs : now,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+
+  if (waitSeconds > 0) {
+    throw new HttpsError('resource-exhausted', `Google place lookup rate limit reached. Try again in ${waitSeconds} seconds.`);
+  }
+};
+
 const getOrCreateEmailUser = async (email) => {
   try {
     const existingUser = await admin.auth().getUserByEmail(email);
@@ -551,6 +586,242 @@ const flightProviderMessage = (status) => {
   if (status === 429) return '航班查詢次數已達上限，請稍後再試或手動填寫。';
   return '航班查詢暫時無法使用，請稍後再試或手動填寫。';
 };
+
+const GOOGLE_PLACE_STATUS = {
+  idle: 'idle',
+  missingApiKey: 'missing_api_key',
+  loadingFailed: 'loading_failed',
+  apiNotActivated: 'api_not_activated',
+  apiTargetBlocked: 'api_target_blocked',
+  billingOrKeyError: 'billing_or_key_error',
+  requestFailed: 'request_failed',
+  empty: 'empty',
+  success: 'success'
+};
+
+const normalizeGoogleLookupText = (value, maxLength = 240) => String(value || '')
+  .trim()
+  .replace(/[\u0000-\u001f\u007f]/g, '')
+  .slice(0, maxLength);
+
+const normalizeGooglePlaceTypes = (value) => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => normalizeGoogleLookupText(item, 60))
+    .filter((item) => /^[a-zA-Z0-9_()|]+$/.test(item))
+    .slice(0, 3);
+};
+
+const readGoogleCoordinate = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const getGoogleApiKey = () => GOOGLE_GEOCODING_API_KEY.value();
+
+const googleProviderErrorCode = (status) => {
+  if (status === 'OVER_QUERY_LIMIT') return 'resource-exhausted';
+  if (status === 'REQUEST_DENIED') return 'failed-precondition';
+  if (status === 'INVALID_REQUEST') return 'invalid-argument';
+  return 'unavailable';
+};
+
+const googleProviderStatus = (status) => {
+  if (status === 'REQUEST_DENIED') return GOOGLE_PLACE_STATUS.billingOrKeyError;
+  if (status === 'OVER_QUERY_LIMIT') return GOOGLE_PLACE_STATUS.requestFailed;
+  if (status === 'INVALID_REQUEST') return GOOGLE_PLACE_STATUS.requestFailed;
+  return GOOGLE_PLACE_STATUS.loadingFailed;
+};
+
+const fetchGoogleJson = async (endpoint, params) => {
+  let response = null;
+  let payload = null;
+
+  try {
+    response = await fetch(`${endpoint}?${params.toString()}`);
+    payload = await response.json().catch(() => ({}));
+  } catch (error) {
+    console.error('Google API request failed', {
+      endpoint,
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    throw new HttpsError('unavailable', 'Google place service is unavailable.');
+  }
+
+  if (!response.ok) {
+    console.error('Google API HTTP error', {
+      endpoint,
+      status: response.status,
+      providerStatus: payload?.status || ''
+    });
+    throw new HttpsError('unavailable', 'Google place service returned an error.');
+  }
+
+  const providerStatus = payload?.status || '';
+  if (providerStatus && providerStatus !== 'OK' && providerStatus !== 'ZERO_RESULTS') {
+    console.error('Google API provider error', {
+      endpoint,
+      providerStatus,
+      errorMessage: payload?.error_message || ''
+    });
+    throw new HttpsError(
+      googleProviderErrorCode(providerStatus),
+      payload?.error_message || 'Google place service returned an error.',
+      { googlePlacesStatus: googleProviderStatus(providerStatus), providerStatus }
+    );
+  }
+
+  return payload;
+};
+
+const normalizeGooglePrediction = (prediction) => {
+  const formatting = prediction?.structured_formatting || {};
+  const description = normalizeGoogleLookupText(prediction?.description, 300);
+  return {
+    source: 'server',
+    placeId: normalizeGoogleLookupText(prediction?.place_id, 180),
+    description,
+    mainText: normalizeGoogleLookupText(formatting.main_text, 180) || description,
+    secondaryText: normalizeGoogleLookupText(formatting.secondary_text, 220),
+    types: Array.isArray(prediction?.types) ? prediction.types.slice(0, 12) : []
+  };
+};
+
+const normalizeGoogleDetails = (place, fallbackText = '') => {
+  const location = place?.geometry?.location || {};
+  const fallback = normalizeGoogleLookupText(fallbackText, 240);
+  const name = normalizeGoogleLookupText(place?.name, 240) || fallback;
+  const address = normalizeGoogleLookupText(place?.formatted_address, 300) || name || fallback;
+
+  return {
+    name,
+    address,
+    placeId: normalizeGoogleLookupText(place?.place_id, 180),
+    lat: readGoogleCoordinate(location.lat),
+    lng: readGoogleCoordinate(location.lng)
+  };
+};
+
+const getConfiguredGoogleApiKey = () => {
+  const apiKey = getGoogleApiKey();
+  if (!apiKey) {
+    throw new HttpsError(
+      'failed-precondition',
+      'Google place service is not configured.',
+      { googlePlacesStatus: GOOGLE_PLACE_STATUS.missingApiKey }
+    );
+  }
+  return apiKey;
+};
+
+exports.searchGooglePlaces = onCall(
+  { secrets: [GOOGLE_GEOCODING_API_KEY] },
+  async (request) => {
+    const uid = requireSignedIn(request);
+    await assertGoogleLookupRateLimit(uid);
+
+    const apiKey = getConfiguredGoogleApiKey();
+    const input = normalizeGoogleLookupText(request.data?.input, 180);
+    if (input.length < 2) {
+      return {
+        provider: 'google_places',
+        status: GOOGLE_PLACE_STATUS.idle,
+        predictions: []
+      };
+    }
+
+    const params = new URLSearchParams({
+      input,
+      key: apiKey,
+      language: 'zh-TW'
+    });
+
+    const placeTypes = normalizeGooglePlaceTypes(request.data?.placeTypes);
+    if (placeTypes.length) {
+      params.set('types', placeTypes[0]);
+    }
+
+    const payload = await fetchGoogleJson(GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT, params);
+    const predictions = Array.isArray(payload?.predictions)
+      ? payload.predictions.map(normalizeGooglePrediction).filter((item) => item.placeId || item.description)
+      : [];
+
+    return {
+      provider: 'google_places',
+      status: predictions.length ? GOOGLE_PLACE_STATUS.success : GOOGLE_PLACE_STATUS.empty,
+      predictions
+    };
+  }
+);
+
+exports.getGooglePlaceDetails = onCall(
+  { secrets: [GOOGLE_GEOCODING_API_KEY] },
+  async (request) => {
+    const uid = requireSignedIn(request);
+    await assertGoogleLookupRateLimit(uid);
+
+    const apiKey = getConfiguredGoogleApiKey();
+    const placeId = normalizeGoogleLookupText(request.data?.placeId, 180);
+    const fallbackText = normalizeGoogleLookupText(request.data?.fallbackText, 240);
+    if (!placeId) {
+      throw new HttpsError('invalid-argument', 'Google place id is required.');
+    }
+
+    const params = new URLSearchParams({
+      place_id: placeId,
+      fields: 'place_id,name,formatted_address,geometry,types',
+      key: apiKey,
+      language: 'zh-TW'
+    });
+
+    const payload = await fetchGoogleJson(GOOGLE_PLACE_DETAILS_ENDPOINT, params);
+    return {
+      provider: 'google_places',
+      place: normalizeGoogleDetails(payload?.result || {}, fallbackText)
+    };
+  }
+);
+
+exports.geocodeGooglePlace = onCall(
+  { secrets: [GOOGLE_GEOCODING_API_KEY] },
+  async (request) => {
+    const uid = requireSignedIn(request);
+    await assertGoogleLookupRateLimit(uid);
+
+    const apiKey = getConfiguredGoogleApiKey();
+    const query = normalizeGoogleLookupText(request.data?.query, 240);
+    if (!query) {
+      throw new HttpsError('invalid-argument', 'Google geocoding query is required.');
+    }
+
+    const params = new URLSearchParams({
+      address: query,
+      key: apiKey,
+      language: 'zh-TW'
+    });
+
+    const payload = await fetchGoogleJson(GOOGLE_GEOCODING_ENDPOINT, params);
+    const firstResult = Array.isArray(payload?.results) ? payload.results[0] : null;
+    if (!firstResult) {
+      return {
+        success: false,
+        reason: payload?.status || 'not_found',
+        query
+      };
+    }
+
+    const place = normalizeGoogleDetails(firstResult, query);
+    return {
+      success: true,
+      query,
+      placeId: place.placeId,
+      formattedAddress: place.address || query,
+      lat: place.lat,
+      lng: place.lng
+    };
+  }
+);
 
 exports.lookupFlight = onCall(
   { secrets: [FLIGHTAPI_IO_KEY] },

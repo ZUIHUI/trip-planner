@@ -80,14 +80,15 @@ npm run preview
 
 請以 `.env.example` 作為完整範本。常用設定分成三類：
 
-- 前端 Vite 變數：Firebase web app 設定、Realtime Database URL、主要 owner email、Google Maps key，皆使用 `VITE_` 前綴。
-- Server-side 變數：航班查詢使用 FlightAPI.io，API key 必須放在 Firebase Functions secret，不要加上 `VITE_` 前綴。
-- Firebase Functions secrets：Email 驗證碼、邀請碼、航班查詢與寄信服務使用 `RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`、`FLIGHTAPI_IO_KEY` 等 secrets。
+- 前端 Vite 變數：Firebase web app 設定、Realtime Database URL、主要 owner email，皆使用 `VITE_` 前綴；不要把第三方 provider API key 放在前端變數。
+- Server-side 變數：航班查詢使用 FlightAPI.io，地點搜尋 / Geocoding 使用 Google API，API key 必須放在 Firebase Functions secret，不要加上 `VITE_` 前綴。
+- Firebase Functions secrets：Email 驗證碼、邀請碼、航班查詢、Google 地點查詢與寄信服務使用 `RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`、`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY` 等 secrets。
 
 航班查詢範例：
 
 ```env
 firebase functions:secrets:set FLIGHTAPI_IO_KEY
+firebase functions:secrets:set GOOGLE_GEOCODING_API_KEY
 ```
 
 航班查詢已改為需要登入的 Firebase Callable Function；公開 `/api/flight-lookup` endpoint 只會回傳授權錯誤，避免外部直接消耗 provider key。
@@ -97,9 +98,9 @@ firebase functions:secrets:set FLIGHTAPI_IO_KEY
 正式進 staging 前請逐項確認：
 
 - 輪替任何曾經進入 Git history、issue、聊天紀錄或部署 log 的 API key / secret。
-- 設定 Firebase Functions secrets：`FLIGHTAPI_IO_KEY`、`RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`。
+- 設定 Firebase Functions secrets：`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY`、`RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`。
 - 部署安全規則與後端：`firebase deploy --only firestore:rules,functions`。
-- Firebase Web API key、Google Maps browser key 必須限制允許網域；staging 與 production domain 分開列入 allowlist。
+- Firebase Web API key 必須限制允許網域；Google server key 請限制可用 API，並在曾經公開過時重新產生。
 - 航班查詢只允許登入後透過 Callable Function；公開 `/api/flight-lookup` 應固定回 401。
 - 航班查詢 rate limit 預設為每位登入使用者 10 分鐘 20 次；超過時應回 `resource-exhausted`。
 - 執行 `npm run rules:test`，確認 anonymous / viewer / editor / owner 權限案例符合預期。
