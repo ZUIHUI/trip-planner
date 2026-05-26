@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Bed,
   CalendarDays,
   CheckCircle2,
   CheckSquare,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Info,
   Luggage,
@@ -679,6 +681,31 @@ const FlightsCard = ({ flights, onTabChange }) => (
   </Card>
 );
 
+const CollapsibleOverviewSection = ({ open, onToggle, children }) => (
+  <section className="order-4">
+    <button
+      type="button"
+      onClick={onToggle}
+      className="touch-target flex w-full items-center justify-between gap-3 rounded-lg border border-cyan-100 bg-white/90 px-4 py-3 text-left shadow-sm transition hover:border-brand-200 hover:bg-sky-50/70 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-brand-800 dark:hover:bg-brand-950/25"
+      aria-expanded={open}
+    >
+      <span className="min-w-0">
+        <span className="block text-sm font-black text-slate-950 dark:text-white">更多總覽資訊</span>
+        <span className="mt-0.5 block truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+          預算、住宿、航班、即時動態與快速入口
+        </span>
+      </span>
+      {open ? <ChevronUp size={18} className="shrink-0 text-slate-500" /> : <ChevronDown size={18} className="shrink-0 text-slate-500" />}
+    </button>
+
+    {open && (
+      <div className="mt-4 grid gap-4">
+        {children}
+      </div>
+    )}
+  </section>
+);
+
 const SummaryTab = ({ onTabChange, onAddEvent }) => {
   const {
     tripDetails,
@@ -695,6 +722,7 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
     presenceError,
     handleOpenGoogleMaps
   } = useTripWorkspace();
+  const [showMoreOverview, setShowMoreOverview] = useState(false);
 
   const nextSummary = useMemo(
     () => getSummaryNextEvent(itinerary, selectedDay),
@@ -726,34 +754,39 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
 
       <ReadinessCard items={readinessItems} onTabChange={onTabChange} />
 
-      <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
+      <CollapsibleOverviewSection
+        open={showMoreOverview}
+        onToggle={() => setShowMoreOverview((open) => !open)}
+      >
+        <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
 
-      <RealtimeActivityCard presenceUi={presenceUi} presenceError={presenceError} />
+        <RealtimeActivityCard presenceUi={presenceUi} presenceError={presenceError} />
 
-      <TripOverviewCard
-        tripDisplayDates={tripDisplayDates}
-        itinerary={itinerary}
-        onTabChange={onTabChange}
-      />
-
-      <BudgetSummary
-        budgetInfo={budgetInfo}
-        budgetTarget={budgetTarget}
-        remainingBudget={remainingBudget}
-        budgetProgress={budgetProgress}
-        onTabChange={onTabChange}
-      />
-
-      <div className="order-6 grid gap-4 lg:grid-cols-2">
-        <AccommodationCard
-          accommodation={tripDetails?.accommodation}
+        <TripOverviewCard
+          tripDisplayDates={tripDisplayDates}
+          itinerary={itinerary}
           onTabChange={onTabChange}
         />
-        <FlightsCard
-          flights={tripDetails?.flights}
+
+        <BudgetSummary
+          budgetInfo={budgetInfo}
+          budgetTarget={budgetTarget}
+          remainingBudget={remainingBudget}
+          budgetProgress={budgetProgress}
           onTabChange={onTabChange}
         />
-      </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <AccommodationCard
+            accommodation={tripDetails?.accommodation}
+            onTabChange={onTabChange}
+          />
+          <FlightsCard
+            flights={tripDetails?.flights}
+            onTabChange={onTabChange}
+          />
+        </div>
+      </CollapsibleOverviewSection>
     </div>
   );
 };
