@@ -20,6 +20,7 @@ const {
   mergeRealtimeVotesIntoPlaces,
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
+const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
 const {
   PLACE_VOTE_OPERATION,
   isOwnPlaceVoteWrite,
@@ -35,6 +36,23 @@ test('normalizes only http and https external URLs', () => {
   assert.equal(normalizeExternalUrl('https://example.com/a'), 'https://example.com/a');
   assert.equal(normalizeExternalUrl('javascript:alert(1)'), '');
   assert.equal(getExternalUrlHost('https://maps.google.com/foo'), 'maps.google.com');
+});
+
+test('builds itinerary route readiness without hiding missing locations', () => {
+  const state = buildItineraryRouteState([
+    { id: 'event-1', title: 'Airport', time: '09:00', location: 'Taoyuan Airport' },
+    { id: 'event-2', title: 'Lunch', time: '12:00', location: '' },
+    { id: 'event-3', title: 'Hotel', time: '15:00', locationPlace: { name: 'Shinjuku Hotel' } }
+  ], { origin: { address: 'Taipei Main Station' } });
+
+  assert.equal(state.totalEvents, 3);
+  assert.equal(state.routeStopCount, 2);
+  assert.equal(state.missingCount, 1);
+  assert.equal(state.completenessPercent, 67);
+  assert.equal(state.originText, 'Taipei Main Station');
+  assert.equal(state.routeStops[1].itineraryIndex, 2);
+  assert.equal(state.missingEvents[0].title, 'Lunch');
+  assert.equal(state.hasPartialRoute, true);
 });
 
 test('validates common form fields', () => {
