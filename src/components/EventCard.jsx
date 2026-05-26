@@ -16,6 +16,7 @@ import {
   MoreVertical,
   Navigation,
   Plane,
+  Route,
   ShoppingBag,
   Train,
   Trash2,
@@ -24,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card } from './ui';
 import { normalizeExternalUrl } from '../utils/externalUrl';
+import { buildEventReadiness } from '../utils/eventReadiness';
 
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
@@ -53,12 +55,6 @@ const formatCost = (event) => {
   return `${symbol}${cost.amount.toLocaleString()}`;
 };
 
-const getLocationText = (event) => {
-  if (!event) return '';
-  if (typeof event.location === 'string') return event.location;
-  return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
-};
-
 const getEditingMembersText = (members = []) => {
   if (!members.length) return '';
   if (members.length === 1) return `${members[0].name} 正在編輯`;
@@ -85,7 +81,8 @@ const EventCard = ({
   const [showMenu, setShowMenu] = useState(false);
   const meta = getEventMeta(event.type);
   const Icon = meta.icon;
-  const locationText = getLocationText(event);
+  const readiness = buildEventReadiness(event);
+  const locationText = readiness.locationText;
   const costText = formatCost(event);
   const externalUrl = normalizeExternalUrl(event.url);
   const editingText = getEditingMembersText(editingMembers);
@@ -157,10 +154,28 @@ const EventCard = ({
                     重要
                   </Badge>
                 )}
+                {readiness.missingItems.map((item) => (
+                  <Badge key={item.id} variant="warning">
+                    <AlertCircle size={13} />
+                    {item.label}
+                  </Badge>
+                ))}
+                {readiness.canNavigate && (
+                  <Badge variant="success" className="hidden sm:inline-flex">
+                    <Route size={13} />
+                    可導航
+                  </Badge>
+                )}
               </div>
               <h3 className="mt-1.5 break-words text-lg font-black leading-tight text-slate-950 sm:mt-2 sm:text-xl dark:text-white">
                 {event.title || '未命名行程'}
               </h3>
+              {!readiness.isReadyForRoute && (
+                <p className="mt-1.5 flex items-start gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
+                  <AlertCircle size={13} className="mt-0.5 shrink-0" />
+                  補齊時間與地點後，路線與今日模式會更準確。
+                </p>
+              )}
               {editingText && (
                 <div
                   className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200"

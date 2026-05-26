@@ -22,6 +22,7 @@ const {
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
 const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
+const { buildEventReadiness } = require('../src/utils/eventReadiness.js');
 const {
   PLACE_VOTE_OPERATION,
   isOwnPlaceVoteWrite,
@@ -84,6 +85,24 @@ test('moves itinerary events between adjacent days with undo insert position', (
   assert.deepEqual(restored[0].events.map((event) => event.id), ['a', 'b']);
   assert.deepEqual(restored[1].events.map((event) => event.id), ['c']);
   assert.equal(moveEventToDay(itinerary, 'missing', 1, 2), itinerary);
+});
+
+test('summarizes event readiness from time and place data', () => {
+  const ready = buildEventReadiness({
+    time: '09:30',
+    location: '',
+    locationPlace: { name: 'Tokyo Station' }
+  });
+
+  assert.equal(ready.hasTime, true);
+  assert.equal(ready.hasLocation, true);
+  assert.equal(ready.canNavigate, true);
+  assert.equal(ready.locationText, 'Tokyo Station');
+  assert.equal(ready.missingItems.length, 0);
+
+  const missing = buildEventReadiness({ title: 'Draft' });
+  assert.equal(missing.isReadyForRoute, false);
+  assert.deepEqual(missing.missingItems.map((item) => item.id), ['time', 'location']);
 });
 
 test('validates common form fields', () => {
