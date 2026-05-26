@@ -30,7 +30,7 @@ import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
-import { moveEventInDay } from '../utils/itineraryEvents';
+import { moveEventInDay, moveEventToDay } from '../utils/itineraryEvents';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -645,6 +645,37 @@ const TripDetailPage = () => {
     }));
   };
 
+  const handleMoveEventToAdjacentDay = (eventId, direction) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '目前只能查看', description: '這趟旅程暫時不能由你移動行程。' });
+      return;
+    }
+
+    const sourceDayIndex = itinerary.findIndex((day) => day.day === selectedDay);
+    const targetDay = direction === 'previous'
+      ? itinerary[sourceDayIndex - 1]
+      : itinerary[sourceDayIndex + 1];
+    const sourceDay = itinerary[sourceDayIndex];
+    const targetEventIndex = sourceDay?.events?.findIndex((event) => String(event.id) === String(eventId)) ?? -1;
+    const targetEvent = targetEventIndex >= 0 ? sourceDay.events[targetEventIndex] : null;
+
+    if (!sourceDay || !targetDay || !targetEvent) return;
+
+    setItinerary((prev) => moveEventToDay(prev, eventId, sourceDay.day, targetDay.day));
+    toast({
+      variant: 'success',
+      title: `已移到 Day ${targetDay.day}`,
+      description: targetEvent.title || '未命名行程',
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => {
+        setItinerary((prev) => moveEventToDay(prev, eventId, targetDay.day, sourceDay.day, {
+          insertIndex: targetEventIndex
+        }));
+      }
+    });
+  };
+
   const handleUpdateDayMeta = (dayNumber, patch) => {
     if (!canEdit) return;
     setItinerary(prev => prev.map(day => (
@@ -828,6 +859,7 @@ const TripDetailPage = () => {
     openEditModal,
     handleDeleteEvent,
     handleMoveEvent,
+    handleMoveEventToAdjacentDay,
     handleOpenGoogleMaps,
     handleLookupFlight,
     isLookingUpFlight,

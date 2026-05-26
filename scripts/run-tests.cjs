@@ -21,7 +21,7 @@ const {
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
-const { canMoveEventInDay, moveEventInDay } = require('../src/utils/itineraryEvents.js');
+const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
 const {
   PLACE_VOTE_OPERATION,
   isOwnPlaceVoteWrite,
@@ -68,6 +68,22 @@ test('moves itinerary events without sorting by time', () => {
   assert.deepEqual(moveEventInDay(events, 'b', 'up').map((event) => event.id), ['b', 'a', 'c']);
   assert.deepEqual(moveEventInDay(events, 'b', 'down').map((event) => event.id), ['a', 'c', 'b']);
   assert.equal(moveEventInDay(events, 'missing', 'up'), events);
+});
+
+test('moves itinerary events between adjacent days with undo insert position', () => {
+  const itinerary = [
+    { day: 1, events: [{ id: 'a' }, { id: 'b' }] },
+    { day: 2, events: [{ id: 'c' }] }
+  ];
+
+  const moved = moveEventToDay(itinerary, 'b', 1, 2);
+  assert.deepEqual(moved[0].events.map((event) => event.id), ['a']);
+  assert.deepEqual(moved[1].events.map((event) => event.id), ['c', 'b']);
+
+  const restored = moveEventToDay(moved, 'b', 2, 1, { insertIndex: 1 });
+  assert.deepEqual(restored[0].events.map((event) => event.id), ['a', 'b']);
+  assert.deepEqual(restored[1].events.map((event) => event.id), ['c']);
+  assert.equal(moveEventToDay(itinerary, 'missing', 1, 2), itinerary);
 });
 
 test('validates common form fields', () => {

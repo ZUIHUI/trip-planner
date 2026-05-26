@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import {
   AlertCircle,
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUp,
   Camera,
   Coffee,
@@ -69,10 +71,15 @@ const EventCard = ({
   onEdit,
   onDelete,
   onMove,
+  onMoveToDay,
   onOpenGoogleMaps,
   editingMembers = [],
   canMoveUp = false,
   canMoveDown = false,
+  canMoveToPreviousDay = false,
+  canMoveToNextDay = false,
+  previousDayLabel = '',
+  nextDayLabel = '',
   canEdit = true
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -83,6 +90,7 @@ const EventCard = ({
   const externalUrl = normalizeExternalUrl(event.url);
   const editingText = getEditingMembersText(editingMembers);
   const canReorder = Boolean(onMove) && canEdit && (canMoveUp || canMoveDown);
+  const canMoveDay = Boolean(onMoveToDay) && canEdit && (canMoveToPreviousDay || canMoveToNextDay);
 
   const handleCardClick = () => {
     onEdit(event, true);
@@ -115,6 +123,15 @@ const EventCard = ({
     const canMove = direction === 'up' ? canMoveUp : canMoveDown;
     if (!canMove || !onMove) return;
     onMove(event.id, direction);
+    setShowMenu(false);
+  };
+
+  const handleMoveDayClick = (direction) => (clickEvent) => {
+    clickEvent.preventDefault();
+    clickEvent.stopPropagation();
+    const canMove = direction === 'previous' ? canMoveToPreviousDay : canMoveToNextDay;
+    if (!canMove || !onMoveToDay) return;
+    onMoveToDay(event.id, direction);
     setShowMenu(false);
   };
 
@@ -193,6 +210,29 @@ const EventCard = ({
                     >
                       <ArrowDown size={14} />
                       往後一站
+                    </button>
+                    <div className="h-px bg-slate-100 dark:bg-slate-800" />
+                  </>
+                )}
+                {canMoveDay && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleMoveDayClick('previous')}
+                      disabled={!canMoveToPreviousDay}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <ArrowLeft size={14} />
+                      移到{previousDayLabel || '前一天'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleMoveDayClick('next')}
+                      disabled={!canMoveToNextDay}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <ArrowRight size={14} />
+                      移到{nextDayLabel || '後一天'}
                     </button>
                     <div className="h-px bg-slate-100 dark:bg-slate-800" />
                   </>

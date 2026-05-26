@@ -25,3 +25,49 @@ export const canMoveEventInDay = (events = [], eventId, direction) => {
   if (direction === 'down') return currentIndex < sourceEvents.length - 1;
   return false;
 };
+
+export const moveEventToDay = (
+  itinerary = [],
+  eventId,
+  sourceDayNumber,
+  targetDayNumber,
+  { insertIndex = null } = {}
+) => {
+  const sourceItinerary = Array.isArray(itinerary) ? itinerary : [];
+  if (sourceDayNumber === targetDayNumber) return sourceItinerary;
+
+  const sourceDay = sourceItinerary.find((day) => day?.day === sourceDayNumber);
+  const targetDay = sourceItinerary.find((day) => day?.day === targetDayNumber);
+  if (!sourceDay || !targetDay) return sourceItinerary;
+
+  const sourceEvents = Array.isArray(sourceDay.events) ? sourceDay.events : [];
+  const targetEvents = Array.isArray(targetDay.events) ? targetDay.events : [];
+  const eventIndex = sourceEvents.findIndex((event) => normalizeId(event?.id) === normalizeId(eventId));
+  if (eventIndex < 0) return sourceItinerary;
+
+  const eventToMove = sourceEvents[eventIndex];
+  const targetEventsWithoutMoved = targetEvents.filter((event) => normalizeId(event?.id) !== normalizeId(eventId));
+  const normalizedInsertIndex = Number.isInteger(insertIndex)
+    ? Math.max(0, Math.min(insertIndex, targetEventsWithoutMoved.length))
+    : targetEventsWithoutMoved.length;
+  const nextTargetEvents = [...targetEventsWithoutMoved];
+  nextTargetEvents.splice(normalizedInsertIndex, 0, eventToMove);
+
+  return sourceItinerary.map((day) => {
+    if (day?.day === sourceDayNumber) {
+      return {
+        ...day,
+        events: sourceEvents.filter((event) => normalizeId(event?.id) !== normalizeId(eventId))
+      };
+    }
+
+    if (day?.day === targetDayNumber) {
+      return {
+        ...day,
+        events: nextTargetEvents
+      };
+    }
+
+    return day;
+  });
+};

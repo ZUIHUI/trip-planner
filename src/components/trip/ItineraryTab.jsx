@@ -54,6 +54,7 @@ const ItineraryTab = () => {
     openEditModal,
     handleDeleteEvent,
     handleMoveEvent,
+    handleMoveEventToAdjacentDay,
     handleOpenGoogleMaps,
     editingByEventId
   } = useTripWorkspace();
@@ -65,6 +66,10 @@ const ItineraryTab = () => {
   const todayCostEventCount = todayCostItems.length;
   const shouldShowCostToggle = todayCostEventCount > 0;
   const currentDayIndex = itinerary.findIndex((item) => item.day === selectedDay);
+  const previousDayItem = currentDayIndex > 0 ? itinerary[currentDayIndex - 1] : null;
+  const nextMoveDayItem = currentDayIndex >= 0 && currentDayIndex < itinerary.length - 1
+    ? itinerary[currentDayIndex + 1]
+    : null;
   const nextDayItem = itinerary.length > 1
     ? itinerary[((currentDayIndex >= 0 ? currentDayIndex : 0) + 1) % itinerary.length]
     : null;
@@ -195,8 +200,13 @@ const ItineraryTab = () => {
                   onEdit={openEditModal}
                   onDelete={handleDeleteEvent}
                   onMove={handleMoveEvent}
+                  onMoveToDay={handleMoveEventToAdjacentDay}
                   canMoveUp={index > 0}
                   canMoveDown={index < currentDayData.events.length - 1}
+                  canMoveToPreviousDay={Boolean(previousDayItem)}
+                  canMoveToNextDay={Boolean(nextMoveDayItem)}
+                  previousDayLabel={previousDayItem ? `Day ${previousDayItem.day}` : ''}
+                  nextDayLabel={nextMoveDayItem ? `Day ${nextMoveDayItem.day}` : ''}
                   canEdit={canEdit}
                   onOpenGoogleMaps={handleOpenGoogleMaps}
                   editingMembers={editingByEventId?.[event.id] || []}
