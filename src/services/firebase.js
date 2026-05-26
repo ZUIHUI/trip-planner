@@ -31,8 +31,7 @@ const getRuntimeAuthDomain = () => {
   }
 
   const host = window.location.hostname;
-  const shouldUseCurrentHost = import.meta.env.VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH === 'true'
-    || host.endsWith('.vercel.app');
+  const shouldUseCurrentHost = import.meta.env.VITE_FIREBASE_USE_CURRENT_DOMAIN_AUTH === 'true';
 
   return shouldUseCurrentHost ? host : configuredAuthDomain;
 };
