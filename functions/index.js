@@ -61,6 +61,14 @@ const normalizeClientId = (value, fallback = 'server') => {
   return normalized || fallback;
 };
 
+const normalizeVoteValue = (value, fallback = 1) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  if (number > 0) return 1;
+  if (number < 0) return -1;
+  return 0;
+};
+
 const hashValue = (value) => crypto
   .createHash('sha256')
   .update(value)
@@ -225,11 +233,11 @@ const getTripRoleForUid = async ({ tripId, uid }) => {
 const syncRealtimePlaceVotes = async ({ tripId, placeId, votes }) => {
   const voteMap = {};
   (Array.isArray(votes) ? votes : []).forEach((vote) => {
-    if (!vote?.voterId || Number(vote?.value || 0) <= 0) return;
+    if (!vote?.voterId) return;
     voteMap[vote.voterId] = {
       voterId: vote.voterId,
       name: String(vote.name || 'Member').slice(0, 120),
-      value: 1,
+      value: normalizeVoteValue(vote.value, 1),
       votedAt: vote.votedAt || new Date().toISOString(),
       updatedAt: serverTimestamp
     };
@@ -1054,6 +1062,8 @@ exports.togglePlaceVote = onCall(async (request) => {
   const tripId = String(request.data?.tripId || '').trim();
   const placeId = String(request.data?.placeId || '').trim();
   const clientId = normalizeClientId(request.data?.clientId, 'server:togglePlaceVote');
+  const hasExplicitVoteValue = Object.prototype.hasOwnProperty.call(request.data || {}, 'value');
+  const requestedVoteValue = normalizeVoteValue(request.data?.value, 1);
 
   if (!tripId || !placeId) {
     throw new HttpsError('invalid-argument', '請提供旅程與地點。');
@@ -1096,11 +1106,15 @@ exports.togglePlaceVote = onCall(async (request) => {
     const now = new Date().toISOString();
     const place = placePool[placeIndex] || {};
     const votes = Array.isArray(place.votes) ? place.votes : [];
-    const existingVote = votes.find((vote) => vote?.voterId === uid && Number(vote.value || 0) > 0);
+    const existingVote = votes.find((vote) => vote?.voterId === uid);
+    const existingVoteValue = existingVote ? normalizeVoteValue(existingVote.value, 1) : null;
     const votesWithoutCurrentUser = votes.filter((vote) => vote?.voterId !== uid);
-    const voted = !existingVote;
-    const nextVotes = voted
-      ? [
+    const nextVoteValue = hasExplicitVoteValue
+      ? (existingVote && existingVoteValue === requestedVoteValue ? null : requestedVoteValue)
+      : (existingVote && existingVoteValue > 0 ? null : 1);
+    const nextVotes = nextVoteValue === null
+      ? votesWithoutCurrentUser
+      : [
           ...votesWithoutCurrentUser,
           {
             voterId: uid,
@@ -1108,11 +1122,16 @@ exports.togglePlaceVote = onCall(async (request) => {
               request,
               member: memberSnap.exists ? memberSnap.data() : {}
             }),
-            value: 1,
+            value: nextVoteValue,
             votedAt: now
           }
-        ]
-      : votesWithoutCurrentUser;
+        ];
+    const voted = nextVoteValue !== null && nextVoteValue > 0;
+    const hasVote = nextVoteValue !== null;
+    const positiveVoteCount = nextVotes.filter((vote) => Number(vote?.value || 0) > 0).length;
+    const maybeVoteCount = nextVotes.filter((vote) => Number(vote?.value || 0) === 0).length;
+    const negativeVoteCount = nextVotes.filter((vote) => Number(vote?.value || 0) < 0).length;
+    const voteScore = nextVotes.reduce((total, vote) => total + normalizeVoteValue(vote?.value, 0), 0);
     const nextPlacePool = placePool.map((item, index) => (
       index === placeIndex
         ? {
@@ -1145,7 +1164,12 @@ exports.togglePlaceVote = onCall(async (request) => {
         member: memberSnap.exists ? memberSnap.data() : {}
       }),
       votes: nextVotes,
-      voteCount: nextVotes.filter((vote) => Number(vote?.value || 0) > 0).length,
+      voteValue: nextVoteValue,
+      hasVote,
+      voteCount: positiveVoteCount,
+      maybeVoteCount,
+      negativeVoteCount,
+      voteScore,
       revision
     };
   });
@@ -1166,7 +1190,9 @@ exports.togglePlaceVote = onCall(async (request) => {
             actorName: result.actorName,
             placeId,
             placeName: result.placeName,
-            voted: result.voted
+            voted: result.voted,
+            hasVote: result.hasVote,
+            voteValue: result.voteValue
           }
         })
       ]);

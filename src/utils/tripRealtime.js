@@ -9,10 +9,18 @@ const readUpdatedAt = (value = {}) => {
   return Number.isFinite(rawValue) ? rawValue : 0;
 };
 
+const normalizeVoteValue = (value, fallback = 1) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  if (number > 0) return 1;
+  if (number < 0) return -1;
+  return 0;
+};
+
 const normalizeRealtimeVote = (uid, vote = {}) => ({
   voterId: String(vote.voterId || uid || ''),
   name: String(vote.name || vote.displayName || 'Member'),
-  value: Number(vote.value || 0) > 0 ? 1 : 0,
+  value: normalizeVoteValue(vote.value, 1),
   votedAt: vote.votedAt || vote.updatedAt || ''
 });
 
@@ -25,7 +33,7 @@ export const normalizeRealtimePlaceVotes = (placeVotes = {}) => (
     const votes = Object.entries(asObject(votesSource))
       .filter(([key]) => !['updatedAt', 'createdAt'].includes(key))
       .map(([uid, vote]) => normalizeRealtimeVote(uid, asObject(vote)))
-      .filter((vote) => vote.voterId && Number(vote.value || 0) > 0);
+      .filter((vote) => vote.voterId);
 
     acc[placeId] = votes;
     return acc;

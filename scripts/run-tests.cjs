@@ -214,7 +214,8 @@ test('normalizes realtime trip overlays without replacing canonical records', ()
         updatedAt: 10,
         votes: {
           userA: { voterId: 'userA', name: 'Ada', value: 1, votedAt: '2026-05-25T08:00:00.000Z' },
-          userB: { voterId: 'userB', name: 'Ben', value: 0 }
+          userB: { voterId: 'userB', name: 'Ben', value: 0 },
+          userC: { voterId: 'userC', name: 'Cia', value: -1 }
         }
       },
       placeB: {
@@ -238,7 +239,9 @@ test('normalizes realtime trip overlays without replacing canonical records', ()
   });
 
   assert.deepEqual(normalized.placeVotesByPlaceId.placeA, [
-    { voterId: 'userA', name: 'Ada', value: 1, votedAt: '2026-05-25T08:00:00.000Z' }
+    { voterId: 'userA', name: 'Ada', value: 1, votedAt: '2026-05-25T08:00:00.000Z' },
+    { voterId: 'userB', name: 'Ben', value: 0, votedAt: '' },
+    { voterId: 'userC', name: 'Cia', value: -1, votedAt: '' }
   ]);
   assert.deepEqual(normalized.placeVotesByPlaceId.placeB, []);
   assert.equal(normalized.checklistStatusByListId.preTrip.itemA.done, true);

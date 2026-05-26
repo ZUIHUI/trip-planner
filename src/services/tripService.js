@@ -317,15 +317,21 @@ export const redeemTripInviteCode = async ({ code, user, profile }) => {
   return response.data || {};
 };
 
-export const togglePlaceVote = async ({ tripId, placeId, user, profile, clientId = '' }) => {
+export const togglePlaceVote = async ({ tripId, placeId, user, profile, clientId = '', value }) => {
   requireUser(user);
   const callable = httpsCallable(functions, 'togglePlaceVote');
-  const response = await callable({
+  const payload = {
     tripId,
     placeId,
     clientId,
     displayName: getUserName(user, profile)
-  });
+  };
+
+  if (value !== undefined) {
+    payload.value = value;
+  }
+
+  const response = await callable(payload);
   return response.data || {};
 };
 

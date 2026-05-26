@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, ThumbsUp, Trash2, UsersRound } from 'lucide-react';
+import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, ThumbsDown, ThumbsUp, Trash2, UsersRound } from 'lucide-react';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { togglePlaceVote } from '../../services/tripService';
@@ -12,11 +12,55 @@ const readPlaceName = (place) => String(place?.name || place?.address || '').tri
 const readPlaceAddress = (place) => String(place?.address || place?.name || '').trim();
 
 const getVoteScore = (votes = []) => (Array.isArray(votes) ? votes : [])
-  .reduce((total, vote) => total + Number(vote?.value || 0), 0);
+  .reduce((total, vote) => total + normalizeVoteValue(vote?.value), 0);
 
-const getVoteNames = (votes = []) => (Array.isArray(votes) ? votes : [])
-  .filter((vote) => Number(vote?.value || 0) > 0)
-  .map((vote) => String(vote?.name || '旅伴').trim() || '旅伴');
+const voteOptions = [
+  { value: 1, label: '想去', icon: ThumbsUp },
+  { value: 0, label: '可去', icon: CheckCircle2 },
+  { value: -1, label: '先不要', icon: ThumbsDown }
+];
+
+const normalizeVoteValue = (value) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 1;
+  if (number > 0) return 1;
+  if (number < 0) return -1;
+  return 0;
+};
+
+const getVoteStats = (votes = []) => (Array.isArray(votes) ? votes : []).reduce((stats, vote) => {
+  const value = normalizeVoteValue(vote?.value);
+  const name = String(vote?.name || '旅伴').trim() || '旅伴';
+
+  if (value > 0) {
+    stats.want += 1;
+    stats.wantNames.push(name);
+  } else if (value < 0) {
+    stats.skip += 1;
+    stats.skipNames.push(name);
+  } else {
+    stats.maybe += 1;
+    stats.maybeNames.push(name);
+  }
+
+  stats.total += 1;
+  stats.score += value;
+  return stats;
+}, {
+  want: 0,
+  maybe: 0,
+  skip: 0,
+  total: 0,
+  score: 0,
+  wantNames: [],
+  maybeNames: [],
+  skipNames: []
+});
+
+const getVoteSummaryText = (stats) => {
+  if (!stats.total) return '尚未有人投票';
+  return `${stats.want} 想去 · ${stats.maybe} 可去 · ${stats.skip} 先不要`;
+};
 
 const createPlaceItem = (draftText, selectedPlace) => {
   const fallbackText = String(draftText || '').trim();
@@ -85,9 +129,11 @@ const PlacePoolItem = ({
   const mapsUrl = buildGoogleMapsSearchUrl(place);
   const isPlannedForCurrentDay = Number(place.plannedDay) === Number(selectedDay);
   const votes = Array.isArray(place.votes) ? place.votes : [];
-  const voteScore = getVoteScore(votes);
-  const votedByMe = votes.some((vote) => vote.voterId === voterId && Number(vote.value) > 0);
-  const voterNames = getVoteNames(votes).slice(0, 3);
+  const voteStats = getVoteStats(votes);
+  const voteScore = voteStats.score;
+  const myVote = votes.find((vote) => vote.voterId === voterId);
+  const myVoteValue = myVote ? normalizeVoteValue(myVote.value) : null;
+  const voterNames = voteStats.wantNames.slice(0, 3);
   const isTopPlace = voteScore > 0 && voteScore === topVoteScore;
 
   return (
@@ -102,10 +148,10 @@ const PlacePoolItem = ({
                 Day {place.plannedDay}
               </Badge>
             )}
-            {voteScore > 0 && (
+            {voteStats.total > 0 && (
               <Badge variant="info">
                 <ThumbsUp size={12} />
-                {voteScore} 位想去
+                {getVoteSummaryText(voteStats)}
               </Badge>
             )}
             {isTopPlace && (
@@ -136,23 +182,42 @@ const PlacePoolItem = ({
       </div>
 
       {votesEnabled && (
-        <div className="mt-3 flex min-w-0 flex-col gap-2 rounded-lg bg-slate-50 p-2 dark:bg-slate-800/70 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-3 grid min-w-0 gap-2 rounded-lg bg-slate-50 p-2 dark:bg-slate-800/70">
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
               <UsersRound size={13} />
-              {voterNames.length ? voterNames.join('、') : '還沒有人想去'}
+              {voterNames.length ? `想去：${voterNames.join('、')}` : getVoteSummaryText(voteStats)}
             </p>
           </div>
-          <Button
-            variant={votedByMe ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => onVote(place.id, 1)}
-            disabled={!canVote || isVoting}
-            className="tp-press-feedback justify-center"
-          >
-            <ThumbsUp size={14} />
-            {isVoting ? '更新中...' : (votedByMe ? '已想去' : '我想去')}
-          </Button>
+          <div className="grid grid-cols-3 gap-1.5">
+            {voteOptions.map((option) => {
+              const Icon = option.icon;
+              const active = myVoteValue === option.value;
+              const activeClass = option.value > 0
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100'
+                : option.value < 0
+                  ? 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100'
+                  : 'border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100';
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onVote(place.id, option.value)}
+                  disabled={!canVote || isVoting}
+                  className={`tp-press-feedback inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border px-2 text-xs font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    active
+                      ? activeClass
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                  aria-pressed={active}
+                >
+                  <Icon size={13} />
+                  <span>{isVoting && active ? '更新中' : option.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -229,14 +294,6 @@ const PlacePoolCard = ({
   const canAdd = canManageIdeas && Boolean(String(draftText || '').trim() || selectedPlace);
   const votesEnabled = collaboration?.votesEnabled !== false;
   const voterId = currentUser?.uid || '';
-  const voterName = (
-    userProfile?.displayName
-    || userProfile?.email
-    || currentUser?.displayName
-    || currentUser?.email
-    || '旅伴'
-  );
-
   const handleAddPlace = () => {
     if (!canAdd) return;
     const nextPlace = createPlaceItem(draftText, selectedPlace);
@@ -286,6 +343,7 @@ const PlacePoolCard = ({
         tripId,
         placeId,
         clientId,
+        value,
         user: currentUser,
         profile: userProfile
       });
