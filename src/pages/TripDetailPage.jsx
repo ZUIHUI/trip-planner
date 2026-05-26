@@ -30,6 +30,7 @@ import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
+import { moveEventInDay } from '../utils/itineraryEvents';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -564,9 +565,7 @@ const TripDetailPage = () => {
         if (day.day === selectedDay) {
           return {
             ...day,
-            events: day.events
-              .map(e => e.id === eventData.id ? eventData : e)
-              .sort((a, b) => a.time.localeCompare(b.time))
+            events: day.events.map(e => e.id === eventData.id ? eventData : e)
           };
         }
         return day;
@@ -631,6 +630,19 @@ const TripDetailPage = () => {
         }));
       }
     });
+  };
+
+  const handleMoveEvent = (eventId, direction) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '目前只能查看', description: '這趟旅程暫時不能由你調整行程順序。' });
+      return;
+    }
+
+    setItinerary(prev => prev.map(day => {
+      if (day.day !== selectedDay) return day;
+      const nextEvents = moveEventInDay(day.events, eventId, direction);
+      return nextEvents === day.events ? day : { ...day, events: nextEvents };
+    }));
   };
 
   const handleUpdateDayMeta = (dayNumber, patch) => {
@@ -815,6 +827,7 @@ const TripDetailPage = () => {
     openAddModal,
     openEditModal,
     handleDeleteEvent,
+    handleMoveEvent,
     handleOpenGoogleMaps,
     handleLookupFlight,
     isLookingUpFlight,

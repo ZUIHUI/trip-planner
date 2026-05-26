@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
   Camera,
   Coffee,
   Edit2,
@@ -61,7 +63,18 @@ const getEditingMembersText = (members = []) => {
   return `${members.length} 位旅伴正在編輯`;
 };
 
-const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, editingMembers = [] }) => {
+const EventCard = ({
+  event,
+  prevLocation,
+  onEdit,
+  onDelete,
+  onMove,
+  onOpenGoogleMaps,
+  editingMembers = [],
+  canMoveUp = false,
+  canMoveDown = false,
+  canEdit = true
+}) => {
   const [showMenu, setShowMenu] = useState(false);
   const meta = getEventMeta(event.type);
   const Icon = meta.icon;
@@ -69,6 +82,7 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
   const costText = formatCost(event);
   const externalUrl = normalizeExternalUrl(event.url);
   const editingText = getEditingMembersText(editingMembers);
+  const canReorder = Boolean(onMove) && canEdit && (canMoveUp || canMoveDown);
 
   const handleCardClick = () => {
     onEdit(event, true);
@@ -93,6 +107,15 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
     clickEvent.stopPropagation();
     if (!locationText || !onOpenGoogleMaps) return;
     onOpenGoogleMaps('', event.locationPlace || event.location);
+  };
+
+  const handleMoveClick = (direction) => (clickEvent) => {
+    clickEvent.preventDefault();
+    clickEvent.stopPropagation();
+    const canMove = direction === 'up' ? canMoveUp : canMoveDown;
+    if (!canMove || !onMove) return;
+    onMove(event.id, direction);
+    setShowMenu(false);
   };
 
   return (
@@ -150,7 +173,30 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
             </button>
 
             {showMenu && (
-              <div className="tp-slide-up absolute right-0 top-11 z-20 w-36 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+              <div className="tp-slide-up absolute right-0 top-11 z-20 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                {canReorder && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleMoveClick('up')}
+                      disabled={!canMoveUp}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <ArrowUp size={14} />
+                      往前一站
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleMoveClick('down')}
+                      disabled={!canMoveDown}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <ArrowDown size={14} />
+                      往後一站
+                    </button>
+                    <div className="h-px bg-slate-100 dark:bg-slate-800" />
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={handleEditClick}
@@ -226,8 +272,32 @@ const EventCard = ({ event, prevLocation, onEdit, onDelete, onOpenGoogleMaps, ed
           )}
         </div>
 
-        {(locationText || externalUrl) && (
+        {(canReorder || locationText || externalUrl) && (
           <div className="mt-3 flex items-center justify-end gap-2 sm:hidden">
+            {canReorder && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleMoveClick('up')}
+                  disabled={!canMoveUp}
+                  className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 disabled:opacity-35 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  aria-label={`將 ${event.title || '行程'} 往前一站`}
+                  title="往前"
+                >
+                  <ArrowUp size={17} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleMoveClick('down')}
+                  disabled={!canMoveDown}
+                  className="touch-target inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 disabled:opacity-35 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  aria-label={`將 ${event.title || '行程'} 往後一站`}
+                  title="往後"
+                >
+                  <ArrowDown size={17} />
+                </button>
+              </>
+            )}
             {onOpenGoogleMaps && locationText && (
               <button
                 type="button"

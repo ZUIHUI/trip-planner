@@ -21,6 +21,7 @@ const {
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
+const { canMoveEventInDay, moveEventInDay } = require('../src/utils/itineraryEvents.js');
 const {
   PLACE_VOTE_OPERATION,
   isOwnPlaceVoteWrite,
@@ -53,6 +54,20 @@ test('builds itinerary route readiness without hiding missing locations', () => 
   assert.equal(state.routeStops[1].itineraryIndex, 2);
   assert.equal(state.missingEvents[0].title, 'Lunch');
   assert.equal(state.hasPartialRoute, true);
+});
+
+test('moves itinerary events without sorting by time', () => {
+  const events = [
+    { id: 'a', title: 'First', time: '12:00' },
+    { id: 'b', title: 'Second', time: '09:00' },
+    { id: 'c', title: 'Third', time: '15:00' }
+  ];
+
+  assert.equal(canMoveEventInDay(events, 'a', 'up'), false);
+  assert.equal(canMoveEventInDay(events, 'b', 'up'), true);
+  assert.deepEqual(moveEventInDay(events, 'b', 'up').map((event) => event.id), ['b', 'a', 'c']);
+  assert.deepEqual(moveEventInDay(events, 'b', 'down').map((event) => event.id), ['a', 'c', 'b']);
+  assert.equal(moveEventInDay(events, 'missing', 'up'), events);
 });
 
 test('validates common form fields', () => {

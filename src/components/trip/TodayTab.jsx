@@ -661,12 +661,16 @@ const TodayTab = () => {
     handleOpenGoogleMaps
   } = useTripWorkspace();
 
-  const events = useMemo(
-    () => sortEventsByTime(currentDayData?.events || []),
+  const dayEvents = useMemo(
+    () => Array.isArray(currentDayData?.events) ? currentDayData.events : [],
     [currentDayData]
   );
+  const events = useMemo(
+    () => sortEventsByTime(dayEvents),
+    [dayEvents]
+  );
   const nextEvent = useMemo(() => pickNextEvent(events), [events]);
-  const routeStops = useMemo(() => events.map(getRouteStop).filter(Boolean), [events]);
+  const routeStops = useMemo(() => dayEvents.map(getRouteStop).filter(Boolean), [dayEvents]);
   const origin = currentLocation?.locationName ||
     tripDetails?.accommodation?.address ||
     tripDetails?.accommodation?.name ||

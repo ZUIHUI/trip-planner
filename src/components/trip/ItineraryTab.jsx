@@ -41,6 +41,7 @@ const ItineraryTab = () => {
     currentDayDate,
     tripDetails,
     currentLocation,
+    canEdit,
     showSecondaryModules,
     toggleSecondaryModules,
     isEditingDayMeta,
@@ -52,6 +53,7 @@ const ItineraryTab = () => {
     openAddModal,
     openEditModal,
     handleDeleteEvent,
+    handleMoveEvent,
     handleOpenGoogleMaps,
     editingByEventId
   } = useTripWorkspace();
@@ -192,6 +194,10 @@ const ItineraryTab = () => {
                   prevLocation={prevLocation}
                   onEdit={openEditModal}
                   onDelete={handleDeleteEvent}
+                  onMove={handleMoveEvent}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < currentDayData.events.length - 1}
+                  canEdit={canEdit}
                   onOpenGoogleMaps={handleOpenGoogleMaps}
                   editingMembers={editingByEventId?.[event.id] || []}
                 />
