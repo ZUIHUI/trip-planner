@@ -4,10 +4,8 @@ import {
   CalendarDays,
   ChevronDown,
   Check,
-  Clock3,
   Compass,
   KeyRound,
-  MapPin,
   Pencil,
   PlaneTakeoff,
   Plus,
@@ -162,39 +160,29 @@ const TripCard = ({
       </button>
 
       <div className="border-t border-cyan-100 px-4 py-3 dark:border-slate-800">
-        <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={onToggleExpanded}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-            aria-expanded={expanded}
-          >
-            {expanded ? '收合資訊' : '更多資訊'}
-            <ChevronDown size={14} className={expanded ? 'rotate-180 transition-transform' : 'transition-transform'} />
-          </button>
+        <div className={`flex items-center gap-2 ${canDelete ? 'justify-between' : 'justify-end'}`}>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onToggleExpanded}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              aria-expanded={expanded}
+            >
+              {expanded ? '收合管理' : '管理'}
+              <ChevronDown size={14} className={expanded ? 'rotate-180 transition-transform' : 'transition-transform'} />
+            </button>
+          )}
           <Button variant="secondary" size="sm" onClick={onOpen}>
-            查看旅程
+            開啟旅程
           </Button>
         </div>
 
-        {expanded && (
-          <div className="mt-3 flex flex-col gap-3 border-t border-cyan-100 pt-3 dark:border-slate-800">
-            <div className="grid gap-2 text-sm text-slate-500 sm:grid-cols-2 dark:text-slate-400">
-              <span className="inline-flex items-center gap-2">
-                <Clock3 size={15} />
-                建立於 {formatDateTime(trip.createdAt || trip.updatedAt)}
-              </span>
-              <span className="inline-flex items-center gap-2">
-                <MapPin size={15} />
-                {formatDateRange(trip)}
-              </span>
-            </div>
-            <div className={canDelete ? 'flex justify-end' : 'hidden'}>
-              <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
-                <Trash2 size={14} />
-                刪除旅程
-              </Button>
-            </div>
+        {expanded && canDelete && (
+          <div className="mt-3 flex justify-end border-t border-cyan-100 pt-3 dark:border-slate-800">
+            <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
+              <Trash2 size={14} />
+              刪除旅程
+            </Button>
           </div>
         )}
       </div>
@@ -594,51 +582,35 @@ const TripListPage = () => {
 
         <InstallAppPrompt className="mb-4" />
 
-        <section className="tp-card overflow-hidden">
-          <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="p-5 sm:p-7">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-800 dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-200">
-                <PlaneTakeoff size={14} />
-                Trip Planner
-              </div>
-              <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl dark:text-white">
-                規劃下一趟旅程
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base dark:text-slate-300">
-                建立旅程，開始排行程。
-              </p>
-
-              <form onSubmit={handleCreateTrip} className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
-                <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
-                <Input
-                  id="new-trip-title"
-                  ref={newTripInputRef}
-                  {...plainTextInputProps}
-                  value={newTripTitle}
-                  onChange={(event) => setNewTripTitle(event.target.value)}
-                  placeholder="例如：2026 東京賞櫻"
-                  enterKeyHint="go"
-                />
-                <Button type="submit" size="lg">
-                  <Plus size={18} />
-                  建立旅程
-                </Button>
-              </form>
+        <section className="tp-card p-5 sm:p-7">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-800 dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-200">
+              <PlaneTakeoff size={14} />
+              Trip Planner
             </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl dark:text-white">
+              規劃下一趟旅程
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base dark:text-slate-300">
+              建立旅程、加入邀請碼，然後開始排行程。
+            </p>
 
-            <div className="border-t border-cyan-100 bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 p-5 sm:p-7 lg:border-l lg:border-t-0 dark:border-brand-900/60 dark:from-brand-950/30 dark:via-slate-900 dark:to-violet-950/30">
-              <p className="text-sm font-semibold text-brand-800 dark:text-brand-200">目前工作台</p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-white/70 bg-white/90 p-4 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/80">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">旅程數</p>
-                  <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{trips.length}</p>
-                </div>
-                <div className="rounded-lg border border-white/70 bg-white/90 p-4 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/80">
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">搜尋結果</p>
-                  <p className="mt-1 text-3xl font-black text-slate-950 dark:text-white">{sortedAndFilteredTrips.length}</p>
-                </div>
-              </div>
-            </div>
+            <form onSubmit={handleCreateTrip} className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+              <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
+              <Input
+                id="new-trip-title"
+                ref={newTripInputRef}
+                {...plainTextInputProps}
+                value={newTripTitle}
+                onChange={(event) => setNewTripTitle(event.target.value)}
+                placeholder="例如：2026 東京賞櫻"
+                enterKeyHint="go"
+              />
+              <Button type="submit" size="lg">
+                <Plus size={18} />
+                建立旅程
+              </Button>
+            </form>
           </div>
         </section>
 
