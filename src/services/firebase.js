@@ -5,8 +5,26 @@ import { getDatabase } from 'firebase/database';
 import { getFunctions } from 'firebase/functions';
 import { logger } from '../utils/logger';
 
+// Firebase web config is public by design. These defaults keep Vercel builds
+// working when dashboard env vars are missing; provider API keys stay server-only.
+const firebaseConfigDefaults = {
+  apiKey: 'AIzaSyDWiG35YXHw6iILQknLp3obXDN--EMj2l4',
+  authDomain: 'trip-planner-36455.firebaseapp.com',
+  databaseURL: 'https://trip-planner-36455-default-rtdb.firebaseio.com',
+  projectId: 'trip-planner-36455',
+  storageBucket: 'trip-planner-36455.firebasestorage.app',
+  messagingSenderId: '160404293548',
+  appId: '1:160404293548:web:9147eadd5665bbce691c09',
+  measurementId: 'G-H1NYSN3EYE'
+};
+
+const getEnvValue = (key, fallback) => import.meta.env[key] || fallback;
+
 const getRuntimeAuthDomain = () => {
-  const configuredAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+  const configuredAuthDomain = getEnvValue(
+    'VITE_FIREBASE_AUTH_DOMAIN',
+    firebaseConfigDefaults.authDomain
+  );
 
   if (typeof window === 'undefined') {
     return configuredAuthDomain;
@@ -20,14 +38,17 @@ const getRuntimeAuthDomain = () => {
 };
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: getEnvValue('VITE_FIREBASE_API_KEY', firebaseConfigDefaults.apiKey),
   authDomain: getRuntimeAuthDomain(),
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  databaseURL: getEnvValue('VITE_FIREBASE_DATABASE_URL', firebaseConfigDefaults.databaseURL),
+  projectId: getEnvValue('VITE_FIREBASE_PROJECT_ID', firebaseConfigDefaults.projectId),
+  storageBucket: getEnvValue('VITE_FIREBASE_STORAGE_BUCKET', firebaseConfigDefaults.storageBucket),
+  messagingSenderId: getEnvValue(
+    'VITE_FIREBASE_MESSAGING_SENDER_ID',
+    firebaseConfigDefaults.messagingSenderId
+  ),
+  appId: getEnvValue('VITE_FIREBASE_APP_ID', firebaseConfigDefaults.appId),
+  measurementId: getEnvValue('VITE_FIREBASE_MEASUREMENT_ID', firebaseConfigDefaults.measurementId)
 };
 
 const app = initializeApp(firebaseConfig);
