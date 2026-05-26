@@ -331,8 +331,21 @@ export const togglePlaceVote = async ({ tripId, placeId, user, profile, clientId
     payload.value = value;
   }
 
-  const response = await callable(payload);
-  return response.data || {};
+  try {
+    const response = await callable(payload);
+    return response.data || {};
+  } catch (error) {
+    const code = String(error?.code || '').toLowerCase();
+    const message = String(error?.message || '');
+    if (
+      code.includes('permission')
+      || /missing or insufficient permissions/i.test(message)
+      || /permission[-_\s]?denied/i.test(message)
+    ) {
+      throw new Error('目前無法更新想去回應，請確認你仍在這趟旅程中，或重新整理後再試。');
+    }
+    throw error;
+  }
 };
 
 export const claimOwnerlessTrips = async ({ user, profile } = {}) => {

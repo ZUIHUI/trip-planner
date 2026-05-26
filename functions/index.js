@@ -243,7 +243,13 @@ const syncRealtimePlaceVotes = async ({ tripId, placeId, votes }) => {
     };
   });
 
-  await realtimeDb.ref(`tripRealtime/${tripId}/placeVotes/${placeId}`).set({
+  const placeVotesRef = realtimeDb.ref(`tripRealtime/${tripId}/placeVotes/${placeId}`);
+  if (!Object.keys(voteMap).length) {
+    await placeVotesRef.remove();
+    return;
+  }
+
+  await placeVotesRef.set({
     votes: voteMap,
     updatedAt: serverTimestamp
   });
