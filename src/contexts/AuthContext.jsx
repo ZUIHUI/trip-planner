@@ -5,11 +5,13 @@ import {
   browserSessionPersistence,
   isSignInWithEmailLink,
   onAuthStateChanged,
+  getRedirectResult,
   sendSignInLinkToEmail,
   setPersistence,
   signInWithCustomToken,
   signInWithEmailLink,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   updateProfile
 } from 'firebase/auth';
@@ -54,6 +56,11 @@ const writeRememberDevicePreference = (rememberDevice) => {
   } catch {
     // Storage may be unavailable in private browser modes.
   }
+};
+
+const isPopupUnavailableError = (error) => {
+  const code = String(error?.code || '').replace(/^auth\//, '');
+  return code === 'popup-blocked' || code === 'operation-not-supported-in-this-environment';
 };
 
 const buildProfileFromUser = (user, patch = {}) => ({
@@ -111,6 +118,20 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+    getRedirectResult(auth)
+      .then(async (credential) => {
+        if (!credential?.user || cancelled) return;
+        const profile = await syncUserProfile(credential.user);
+        if (!cancelled) setUserProfile(profile);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          logger.warn('Google redirect sign-in failed:', error);
+          setAuthError(error?.message || 'Google 登入失敗，請稍後再試。');
+        }
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user || null);
       setAuthError('');
@@ -132,7 +153,10 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   const applyAuthPersistence = useCallback(async (rememberDevice = true) => {
@@ -252,7 +276,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, normalizeRedirectPath(redirectPath));
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    const credential = await signInWithPopup(auth, provider);
+    let credential;
+    try {
+      credential = await signInWithPopup(auth, provider);
+    } catch (error) {
+      if (!isPopupUnavailableError(error)) throw error;
+      await signInWithRedirect(auth, provider);
+      return null;
+    }
     const profile = await syncUserProfile(credential.user);
     setUserProfile(profile);
     return credential.user;
