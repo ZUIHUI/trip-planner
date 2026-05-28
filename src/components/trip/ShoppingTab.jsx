@@ -32,7 +32,8 @@ const ShoppingTab = () => {
     saveTripShoppingCategoryDocument,
     deleteTripShoppingCategoryDocument,
     setIsShoppingModalOpen,
-    isReadOnly
+    isReadOnly,
+    handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
   const categoryUpdateSeqRef = useRef(0);
@@ -129,12 +130,24 @@ const ShoppingTab = () => {
     }
 
     if (!operations.length) return;
-    void Promise.all(operations).catch(fallbackToTripSave);
+    void Promise.all(operations).catch((error) => {
+      if (handleDocumentPersistenceError) {
+        handleDocumentPersistenceError(error, {
+          label: '購物清單更新',
+          fallback: fallbackToTripSave,
+          deniedLogMessage: 'Shopping item document update denied; skipping root trip autosave fallback.',
+          fallbackLogMessage: 'Shopping item document update failed; falling back to full trip autosave.'
+        });
+        return;
+      }
+      fallbackToTripSave();
+    });
   }, [
     applyShoppingListPatch,
     clientId,
     currentUser,
     deleteTripShoppingItemDocument,
+    handleDocumentPersistenceError,
     moveTripShoppingItemDocument,
     publishShoppingItemStatus,
     saveTripShoppingItemDocument,
@@ -215,12 +228,24 @@ const ShoppingTab = () => {
     ];
 
     if (!operations.length) return;
-    void Promise.all(operations).catch(fallbackToTripSave);
+    void Promise.all(operations).catch((error) => {
+      if (handleDocumentPersistenceError) {
+        handleDocumentPersistenceError(error, {
+          label: '購物分類更新',
+          fallback: fallbackToTripSave,
+          deniedLogMessage: 'Shopping category document update denied; skipping root trip autosave fallback.',
+          fallbackLogMessage: 'Shopping category document update failed; falling back to full trip autosave.'
+        });
+        return;
+      }
+      fallbackToTripSave();
+    });
   }, [
     applyShoppingCategoriesPatch,
     clientId,
     currentUser,
     deleteTripShoppingCategoryDocument,
+    handleDocumentPersistenceError,
     saveTripShoppingCategoryDocument,
     setShoppingCategories,
     shoppingCategories,

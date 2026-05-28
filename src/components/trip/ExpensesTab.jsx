@@ -34,7 +34,8 @@ const ExpensesTab = () => {
     deleteTripExpenseDocument,
     memberTravelers,
     exchangeRate,
-    setIsExpenseModalOpen
+    setIsExpenseModalOpen,
+    handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
   const handleExpensesChange = useCallback((updater) => {
@@ -96,13 +97,25 @@ const ExpensesTab = () => {
     ];
 
     if (!operations.length) return;
-    void Promise.all(operations).catch(fallbackToTripSave);
+    void Promise.all(operations).catch((error) => {
+      if (handleDocumentPersistenceError) {
+        handleDocumentPersistenceError(error, {
+          label: '支出更新',
+          fallback: fallbackToTripSave,
+          deniedLogMessage: 'Expense document update denied; skipping root trip autosave fallback.',
+          fallbackLogMessage: 'Expense document update failed; falling back to full trip autosave.'
+        });
+        return;
+      }
+      fallbackToTripSave();
+    });
   }, [
     applyExpensesPatch,
     clientId,
     currentUser,
     deleteTripExpenseDocument,
     expenses,
+    handleDocumentPersistenceError,
     saveTripExpenseDocument,
     setExpenses,
     tripId

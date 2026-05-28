@@ -25,7 +25,8 @@ const PreTripTab = () => {
     publishChecklistItemStatus,
     saveTripChecklistItemDocument,
     deleteTripChecklistItemDocument,
-    moveTripChecklistItemDocument
+    moveTripChecklistItemDocument,
+    handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
   const visibleItems = useMemo(
@@ -126,12 +127,24 @@ const PreTripTab = () => {
     }
 
     if (!operations.length) return;
-    void Promise.all(operations).catch(fallbackToTripSave);
+    void Promise.all(operations).catch((error) => {
+      if (handleDocumentPersistenceError) {
+        handleDocumentPersistenceError(error, {
+          label: '行前清單更新',
+          fallback: fallbackToTripSave,
+          deniedLogMessage: 'Pre-trip checklist document update denied; skipping root trip autosave fallback.',
+          fallbackLogMessage: 'Pre-trip checklist document update failed; falling back to full trip autosave.'
+        });
+        return;
+      }
+      fallbackToTripSave();
+    });
   }, [
     applyChecklistsPatch,
     clientId,
     currentUser,
     deleteTripChecklistItemDocument,
+    handleDocumentPersistenceError,
     moveTripChecklistItemDocument,
     publishChecklistItemStatus,
     saveTripChecklistItemDocument,

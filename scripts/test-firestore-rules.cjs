@@ -130,12 +130,14 @@ const run = async () => {
       await setDoc(doc(db, 'trips/trip-secure/members/ownerUid'), member('ownerUid', 'owner'));
       await setDoc(doc(db, 'trips/trip-secure/members/editorUid'), member('editorUid', 'editor'));
       await setDoc(doc(db, 'trips/trip-secure/members/viewerUid'), member('viewerUid', 'view'));
+      await setDoc(doc(db, 'trips/trip-secure/members/readerUid'), member('readerUid', 'view'));
     });
 
     const anonymousDb = testEnv.unauthenticatedContext().firestore();
     const ownerDb = testEnv.authenticatedContext('ownerUid', { email: 'owner@example.com' }).firestore();
     const editorDb = testEnv.authenticatedContext('editorUid', { email: 'editor@example.com' }).firestore();
     const viewerDb = testEnv.authenticatedContext('viewerUid', { email: 'viewer@example.com' }).firestore();
+    const readerDb = testEnv.authenticatedContext('readerUid', { email: 'reader@example.com' }).firestore();
 
     await assertFails(getDoc(doc(anonymousDb, 'trips/trip-secure')));
     await assertFails(setDoc(doc(anonymousDb, 'trips/trip-anon'), {
@@ -242,7 +244,7 @@ const run = async () => {
       updatedByClientId: 'rules-test'
     }));
 
-    await assertFails(setDoc(doc(viewerDb, 'trips/trip-secure/details/meta'), {
+    await assertFails(setDoc(doc(readerDb, 'trips/trip-secure/details/meta'), {
       id: 'meta',
       section: 'meta',
       schemaVersion: 1,
@@ -310,7 +312,7 @@ const run = async () => {
       updatedByClientId: 'rules-test'
     }));
 
-    await assertFails(setDoc(doc(viewerDb, 'trips/trip-secure/days/day-1'), {
+    await assertFails(setDoc(doc(readerDb, 'trips/trip-secure/days/day-1'), {
       id: 'day-1',
       schemaVersion: 1,
       dayNumber: 1,
@@ -327,6 +329,160 @@ const run = async () => {
       title: 'Mismatched',
       updatedAt: now,
       updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/events/event-1'), {
+      id: 'event-1',
+      schemaVersion: 1,
+      dayNumber: 1,
+      orderKey: 1000,
+      time: '09:30',
+      type: 'sightseeing',
+      title: 'Airport transfer',
+      desc: '',
+      location: 'TPE',
+      locationPlace: {
+        name: 'TPE',
+        address: 'Taiwan Taoyuan International Airport',
+        placeId: '',
+        lat: null,
+        lng: null
+      },
+      urgent: false,
+      transport: {},
+      cost: '',
+      currency: 'JPY',
+      url: '',
+      memos: [],
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(readerDb, 'trips/trip-secure/events/event-viewer'), {
+      id: 'event-viewer',
+      schemaVersion: 1,
+      dayNumber: 1,
+      orderKey: 2000,
+      title: 'Viewer event',
+      updatedAt: now,
+      updatedByUid: 'viewerUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(editorDb, 'trips/trip-secure/events/event-extra'), {
+      id: 'event-extra',
+      schemaVersion: 1,
+      dayNumber: 1,
+      orderKey: 3000,
+      title: 'Bad event',
+      unexpected: true,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/checklistItems/checklist-1'), {
+      id: 'checklist-1',
+      schemaVersion: 1,
+      listId: 'preTrip',
+      orderKey: 1000,
+      text: 'Passport',
+      done: false,
+      category: 'documents',
+      assignedTo: null,
+      day: null,
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/shoppingItems/shopping-1'), {
+      id: 'shopping-1',
+      schemaVersion: 1,
+      orderKey: 1000,
+      name: 'Adapter',
+      category: 'Gear',
+      shop: '',
+      quantity: 1,
+      notes: '',
+      image: null,
+      purchased: false,
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/expenses/expense-1'), {
+      id: 'expense-1',
+      schemaVersion: 1,
+      orderKey: 1000,
+      title: 'Train',
+      amount: 1200,
+      currency: 'JPY',
+      date: '2026-05-01',
+      category: 'transport',
+      payer: 'Editor',
+      splitType: 'all',
+      involved: ['Owner', 'Editor'],
+      isSettled: false,
+      note: '',
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/placeIdeas/place-1'), {
+      id: 'place-1',
+      schemaVersion: 1,
+      orderKey: 1000,
+      name: 'Tokyo Tower',
+      address: 'Tokyo Tower',
+      placeId: '',
+      lat: null,
+      lng: null,
+      note: '',
+      status: 'idea',
+      plannedDay: null,
+      addedAt: now,
+      plannedAt: '',
+      votes: [],
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/shoppingCategories/category-Gear'), {
+      id: 'category-Gear',
+      schemaVersion: 1,
+      name: 'Gear',
+      orderKey: 1000,
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(readerDb, 'trips/trip-secure/checklistItems/checklist-viewer'), {
+      id: 'checklist-viewer',
+      schemaVersion: 1,
+      listId: 'preTrip',
+      orderKey: 1000,
+      text: 'Viewer item',
+      updatedAt: now,
+      updatedByUid: 'viewerUid',
       updatedByClientId: 'rules-test'
     }));
 

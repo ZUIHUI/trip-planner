@@ -42,6 +42,7 @@ import {
 } from '../utils/tripCollectionDocuments';
 import { applyTripDetailDocumentsToTripDetails } from '../utils/tripDetailDocuments';
 import { applyTripSettingDocumentsToCollaboration } from '../utils/tripSettingDocuments';
+import { getSaveErrorMessage } from '../utils/persistenceErrors';
 import { logger } from '../utils/logger';
 
 const AUTO_SAVE_DELAY_MS = 1000;
@@ -256,6 +257,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       setSaveError('你目前只能查看這趟旅程，不能修改。');
       return false;
     }
+    setSaveError(null);
     hasLocalChangesRef.current = true;
     localChangeSeqRef.current += 1;
     return true;
@@ -610,6 +612,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       !uid ||
       isLoading ||
       isSaving ||
+      saveError ||
       syncConflict ||
       applyingRemoteRef.current ||
       !hasLocalChangesRef.current
@@ -665,7 +668,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           setSaveError('另一位旅伴剛更新了旅程，請選擇要使用哪一版。');
         } else {
           logger.error('自動儲存失敗:', error);
-          setSaveError(error.message || '儲存失敗');
+          setSaveError(getSaveErrorMessage(error));
         }
       } finally {
         setIsSaving(false);
@@ -693,6 +696,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     storageKey,
     isSaving,
     isLoading,
+    saveError,
     syncConflict,
     canEdit,
     currentUser,
@@ -774,7 +778,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         setSyncConflict({ remoteData: error.remoteData });
         setSaveError('另一位旅伴剛更新了旅程，請選擇要使用哪一版。');
       } else {
-        setSaveError(error.message || '手動儲存失敗');
+        setSaveError(getSaveErrorMessage(error, '手動儲存失敗'));
       }
       return false;
     } finally {

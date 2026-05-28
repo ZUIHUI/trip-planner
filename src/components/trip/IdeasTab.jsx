@@ -40,7 +40,8 @@ const IdeasTab = () => {
     openAddModal,
     handleAppendEvent,
     saveTripPlaceIdeaDocument,
-    deleteTripPlaceIdeaDocument
+    deleteTripPlaceIdeaDocument,
+    handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
 
@@ -106,12 +107,24 @@ const IdeasTab = () => {
     ];
 
     if (!operations.length) return;
-    void Promise.all(operations).catch(fallbackToTripSave);
+    void Promise.all(operations).catch((error) => {
+      if (handleDocumentPersistenceError) {
+        handleDocumentPersistenceError(error, {
+          label: '想去地點更新',
+          fallback: fallbackToTripSave,
+          deniedLogMessage: 'Place idea document update denied; skipping root trip autosave fallback.',
+          fallbackLogMessage: 'Place idea document update failed; falling back to full trip autosave.'
+        });
+        return;
+      }
+      fallbackToTripSave();
+    });
   }, [
     applyPlacePoolPatch,
     clientId,
     currentUser,
     deleteTripPlaceIdeaDocument,
+    handleDocumentPersistenceError,
     placePool,
     saveTripPlaceIdeaDocument,
     setPlacePool,

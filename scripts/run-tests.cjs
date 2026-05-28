@@ -90,6 +90,11 @@ const {
   normalizeTripCollaborationSettings,
   normalizeTripSettingDocumentForApp
 } = require('../src/utils/tripSettingDocuments.js');
+const {
+  getPermissionDeniedToast,
+  getSaveErrorMessage,
+  isPermissionDeniedError
+} = require('../src/utils/persistenceErrors.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -99,6 +104,21 @@ test('normalizes only http and https external URLs', () => {
   assert.equal(normalizeExternalUrl('https://example.com/a'), 'https://example.com/a');
   assert.equal(normalizeExternalUrl('javascript:alert(1)'), '');
   assert.equal(getExternalUrlHost('https://maps.google.com/foo'), 'maps.google.com');
+});
+
+test('classifies permission denied persistence errors for safe save handling', () => {
+  assert.equal(isPermissionDeniedError({ code: 'permission-denied' }), true);
+  assert.equal(isPermissionDeniedError(new Error('Missing or insufficient permissions.')), true);
+  assert.equal(isPermissionDeniedError({ code: 'unavailable', message: 'network unavailable' }), false);
+  assert.equal(
+    getSaveErrorMessage(new Error('Missing or insufficient permissions.')),
+    '權限不足，這次變更沒有儲存。請重新整理確認你仍有編輯權限。'
+  );
+  assert.deepEqual(getPermissionDeniedToast('行程更新'), {
+    variant: 'warning',
+    title: '儲存權限不足',
+    description: '行程更新被權限規則拒絕，已停止自動重試。請重新整理後再試一次。'
+  });
 });
 
 test('builds itinerary route readiness without hiding missing locations', () => {

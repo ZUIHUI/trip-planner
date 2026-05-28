@@ -61,6 +61,7 @@ import {
   getOrderKeyBetween,
   makeTripEventId
 } from '../utils/tripEventDocuments';
+import { getPermissionDeniedToast, isPermissionDeniedError } from '../utils/persistenceErrors';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -308,6 +309,28 @@ const TripDetailPage = () => {
     enabled: !isLoading && !accessError
   });
 
+  const handleDocumentPersistenceError = useCallback((error, {
+    label = '這次變更',
+    fallback = null,
+    deniedLogMessage = 'Document write denied; skipping root trip autosave fallback.',
+    fallbackLogMessage = 'Document write failed; falling back to full trip autosave.'
+  } = {}) => {
+    if (isPermissionDeniedError(error)) {
+      logger.warn(deniedLogMessage, error);
+      toast(getPermissionDeniedToast(label));
+      return false;
+    }
+
+    logger.warn(fallbackLogMessage, error);
+    fallback?.();
+    toast({
+      variant: 'warning',
+      title: '改用完整儲存',
+      description: '子文件儲存失敗，已改用完整旅程儲存。'
+    });
+    return true;
+  }, [toast]);
+
   const handleTripDetailsChange = useCallback((updater) => {
     if (!canEdit) {
       setTripDetails(updater);
@@ -376,6 +399,14 @@ const TripDetailPage = () => {
     if (!operations.length) return;
 
     void Promise.all(operations).catch((error) => {
+      if (isPermissionDeniedError(error)) {
+        handleDocumentPersistenceError(error, {
+          label: '旅程資訊更新',
+          deniedLogMessage: 'Trip detail field update denied; skipping root trip autosave fallback.'
+        });
+        return;
+      }
+
       logger.warn('Trip detail field update failed; falling back to full trip autosave.', error);
       fallbackToTripSave();
       toast({
@@ -389,6 +420,7 @@ const TripDetailPage = () => {
     canEdit,
     clientId,
     currentUser,
+    handleDocumentPersistenceError,
     setTripDetails,
     toast,
     tripId
@@ -430,6 +462,14 @@ const TripDetailPage = () => {
       user: currentUser,
       clientId
     }).catch((error) => {
+      if (isPermissionDeniedError(error)) {
+        handleDocumentPersistenceError(error, {
+          label: '協作設定更新',
+          deniedLogMessage: 'Trip collaboration setting update denied; skipping root trip autosave fallback.'
+        });
+        return;
+      }
+
       logger.warn('Trip collaboration setting update failed; falling back to full trip autosave.', error);
       fallbackToTripSave();
       toast({
@@ -443,6 +483,7 @@ const TripDetailPage = () => {
     applyCollaborationPatch,
     clientId,
     currentUser,
+    handleDocumentPersistenceError,
     setCollaboration,
     toast,
     tripId
@@ -883,6 +924,14 @@ const TripDetailPage = () => {
   };
 
   const handleEventDocumentWriteError = (error) => {
+    if (isPermissionDeniedError(error)) {
+      handleDocumentPersistenceError(error, {
+        label: '行程更新',
+        deniedLogMessage: 'Event document write denied; skipping root trip autosave fallback.'
+      });
+      return;
+    }
+
     logger.warn('Event document write failed; falling back to trip autosave.', error);
     markItineraryForFallbackSave();
     toast({
@@ -1195,6 +1244,14 @@ const TripDetailPage = () => {
       user: currentUser,
       clientId
     }).catch((error) => {
+      if (isPermissionDeniedError(error)) {
+        handleDocumentPersistenceError(error, {
+          label: 'Day 資訊更新',
+          deniedLogMessage: 'Trip day document update denied; skipping root trip autosave fallback.'
+        });
+        return;
+      }
+
       logger.warn('Trip day document update failed; falling back to full trip autosave.', error);
       fallbackToTripSave();
       toast({
@@ -1330,6 +1387,7 @@ const TripDetailPage = () => {
     userProfile,
     updateDisplayName,
     logout,
+    handleDocumentPersistenceError,
     isSharedSession: false,
     accessRole,
     canEdit,
@@ -1428,6 +1486,7 @@ const TripDetailPage = () => {
     userProfile,
     updateDisplayName,
     logout,
+    handleDocumentPersistenceError,
     accessRole,
     canEdit,
     isReadOnly,
