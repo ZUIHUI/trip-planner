@@ -3,6 +3,9 @@ import {
   ensureTripAccess,
   loadTrip,
   saveTrip,
+  subscribeTripDayDocuments,
+  subscribeTripDetailDocuments,
+  subscribeTripSettingDocuments,
   subscribeTripExpenseDocuments,
   subscribeTripChecklistItemDocuments,
   subscribeTripEventDocuments,
@@ -27,6 +30,7 @@ import {
   shouldTreatRemoteAsConflict
 } from '../utils/tripSync';
 import { applyTripEventDocumentsToItinerary } from '../utils/tripEventDocuments';
+import { applyTripDayDocumentsToItinerary } from '../utils/tripDayDocuments';
 import {
   applyChecklistItemDocumentsToChecklists,
   applyShoppingItemDocumentsToList
@@ -36,6 +40,8 @@ import {
   applyTripExpenseDocumentsToList,
   applyTripPlaceIdeaDocumentsToPool
 } from '../utils/tripCollectionDocuments';
+import { applyTripDetailDocumentsToTripDetails } from '../utils/tripDetailDocuments';
+import { applyTripSettingDocumentsToCollaboration } from '../utils/tripSettingDocuments';
 import { logger } from '../utils/logger';
 
 const AUTO_SAVE_DELAY_MS = 1000;
@@ -125,6 +131,9 @@ const applyNormalizedData = ({
   initialItinerary,
   setters,
   eventDocuments = [],
+  detailDocuments = [],
+  settingDocuments = [],
+  dayDocuments = [],
   checklistItemDocuments = [],
   shoppingItemDocuments = [],
   expenseDocuments = [],
@@ -132,8 +141,17 @@ const applyNormalizedData = ({
   shoppingCategoryDocuments = []
 }) => {
   const normalized = normalizeTripDocumentForApp(data || fallbackData, fallbackData);
-  const normalizedTripDetails = normalizeTripDateFields(normalized.tripDetails || initialTripDetails);
-  const normalizedItinerary = ensureItineraryComplete(normalized.itinerary || initialItinerary, normalizedTripDetails);
+  const rootTripDetails = normalizeTripDateFields(normalized.tripDetails || initialTripDetails);
+  const normalizedTripDetails = Array.isArray(detailDocuments) && detailDocuments.length
+    ? applyTripDetailDocumentsToTripDetails(rootTripDetails, detailDocuments)
+    : rootTripDetails;
+  const normalizedCollaboration = Array.isArray(settingDocuments) && settingDocuments.length
+    ? applyTripSettingDocumentsToCollaboration(normalized.collaboration || defaultCollaboration, settingDocuments)
+    : (normalized.collaboration || defaultCollaboration);
+  const rootItinerary = ensureItineraryComplete(normalized.itinerary || initialItinerary, normalizedTripDetails);
+  const normalizedItinerary = Array.isArray(dayDocuments) && dayDocuments.length
+    ? applyTripDayDocumentsToItinerary(rootItinerary, dayDocuments)
+    : rootItinerary;
   const normalizedChecklists = normalized.checklists || { preTrip: [], packing: [] };
   const normalizedShoppingList = Array.isArray(normalized.shoppingList) ? normalized.shoppingList : [];
   const normalizedExpenses = Array.isArray(normalized.expenses) ? normalized.expenses : [];
@@ -170,10 +188,14 @@ const applyNormalizedData = ({
       ? applyTripPlaceIdeaDocumentsToPool(normalizedPlacePool, placeIdeaDocuments)
       : normalizedPlacePool
   );
-  setters.setCollaboration(normalized.collaboration || defaultCollaboration);
+  setters.setCollaboration(normalizedCollaboration);
   setters.setAccess(normalized.access || {});
   setters.setSyncMeta(normalized.syncMeta || { revision: 0 });
-  return normalized;
+  return {
+    ...normalized,
+    tripDetails: normalizedTripDetails,
+    collaboration: normalizedCollaboration
+  };
 };
 
 export const useTrip = (tripId, initialTripDetails, initialItinerary, {
@@ -194,6 +216,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const applyingRemoteRef = useRef(false);
   const baseRevisionRef = useRef(0);
   const placePoolRef = useRef([]);
+  const tripDetailDocumentsRef = useRef([]);
+  const tripSettingDocumentsRef = useRef([]);
+  const tripDayDocumentsRef = useRef([]);
   const tripEventDocumentsRef = useRef([]);
   const tripChecklistItemDocumentsRef = useRef([]);
   const tripShoppingItemDocumentsRef = useRef([]);
@@ -272,6 +297,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
 
     let cancelled = false;
     let unsubscribeTrip = null;
+    let unsubscribeTripDetails = null;
+    let unsubscribeTripSettings = null;
+    let unsubscribeTripDays = null;
     let unsubscribeTripEvents = null;
     let unsubscribeTripChecklistItems = null;
     let unsubscribeTripShoppingItems = null;
@@ -381,6 +409,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
               initialTripDetails,
               initialItinerary,
               setters: rawSetters,
+              detailDocuments: tripDetailDocumentsRef.current,
+              settingDocuments: tripSettingDocumentsRef.current,
+              dayDocuments: tripDayDocumentsRef.current,
               eventDocuments: tripEventDocumentsRef.current,
               checklistItemDocuments: tripChecklistItemDocumentsRef.current,
               shoppingItemDocuments: tripShoppingItemDocumentsRef.current,
@@ -405,6 +436,45 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
             setAccessError(error.message || '暫時無法載入最新旅程內容，請稍後再試。');
             setIsLoading(false);
           }
+        );
+
+        unsubscribeTripDetails = subscribeTripDetailDocuments(
+          safeTripId,
+          (detailDocuments) => {
+            if (cancelled) return;
+            tripDetailDocumentsRef.current = Array.isArray(detailDocuments) ? detailDocuments : [];
+            if (!tripDetailDocumentsRef.current.length) return;
+            setTripDetailsState((currentTripDetails) => (
+              applyTripDetailDocumentsToTripDetails(currentTripDetails, tripDetailDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Trip detail documents snapshot failed:', error)
+        );
+
+        unsubscribeTripSettings = subscribeTripSettingDocuments(
+          safeTripId,
+          (settingDocuments) => {
+            if (cancelled) return;
+            tripSettingDocumentsRef.current = Array.isArray(settingDocuments) ? settingDocuments : [];
+            if (!tripSettingDocumentsRef.current.length) return;
+            setCollaborationState((currentCollaboration) => (
+              applyTripSettingDocumentsToCollaboration(currentCollaboration, tripSettingDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Trip setting documents snapshot failed:', error)
+        );
+
+        unsubscribeTripDays = subscribeTripDayDocuments(
+          safeTripId,
+          (dayDocuments) => {
+            if (cancelled) return;
+            tripDayDocumentsRef.current = Array.isArray(dayDocuments) ? dayDocuments : [];
+            if (!tripDayDocumentsRef.current.length) return;
+            setItineraryState((currentItinerary) => (
+              applyTripDayDocumentsToItinerary(currentItinerary, tripDayDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Trip day documents snapshot failed:', error)
         );
 
         unsubscribeTripEvents = subscribeTripEventDocuments(
@@ -508,6 +578,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     return () => {
       cancelled = true;
       unsubscribeTrip?.();
+      unsubscribeTripDetails?.();
+      unsubscribeTripSettings?.();
+      unsubscribeTripDays?.();
       unsubscribeTripEvents?.();
       unsubscribeTripChecklistItems?.();
       unsubscribeTripShoppingItems?.();
@@ -635,6 +708,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       initialTripDetails,
       initialItinerary,
       setters: rawSetters,
+      detailDocuments: tripDetailDocumentsRef.current,
+      settingDocuments: tripSettingDocumentsRef.current,
+      dayDocuments: tripDayDocumentsRef.current,
       eventDocuments: tripEventDocumentsRef.current,
       checklistItemDocuments: tripChecklistItemDocumentsRef.current,
       shoppingItemDocuments: tripShoppingItemDocumentsRef.current,
@@ -715,6 +791,9 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         initialTripDetails,
         initialItinerary,
         setters: rawSetters,
+        detailDocuments: tripDetailDocumentsRef.current,
+        settingDocuments: tripSettingDocumentsRef.current,
+        dayDocuments: tripDayDocumentsRef.current,
         eventDocuments: tripEventDocumentsRef.current,
         checklistItemDocuments: tripChecklistItemDocumentsRef.current,
         shoppingItemDocuments: tripShoppingItemDocumentsRef.current,
@@ -740,6 +819,10 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     setItineraryState(updater);
   }, []);
 
+  const applyTripDetailsPatch = useCallback((updater) => {
+    setTripDetailsState(updater);
+  }, []);
+
   const applyChecklistsPatch = useCallback((updater) => {
     setChecklistsState(updater);
   }, []);
@@ -760,6 +843,10 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     setPlacePoolState(updater);
   }, []);
 
+  const applyCollaborationPatch = useCallback((updater) => {
+    setCollaborationState(updater);
+  }, []);
+
   return {
     isLoading,
     isSaving,
@@ -772,6 +859,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     syncConflict,
     resolveConflict,
     tripDetails,
+    applyTripDetailsPatch,
     setTripDetails,
     itinerary,
     setItinerary,
@@ -792,6 +880,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     applyPlacePoolPatch,
     setPlacePool,
     collaboration,
+    applyCollaborationPatch,
     setCollaboration,
     access,
     syncMeta,

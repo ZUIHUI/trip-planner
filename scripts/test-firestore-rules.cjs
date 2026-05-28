@@ -207,6 +207,129 @@ const run = async () => {
       updatedAt: now
     }));
 
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/details/meta'), {
+      id: 'meta',
+      section: 'meta',
+      schemaVersion: 1,
+      title: 'Edited Trip',
+      status: 'planning',
+      coverImage: '',
+      dateRange: { start: '2026-05-01', end: '2026-05-03' },
+      dates: '2026/05/01 - 2026/05/03',
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/details/logistics'), {
+      id: 'logistics',
+      section: 'logistics',
+      schemaVersion: 1,
+      accommodation: { name: 'Hotel A' },
+      flights: { outbound: { code: 'BR198' } },
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/details/finance'), {
+      id: 'finance',
+      section: 'finance',
+      schemaVersion: 1,
+      budget: { total: '2000' },
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(viewerDb, 'trips/trip-secure/details/meta'), {
+      id: 'meta',
+      section: 'meta',
+      schemaVersion: 1,
+      title: 'Viewer Edit',
+      updatedAt: now,
+      updatedByUid: 'viewerUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(editorDb, 'trips/trip-secure/details/meta'), {
+      id: 'meta',
+      section: 'logistics',
+      schemaVersion: 1,
+      title: 'Mismatched',
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(ownerDb, 'trips/trip-secure/settings/collaboration'), {
+      id: 'collaboration',
+      setting: 'collaboration',
+      schemaVersion: 1,
+      enabled: true,
+      shareToken: '',
+      permission: 'view',
+      votesEnabled: false,
+      createdAt: now,
+      updatedAt: now,
+      updatedByUid: 'ownerUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(editorDb, 'trips/trip-secure/settings/collaboration'), {
+      id: 'collaboration',
+      setting: 'collaboration',
+      schemaVersion: 1,
+      enabled: true,
+      permission: 'edit',
+      votesEnabled: true,
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(ownerDb, 'trips/trip-secure/settings/collaboration'), {
+      id: 'collaboration',
+      setting: 'collaboration',
+      schemaVersion: 1,
+      permission: 'owner',
+      updatedAt: now,
+      updatedByUid: 'ownerUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertSucceeds(setDoc(doc(editorDb, 'trips/trip-secure/days/day-1'), {
+      id: 'day-1',
+      schemaVersion: 1,
+      dayNumber: 1,
+      title: 'Arrival',
+      date: '2026-05-01',
+      weekday: 'Fri',
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(viewerDb, 'trips/trip-secure/days/day-1'), {
+      id: 'day-1',
+      schemaVersion: 1,
+      dayNumber: 1,
+      title: 'Viewer Edit',
+      updatedAt: now,
+      updatedByUid: 'viewerUid',
+      updatedByClientId: 'rules-test'
+    }));
+
+    await assertFails(setDoc(doc(editorDb, 'trips/trip-secure/days/day-1'), {
+      id: 'day-2',
+      schemaVersion: 1,
+      dayNumber: 1,
+      title: 'Mismatched',
+      updatedAt: now,
+      updatedByUid: 'editorUid',
+      updatedByClientId: 'rules-test'
+    }));
+
     await assertSucceeds(setDoc(doc(ownerDb, 'userProfiles/ownerUid'), {
       uid: 'ownerUid',
       email: 'owner@example.com',

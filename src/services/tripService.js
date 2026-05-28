@@ -6,6 +6,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   onSnapshot,
   query,
   runTransaction,
@@ -38,6 +39,26 @@ import {
   normalizeTripExpenseDocumentForApp,
   normalizeTripPlaceIdeaDocumentForApp
 } from '../utils/tripCollectionDocuments';
+import {
+  normalizeTripDetailsMetaPatch,
+  normalizeTripDetailsPatch
+} from '../utils/tripDetailsPatch';
+import {
+  TRIP_DETAIL_SECTION_IDS,
+  normalizeTripDetailDocumentForApp
+} from '../utils/tripDetailDocuments';
+import {
+  buildRootItineraryDaysMirror,
+  buildRootItineraryMirror,
+  buildTripDayDocument,
+  makeTripDayDocumentId,
+  normalizeTripDayDocumentForApp
+} from '../utils/tripDayDocuments';
+import {
+  TRIP_SETTING_IDS,
+  normalizeTripCollaborationSettings,
+  normalizeTripSettingDocumentForApp
+} from '../utils/tripSettingDocuments';
 
 const PRIMARY_OWNER_EMAIL = (import.meta.env.VITE_PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
 
@@ -67,8 +88,68 @@ const memberPayload = ({ user, profile, role, shareToken = '' }) => ({
   updatedAt: new Date().toISOString()
 });
 
+const asObject = (value) => (
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+);
+const cleanString = (value, fallback = '') => (typeof value === 'string' ? value : fallback);
+const withoutUndefined = (value) => {
+  if (Array.isArray(value)) return value.map(withoutUndefined);
+  if (!value || typeof value !== 'object') return value;
+  return Object.entries(value).reduce((acc, [key, entryValue]) => {
+    if (entryValue !== undefined) {
+      acc[key] = withoutUndefined(entryValue);
+    }
+    return acc;
+  }, {});
+};
+
+const buildTripFieldUpdateMeta = ({ user, clientId = '', operation = 'trip-details', now = new Date().toISOString() }) => ({
+  savedAt: now,
+  updatedAt: now,
+  'meta.updatedAt': now,
+  'syncMeta.revision': increment(1),
+  'syncMeta.updatedByUid': cleanString(user?.uid),
+  'syncMeta.updatedByClientId': cleanString(clientId),
+  'syncMeta.updatedByOperation': operation,
+  'syncMeta.updatedAt': now
+});
+
+const buildTripDetailDocumentMeta = ({
+  section,
+  user,
+  clientId = '',
+  now = new Date().toISOString()
+}) => ({
+  id: section,
+  section,
+  schemaVersion: 1,
+  updatedAt: now,
+  updatedByUid: cleanString(user?.uid),
+  updatedByClientId: cleanString(clientId)
+});
+
+const buildTripSettingDocumentMeta = ({
+  setting,
+  user,
+  clientId = '',
+  now = new Date().toISOString()
+}) => ({
+  id: setting,
+  setting,
+  schemaVersion: 1,
+  updatedAt: now,
+  updatedByUid: cleanString(user?.uid),
+  updatedByClientId: cleanString(clientId)
+});
+
 const getTripDocRef = (tripId) => doc(db, 'trips', tripId);
 const getMemberDocRef = (tripId, uid) => doc(db, 'trips', tripId, 'members', uid);
+const getTripDetailCollectionRef = (tripId) => collection(db, 'trips', tripId, 'details');
+const getTripDetailDocRef = (tripId, section) => doc(db, 'trips', tripId, 'details', String(section));
+const getTripSettingCollectionRef = (tripId) => collection(db, 'trips', tripId, 'settings');
+const getTripSettingDocRef = (tripId, setting) => doc(db, 'trips', tripId, 'settings', String(setting));
+const getTripDayCollectionRef = (tripId) => collection(db, 'trips', tripId, 'days');
+const getTripDayDocRef = (tripId, dayNumber) => doc(db, 'trips', tripId, 'days', makeTripDayDocumentId(dayNumber));
 const getTripEventCollectionRef = (tripId) => collection(db, 'trips', tripId, 'events');
 const getTripEventDocRef = (tripId, eventId) => doc(db, 'trips', tripId, 'events', String(eventId));
 const getTripChecklistItemCollectionRef = (tripId) => collection(db, 'trips', tripId, 'checklistItems');
@@ -118,6 +199,48 @@ export const subscribeTripMembers = (tripId, onData, onError) => {
     ref,
     (snapshot) => {
       onData(snapshot.docs.map((snapshotDoc) => ({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripDetailDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripDetailCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeTripDetailDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripSettingDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripSettingCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeTripSettingDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripDayDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripDayCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeTripDayDocumentForApp({
         id: snapshotDoc.id,
         ...snapshotDoc.data()
       })));
@@ -565,6 +688,298 @@ export const moveTripShoppingItemDocument = async ({
 
     return normalizeShoppingItemDocumentForApp(payload);
   });
+};
+
+export const updateTripMetaFields = async ({
+  tripId,
+  tripDetails,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  if (!tripId) throw new Error('Missing trip id');
+  const meta = normalizeTripDetailsMetaPatch(tripDetails);
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+  const tripRef = getTripDocRef(tripId);
+  const detailRef = getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.meta);
+
+  batch.set(detailRef, withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.meta,
+      user,
+      clientId,
+      now
+    }),
+    title: meta.title,
+    status: meta.status,
+    coverImage: meta.coverImage,
+    dateRange: withoutUndefined(meta.dateRange),
+    dates: meta.dates
+  }), { merge: true });
+
+  batch.update(tripRef, {
+    'meta.title': meta.title,
+    'meta.status': meta.status,
+    'meta.coverImage': meta.coverImage,
+    'meta.dateRange': withoutUndefined(meta.dateRange),
+    'tripDetails.title': meta.title,
+    'tripDetails.status': meta.status,
+    'tripDetails.coverImage': meta.coverImage,
+    'tripDetails.dateRange': withoutUndefined(meta.dateRange),
+    'tripDetails.dates': meta.dates,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-meta', now })
+  });
+  await batch.commit();
+
+  return meta;
+};
+
+export const updateTripAccommodationFields = async ({
+  tripId,
+  accommodation,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  if (!tripId) throw new Error('Missing trip id');
+  const nextAccommodation = withoutUndefined(asObject(accommodation));
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+
+  batch.set(getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.logistics), withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.logistics,
+      user,
+      clientId,
+      now
+    }),
+    accommodation: nextAccommodation
+  }), { merge: true });
+
+  batch.update(getTripDocRef(tripId), {
+    'logistics.accommodation': nextAccommodation,
+    'tripDetails.accommodation': nextAccommodation,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-accommodation', now })
+  });
+  await batch.commit();
+
+  return nextAccommodation;
+};
+
+export const updateTripFlightsFields = async ({
+  tripId,
+  flights,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  if (!tripId) throw new Error('Missing trip id');
+  const nextFlights = withoutUndefined(asObject(flights));
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+
+  batch.set(getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.logistics), withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.logistics,
+      user,
+      clientId,
+      now
+    }),
+    flights: nextFlights
+  }), { merge: true });
+
+  batch.update(getTripDocRef(tripId), {
+    'logistics.flights': nextFlights,
+    'tripDetails.flights': nextFlights,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-flights', now })
+  });
+  await batch.commit();
+
+  return nextFlights;
+};
+
+export const updateTripBudgetFields = async ({
+  tripId,
+  budget,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  if (!tripId) throw new Error('Missing trip id');
+  const nextBudget = withoutUndefined(asObject(budget));
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+
+  batch.set(getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.finance), withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.finance,
+      user,
+      clientId,
+      now
+    }),
+    budget: nextBudget
+  }), { merge: true });
+
+  batch.update(getTripDocRef(tripId), {
+    'finance.budget': nextBudget,
+    'tripDetails.budget': nextBudget,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-budget', now })
+  });
+  await batch.commit();
+
+  return nextBudget;
+};
+
+export const updateTripDetailsFields = async ({
+  tripId,
+  tripDetails,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  if (!tripId) throw new Error('Missing trip id');
+  const normalized = normalizeTripDetailsPatch(tripDetails);
+  const meta = normalizeTripDetailsMetaPatch(normalized);
+  const accommodation = withoutUndefined(normalized.accommodation);
+  const flights = withoutUndefined(normalized.flights);
+  const budget = withoutUndefined(normalized.budget);
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+  const tripRef = getTripDocRef(tripId);
+
+  batch.set(getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.meta), withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.meta,
+      user,
+      clientId,
+      now
+    }),
+    title: meta.title,
+    status: meta.status,
+    coverImage: meta.coverImage,
+    dateRange: withoutUndefined(meta.dateRange),
+    dates: meta.dates
+  }), { merge: true });
+
+  batch.set(getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.logistics), withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.logistics,
+      user,
+      clientId,
+      now
+    }),
+    accommodation,
+    flights
+  }), { merge: true });
+
+  batch.set(getTripDetailDocRef(tripId, TRIP_DETAIL_SECTION_IDS.finance), withoutUndefined({
+    ...buildTripDetailDocumentMeta({
+      section: TRIP_DETAIL_SECTION_IDS.finance,
+      user,
+      clientId,
+      now
+    }),
+    budget
+  }), { merge: true });
+
+  batch.update(tripRef, {
+    'meta.title': meta.title,
+    'meta.status': meta.status,
+    'meta.coverImage': meta.coverImage,
+    'meta.dateRange': withoutUndefined(meta.dateRange),
+    'tripDetails.title': meta.title,
+    'tripDetails.status': meta.status,
+    'tripDetails.coverImage': meta.coverImage,
+    'tripDetails.dateRange': withoutUndefined(meta.dateRange),
+    'tripDetails.dates': meta.dates,
+    'logistics.accommodation': accommodation,
+    'tripDetails.accommodation': accommodation,
+    'logistics.flights': flights,
+    'tripDetails.flights': flights,
+    'finance.budget': budget,
+    'tripDetails.budget': budget,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-details', now })
+  });
+  await batch.commit();
+
+  return normalized;
+};
+
+export const updateTripCollaborationSettings = async ({
+  tripId,
+  collaboration,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  if (!tripId) throw new Error('Missing trip id');
+  const now = new Date().toISOString();
+  const nextCollaboration = withoutUndefined(normalizeTripCollaborationSettings({
+    ...collaboration,
+    updatedAt: collaboration?.updatedAt || now
+  }));
+  const batch = writeBatch(db);
+
+  batch.set(getTripSettingDocRef(tripId, TRIP_SETTING_IDS.collaboration), withoutUndefined({
+    ...buildTripSettingDocumentMeta({
+      setting: TRIP_SETTING_IDS.collaboration,
+      user,
+      clientId,
+      now
+    }),
+    ...nextCollaboration
+  }), { merge: true });
+
+  batch.update(getTripDocRef(tripId), {
+    'planning.collaboration': nextCollaboration,
+    collaboration: nextCollaboration,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-collaboration', now })
+  });
+  await batch.commit();
+
+  return nextCollaboration;
+};
+
+export const updateTripDayFields = async ({
+  tripId,
+  day,
+  dayNumber,
+  itinerary = [],
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  const safeDayNumber = Number(dayNumber || day?.day || day?.dayNumber);
+  if (!tripId || !Number.isFinite(safeDayNumber) || safeDayNumber <= 0) {
+    throw new Error('Missing trip day');
+  }
+
+  const now = new Date().toISOString();
+  const payload = buildTripDayDocument({
+    day,
+    dayNumber: safeDayNumber,
+    user,
+    clientId,
+    now
+  });
+  const rootItinerary = withoutUndefined(buildRootItineraryMirror(itinerary));
+  const rootItineraryDays = withoutUndefined(buildRootItineraryDaysMirror(rootItinerary));
+  const batch = writeBatch(db);
+
+  batch.set(getTripDayDocRef(tripId, safeDayNumber), {
+    ...payload,
+    createdAt: day?.createdAt || now
+  }, { merge: true });
+
+  batch.update(getTripDocRef(tripId), {
+    itinerary: rootItinerary,
+    itineraryDays: rootItineraryDays,
+    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-day', now })
+  });
+  await batch.commit();
+
+  return normalizeTripDayDocumentForApp(payload);
 };
 
 const writeTripExpenseDocument = async ({

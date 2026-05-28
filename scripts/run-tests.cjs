@@ -31,6 +31,13 @@ const {
   getOrderKeyBetween
 } = require('../src/utils/tripEventDocuments.js');
 const {
+  applyTripDayDocumentsToItinerary,
+  buildRootItineraryDaysMirror,
+  buildRootItineraryMirror,
+  buildTripDayDocument,
+  normalizeTripDayDocumentForApp
+} = require('../src/utils/tripDayDocuments.js');
+const {
   applyChecklistItemDocumentsToChecklists,
   applyShoppingItemDocumentsToList,
   buildChecklistItemDocument,
@@ -65,6 +72,19 @@ const {
   getFlightTimeSelectParts
 } = require('../src/utils/flightDateTimeFields.js');
 const { getAirportDayFlights } = require('../src/utils/airportDayFlights.js');
+const {
+  getTripDetailsPatchSections,
+  normalizeTripDetailsMetaPatch
+} = require('../src/utils/tripDetailsPatch.js');
+const {
+  applyTripDetailDocumentsToTripDetails,
+  normalizeTripDetailDocumentForApp
+} = require('../src/utils/tripDetailDocuments.js');
+const {
+  applyTripSettingDocumentsToCollaboration,
+  normalizeTripCollaborationSettings,
+  normalizeTripSettingDocumentForApp
+} = require('../src/utils/tripSettingDocuments.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -140,6 +160,81 @@ test('overlays trip event documents on legacy itinerary without rewriting base a
   assert.deepEqual(overlaid[1].events.map((event) => event.id), ['a']);
   assert.equal(overlaid[1].events[0].title, 'Moved A');
   assert.deepEqual(itinerary[0].events.map((event) => event.id), ['a', 'b']);
+});
+
+test('overlays trip day documents on itinerary metadata without rewriting events', () => {
+  const itinerary = [
+    { day: 1, title: 'Day 1', date: '5/1', weekday: 'Fri', events: [{ id: 'a' }] },
+    { day: 2, title: 'Day 2', date: '5/2', weekday: 'Sat', events: [{ id: 'b' }] }
+  ];
+
+  const overlaid = applyTripDayDocumentsToItinerary(itinerary, [
+    {
+      id: 'day-2',
+      dayNumber: 2,
+      title: 'Shinjuku',
+      date: '5/2 night',
+      weekday: 'Sat'
+    }
+  ]);
+
+  assert.equal(overlaid[0].title, 'Day 1');
+  assert.equal(overlaid[1].title, 'Shinjuku');
+  assert.equal(overlaid[1].date, '5/2 night');
+  assert.deepEqual(overlaid[1].events, [{ id: 'b' }]);
+  assert.equal(itinerary[1].title, 'Day 2');
+});
+
+test('builds trip day documents and root itinerary mirrors', () => {
+  const document = buildTripDayDocument({
+    day: { day: 3, title: 'Kyoto', date: '5/3', weekday: 'Sun' },
+    dayNumber: 3,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+
+  assert.deepEqual(document, {
+    id: 'day-3',
+    schemaVersion: 1,
+    dayNumber: 3,
+    title: 'Kyoto',
+    date: '5/3',
+    weekday: 'Sun',
+    updatedAt: '2026-05-28T00:00:00.000Z',
+    updatedByUid: 'user-1',
+    updatedByClientId: 'client-1'
+  });
+
+  assert.deepEqual(normalizeTripDayDocumentForApp({ id: 'day-4', dayNumber: 4 }), {
+    id: 'day-4',
+    schemaVersion: 1,
+    dayNumber: 4,
+    title: 'Day 4',
+    date: 'Day 4',
+    weekday: '',
+    updatedAt: '',
+    updatedByUid: '',
+    updatedByClientId: ''
+  });
+
+  const rootMirror = buildRootItineraryMirror([{ day: 1, title: 'Tokyo', events: [{ id: 'a' }] }]);
+  assert.deepEqual(rootMirror, [{
+    day: 1,
+    id: 'day-1',
+    title: 'Tokyo',
+    date: 'Day 1',
+    weekday: '',
+    events: [{ id: 'a' }]
+  }]);
+  assert.deepEqual(buildRootItineraryDaysMirror(rootMirror), [{
+    id: 'day-1',
+    dayNumber: 1,
+    isoDate: 'Day 1',
+    weekday: '',
+    title: 'Tokyo',
+    events: [{ id: 'a' }]
+  }]);
 });
 
 test('builds event document order keys for sparse ordering', () => {
@@ -400,6 +495,211 @@ test('preserves vote sync metadata fields when normalizing trips', () => {
   assert.equal(normalized.syncMeta.revision, 8);
   assert.equal(normalized.syncMeta.updatedByOperation, PLACE_VOTE_OPERATION);
   assert.equal(normalized.syncMeta.updatedEntityId, 'place-1');
+});
+
+test('normalizes trip detail meta patches from date range fields', () => {
+  const meta = normalizeTripDetailsMetaPatch({
+    title: 'Tokyo',
+    status: '',
+    coverImage: 'https://example.com/tokyo.jpg',
+    dateRange: {
+      start: '2026/5/1',
+      end: '2026.5.3'
+    }
+  });
+
+  assert.deepEqual(meta, {
+    title: 'Tokyo',
+    status: '',
+    coverImage: 'https://example.com/tokyo.jpg',
+    dateRange: {
+      start: '2026-05-01',
+      end: '2026-05-03'
+    },
+    dates: '2026/05/01 - 2026/05/03'
+  });
+});
+
+test('detects trip detail patch sections for field-level saves', () => {
+  const previous = {
+    title: 'Tokyo',
+    status: 'planning',
+    coverImage: '',
+    dateRange: {
+      start: '2026-05-01',
+      end: '2026-05-03'
+    },
+    budget: { total: '1000' },
+    accommodation: { name: 'Hotel A' },
+    flights: { outbound: { code: 'BR198' } }
+  };
+
+  const changedBudget = getTripDetailsPatchSections(previous, {
+    ...previous,
+    budget: { total: '2000' }
+  });
+  assert.equal(changedBudget.changed.budget, true);
+  assert.equal(changedBudget.changed.meta, false);
+  assert.equal(changedBudget.changed.accommodation, false);
+  assert.equal(changedBudget.changed.flights, false);
+  assert.equal(changedBudget.changed.untracked, false);
+
+  const changedFlights = getTripDetailsPatchSections(previous, {
+    ...previous,
+    flights: { outbound: { code: 'BR198' }, inbound: { code: 'BR197' } }
+  });
+  assert.equal(changedFlights.changed.flights, true);
+  assert.equal(changedFlights.changed.budget, false);
+
+  const changedMeta = getTripDetailsPatchSections(previous, {
+    ...previous,
+    title: 'Osaka'
+  });
+  assert.equal(changedMeta.changed.meta, true);
+  assert.equal(changedMeta.meta.title, 'Osaka');
+
+  const changedAccommodation = getTripDetailsPatchSections(previous, {
+    ...previous,
+    accommodation: { name: 'Hotel B' }
+  });
+  assert.equal(changedAccommodation.changed.accommodation, true);
+
+  const changedUntracked = getTripDetailsPatchSections(previous, {
+    ...previous,
+    travelers: [{ id: 'traveler-1' }]
+  });
+  assert.equal(changedUntracked.changed.untracked, true);
+  assert.equal(changedUntracked.changed.any, true);
+});
+
+test('normalizes trip detail section documents for the app', () => {
+  assert.deepEqual(normalizeTripDetailDocumentForApp({
+    id: 'meta',
+    title: 'Tokyo',
+    dateRange: { start: '2026/5/1', end: '2026/5/3' }
+  }), {
+    id: 'meta',
+    section: 'meta',
+    title: 'Tokyo',
+    status: 'planning',
+    coverImage: '',
+    dateRange: {
+      start: '2026-05-01',
+      end: '2026-05-03'
+    },
+    dates: '2026/05/01 - 2026/05/03',
+    updatedAt: '',
+    updatedByUid: '',
+    updatedByClientId: ''
+  });
+
+  assert.deepEqual(normalizeTripDetailDocumentForApp({
+    id: 'logistics',
+    accommodation: { name: 'Hotel A' },
+    flights: { outbound: { code: 'BR198' } }
+  }), {
+    id: 'logistics',
+    section: 'logistics',
+    accommodation: { name: 'Hotel A' },
+    flights: { outbound: { code: 'BR198' } },
+    updatedAt: '',
+    updatedByUid: '',
+    updatedByClientId: ''
+  });
+});
+
+test('overlays trip detail section documents over root compatibility fields', () => {
+  const overlaid = applyTripDetailDocumentsToTripDetails({
+    title: 'Legacy Tokyo',
+    dateRange: { start: '2026-05-01', end: '2026-05-03' },
+    accommodation: { name: 'Legacy Hotel' },
+    flights: { outbound: { code: 'OLD123' } },
+    budget: { total: '1000' }
+  }, [
+    {
+      id: 'meta',
+      title: 'Section Tokyo',
+      status: 'planning',
+      coverImage: 'https://example.com/tokyo.jpg',
+      dateRange: { start: '2026-05-02', end: '2026-05-04' }
+    },
+    {
+      id: 'logistics',
+      flights: { outbound: { code: 'BR198' }, inbound: { code: 'BR197' } }
+    },
+    {
+      id: 'finance',
+      budget: { total: '2000', currency: 'JPY' }
+    }
+  ]);
+
+  assert.equal(overlaid.title, 'Section Tokyo');
+  assert.deepEqual(overlaid.dateRange, { start: '2026-05-02', end: '2026-05-04' });
+  assert.equal(overlaid.dates, '2026/05/02 - 2026/05/04');
+  assert.deepEqual(overlaid.accommodation, { name: 'Legacy Hotel' });
+  assert.deepEqual(overlaid.flights, { outbound: { code: 'BR198' }, inbound: { code: 'BR197' } });
+  assert.deepEqual(overlaid.budget, { total: '2000', currency: 'JPY' });
+});
+
+test('normalizes trip collaboration setting documents for the app', () => {
+  assert.deepEqual(normalizeTripCollaborationSettings({
+    enabled: 1,
+    token: 'legacy-token',
+    permission: 'edit',
+    votesEnabled: false,
+    createdAt: '2026-05-01T00:00:00.000Z'
+  }), {
+    enabled: true,
+    shareToken: 'legacy-token',
+    permission: 'edit',
+    votesEnabled: false,
+    createdAt: '2026-05-01T00:00:00.000Z',
+    updatedAt: ''
+  });
+
+  assert.deepEqual(normalizeTripSettingDocumentForApp({
+    id: 'collaboration',
+    enabled: true,
+    permission: 'owner',
+    votesEnabled: undefined,
+    updatedByUid: 'ownerUid'
+  }), {
+    id: 'collaboration',
+    setting: 'collaboration',
+    enabled: true,
+    shareToken: '',
+    permission: 'view',
+    votesEnabled: true,
+    createdAt: '',
+    updatedAt: '',
+    updatedByUid: 'ownerUid',
+    updatedByClientId: ''
+  });
+});
+
+test('overlays trip collaboration setting documents over root compatibility fields', () => {
+  const overlaid = applyTripSettingDocumentsToCollaboration({
+    enabled: false,
+    permission: 'view',
+    votesEnabled: true,
+    createdAt: 'root-created',
+    updatedAt: 'root-updated'
+  }, [
+    {
+      id: 'collaboration',
+      enabled: true,
+      permission: 'edit',
+      votesEnabled: false,
+      createdAt: 'setting-created',
+      updatedAt: 'setting-updated'
+    }
+  ]);
+
+  assert.equal(overlaid.enabled, true);
+  assert.equal(overlaid.permission, 'edit');
+  assert.equal(overlaid.votesEnabled, false);
+  assert.equal(overlaid.createdAt, 'setting-created');
+  assert.equal(overlaid.updatedAt, 'setting-updated');
 });
 
 test('does not create a conflict for same-client place vote snapshots', () => {

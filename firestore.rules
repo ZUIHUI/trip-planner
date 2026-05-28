@@ -171,6 +171,139 @@ service cloud.firestore {
         && (!data.keys().hasAny(['syncMeta']) || validSyncMeta(data.syncMeta));
     }
 
+    function validTripDetailCommon(data, detailId) {
+      return data.id == detailId
+        && data.section == detailId
+        && optionalNumber(data, 'schemaVersion')
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validTripMetaDetail(data, detailId) {
+      return detailId == 'meta'
+        && data.keys().hasOnly([
+          'id',
+          'section',
+          'schemaVersion',
+          'title',
+          'status',
+          'coverImage',
+          'dateRange',
+          'dates',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && validTripDetailCommon(data, detailId)
+        && optionalString(data, 'title', 160)
+        && optionalString(data, 'status', 40)
+        && optionalString(data, 'coverImage', 4000)
+        && optionalString(data, 'dates', 120)
+        && (!data.keys().hasAny(['dateRange']) || data.dateRange is map);
+    }
+
+    function validTripLogisticsDetail(data, detailId) {
+      return detailId == 'logistics'
+        && data.keys().hasOnly([
+          'id',
+          'section',
+          'schemaVersion',
+          'accommodation',
+          'flights',
+          'travelers',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && validTripDetailCommon(data, detailId)
+        && (!data.keys().hasAny(['accommodation']) || data.accommodation is map)
+        && (!data.keys().hasAny(['flights']) || data.flights is map)
+        && (!data.keys().hasAny(['travelers']) || data.travelers is list);
+    }
+
+    function validTripFinanceDetail(data, detailId) {
+      return detailId == 'finance'
+        && data.keys().hasOnly([
+          'id',
+          'section',
+          'schemaVersion',
+          'budget',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && validTripDetailCommon(data, detailId)
+        && (!data.keys().hasAny(['budget']) || data.budget is map);
+    }
+
+    function validTripDetail(data, detailId) {
+      return validTripMetaDetail(data, detailId)
+        || validTripLogisticsDetail(data, detailId)
+        || validTripFinanceDetail(data, detailId);
+    }
+
+    function validTripSettingCommon(data, settingId) {
+      return data.id == settingId
+        && data.setting == settingId
+        && optionalNumber(data, 'schemaVersion')
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validTripCollaborationSetting(data, settingId) {
+      return settingId == 'collaboration'
+        && data.keys().hasOnly([
+          'id',
+          'setting',
+          'schemaVersion',
+          'enabled',
+          'shareToken',
+          'permission',
+          'votesEnabled',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && validTripSettingCommon(data, settingId)
+        && optionalBool(data, 'enabled')
+        && optionalString(data, 'shareToken', 200)
+        && (!data.keys().hasAny(['permission']) || data.permission in ['view', 'edit'])
+        && optionalBool(data, 'votesEnabled')
+        && optionalString(data, 'createdAt', 80);
+    }
+
+    function validTripSetting(data, settingId) {
+      return validTripCollaborationSetting(data, settingId);
+    }
+
+    function validTripDay(data, dayId) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'dayNumber',
+          'title',
+          'date',
+          'weekday',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && data.id == dayId
+        && optionalNumber(data, 'schemaVersion')
+        && optionalNumber(data, 'dayNumber')
+        && optionalString(data, 'title', 200)
+        && optionalString(data, 'date', 80)
+        && optionalString(data, 'weekday', 40)
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
     function validTripEvent(data) {
       return data.keys().hasOnly([
           'id',
@@ -484,6 +617,54 @@ service cloud.firestore {
             'photoURL',
             'updatedAt'
           ]);
+      }
+
+      match /details/{detailId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validTripDetail(request.resource.data, detailId)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if false;
+      }
+
+      match /settings/{settingId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && isTripOwner(tripId)
+          && validTripSetting(request.resource.data, settingId);
+
+        allow delete: if false;
+      }
+
+      match /days/{dayId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validTripDay(request.resource.data, dayId)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if false;
       }
 
       match /events/{eventId} {

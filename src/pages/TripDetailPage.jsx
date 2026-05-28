@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Plus, Save, ChevronRight } from 'lucide-react';
 import Header from '../components/Header';
@@ -41,10 +41,17 @@ import {
   saveTripExpenseDocument,
   saveTripPlaceIdeaDocument,
   saveTripShoppingCategoryDocument,
-  saveTripShoppingItemDocument
+  saveTripShoppingItemDocument,
+  updateTripAccommodationFields,
+  updateTripBudgetFields,
+  updateTripCollaborationSettings,
+  updateTripDayFields,
+  updateTripFlightsFields,
+  updateTripMetaFields
 } from '../services/tripService';
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
+import { getTripDetailsPatchSections } from '../utils/tripDetailsPatch';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
 import { moveEventInDay, moveEventToDay } from '../utils/itineraryEvents';
@@ -70,6 +77,7 @@ const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
 const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping']);
+const sameJsonValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 
 const getDateRangeDays = (startDate, endDate) => {
   if (!startDate || !endDate) return 0;
@@ -101,6 +109,14 @@ const buildAutoItineraryFromDateRange = (existingItinerary, startDate, endDate) 
     };
   });
 };
+
+const applyDayMetaPatchToItinerary = (itinerary = [], dayNumber, patch = {}) => (
+  (Array.isArray(itinerary) ? itinerary : []).map((day) => (
+    Number(day?.day) === Number(dayNumber)
+      ? { ...day, ...patch }
+      : day
+  ))
+);
 
 const syncTripMetaToLocalIndex = (tripId, patch, uid) => {
   try {
@@ -211,7 +227,8 @@ const TripDetailPage = () => {
   const { 
     isLoading, 
     tripDetails, 
-    setTripDetails, 
+    applyTripDetailsPatch,
+    setTripDetails,
     itinerary, 
     setItinerary, 
     applyItineraryPatch,
@@ -231,6 +248,7 @@ const TripDetailPage = () => {
     applyPlacePoolPatch,
     setPlacePool,
     collaboration,
+    applyCollaborationPatch,
     setCollaboration,
     accessError,
     accessRole,
@@ -247,6 +265,16 @@ const TripDetailPage = () => {
     currentUser,
     userProfile
   });
+  const tripDetailsRef = useRef(tripDetails);
+  const collaborationRef = useRef(collaboration);
+
+  useEffect(() => {
+    tripDetailsRef.current = tripDetails;
+  }, [tripDetails]);
+
+  useEffect(() => {
+    collaborationRef.current = collaboration;
+  }, [collaboration]);
   const {
     onlineMembers,
     presenceByUid,
@@ -279,6 +307,147 @@ const TripDetailPage = () => {
     activeTab,
     enabled: !isLoading && !accessError
   });
+
+  const handleTripDetailsChange = useCallback((updater) => {
+    if (!canEdit) {
+      setTripDetails(updater);
+      return;
+    }
+
+    const previousTripDetails = tripDetailsRef.current || {};
+    const nextValue = typeof updater === 'function'
+      ? updater(previousTripDetails)
+      : updater;
+    const patch = getTripDetailsPatchSections(previousTripDetails, nextValue || {});
+    const nextTripDetails = patch.nextTripDetails;
+    const fallbackToTripSave = () => {
+      tripDetailsRef.current = nextTripDetails;
+      setTripDetails(nextTripDetails);
+    };
+
+    if (!patch.changed.any) return;
+
+    if (!tripId || !currentUser?.uid || patch.changed.untracked) {
+      fallbackToTripSave();
+      return;
+    }
+
+    tripDetailsRef.current = nextTripDetails;
+    applyTripDetailsPatch(nextTripDetails);
+
+    const operations = [];
+
+    if (patch.changed.meta) {
+      operations.push(updateTripMetaFields({
+        tripId,
+        tripDetails: nextTripDetails,
+        user: currentUser,
+        clientId
+      }));
+    }
+
+    if (patch.changed.accommodation) {
+      operations.push(updateTripAccommodationFields({
+        tripId,
+        accommodation: patch.accommodation,
+        user: currentUser,
+        clientId
+      }));
+    }
+
+    if (patch.changed.flights) {
+      operations.push(updateTripFlightsFields({
+        tripId,
+        flights: patch.flights,
+        user: currentUser,
+        clientId
+      }));
+    }
+
+    if (patch.changed.budget) {
+      operations.push(updateTripBudgetFields({
+        tripId,
+        budget: patch.budget,
+        user: currentUser,
+        clientId
+      }));
+    }
+
+    if (!operations.length) return;
+
+    void Promise.all(operations).catch((error) => {
+      logger.warn('Trip detail field update failed; falling back to full trip autosave.', error);
+      fallbackToTripSave();
+      toast({
+        variant: 'warning',
+        title: '已改用完整儲存',
+        description: '局部同步失敗，已退回原本的旅程儲存。'
+      });
+    });
+  }, [
+    applyTripDetailsPatch,
+    canEdit,
+    clientId,
+    currentUser,
+    setTripDetails,
+    toast,
+    tripId
+  ]);
+
+  const handleCollaborationChange = useCallback((updater) => {
+    if (accessRole !== 'owner') {
+      toast({
+        variant: 'warning',
+        title: '沒有管理權限',
+        description: '只有旅程擁有者可以調整分享與協作設定。'
+      });
+      return;
+    }
+
+    const previousCollaboration = collaborationRef.current || {};
+    const nextCollaboration = typeof updater === 'function'
+      ? updater(previousCollaboration)
+      : updater;
+
+    if (sameJsonValue(previousCollaboration, nextCollaboration)) return;
+
+    const fallbackToTripSave = () => {
+      collaborationRef.current = nextCollaboration;
+      setCollaboration(nextCollaboration);
+    };
+
+    if (!tripId || !currentUser?.uid) {
+      fallbackToTripSave();
+      return;
+    }
+
+    collaborationRef.current = nextCollaboration;
+    applyCollaborationPatch(nextCollaboration);
+
+    void updateTripCollaborationSettings({
+      tripId,
+      collaboration: nextCollaboration,
+      user: currentUser,
+      clientId
+    }).catch((error) => {
+      logger.warn('Trip collaboration setting update failed; falling back to full trip autosave.', error);
+      fallbackToTripSave();
+      toast({
+        variant: 'warning',
+        title: '已改用完整儲存',
+        description: '協作設定局部同步失敗，已退回原本的旅程儲存。'
+      });
+    });
+  }, [
+    accessRole,
+    applyCollaborationPatch,
+    clientId,
+    currentUser,
+    setCollaboration,
+    toast,
+    tripId
+  ]);
+
   const {
     isLookingUpFlight,
     flightLookupError,
@@ -286,7 +455,7 @@ const TripDetailPage = () => {
   } = useFlightLookup({
     canEdit,
     tripDetails,
-    setTripDetails
+    setTripDetails: handleTripDetailsChange
   });
 
   useEffect(() => {
@@ -1003,9 +1172,37 @@ const TripDetailPage = () => {
 
   const handleUpdateDayMeta = (dayNumber, patch) => {
     if (!canEdit) return;
-    setItinerary(prev => prev.map(day => (
-      day.day === dayNumber ? { ...day, ...patch } : day
-    )));
+    const nextItinerary = applyDayMetaPatchToItinerary(itinerary, dayNumber, patch);
+    const updatedDay = nextItinerary.find((day) => Number(day?.day) === Number(dayNumber));
+    if (!updatedDay) return;
+
+    const fallbackToTripSave = () => {
+      setItinerary(nextItinerary);
+    };
+
+    applyItineraryPatch(nextItinerary);
+
+    if (!tripId || !currentUser?.uid) {
+      fallbackToTripSave();
+      return;
+    }
+
+    void updateTripDayFields({
+      tripId,
+      day: updatedDay,
+      dayNumber,
+      itinerary: nextItinerary,
+      user: currentUser,
+      clientId
+    }).catch((error) => {
+      logger.warn('Trip day document update failed; falling back to full trip autosave.', error);
+      fallbackToTripSave();
+      toast({
+        variant: 'warning',
+        title: '已改用完整儲存',
+        description: '日期與標題局部同步失敗，已退回原本的旅程儲存。'
+      });
+    });
   };
 
   const startDayMetaEdit = () => {
@@ -1108,7 +1305,7 @@ const TripDetailPage = () => {
   const tripWorkspaceValue = useMemo(() => ({
     tripId,
     tripDetails,
-    setTripDetails,
+    setTripDetails: handleTripDetailsChange,
     itinerary,
     setItinerary,
     checklists,
@@ -1127,7 +1324,7 @@ const TripDetailPage = () => {
     applyPlacePoolPatch,
     setPlacePool,
     collaboration,
-    setCollaboration,
+    setCollaboration: handleCollaborationChange,
     currentUser,
     clientId,
     userProfile,
@@ -1211,6 +1408,7 @@ const TripDetailPage = () => {
   }), [
     tripId,
     tripDetails,
+    handleTripDetailsChange,
     itinerary,
     checklists,
     applyChecklistsPatch,
@@ -1223,6 +1421,7 @@ const TripDetailPage = () => {
     placePool,
     applyPlacePoolPatch,
     collaboration,
+    handleCollaborationChange,
     currentUser,
     clientId,
     userProfile,
@@ -1453,7 +1652,7 @@ const TripDetailPage = () => {
         rateUpdateError={rateUpdateError}
         coverImage={tripDetails?.coverImage || ''}
         onCoverImageChange={(nextCoverImage) =>
-          setTripDetails((prev) => ({
+          handleTripDetailsChange((prev) => ({
             ...prev,
             coverImage: nextCoverImage
           }))
