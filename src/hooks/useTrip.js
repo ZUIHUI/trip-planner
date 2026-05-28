@@ -610,6 +610,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       !uid ||
       isLoading ||
       isSaving ||
+      syncConflict ||
       applyingRemoteRef.current ||
       !hasLocalChangesRef.current
     ) {
@@ -692,6 +693,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     storageKey,
     isSaving,
     isLoading,
+    syncConflict,
     canEdit,
     currentUser,
     userProfile
