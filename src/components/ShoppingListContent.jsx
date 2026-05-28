@@ -310,7 +310,7 @@ const ConfirmDialog = ({ target, onCancel, onConfirm }) => {
         <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
           {target.description}
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-2">
+        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <Button variant="secondary" onClick={onCancel}>取消</Button>
           <Button variant="danger" onClick={onConfirm}>{target.confirmLabel || '刪除'}</Button>
         </div>
@@ -509,7 +509,7 @@ const ShoppingItemFormModal = ({
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="分類" htmlFor="shopping-item-category">
               <Select
                 id="shopping-item-category"

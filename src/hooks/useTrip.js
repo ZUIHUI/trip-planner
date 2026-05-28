@@ -14,11 +14,15 @@ import {
   getTripStorageKey
 } from '../utils/storageKeys';
 import {
+  isSaveResultCurrent,
   isOwnPlaceVoteWrite,
   mergePlaceVoteIntoPlacePool,
+  shouldKeepLocalChangesForSameClientSnapshot,
   shouldTreatRemoteAsConflict
 } from '../utils/tripSync';
 import { logger } from '../utils/logger';
+
+const AUTO_SAVE_DELAY_MS = 1000;
 
 const getClientId = () => {
   try {
@@ -134,6 +138,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const clientIdRef = useRef(getClientId());
   const autoSaveTimeoutRef = useRef(null);
   const hasLocalChangesRef = useRef(false);
+  const localChangeSeqRef = useRef(0);
   const applyingRemoteRef = useRef(false);
   const baseRevisionRef = useRef(0);
   const placePoolRef = useRef([]);
@@ -169,6 +174,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       return false;
     }
     hasLocalChangesRef.current = true;
+    localChangeSeqRef.current += 1;
     return true;
   }, [canEdit]);
 
@@ -273,6 +279,27 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
               return;
             }
 
+            if (shouldKeepLocalChangesForSameClientSnapshot({
+              hasLocalChanges,
+              syncMeta: remoteSync,
+              uid,
+              clientId: clientIdRef.current
+            })) {
+              const remoteRevision = Number(remoteSync.revision);
+              const nextRevision = Number.isFinite(remoteRevision)
+                ? Math.max(remoteRevision, Number(baseRevisionRef.current || 0))
+                : Number(baseRevisionRef.current || 0);
+              baseRevisionRef.current = nextRevision;
+              setSyncMeta((currentSyncMeta) => ({
+                ...currentSyncMeta,
+                ...remoteSync,
+                revision: nextRevision
+              }));
+              setSyncConflict(null);
+              setIsLoading(false);
+              return;
+            }
+
             if (shouldTreatRemoteAsConflict({
               hasLocalChanges,
               syncMeta: remoteSync,
@@ -351,7 +378,14 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   ]);
 
   useEffect(() => {
-    if (!safeTripId || !uid || isLoading || !canEdit || applyingRemoteRef.current || !hasLocalChangesRef.current) {
+    if (
+      !safeTripId ||
+      !uid ||
+      isLoading ||
+      isSaving ||
+      applyingRemoteRef.current ||
+      !hasLocalChangesRef.current
+    ) {
       return undefined;
     }
 
@@ -363,6 +397,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       try {
         setIsSaving(true);
         setSaveError(null);
+        const saveStartedAtSeq = localChangeSeqRef.current;
         const normalizedTripDetails = normalizeTripDateFields(tripDetails);
         const dataToSave = buildTripDocumentFromAppState(safeTripId, {
           tripDetails: normalizedTripDetails,
@@ -381,12 +416,21 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
           localStorage.setItem(storageKey, JSON.stringify(dataToSave));
         }
 
-        await saveTrip(safeTripId, dataToSave, {
+        const saveResult = await saveTrip(safeTripId, dataToSave, {
           user: currentUser,
           profile: userProfile,
           baseRevision: baseRevisionRef.current,
           clientId: clientIdRef.current
         });
+        const nextRevision = Number(saveResult?.revision ?? baseRevisionRef.current);
+        baseRevisionRef.current = nextRevision;
+        setSyncMeta((currentSyncMeta) => ({
+          ...currentSyncMeta,
+          revision: nextRevision
+        }));
+        if (isSaveResultCurrent(saveStartedAtSeq, localChangeSeqRef.current)) {
+          hasLocalChangesRef.current = false;
+        }
       } catch (error) {
         if (error.code === 'trip/conflict') {
           setSyncConflict({ remoteData: error.remoteData });
@@ -398,7 +442,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       } finally {
         setIsSaving(false);
       }
-    }, 1000);
+    }, AUTO_SAVE_DELAY_MS);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
@@ -419,6 +463,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     safeTripId,
     uid,
     storageKey,
+    isSaving,
     isLoading,
     canEdit,
     currentUser,
@@ -456,6 +501,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     try {
       setIsSaving(true);
       setSaveError(null);
+      const saveStartedAtSeq = localChangeSeqRef.current;
       const dataToSave = buildTripDocumentFromAppState(safeTripId, {
         tripDetails: normalizeTripDateFields(tripDetails),
         itinerary,
@@ -468,13 +514,22 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         access,
         syncMeta
       });
-      await saveTrip(safeTripId, dataToSave, {
+      const saveResult = await saveTrip(safeTripId, dataToSave, {
         user: currentUser,
         profile: userProfile,
         baseRevision: baseRevisionRef.current,
         clientId: clientIdRef.current,
         force
       });
+      const nextRevision = Number(saveResult?.revision ?? baseRevisionRef.current);
+      baseRevisionRef.current = nextRevision;
+      setSyncMeta((currentSyncMeta) => ({
+        ...currentSyncMeta,
+        revision: nextRevision
+      }));
+      if (isSaveResultCurrent(saveStartedAtSeq, localChangeSeqRef.current)) {
+        hasLocalChangesRef.current = false;
+      }
       return true;
     } catch (error) {
       if (error.code === 'trip/conflict') {

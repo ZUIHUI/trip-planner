@@ -25,6 +25,19 @@ export const shouldTreatRemoteAsConflict = ({
   Boolean(hasLocalChanges) && !isSameClientWrite(syncMeta, { uid, clientId })
 );
 
+export const shouldKeepLocalChangesForSameClientSnapshot = ({
+  hasLocalChanges = false,
+  syncMeta = {},
+  uid = '',
+  clientId = ''
+} = {}) => (
+  Boolean(hasLocalChanges) && isSameClientWrite(syncMeta, { uid, clientId })
+);
+
+export const isSaveResultCurrent = (saveStartedAtSeq = 0, currentSeq = 0) => (
+  Number(saveStartedAtSeq) === Number(currentSeq)
+);
+
 export const mergePlaceVoteIntoPlacePool = (
   localPlacePool = [],
   remotePlacePool = [],

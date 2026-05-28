@@ -534,7 +534,7 @@ const TripListPage = () => {
                     autoFocus
                   />
                 </label>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                <div className="grid grid-cols-1 gap-2 sm:flex sm:shrink-0">
                   <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
                     <Check size={15} />
                     {isSavingNickname ? '儲存中...' : '儲存'}

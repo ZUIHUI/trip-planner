@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ExternalLink, Link as LinkIcon, MapPin, Navigation, Save, Wallet } from 'lucide-react';
 import GooglePlaceInput from './GooglePlaceInput';
 import { Button, Field, Input, Select, Textarea } from './ui';
-import { moneyInputProps, plainTextInputProps, urlInputProps } from '../utils/mobileInputProps';
+import { moneyInputProps, plainTextInputProps, timeInputProps, urlInputProps } from '../utils/mobileInputProps';
 import { validateOptionalUrl, validateRequiredText } from '../utils/validation';
 
 const DEFAULT_EVENT = {
@@ -176,12 +176,11 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           <Field label="時間" htmlFor="event-time">
             <Input
               id="event-time"
-              type="time"
+              {...timeInputProps}
               name="time"
               value={formData.time || ''}
               onChange={handleChange}
               disabled={readOnly}
-              enterKeyHint="next"
             />
           </Field>
 
@@ -318,12 +317,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           <Field label="預估時間" htmlFor="event-transport-duration">
             <Input
               id="event-transport-duration"
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              enterKeyHint="next"
+              {...plainTextInputProps}
               name="transport.duration"
               value={formData.transport?.duration || ''}
               onChange={handleChange}

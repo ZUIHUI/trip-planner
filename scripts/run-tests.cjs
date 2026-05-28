@@ -25,10 +25,13 @@ const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/ut
 const { buildDayReadiness, buildEventReadiness } = require('../src/utils/eventReadiness.js');
 const {
   PLACE_VOTE_OPERATION,
+  isSaveResultCurrent,
   isOwnPlaceVoteWrite,
   mergePlaceVoteIntoPlacePool,
+  shouldKeepLocalChangesForSameClientSnapshot,
   shouldTreatRemoteAsConflict
 } = require('../src/utils/tripSync.js');
+const { dateInputProps, timeInputProps } = require('../src/utils/mobileInputProps.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -186,6 +189,46 @@ test('does not create a conflict for same-client place vote snapshots', () => {
     uid: 'user-1',
     clientId: 'client-1'
   }), false);
+});
+
+test('keeps unsaved local edits for same-client save snapshots', () => {
+  const syncMeta = {
+    revision: 12,
+    updatedByUid: 'user-1',
+    updatedByClientId: 'client-1',
+    updatedAt: '2026-05-28T00:00:00.000Z'
+  };
+
+  assert.equal(shouldKeepLocalChangesForSameClientSnapshot({
+    hasLocalChanges: true,
+    syncMeta,
+    uid: 'user-1',
+    clientId: 'client-1'
+  }), true);
+  assert.equal(shouldKeepLocalChangesForSameClientSnapshot({
+    hasLocalChanges: false,
+    syncMeta,
+    uid: 'user-1',
+    clientId: 'client-1'
+  }), false);
+  assert.equal(shouldTreatRemoteAsConflict({
+    hasLocalChanges: true,
+    syncMeta,
+    uid: 'user-1',
+    clientId: 'client-1'
+  }), false);
+});
+
+test('does not clear local dirty state for stale save completions', () => {
+  assert.equal(isSaveResultCurrent(4, 4), true);
+  assert.equal(isSaveResultCurrent(4, 5), false);
+});
+
+test('uses native date and time pickers without numeric input mode', () => {
+  assert.equal(dateInputProps.type, 'date');
+  assert.equal(timeInputProps.type, 'time');
+  assert.equal(Object.prototype.hasOwnProperty.call(dateInputProps, 'inputMode'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(timeInputProps, 'inputMode'), false);
 });
 
 test('keeps conflict protection for other users and other devices', () => {

@@ -612,7 +612,7 @@ const ExpenseFormModal = ({
 
             <div className="mt-3">
               <p className="mb-2 text-sm font-semibold text-slate-600 dark:text-slate-300">分帳方式</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <SplitTypeButton
                   active={formData.splitType === 'all'}
                   onClick={() => setFormData((prev) => ({ ...prev, splitType: 'all', involved: payerOptions }))}
@@ -760,7 +760,7 @@ const ConfirmDialog = ({ target, onCancel, onConfirm }) => {
         <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
           「{getExpenseTitle(target)}」會從記帳清單移除，這個動作無法復原。
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-2">
+        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <Button variant="secondary" onClick={onCancel}>取消</Button>
           <Button variant="danger" onClick={onConfirm}>刪除</Button>
         </div>

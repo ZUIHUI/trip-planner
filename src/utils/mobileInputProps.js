@@ -72,7 +72,20 @@ export const urlInputProps = {
 
 export const plainTextInputProps = {
   type: 'text',
+  inputMode: 'text',
   autoComplete: 'off',
   ...noCorrection,
+  enterKeyHint: 'next'
+};
+
+export const dateInputProps = {
+  type: 'date',
+  autoComplete: 'off',
+  enterKeyHint: 'next'
+};
+
+export const timeInputProps = {
+  type: 'time',
+  autoComplete: 'off',
   enterKeyHint: 'next'
 };

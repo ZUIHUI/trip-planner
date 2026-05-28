@@ -472,7 +472,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
           </Button>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div className="rounded-lg bg-slate-50 p-3 text-center dark:bg-slate-800">
             <p className="text-lg font-black text-slate-900 dark:text-white">{stats.total}</p>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">全部</p>
@@ -715,13 +715,10 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
                       <div className="relative hidden sm:block">
                         <input
-                          type="text"
-                          autoComplete="off"
-                          autoCorrect="off"
-                          spellCheck={false}
+                          {...plainTextInputProps}
                           enterKeyHint="done"
                           placeholder={`+ 新增到 ${group.name}`}
-                          className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-3 pr-10 text-sm text-slate-900 transition focus:border-brand-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                          className="tp-input pr-10 text-sm"
                           onKeyDown={(event) => {
                             if (event.key === 'Enter') {
                               handleAddItem(event.currentTarget.value, group.id);
@@ -757,7 +754,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               「{itemToDelete.text}」會從行李清單移除，這個動作無法復原。
             </p>
-            <div className="mt-5 grid grid-cols-2 gap-2">
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button variant="secondary" onClick={() => setItemToDelete(null)}>
                 取消
               </Button>

@@ -173,8 +173,8 @@ const SettingsPanel = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-label="設定">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 shadow-2xl dark:border-slate-800 dark:bg-slate-950">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="設定">
+      <div className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-slate-50 shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg dark:border-slate-800 dark:bg-slate-950">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div>
             <h2 className="text-xl font-black text-slate-950 dark:text-white">設定</h2>
@@ -261,7 +261,7 @@ const SettingsPanel = ({
                     value={exchangeRate || ''}
                     onChange={(event) => onExchangeRateChange(parseFloat(event.target.value) || 0)}
                   />
-                  <span className="whitespace-nowrap text-sm font-semibold text-slate-600 dark:text-slate-300">TWD</span>
+                  <span className="shrink-0 whitespace-nowrap text-sm font-semibold text-slate-600 dark:text-slate-300">TWD</span>
                 </div>
               </Field>
               <Button variant="secondary" onClick={onUpdateRate} disabled={isRateUpdating}>
@@ -344,13 +344,13 @@ const SettingsPanel = ({
                 </div>
               ) : (
                 travelers.map((traveler) => (
-                  <div key={traveler.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/70">
-                    <span className="font-semibold text-slate-800 dark:text-slate-100">{traveler.name}</span>
+                  <div key={traveler.id} className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/70">
+                    <span className="min-w-0 flex-1 break-words font-semibold text-slate-800 dark:text-slate-100">{traveler.name}</span>
                     {!travelersReadOnly && (
                     <button
                       type="button"
                       onClick={() => handleDeleteTraveler(traveler.id)}
-                      className="touch-target inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                      className="touch-target inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
                       title={`刪除 ${traveler.name}`}
                       aria-label={`刪除 ${traveler.name}`}
                     >

@@ -13,9 +13,9 @@ import {
   Wallet
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
-import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
+import { formatDateRangeText, normalizeTripDateFields, toDateInputValue } from '../../utils/tripDates';
 import { getFlightLookupAvailability } from '../../services/flightService';
-import { moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
+import { dateInputProps, moneyInputProps, plainTextInputProps, timeInputProps } from '../../utils/mobileInputProps';
 import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
@@ -38,6 +38,52 @@ const directionMeta = {
     helper: '用旅程結束日查詢航班',
     colorClass: 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
   }
+};
+
+const padDateNumber = (value) => String(value).padStart(2, '0');
+
+const getFlightDateFallbackYear = (tripDetails) => {
+  const tripStart = tripDetails?.dateRange?.start;
+  if (typeof tripStart === 'string') {
+    const matchedStartYear = tripStart.match(/\b(19|20)\d{2}\b/);
+    if (matchedStartYear) return Number(matchedStartYear[0]);
+  }
+
+  const datesText = tripDetails?.dates;
+  if (typeof datesText !== 'string') return null;
+  const matchedDatesYear = datesText.match(/\b(19|20)\d{2}\b/);
+  return matchedDatesYear ? Number(matchedDatesYear[0]) : null;
+};
+
+const getFlightDateInputValue = (value, fallbackYear) => {
+  if (typeof value !== 'string') return '';
+  const trimmedValue = value.trim();
+  if (!trimmedValue) return '';
+
+  const normalized = toDateInputValue(trimmedValue);
+  if (normalized) return normalized;
+
+  const monthDayMatch = trimmedValue.match(/^(\d{1,2})[-./](\d{1,2})$/);
+  if (!monthDayMatch) return '';
+
+  const month = Number(monthDayMatch[1]);
+  const day = Number(monthDayMatch[2]);
+  const numericYear = Number(fallbackYear);
+  if (
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    !Number.isInteger(numericYear) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31 ||
+    numericYear < 1900 ||
+    numericYear > 9999
+  ) {
+    return '';
+  }
+
+  return toDateInputValue(`${numericYear}-${padDateNumber(month)}-${padDateNumber(day)}`) || '';
 };
 
 const getInfoTasks = (tripDetails) => [
@@ -250,10 +296,9 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
           <Field label="開始日期" htmlFor={`${idPrefix}trip-start-date`}>
             <Input
               id={`${idPrefix}trip-start-date`}
-              type="date"
+              {...dateInputProps}
               className="tp-date-input"
               value={startDate}
-              enterKeyHint="next"
               onChange={(event) =>
                 setTripDetails((prev) => {
                   const start = event.target.value;
@@ -270,10 +315,9 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
           <Field label="結束日期" htmlFor={`${idPrefix}trip-end-date`}>
             <Input
               id={`${idPrefix}trip-end-date`}
-              type="date"
+              {...dateInputProps}
               className="tp-date-input"
               value={endDate}
-              enterKeyHint="next"
               onChange={(event) =>
                 setTripDetails((prev) => {
                   const end = event.target.value;
@@ -435,35 +479,47 @@ const FlightField = ({
   setTripDetails,
   placeholder,
   type = 'text',
+  dateFallbackYear = null,
   idPrefix = ''
-}) => (
-  <Field label={label} htmlFor={`${idPrefix}flight-${direction}-${field}`}>
-    <Input
-      id={`${idPrefix}flight-${direction}-${field}`}
-      type={type}
-      inputMode={field === 'date' || field.toLowerCase().includes('time') ? 'numeric' : 'text'}
-      autoComplete="off"
-      autoCapitalize={field === 'code' ? 'characters' : 'none'}
-      autoCorrect="off"
-      spellCheck={false}
-      enterKeyHint="next"
-      placeholder={placeholder}
-      value={value || ''}
-      onChange={(event) =>
-        setTripDetails((prev) => ({
-          ...prev,
-          flights: {
-            ...(prev?.flights || {}),
-            [direction]: {
-              ...((prev?.flights && prev.flights[direction]) || {}),
-              [field]: field === 'code' ? event.target.value.toUpperCase() : event.target.value
+}) => {
+  const isDateField = field === 'date';
+  const isTimeField = field.toLowerCase().includes('time');
+  const inputProps = isDateField
+    ? dateInputProps
+    : isTimeField
+      ? timeInputProps
+      : { ...plainTextInputProps, type };
+  const inputValue = isDateField ? getFlightDateInputValue(value, dateFallbackYear) : (value || '');
+
+  return (
+    <Field label={label} htmlFor={`${idPrefix}flight-${direction}-${field}`}>
+      <Input
+        id={`${idPrefix}flight-${direction}-${field}`}
+        {...inputProps}
+        className={isDateField ? 'tp-date-input' : undefined}
+        autoComplete="off"
+        autoCapitalize={field === 'code' ? 'characters' : 'none'}
+        autoCorrect="off"
+        spellCheck={false}
+        enterKeyHint="next"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={(event) =>
+          setTripDetails((prev) => ({
+            ...prev,
+            flights: {
+              ...(prev?.flights || {}),
+              [direction]: {
+                ...((prev?.flights && prev?.flights[direction]) || {}),
+                [field]: field === 'code' ? event.target.value.toUpperCase() : event.target.value
+              }
             }
-          }
-        }))
-      }
-    />
-  </Field>
-);
+          }))
+        }
+      />
+    </Field>
+  );
+};
 
 const FlightAirportField = ({
   label,
@@ -509,6 +565,7 @@ const FlightCard = ({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const meta = directionMeta[direction];
   const flight = tripDetails?.flights?.[direction] || {};
+  const flightDateFallbackYear = getFlightDateFallbackYear(tripDetails);
   const lookupDate = direction === 'outbound'
     ? tripDetails?.dateRange?.start
     : tripDetails?.dateRange?.end;
@@ -646,7 +703,8 @@ const FlightCard = ({
                 direction={direction}
                 value={flight.date}
                 setTripDetails={setTripDetails}
-                placeholder="例如 2/23"
+                placeholder="YYYY-MM-DD"
+                dateFallbackYear={flightDateFallbackYear}
                 idPrefix={idPrefix}
               />
               <FlightField
@@ -655,7 +713,7 @@ const FlightCard = ({
                 direction={direction}
                 value={flight.departureTime}
                 setTripDetails={setTripDetails}
-                placeholder="14:40"
+                placeholder="HH:mm"
                 idPrefix={idPrefix}
               />
               <FlightField
@@ -664,7 +722,7 @@ const FlightCard = ({
                 direction={direction}
                 value={flight.arrivalTime}
                 setTripDetails={setTripDetails}
-                placeholder="19:15"
+                placeholder="HH:mm"
                 idPrefix={idPrefix}
               />
             </div>

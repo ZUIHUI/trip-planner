@@ -13,13 +13,13 @@ const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
   if (!isOpen) return null;
   
   return (
-    <div className="tp-fade-in fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-3 sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="tp-fade-in fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className={cx(
-        'tp-slide-up flex max-h-[min(92svh,760px)] w-full max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-lg border border-cyan-100 bg-white shadow-2xl sm:max-h-[90vh] dark:border-slate-800 dark:bg-slate-900',
+        'tp-slide-up flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-cyan-100 bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-[calc(100vw-1.5rem)] sm:rounded-lg dark:border-slate-800 dark:bg-slate-900',
         sizeClasses[size] || sizeClasses.md
       )}>
-        <div className="flex shrink-0 items-center justify-between border-b border-cyan-100 bg-sky-50/35 p-4 dark:border-slate-800 dark:bg-slate-950/30">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h3>
+        <div className="flex min-w-0 shrink-0 items-center justify-between gap-3 border-b border-cyan-100 bg-sky-50/35 p-4 dark:border-slate-800 dark:bg-slate-950/30">
+          <h3 className="min-w-0 break-words text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h3>
           <button
             type="button"
             onClick={onClose}
