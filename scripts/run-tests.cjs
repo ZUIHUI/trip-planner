@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 require('sucrase/register/js');
 
 const assert = require('node:assert/strict');
@@ -104,6 +106,12 @@ test('normalizes only http and https external URLs', () => {
   assert.equal(normalizeExternalUrl('https://example.com/a'), 'https://example.com/a');
   assert.equal(normalizeExternalUrl('javascript:alert(1)'), '');
   assert.equal(getExternalUrlHost('https://maps.google.com/foo'), 'maps.google.com');
+});
+
+test('uses the namespaced trip storage key when creating trips', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripListPage.jsx'), 'utf8');
+  assert.match(source, /getTripStorageKey\(tripId,\s*uid\)/);
+  assert.doesNotMatch(source, /[^\w]getStorageKey\(/);
 });
 
 test('classifies permission denied persistence errors for safe save handling', () => {

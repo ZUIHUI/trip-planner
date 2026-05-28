@@ -225,14 +225,11 @@ const TripListPage = () => {
         const remoteTrips = await listTrips({ user: currentUser });
         if (remoteTrips.length > 0) {
           const mergedMap = new Map();
-
-          localTrips.forEach((trip) => {
-            mergedMap.set(trip.id, trip);
-          });
+          const localTripsById = new Map(localTrips.map((trip) => [trip.id, trip]));
 
           remoteTrips.forEach((trip) => {
             const updatedAt = trip.updatedAt || trip.createdAt || new Date().toISOString();
-            const localTrip = mergedMap.get(trip.id);
+            const localTrip = localTripsById.get(trip.id);
             mergedMap.set(trip.id, {
               id: trip.id,
               title: trip.title || localTrip?.title || '未命名旅程',
@@ -304,7 +301,7 @@ const TripListPage = () => {
     saveLocalTrips(uid, optimisticTrips);
 
     localStorage.setItem(
-      getStorageKey(tripId, uid),
+      getTripStorageKey(tripId, uid),
       JSON.stringify({
         ...template,
         savedAt: now
