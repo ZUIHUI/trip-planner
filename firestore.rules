@@ -69,6 +69,10 @@ service cloud.firestore {
       return !data.keys().hasAny([key]) || data[key] is number;
     }
 
+    function optionalBool(data, key) {
+      return !data.keys().hasAny([key]) || data[key] is bool;
+    }
+
     function validUserProfile(data) {
       return data.keys().hasOnly([
           'uid',
@@ -167,6 +171,228 @@ service cloud.firestore {
         && (!data.keys().hasAny(['syncMeta']) || validSyncMeta(data.syncMeta));
     }
 
+    function validTripEvent(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'dayNumber',
+          'orderKey',
+          'time',
+          'type',
+          'title',
+          'desc',
+          'location',
+          'locationPlace',
+          'urgent',
+          'transport',
+          'cost',
+          'currency',
+          'url',
+          'memos',
+          'deleted',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && optionalNumber(data, 'dayNumber')
+        && optionalNumber(data, 'orderKey')
+        && optionalString(data, 'time', 40)
+        && optionalString(data, 'type', 80)
+        && optionalString(data, 'title', 240)
+        && optionalString(data, 'desc', 2000)
+        && optionalString(data, 'location', 1000)
+        && (!data.keys().hasAny(['locationPlace']) || data.locationPlace is map)
+        && optionalBool(data, 'urgent')
+        && (!data.keys().hasAny(['transport']) || data.transport is map)
+        && (!data.keys().hasAny(['cost']) || data.cost is string || data.cost is number || data.cost is map)
+        && optionalString(data, 'currency', 16)
+        && optionalString(data, 'url', 2000)
+        && (!data.keys().hasAny(['memos']) || data.memos is list)
+        && optionalBool(data, 'deleted')
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validChecklistItem(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'listId',
+          'orderKey',
+          'text',
+          'done',
+          'category',
+          'assignedTo',
+          'day',
+          'deleted',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && optionalString(data, 'listId', 80)
+        && optionalNumber(data, 'orderKey')
+        && optionalString(data, 'text', 240)
+        && optionalBool(data, 'done')
+        && optionalString(data, 'category', 120)
+        && (!data.keys().hasAny(['assignedTo']) || data.assignedTo == null || data.assignedTo is string)
+        && (!data.keys().hasAny(['day']) || data.day == null || data.day is number)
+        && optionalBool(data, 'deleted')
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validShoppingItem(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'orderKey',
+          'name',
+          'category',
+          'shop',
+          'quantity',
+          'notes',
+          'image',
+          'purchased',
+          'deleted',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && optionalNumber(data, 'orderKey')
+        && optionalString(data, 'name', 240)
+        && optionalString(data, 'category', 200)
+        && optionalString(data, 'shop', 240)
+        && optionalNumber(data, 'quantity')
+        && optionalString(data, 'notes', 4000)
+        && (!data.keys().hasAny(['image']) || data.image == null || data.image is string)
+        && optionalBool(data, 'purchased')
+        && optionalBool(data, 'deleted')
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validExpense(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'orderKey',
+          'title',
+          'amount',
+          'currency',
+          'date',
+          'category',
+          'payer',
+          'splitType',
+          'involved',
+          'isSettled',
+          'note',
+          'deleted',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && optionalNumber(data, 'orderKey')
+        && optionalString(data, 'title', 240)
+        && optionalNumber(data, 'amount')
+        && optionalString(data, 'currency', 16)
+        && optionalString(data, 'date', 80)
+        && optionalString(data, 'category', 120)
+        && optionalString(data, 'payer', 160)
+        && optionalString(data, 'splitType', 80)
+        && (!data.keys().hasAny(['involved']) || data.involved is list)
+        && optionalBool(data, 'isSettled')
+        && optionalString(data, 'note', 2000)
+        && optionalBool(data, 'deleted')
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validPlaceIdea(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'orderKey',
+          'name',
+          'address',
+          'placeId',
+          'lat',
+          'lng',
+          'note',
+          'status',
+          'plannedDay',
+          'addedAt',
+          'plannedAt',
+          'votes',
+          'deleted',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && optionalNumber(data, 'orderKey')
+        && optionalString(data, 'name', 240)
+        && optionalString(data, 'address', 1000)
+        && optionalString(data, 'placeId', 240)
+        && (!data.keys().hasAny(['lat']) || data.lat == null || data.lat is number)
+        && (!data.keys().hasAny(['lng']) || data.lng == null || data.lng is number)
+        && optionalString(data, 'note', 2000)
+        && optionalString(data, 'status', 80)
+        && (!data.keys().hasAny(['plannedDay']) || data.plannedDay == null || data.plannedDay is number)
+        && optionalString(data, 'addedAt', 80)
+        && optionalString(data, 'plannedAt', 80)
+        && (!data.keys().hasAny(['votes']) || data.votes is list)
+        && optionalBool(data, 'deleted')
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
+    function validShoppingCategory(data) {
+      return data.keys().hasOnly([
+          'id',
+          'schemaVersion',
+          'name',
+          'orderKey',
+          'deleted',
+          'createdAt',
+          'updatedAt',
+          'updatedByUid',
+          'updatedByClientId'
+        ])
+        && optionalString(data, 'id', 200)
+        && optionalNumber(data, 'schemaVersion')
+        && optionalString(data, 'name', 200)
+        && optionalNumber(data, 'orderKey')
+        && optionalBool(data, 'deleted')
+        && optionalString(data, 'createdAt', 80)
+        && optionalString(data, 'updatedAt', 80)
+        && optionalString(data, 'updatedByUid', 160)
+        && optionalString(data, 'updatedByClientId', 200);
+    }
+
     function editorSafeTripUpdate() {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
         'access',
@@ -258,6 +484,132 @@ service cloud.firestore {
             'photoURL',
             'updatedAt'
           ]);
+      }
+
+      match /events/{eventId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validTripEvent(request.resource.data)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+      }
+
+      match /checklistItems/{itemId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validChecklistItem(request.resource.data)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+      }
+
+      match /shoppingItems/{itemId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validShoppingItem(request.resource.data)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+      }
+
+      match /expenses/{expenseId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validExpense(request.resource.data)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+      }
+
+      match /placeIdeas/{placeId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validPlaceIdea(request.resource.data)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+      }
+
+      match /shoppingCategories/{categoryId} {
+        allow read: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || exists(memberPath(tripId, request.auth.uid))
+          );
+
+        allow create, update: if signedIn()
+          && validShoppingCategory(request.resource.data)
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
+
+        allow delete: if signedIn()
+          && (
+            isTripOwner(tripId)
+            || isTripEditor(tripId)
+          );
       }
     }
 

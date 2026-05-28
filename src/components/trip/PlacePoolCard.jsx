@@ -261,6 +261,7 @@ const PlacePoolCard = ({
   setItinerary,
   selectedDay = 1,
   onAddEvent,
+  onCreateEventFromPlace,
   collaboration = {},
   currentUser,
   clientId = '',
@@ -308,13 +309,17 @@ const PlacePoolCard = ({
     if (!canScheduleIdeas) return;
     const nextEvent = createEventFromPlace(place);
 
-    setItinerary((prev) => (Array.isArray(prev) ? prev : []).map((day) => {
-      if (Number(day.day) !== Number(targetDay)) return day;
-      return {
-        ...day,
-        events: [...(day.events || []), nextEvent].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
-      };
-    }));
+    if (onCreateEventFromPlace) {
+      onCreateEventFromPlace(nextEvent, targetDay);
+    } else {
+      setItinerary((prev) => (Array.isArray(prev) ? prev : []).map((day) => {
+        if (Number(day.day) !== Number(targetDay)) return day;
+        return {
+          ...day,
+          events: [...(day.events || []), nextEvent].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+        };
+      }));
+    }
 
     setPlacePool((prev) => (Array.isArray(prev) ? prev : []).map((item) => (
       item.id === place.id

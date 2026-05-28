@@ -15,6 +15,36 @@ const TRIP_REALTIME_SYNC_ERROR = '即時同步暫時無法使用，正式資料�
 
 const emptyRealtimeState = normalizeTripRealtimeValue({});
 
+const withOptimisticChecklistStatus = (state, { listId, itemId, done, updatedAt }) => {
+  const checklistStatusByListId = state?.checklistStatusByListId || {};
+  const listStatus = checklistStatusByListId[listId] || {};
+
+  return {
+    ...state,
+    checklistStatusByListId: {
+      ...checklistStatusByListId,
+      [listId]: {
+        ...listStatus,
+        [itemId]: {
+          done: Boolean(done),
+          updatedAt
+        }
+      }
+    }
+  };
+};
+
+const withOptimisticShoppingStatus = (state, { itemId, purchased, updatedAt }) => ({
+  ...state,
+  shoppingItemStatusById: {
+    ...(state?.shoppingItemStatusById || {}),
+    [itemId]: {
+      purchased: Boolean(purchased),
+      updatedAt
+    }
+  }
+});
+
 const withTimeout = (promise, timeoutMs) => new Promise((resolve, reject) => {
   const timer = window.setTimeout(() => reject(new Error('trip-realtime-timeout')), timeoutMs);
   promise
@@ -177,6 +207,13 @@ export const useTripRealtime = ({
   const publishChecklistItemStatus = useCallback(async ({ listId, itemId, done }) => {
     if (!isEnabled) return false;
 
+    setRealtimeState((current) => withOptimisticChecklistStatus(current, {
+      listId,
+      itemId,
+      done,
+      updatedAt: Date.now()
+    }));
+
     try {
       await ensureAccess();
       await updateTripChecklistStatus({ tripId, listId, itemId, uid, done });
@@ -191,6 +228,12 @@ export const useTripRealtime = ({
   const publishShoppingItemStatus = useCallback(async ({ itemId, purchased }) => {
     if (!isEnabled) return false;
 
+    setRealtimeState((current) => withOptimisticShoppingStatus(current, {
+      itemId,
+      purchased,
+      updatedAt: Date.now()
+    }));
+
     try {
       await ensureAccess();
       await updateTripShoppingStatus({ tripId, itemId, uid, purchased });
@@ -204,12 +247,14 @@ export const useTripRealtime = ({
 
   return useMemo(() => ({
     ...realtimeState,
+    isRealtimeEnabled: isEnabled,
     realtimeError,
     updateRealtimeEditingTarget,
     publishChecklistItemStatus,
     publishShoppingItemStatus
   }), [
     realtimeState,
+    isEnabled,
     realtimeError,
     updateRealtimeEditingTarget,
     publishChecklistItemStatus,

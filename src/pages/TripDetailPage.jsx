@@ -26,11 +26,34 @@ import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { useFlightLookup } from '../hooks/useFlightLookup';
 import { fetchJPYRate } from '../services/currencyService';
 import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../services/googleMapsService';
+import {
+  deleteTripChecklistItemDocument,
+  deleteTripEventDocument,
+  deleteTripExpenseDocument,
+  deleteTripPlaceIdeaDocument,
+  deleteTripShoppingCategoryDocument,
+  deleteTripShoppingItemDocument,
+  moveTripChecklistItemDocument,
+  moveTripEventDocument,
+  moveTripShoppingItemDocument,
+  saveTripChecklistItemDocument,
+  saveTripEventDocument,
+  saveTripExpenseDocument,
+  saveTripPlaceIdeaDocument,
+  saveTripShoppingCategoryDocument,
+  saveTripShoppingItemDocument
+} from '../services/tripService';
 import { createEmptyItinerary } from '../domain/tripSchema';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
 import { moveEventInDay, moveEventToDay } from '../utils/itineraryEvents';
+import {
+  getAppendOrderKey,
+  getEventOrderKeyAtIndex,
+  getOrderKeyBetween,
+  makeTripEventId
+} from '../utils/tripEventDocuments';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -191,15 +214,21 @@ const TripDetailPage = () => {
     setTripDetails, 
     itinerary, 
     setItinerary, 
+    applyItineraryPatch,
     checklists, 
+    applyChecklistsPatch,
     setChecklists,
     expenses,
+    applyExpensesPatch,
     setExpenses,
     shoppingList,
+    applyShoppingListPatch,
     setShoppingList,
     shoppingCategories,
+    applyShoppingCategoriesPatch,
     setShoppingCategories,
     placePool,
+    applyPlacePoolPatch,
     setPlacePool,
     collaboration,
     setCollaboration,
@@ -238,6 +267,7 @@ const TripDetailPage = () => {
     shoppingItemStatusById,
     realtimeEditingByTarget,
     recentActivities,
+    isRealtimeEnabled,
     realtimeError,
     updateRealtimeEditingTarget,
     publishChecklistItemStatus,
@@ -676,6 +706,301 @@ const TripDetailPage = () => {
     });
   };
 
+  const markItineraryForFallbackSave = () => {
+    setItinerary((prev) => (Array.isArray(prev) ? prev.map((day) => ({
+      ...day,
+      events: [...(day.events || [])]
+    })) : prev));
+  };
+
+  const handleEventDocumentWriteError = (error) => {
+    logger.warn('Event document write failed; falling back to trip autosave.', error);
+    markItineraryForFallbackSave();
+    toast({
+      variant: 'warning',
+      title: '已改用相容儲存',
+      description: '這次行程變更會先用原本的旅程儲存方式保留。'
+    });
+  };
+
+  const handleSaveEventDocument = (eventData) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '沒有編輯權限', description: '這趟旅程目前不能編輯行程。' });
+      return;
+    }
+
+    const targetDay = itinerary.find((day) => Number(day.day) === Number(selectedDay));
+    const targetEvents = (targetDay?.events || []).map((event, index) => ({
+      ...event,
+      orderKey: getEventOrderKeyAtIndex(event, index)
+    }));
+    const existingIndex = targetEvents.findIndex((event) => String(event.id) === String(eventData.id));
+    const existingEvent = existingIndex >= 0 ? targetEvents[existingIndex] : null;
+    const eventId = editingEvent ? (eventData.id || editingEvent.id || makeTripEventId()) : makeTripEventId();
+    const orderKey = editingEvent
+      ? getEventOrderKeyAtIndex(existingEvent, Math.max(existingIndex, 0))
+      : getAppendOrderKey(targetEvents);
+    const nextEvent = {
+      ...eventData,
+      id: eventId,
+      memos: eventData.memos || existingEvent?.memos || [],
+      orderKey
+    };
+
+    applyItineraryPatch((prev) => prev.map((day) => {
+      if (Number(day.day) !== Number(selectedDay)) return day;
+      if (editingEvent) {
+        return {
+          ...day,
+          events: (day.events || []).map((event) => (
+            String(event.id) === String(nextEvent.id) ? nextEvent : event
+          ))
+        };
+      }
+      return {
+        ...day,
+        events: [...(day.events || []), nextEvent]
+      };
+    }));
+
+    void saveTripEventDocument({
+      tripId,
+      event: nextEvent,
+      dayNumber: selectedDay,
+      orderKey,
+      user: currentUser,
+      clientId
+    }).catch(handleEventDocumentWriteError);
+
+    setIsEditModalOpen(false);
+    setEditingEvent(null);
+  };
+
+  const handleAppendEventDocument = (eventData, dayNumber = selectedDay) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '沒有編輯權限', description: '這趟旅程目前不能新增行程。' });
+      return null;
+    }
+
+    const targetDayNumber = Number(dayNumber || selectedDay);
+    const targetDay = itinerary.find((day) => Number(day.day) === targetDayNumber);
+    const targetEvents = (targetDay?.events || []).map((event, index) => ({
+      ...event,
+      orderKey: getEventOrderKeyAtIndex(event, index)
+    }));
+    const orderKey = getAppendOrderKey(targetEvents);
+    const nextEvent = {
+      ...eventData,
+      id: eventData?.id || makeTripEventId(),
+      memos: eventData?.memos || [],
+      orderKey
+    };
+
+    applyItineraryPatch((prev) => prev.map((day) => (
+      Number(day.day) === targetDayNumber
+        ? { ...day, events: [...(day.events || []), nextEvent] }
+        : day
+    )));
+
+    void saveTripEventDocument({
+      tripId,
+      event: nextEvent,
+      dayNumber: targetDayNumber,
+      orderKey,
+      user: currentUser,
+      clientId
+    }).catch(handleEventDocumentWriteError);
+
+    return nextEvent;
+  };
+
+  const handleDeleteEventDocument = async (id) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '沒有編輯權限', description: '這趟旅程目前不能刪除行程。' });
+      return;
+    }
+
+    const targetDay = itinerary.find((day) => day.day === selectedDay);
+    const targetEvent = targetDay?.events?.find((event) => event.id === id);
+    if (!targetEvent) return;
+
+    const shouldDelete = await confirm({
+      title: '刪除行程？',
+      description: `「${targetEvent.title || '未命名行程'}」會從 Day ${selectedDay} 移除。`,
+      confirmLabel: '刪除行程',
+      variant: 'danger'
+    });
+
+    if (!shouldDelete) return;
+
+    applyItineraryPatch((prev) => prev.map((day) => {
+      if (day.day === selectedDay) {
+        return { ...day, events: day.events.filter((event) => event.id !== id) };
+      }
+      return day;
+    }));
+
+    void deleteTripEventDocument({
+      tripId,
+      event: targetEvent,
+      eventId: id,
+      user: currentUser,
+      clientId
+    }).catch(handleEventDocumentWriteError);
+
+    toast({
+      variant: 'info',
+      title: '已刪除行程',
+      description: targetEvent.title || '未命名行程',
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => {
+        const orderKey = getAppendOrderKey(targetDay?.events || []);
+        const restoredEvent = {
+          ...targetEvent,
+          orderKey: targetEvent.orderKey ?? orderKey
+        };
+
+        applyItineraryPatch((prev) => prev.map((day) => {
+          if (day.day !== selectedDay) return day;
+          const exists = day.events.some((event) => event.id === targetEvent.id);
+          if (exists) return day;
+          return {
+            ...day,
+            events: [...day.events, restoredEvent]
+          };
+        }));
+
+        void saveTripEventDocument({
+          tripId,
+          event: restoredEvent,
+          dayNumber: selectedDay,
+          orderKey: restoredEvent.orderKey,
+          user: currentUser,
+          clientId
+        }).catch(handleEventDocumentWriteError);
+      }
+    });
+  };
+
+  const handleMoveEventDocument = (eventId, direction) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '沒有編輯權限', description: '這趟旅程目前不能調整行程順序。' });
+      return;
+    }
+
+    const targetDay = itinerary.find((day) => Number(day.day) === Number(selectedDay));
+    const currentEvents = (targetDay?.events || []).map((event, index) => ({
+      ...event,
+      orderKey: getEventOrderKeyAtIndex(event, index)
+    }));
+    const nextEvents = moveEventInDay(currentEvents, eventId, direction);
+    if (nextEvents === currentEvents) return;
+
+    const movedIndex = nextEvents.findIndex((event) => String(event.id) === String(eventId));
+    const movedEvent = movedIndex >= 0 ? nextEvents[movedIndex] : null;
+    if (!movedEvent) return;
+
+    const orderKey = getOrderKeyBetween(nextEvents[movedIndex - 1], nextEvents[movedIndex + 1], movedIndex);
+    const eventWithOrder = { ...movedEvent, orderKey };
+    const nextEventsWithOrder = nextEvents.map((event) => (
+      String(event.id) === String(eventId) ? eventWithOrder : event
+    ));
+
+    applyItineraryPatch((prev) => prev.map((day) => (
+      Number(day.day) === Number(selectedDay)
+        ? { ...day, events: nextEventsWithOrder }
+        : day
+    )));
+
+    void moveTripEventDocument({
+      tripId,
+      event: eventWithOrder,
+      dayNumber: selectedDay,
+      orderKey,
+      user: currentUser,
+      clientId
+    }).catch(handleEventDocumentWriteError);
+  };
+
+  const handleMoveEventToAdjacentDayDocument = (eventId, direction) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '沒有編輯權限', description: '這趟旅程目前不能移動行程。' });
+      return;
+    }
+
+    const sourceDayIndex = itinerary.findIndex((day) => day.day === selectedDay);
+    const targetDay = direction === 'previous'
+      ? itinerary[sourceDayIndex - 1]
+      : itinerary[sourceDayIndex + 1];
+    const sourceDay = itinerary[sourceDayIndex];
+    const targetEventIndex = sourceDay?.events?.findIndex((event) => String(event.id) === String(eventId)) ?? -1;
+    const targetEvent = targetEventIndex >= 0 ? sourceDay.events[targetEventIndex] : null;
+
+    if (!sourceDay || !targetDay || !targetEvent) return;
+
+    const orderKey = getAppendOrderKey(targetDay.events || []);
+    const movedEvent = { ...targetEvent, orderKey };
+    applyItineraryPatch((prev) => moveEventToDay(prev, eventId, sourceDay.day, targetDay.day).map((day) => (
+      Number(day.day) === Number(targetDay.day)
+        ? {
+            ...day,
+            events: (day.events || []).map((event) => (
+              String(event.id) === String(eventId) ? movedEvent : event
+            ))
+          }
+        : day
+    )));
+
+    void moveTripEventDocument({
+      tripId,
+      event: movedEvent,
+      dayNumber: targetDay.day,
+      orderKey,
+      user: currentUser,
+      clientId
+    }).catch(handleEventDocumentWriteError);
+
+    toast({
+      variant: 'success',
+      title: `已移到 Day ${targetDay.day}`,
+      description: targetEvent.title || '未命名行程',
+      actionLabel: '復原',
+      duration: 7000,
+      onAction: () => {
+        const restoreEvents = sourceDay.events || [];
+        const restoredOrderKey = getOrderKeyBetween(
+          restoreEvents[targetEventIndex - 1],
+          restoreEvents[targetEventIndex],
+          targetEventIndex
+        );
+        const restoredEvent = { ...targetEvent, orderKey: restoredOrderKey };
+
+        applyItineraryPatch((prev) => moveEventToDay(prev, eventId, targetDay.day, sourceDay.day, {
+          insertIndex: targetEventIndex
+        }).map((day) => (
+          Number(day.day) === Number(sourceDay.day)
+            ? {
+                ...day,
+                events: (day.events || []).map((event) => (
+                  String(event.id) === String(eventId) ? restoredEvent : event
+                ))
+              }
+            : day
+        )));
+
+        void moveTripEventDocument({
+          tripId,
+          event: restoredEvent,
+          dayNumber: sourceDay.day,
+          orderKey: restoredOrderKey,
+          user: currentUser,
+          clientId
+        }).catch(handleEventDocumentWriteError);
+      }
+    });
+  };
+
   const handleUpdateDayMeta = (dayNumber, patch) => {
     if (!canEdit) return;
     setItinerary(prev => prev.map(day => (
@@ -787,14 +1112,19 @@ const TripDetailPage = () => {
     itinerary,
     setItinerary,
     checklists,
+    applyChecklistsPatch,
     setChecklists,
     expenses,
+    applyExpensesPatch,
     setExpenses,
     shoppingList,
+    applyShoppingListPatch,
     setShoppingList,
     shoppingCategories,
+    applyShoppingCategoriesPatch,
     setShoppingCategories,
     placePool,
+    applyPlacePoolPatch,
     setPlacePool,
     collaboration,
     setCollaboration,
@@ -822,11 +1152,24 @@ const TripDetailPage = () => {
     shoppingItemStatusById,
     realtimeEditingByTarget,
     recentActivities,
+    isRealtimeEnabled,
     realtimeError,
     updatePresenceEditingTarget,
     updateRealtimeEditingTarget,
     publishChecklistItemStatus,
     publishShoppingItemStatus,
+    saveTripChecklistItemDocument,
+    deleteTripChecklistItemDocument,
+    moveTripChecklistItemDocument,
+    saveTripShoppingItemDocument,
+    deleteTripShoppingItemDocument,
+    moveTripShoppingItemDocument,
+    saveTripExpenseDocument,
+    deleteTripExpenseDocument,
+    saveTripPlaceIdeaDocument,
+    deleteTripPlaceIdeaDocument,
+    saveTripShoppingCategoryDocument,
+    deleteTripShoppingCategoryDocument,
     syncConflict,
     resolveConflict,
     exchangeRate,
@@ -857,9 +1200,10 @@ const TripDetailPage = () => {
     saveDayMeta,
     openAddModal,
     openEditModal,
-    handleDeleteEvent,
-    handleMoveEvent,
-    handleMoveEventToAdjacentDay,
+    handleDeleteEvent: handleDeleteEventDocument,
+    handleMoveEvent: handleMoveEventDocument,
+    handleMoveEventToAdjacentDay: handleMoveEventToAdjacentDayDocument,
+    handleAppendEvent: handleAppendEventDocument,
     handleOpenGoogleMaps,
     handleLookupFlight,
     isLookingUpFlight,
@@ -869,10 +1213,15 @@ const TripDetailPage = () => {
     tripDetails,
     itinerary,
     checklists,
+    applyChecklistsPatch,
     expenses,
+    applyExpensesPatch,
     shoppingList,
+    applyShoppingListPatch,
     shoppingCategories,
+    applyShoppingCategoriesPatch,
     placePool,
+    applyPlacePoolPatch,
     collaboration,
     currentUser,
     clientId,
@@ -893,6 +1242,7 @@ const TripDetailPage = () => {
     shoppingItemStatusById,
     realtimeEditingByTarget,
     recentActivities,
+    isRealtimeEnabled,
     realtimeError,
     updatePresenceEditingTarget,
     updateRealtimeEditingTarget,
@@ -916,6 +1266,7 @@ const TripDetailPage = () => {
     showSecondaryModules,
     isEditingDayMeta,
     dayMetaDraft,
+    handleAppendEventDocument,
     isLookingUpFlight,
     flightLookupError
   ]);
@@ -1069,7 +1420,7 @@ const TripDetailPage = () => {
         ) : (
           <EditEventForm
             event={editingEvent}
-            onSave={handleSaveEvent}
+            onSave={handleSaveEventDocument}
             readOnly={isReadOnly}
             onRequestEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
             onCancel={() => {

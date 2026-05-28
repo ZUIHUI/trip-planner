@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import PlacePoolCard from './PlacePoolCard';
+import {
+  getItemOrderKeyAtIndex,
+  getTripItemChanges,
+  getTripItemId
+} from '../../utils/tripItemDocuments';
+
+const PLACE_IDEA_FIELDS = [
+  'name',
+  'address',
+  'placeId',
+  'lat',
+  'lng',
+  'note',
+  'status',
+  'plannedDay',
+  'addedAt',
+  'plannedAt',
+  'votes'
+];
 
 const IdeasTab = () => {
   const {
     tripId,
     placePool,
+    applyPlacePoolPatch,
     setPlacePool,
     itinerary,
     setItinerary,
@@ -17,23 +37,98 @@ const IdeasTab = () => {
     accessRole,
     placeVotesByPlaceId,
     realtimeError,
-    openAddModal
+    openAddModal,
+    handleAppendEvent,
+    saveTripPlaceIdeaDocument,
+    deleteTripPlaceIdeaDocument
   } = useTripWorkspace();
+  const updateSeqRef = useRef(0);
 
   const canVote = Boolean(accessRole);
   const canManageIdeas = accessRole === 'owner' || accessRole === 'editor' || accessRole === 'edit';
   const canScheduleIdeas = canManageIdeas;
+  const handlePlacePoolChange = useCallback((updater) => {
+    const updateSeq = updateSeqRef.current + 1;
+    updateSeqRef.current = updateSeq;
+    const currentPlaces = Array.isArray(placePool) ? placePool : [];
+    const nextValue = typeof updater === 'function' ? updater(currentPlaces) : updater;
+    const nextPlaces = (Array.isArray(nextValue) ? nextValue : []).map((place, index) => ({
+      ...place,
+      orderKey: getItemOrderKeyAtIndex(place, index)
+    }));
+    const changes = getTripItemChanges({
+      previousItems: currentPlaces,
+      nextItems: nextPlaces,
+      fields: PLACE_IDEA_FIELDS
+    });
+
+    applyPlacePoolPatch?.(nextPlaces);
+
+    const fallbackToTripSave = () => {
+      if (updateSeqRef.current === updateSeq) {
+        setPlacePool(nextPlaces);
+      }
+    };
+    const canWritePlaceDocs = Boolean(
+      tripId &&
+      currentUser?.uid &&
+      saveTripPlaceIdeaDocument &&
+      deleteTripPlaceIdeaDocument
+    );
+
+    if (!canWritePlaceDocs) {
+      fallbackToTripSave();
+      return;
+    }
+
+    const operations = [
+      ...changes.removed.map((place) => deleteTripPlaceIdeaDocument({
+        tripId,
+        place,
+        placeId: place.id,
+        user: currentUser,
+        clientId
+      })),
+      ...changes.added.map((place) => saveTripPlaceIdeaDocument({
+        tripId,
+        place,
+        orderKey: getItemOrderKeyAtIndex(place, nextPlaces.findIndex((item) => getTripItemId(item) === getTripItemId(place))),
+        user: currentUser,
+        clientId
+      })),
+      ...changes.changed.map((place) => saveTripPlaceIdeaDocument({
+        tripId,
+        place,
+        orderKey: getItemOrderKeyAtIndex(place, nextPlaces.findIndex((item) => getTripItemId(item) === getTripItemId(place))),
+        user: currentUser,
+        clientId
+      }))
+    ];
+
+    if (!operations.length) return;
+    void Promise.all(operations).catch(fallbackToTripSave);
+  }, [
+    applyPlacePoolPatch,
+    clientId,
+    currentUser,
+    deleteTripPlaceIdeaDocument,
+    placePool,
+    saveTripPlaceIdeaDocument,
+    setPlacePool,
+    tripId
+  ]);
 
   return (
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
       <PlacePoolCard
         tripId={tripId}
         placePool={placePool}
-        setPlacePool={setPlacePool}
+        setPlacePool={handlePlacePoolChange}
         itinerary={itinerary}
         setItinerary={setItinerary}
         selectedDay={selectedDay}
         onAddEvent={openAddModal}
+        onCreateEventFromPlace={handleAppendEvent}
         collaboration={collaboration}
         currentUser={currentUser}
         clientId={clientId}

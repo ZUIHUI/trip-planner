@@ -1,37 +1,144 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { CheckSquare } from 'lucide-react';
 import Checklist from '../Checklist';
 import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { mergeRealtimeChecklistStatus } from '../../utils/tripRealtime';
+import {
+  getItemOrderKeyAtIndex,
+  getSparseOrderKeyForItem,
+  getTripItemChanges,
+  getTripItemId
+} from '../../utils/tripItemDocuments';
+
+const CHECKLIST_ITEM_FIELDS = ['text', 'done', 'category', 'assignedTo', 'day'];
 
 const PreTripTab = () => {
   const {
+    tripId,
     checklists,
+    applyChecklistsPatch,
     setChecklists,
+    currentUser,
+    clientId,
     checklistStatusByListId,
-    publishChecklistItemStatus
+    publishChecklistItemStatus,
+    saveTripChecklistItemDocument,
+    deleteTripChecklistItemDocument,
+    moveTripChecklistItemDocument
   } = useTripWorkspace();
+  const updateSeqRef = useRef(0);
   const visibleItems = useMemo(
     () => mergeRealtimeChecklistStatus(checklists.preTrip, checklistStatusByListId?.preTrip),
     [checklists.preTrip, checklistStatusByListId]
   );
   const handleUpdate = useCallback((newItems) => {
+    const updateSeq = updateSeqRef.current + 1;
+    updateSeqRef.current = updateSeq;
+    const nextItems = newItems.map((item, index) => ({
+      ...item,
+      listId: 'preTrip',
+      orderKey: getItemOrderKeyAtIndex(item, index)
+    }));
+    const changes = getTripItemChanges({
+      previousItems: visibleItems,
+      nextItems,
+      fields: CHECKLIST_ITEM_FIELDS
+    });
     const previousById = new Map(
       visibleItems.map((item) => [String(item?.id ?? ''), Boolean(item?.done)])
     );
+    const statusChanges = [];
 
-    newItems.forEach((item) => {
+    nextItems.forEach((item) => {
       const itemId = String(item?.id ?? '');
       if (!itemId) return;
       const nextDone = Boolean(item?.done);
       if (previousById.has(itemId) && previousById.get(itemId) !== nextDone) {
-        void publishChecklistItemStatus?.({ listId: 'preTrip', itemId, done: nextDone });
+        statusChanges.push({ itemId, done: nextDone });
       }
     });
 
-    setChecklists((prev) => ({ ...prev, preTrip: newItems }));
-  }, [publishChecklistItemStatus, setChecklists, visibleItems]);
+    applyChecklistsPatch?.((prev) => ({ ...prev, preTrip: nextItems }));
+    statusChanges.forEach(({ itemId, done }) => {
+      void publishChecklistItemStatus?.({ listId: 'preTrip', itemId, done });
+    });
+
+    const fallbackToTripSave = () => {
+      if (updateSeqRef.current === updateSeq) {
+        setChecklists((prev) => ({ ...prev, preTrip: nextItems }));
+      }
+    };
+    const canWriteItemDocs = Boolean(
+      tripId &&
+      currentUser?.uid &&
+      saveTripChecklistItemDocument &&
+      deleteTripChecklistItemDocument &&
+      moveTripChecklistItemDocument
+    );
+
+    if (!canWriteItemDocs) {
+      fallbackToTripSave();
+      return;
+    }
+
+    const operations = [
+      ...changes.removed.map((item) => deleteTripChecklistItemDocument({
+        tripId,
+        item,
+        itemId: item.id,
+        listId: 'preTrip',
+        user: currentUser,
+        clientId
+      })),
+      ...changes.added.map((item) => saveTripChecklistItemDocument({
+        tripId,
+        item,
+        listId: 'preTrip',
+        orderKey: getItemOrderKeyAtIndex(item, nextItems.findIndex((nextItem) => getTripItemId(nextItem) === getTripItemId(item))),
+        user: currentUser,
+        clientId
+      })),
+      ...changes.changed
+        .filter((item) => getTripItemId(item) !== changes.movedItemId)
+        .map((item) => saveTripChecklistItemDocument({
+          tripId,
+          item,
+          listId: 'preTrip',
+          orderKey: getItemOrderKeyAtIndex(item, nextItems.findIndex((nextItem) => getTripItemId(nextItem) === getTripItemId(item))),
+          user: currentUser,
+          clientId
+        }))
+    ];
+
+    if (changes.movedItemId) {
+      const movedItem = nextItems.find((item) => getTripItemId(item) === changes.movedItemId);
+      if (movedItem) {
+        operations.push(moveTripChecklistItemDocument({
+          tripId,
+          item: movedItem,
+          listId: 'preTrip',
+          orderKey: getSparseOrderKeyForItem(nextItems, changes.movedItemId),
+          user: currentUser,
+          clientId
+        }));
+      }
+    }
+
+    if (!operations.length) return;
+    void Promise.all(operations).catch(fallbackToTripSave);
+  }, [
+    applyChecklistsPatch,
+    clientId,
+    currentUser,
+    deleteTripChecklistItemDocument,
+    moveTripChecklistItemDocument,
+    publishChecklistItemStatus,
+    saveTripChecklistItemDocument,
+    setChecklists,
+    tripId,
+    visibleItems
+  ]);
 
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">

@@ -1348,12 +1348,14 @@ exports.togglePlaceVote = onCall(async (request) => {
 
   const tripRef = firestore.collection('trips').doc(tripId);
   const memberRef = tripRef.collection('members').doc(uid);
+  const placeIdeaRef = tripRef.collection('placeIdeas').doc(placeId);
   let result = null;
 
   await firestore.runTransaction(async (transaction) => {
-    const [tripSnap, memberSnap] = await Promise.all([
+    const [tripSnap, memberSnap, placeIdeaSnap] = await Promise.all([
       transaction.get(tripRef),
-      transaction.get(memberRef)
+      transaction.get(memberRef),
+      transaction.get(placeIdeaRef)
     ]);
 
     if (!tripSnap.exists) {
@@ -1375,13 +1377,14 @@ exports.togglePlaceVote = onCall(async (request) => {
       ? trip.planning.placePool
       : (Array.isArray(trip.placePool) ? trip.placePool : []);
     const placeIndex = placePool.findIndex((place) => String(place?.id || '') === placeId);
+    const placeIdea = placeIdeaSnap.exists ? (placeIdeaSnap.data() || {}) : null;
 
-    if (placeIndex < 0) {
+    if ((!placeIdea || placeIdea.deleted === true) && placeIndex < 0) {
       throw new HttpsError('not-found', '找不到這個地點。');
     }
 
     const now = new Date().toISOString();
-    const place = placePool[placeIndex] || {};
+    const place = placeIdea || placePool[placeIndex] || {};
     const votes = Array.isArray(place.votes) ? place.votes : [];
     const existingVote = votes.find((vote) => vote?.voterId === uid);
     const existingVoteValue = existingVote ? normalizeVoteValue(existingVote.value, 1) : null;
@@ -1409,19 +1412,44 @@ exports.togglePlaceVote = onCall(async (request) => {
     const maybeVoteCount = nextVotes.filter((vote) => Number(vote?.value || 0) === 0).length;
     const negativeVoteCount = nextVotes.filter((vote) => Number(vote?.value || 0) < 0).length;
     const voteScore = nextVotes.reduce((total, vote) => total + normalizeVoteValue(vote?.value, 0), 0);
-    const nextPlacePool = placePool.map((item, index) => (
-      index === placeIndex
-        ? {
-            ...item,
-            votes: nextVotes
-          }
-        : item
-    ));
+    const nextPlace = {
+      ...place,
+      id: placeId,
+      votes: nextVotes
+    };
+    const nextPlaceDocument = {
+      id: placeId,
+      schemaVersion: Number(place.schemaVersion || 1),
+      orderKey: Number(place.orderKey || ((placeIndex >= 0 ? placeIndex : 0) + 1) * 1000),
+      name: String(place.name || place.address || ''),
+      address: String(place.address || place.name || ''),
+      placeId: String(place.placeId || ''),
+      lat: typeof place.lat === 'number' ? place.lat : null,
+      lng: typeof place.lng === 'number' ? place.lng : null,
+      note: String(place.note || ''),
+      status: String(place.status || 'idea'),
+      plannedDay: typeof place.plannedDay === 'number' ? place.plannedDay : null,
+      addedAt: String(place.addedAt || now),
+      plannedAt: String(place.plannedAt || ''),
+      votes: nextVotes,
+      deleted: false,
+      updatedAt: now,
+      updatedByUid: uid,
+      updatedByClientId: clientId
+    };
+    const nextPlacePool = placeIndex >= 0
+      ? placePool.map((item, index) => (
+        index === placeIndex
+          ? {
+              ...item,
+              votes: nextVotes
+            }
+          : item
+      ))
+      : placePool;
     const revision = Number(trip.syncMeta?.revision || 0) + 1;
 
-    transaction.update(tripRef, {
-      'planning.placePool': nextPlacePool,
-      placePool: nextPlacePool,
+    const tripUpdate = {
       'meta.updatedAt': now,
       updatedAt: now,
       'syncMeta.revision': revision,
@@ -1430,12 +1458,28 @@ exports.togglePlaceVote = onCall(async (request) => {
       'syncMeta.updatedByOperation': 'place-vote',
       'syncMeta.updatedEntityId': placeId,
       'syncMeta.updatedAt': now
-    });
+    };
+
+    if (placeIndex >= 0) {
+      tripUpdate['planning.placePool'] = nextPlacePool;
+      tripUpdate.placePool = nextPlacePool;
+    }
+
+    if (placeIdeaSnap.exists) {
+      transaction.update(placeIdeaRef, nextPlaceDocument);
+    } else {
+      transaction.set(placeIdeaRef, {
+        ...nextPlaceDocument,
+        createdAt: String(place.createdAt || place.addedAt || now)
+      }, { merge: true });
+    }
+
+    transaction.update(tripRef, tripUpdate);
 
     result = {
       placeId,
       voted,
-      placeName: String(place.name || place.address || '').slice(0, 160),
+      placeName: String(nextPlace.name || nextPlace.address || '').slice(0, 160),
       actorName: getMemberDisplayName({
         request,
         member: memberSnap.exists ? memberSnap.data() : {}

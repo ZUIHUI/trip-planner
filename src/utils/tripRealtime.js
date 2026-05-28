@@ -9,6 +9,63 @@ const readUpdatedAt = (value = {}) => {
   return Number.isFinite(rawValue) ? rawValue : 0;
 };
 
+const withoutField = (value = {}, fieldName = '') => {
+  const source = value && typeof value === 'object' ? value : {};
+  const clone = { ...source };
+  delete clone[fieldName];
+  return clone;
+};
+
+export const getStatusOnlyChanges = (previousItems = [], nextItems = [], fieldName = '') => {
+  if (!fieldName || !Array.isArray(previousItems) || !Array.isArray(nextItems)) {
+    return { statusOnly: false, changes: [] };
+  }
+
+  if (previousItems.length !== nextItems.length) {
+    return { statusOnly: false, changes: [] };
+  }
+
+  const changes = [];
+  for (let index = 0; index < nextItems.length; index += 1) {
+    const previousItem = previousItems[index] || {};
+    const nextItem = nextItems[index] || {};
+    const previousId = String(previousItem?.id ?? '');
+    const nextId = String(nextItem?.id ?? '');
+
+    if (!previousId || previousId !== nextId) {
+      return { statusOnly: false, changes: [] };
+    }
+
+    const previousComparable = JSON.stringify(withoutField(previousItem, fieldName));
+    const nextComparable = JSON.stringify(withoutField(nextItem, fieldName));
+    if (previousComparable !== nextComparable) {
+      return { statusOnly: false, changes: [] };
+    }
+
+    const previousStatus = Boolean(previousItem?.[fieldName]);
+    const nextStatus = Boolean(nextItem?.[fieldName]);
+    if (previousStatus !== nextStatus) {
+      changes.push({
+        itemId: nextId,
+        value: nextStatus
+      });
+    }
+  }
+
+  return {
+    statusOnly: changes.length > 0,
+    changes
+  };
+};
+
+export const getChecklistStatusOnlyChanges = (previousItems = [], nextItems = []) => (
+  getStatusOnlyChanges(previousItems, nextItems, 'done')
+);
+
+export const getShoppingStatusOnlyChanges = (previousItems = [], nextItems = []) => (
+  getStatusOnlyChanges(previousItems, nextItems, 'purchased')
+);
+
 const normalizeVoteValue = (value, fallback = 1) => {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;

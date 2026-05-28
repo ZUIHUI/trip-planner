@@ -9,6 +9,7 @@ import {
   onSnapshot,
   query,
   runTransaction,
+  setDoc,
   updateDoc,
   where,
   writeBatch
@@ -19,6 +20,24 @@ import {
   buildTripListItem,
   normalizeTripDocumentForApp
 } from '../domain/tripSchema';
+import {
+  buildTripEventDocument,
+  normalizeTripEventDocumentForApp
+} from '../utils/tripEventDocuments';
+import {
+  buildChecklistItemDocument,
+  buildShoppingItemDocument,
+  normalizeChecklistItemDocumentForApp,
+  normalizeShoppingItemDocumentForApp
+} from '../utils/tripItemDocuments';
+import {
+  buildShoppingCategoryDocument,
+  buildTripExpenseDocument,
+  buildTripPlaceIdeaDocument,
+  normalizeShoppingCategoryDocumentForApp,
+  normalizeTripExpenseDocumentForApp,
+  normalizeTripPlaceIdeaDocumentForApp
+} from '../utils/tripCollectionDocuments';
 
 const PRIMARY_OWNER_EMAIL = (import.meta.env.VITE_PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
 
@@ -50,6 +69,18 @@ const memberPayload = ({ user, profile, role, shareToken = '' }) => ({
 
 const getTripDocRef = (tripId) => doc(db, 'trips', tripId);
 const getMemberDocRef = (tripId, uid) => doc(db, 'trips', tripId, 'members', uid);
+const getTripEventCollectionRef = (tripId) => collection(db, 'trips', tripId, 'events');
+const getTripEventDocRef = (tripId, eventId) => doc(db, 'trips', tripId, 'events', String(eventId));
+const getTripChecklistItemCollectionRef = (tripId) => collection(db, 'trips', tripId, 'checklistItems');
+const getTripChecklistItemDocRef = (tripId, itemId) => doc(db, 'trips', tripId, 'checklistItems', String(itemId));
+const getTripShoppingItemCollectionRef = (tripId) => collection(db, 'trips', tripId, 'shoppingItems');
+const getTripShoppingItemDocRef = (tripId, itemId) => doc(db, 'trips', tripId, 'shoppingItems', String(itemId));
+const getTripExpenseCollectionRef = (tripId) => collection(db, 'trips', tripId, 'expenses');
+const getTripExpenseDocRef = (tripId, expenseId) => doc(db, 'trips', tripId, 'expenses', String(expenseId));
+const getTripPlaceIdeaCollectionRef = (tripId) => collection(db, 'trips', tripId, 'placeIdeas');
+const getTripPlaceIdeaDocRef = (tripId, placeId) => doc(db, 'trips', tripId, 'placeIdeas', String(placeId));
+const getTripShoppingCategoryCollectionRef = (tripId) => collection(db, 'trips', tripId, 'shoppingCategories');
+const getTripShoppingCategoryDocRef = (tripId, categoryId) => doc(db, 'trips', tripId, 'shoppingCategories', String(categoryId));
 
 const commitInChunks = async (operations, chunkSize = 240) => {
   for (let index = 0; index < operations.length; index += chunkSize) {
@@ -94,6 +125,670 @@ export const subscribeTripMembers = (tripId, onData, onError) => {
     onError
   );
 };
+
+export const subscribeTripEventDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripEventCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeTripEventDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripChecklistItemDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripChecklistItemCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeChecklistItemDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripShoppingItemDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripShoppingItemCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeShoppingItemDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripExpenseDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripExpenseCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeTripExpenseDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripPlaceIdeaDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripPlaceIdeaCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeTripPlaceIdeaDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+export const subscribeTripShoppingCategoryDocuments = (tripId, onData, onError) => {
+  if (!tripId) return () => {};
+  return onSnapshot(
+    getTripShoppingCategoryCollectionRef(tripId),
+    (snapshot) => {
+      onData(snapshot.docs.map((snapshotDoc) => normalizeShoppingCategoryDocumentForApp({
+        id: snapshotDoc.id,
+        ...snapshotDoc.data()
+      })));
+    },
+    onError
+  );
+};
+
+const writeTripEventDocument = async ({
+  tripId,
+  event,
+  dayNumber,
+  orderKey,
+  user,
+  clientId = '',
+  deleted = false
+}) => {
+  requireUser(user);
+  const eventId = String(event?.id || '').trim();
+  if (!tripId || !eventId) throw new Error('Missing trip event id');
+
+  const eventRef = getTripEventDocRef(tripId, eventId);
+  const now = new Date().toISOString();
+  const payload = buildTripEventDocument({
+    event,
+    dayNumber,
+    orderKey,
+    user,
+    clientId,
+    deleted,
+    now
+  });
+  const snapshot = await getDoc(eventRef);
+
+  if (snapshot.exists()) {
+    await updateDoc(eventRef, payload);
+  } else {
+    await setDoc(eventRef, {
+      ...payload,
+      createdAt: now
+    }, { merge: true });
+  }
+
+  return normalizeTripEventDocumentForApp(payload);
+};
+
+export const saveTripEventDocument = async ({
+  tripId,
+  event,
+  dayNumber,
+  orderKey,
+  user,
+  clientId = ''
+}) => writeTripEventDocument({
+  tripId,
+  event,
+  dayNumber,
+  orderKey,
+  user,
+  clientId,
+  deleted: false
+});
+
+export const deleteTripEventDocument = async ({
+  tripId,
+  event,
+  eventId,
+  user,
+  clientId = ''
+}) => {
+  const safeEvent = {
+    ...(event || {}),
+    id: String(eventId || event?.id || '').trim()
+  };
+  return writeTripEventDocument({
+    tripId,
+    event: safeEvent,
+    dayNumber: Number(event?.dayNumber || event?.day || 1),
+    orderKey: Number(event?.orderKey || 0),
+    user,
+    clientId,
+    deleted: true
+  });
+};
+
+export const moveTripEventDocument = async ({
+  tripId,
+  event,
+  dayNumber,
+  orderKey,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  const eventId = String(event?.id || '').trim();
+  if (!tripId || !eventId) throw new Error('Missing trip event id');
+
+  const eventRef = getTripEventDocRef(tripId, eventId);
+  const now = new Date().toISOString();
+
+  return runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(eventRef);
+    const payload = buildTripEventDocument({
+      event: {
+        ...(snapshot.exists() ? snapshot.data() : {}),
+        ...event,
+        id: eventId
+      },
+      dayNumber,
+      orderKey,
+      user,
+      clientId,
+      deleted: false,
+      now
+    });
+
+    if (snapshot.exists()) {
+      transaction.update(eventRef, payload);
+    } else {
+      transaction.set(eventRef, {
+        ...payload,
+        createdAt: now
+      }, { merge: true });
+    }
+
+    return normalizeTripEventDocumentForApp(payload);
+  });
+};
+
+const writeTripChecklistItemDocument = async ({
+  tripId,
+  item,
+  listId,
+  orderKey,
+  user,
+  clientId = '',
+  deleted = false
+}) => {
+  requireUser(user);
+  const itemId = String(item?.id || '').trim();
+  if (!tripId || !itemId) throw new Error('Missing checklist item id');
+
+  const itemRef = getTripChecklistItemDocRef(tripId, itemId);
+  const now = new Date().toISOString();
+  const payload = buildChecklistItemDocument({
+    item,
+    listId,
+    orderKey,
+    user,
+    clientId,
+    deleted,
+    now
+  });
+  const snapshot = await getDoc(itemRef);
+
+  if (snapshot.exists()) {
+    await updateDoc(itemRef, payload);
+  } else {
+    await setDoc(itemRef, {
+      ...payload,
+      createdAt: now
+    }, { merge: true });
+  }
+
+  return normalizeChecklistItemDocumentForApp(payload);
+};
+
+export const saveTripChecklistItemDocument = async ({
+  tripId,
+  item,
+  listId,
+  orderKey,
+  user,
+  clientId = ''
+}) => writeTripChecklistItemDocument({
+  tripId,
+  item,
+  listId,
+  orderKey,
+  user,
+  clientId,
+  deleted: false
+});
+
+export const deleteTripChecklistItemDocument = async ({
+  tripId,
+  item,
+  itemId,
+  listId,
+  user,
+  clientId = ''
+}) => {
+  const safeItem = {
+    ...(item || {}),
+    id: String(itemId || item?.id || '').trim()
+  };
+  return writeTripChecklistItemDocument({
+    tripId,
+    item: safeItem,
+    listId: listId || item?.listId || 'preTrip',
+    orderKey: Number(item?.orderKey || 0),
+    user,
+    clientId,
+    deleted: true
+  });
+};
+
+export const moveTripChecklistItemDocument = async ({
+  tripId,
+  item,
+  listId,
+  orderKey,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  const itemId = String(item?.id || '').trim();
+  if (!tripId || !itemId) throw new Error('Missing checklist item id');
+
+  const itemRef = getTripChecklistItemDocRef(tripId, itemId);
+  const now = new Date().toISOString();
+
+  return runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(itemRef);
+    const payload = buildChecklistItemDocument({
+      item: {
+        ...(snapshot.exists() ? snapshot.data() : {}),
+        ...item,
+        id: itemId
+      },
+      listId,
+      orderKey,
+      user,
+      clientId,
+      deleted: false,
+      now
+    });
+
+    if (snapshot.exists()) {
+      transaction.update(itemRef, payload);
+    } else {
+      transaction.set(itemRef, {
+        ...payload,
+        createdAt: now
+      }, { merge: true });
+    }
+
+    return normalizeChecklistItemDocumentForApp(payload);
+  });
+};
+
+const writeTripShoppingItemDocument = async ({
+  tripId,
+  item,
+  orderKey,
+  user,
+  clientId = '',
+  deleted = false
+}) => {
+  requireUser(user);
+  const itemId = String(item?.id || '').trim();
+  if (!tripId || !itemId) throw new Error('Missing shopping item id');
+
+  const itemRef = getTripShoppingItemDocRef(tripId, itemId);
+  const now = new Date().toISOString();
+  const payload = buildShoppingItemDocument({
+    item,
+    orderKey,
+    user,
+    clientId,
+    deleted,
+    now
+  });
+  const snapshot = await getDoc(itemRef);
+
+  if (snapshot.exists()) {
+    await updateDoc(itemRef, payload);
+  } else {
+    await setDoc(itemRef, {
+      ...payload,
+      createdAt: now
+    }, { merge: true });
+  }
+
+  return normalizeShoppingItemDocumentForApp(payload);
+};
+
+export const saveTripShoppingItemDocument = async ({
+  tripId,
+  item,
+  orderKey,
+  user,
+  clientId = ''
+}) => writeTripShoppingItemDocument({
+  tripId,
+  item,
+  orderKey,
+  user,
+  clientId,
+  deleted: false
+});
+
+export const deleteTripShoppingItemDocument = async ({
+  tripId,
+  item,
+  itemId,
+  user,
+  clientId = ''
+}) => {
+  const safeItem = {
+    ...(item || {}),
+    id: String(itemId || item?.id || '').trim()
+  };
+  return writeTripShoppingItemDocument({
+    tripId,
+    item: safeItem,
+    orderKey: Number(item?.orderKey || 0),
+    user,
+    clientId,
+    deleted: true
+  });
+};
+
+export const moveTripShoppingItemDocument = async ({
+  tripId,
+  item,
+  orderKey,
+  user,
+  clientId = ''
+}) => {
+  requireUser(user);
+  const itemId = String(item?.id || '').trim();
+  if (!tripId || !itemId) throw new Error('Missing shopping item id');
+
+  const itemRef = getTripShoppingItemDocRef(tripId, itemId);
+  const now = new Date().toISOString();
+
+  return runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(itemRef);
+    const payload = buildShoppingItemDocument({
+      item: {
+        ...(snapshot.exists() ? snapshot.data() : {}),
+        ...item,
+        id: itemId
+      },
+      orderKey,
+      user,
+      clientId,
+      deleted: false,
+      now
+    });
+
+    if (snapshot.exists()) {
+      transaction.update(itemRef, payload);
+    } else {
+      transaction.set(itemRef, {
+        ...payload,
+        createdAt: now
+      }, { merge: true });
+    }
+
+    return normalizeShoppingItemDocumentForApp(payload);
+  });
+};
+
+const writeTripExpenseDocument = async ({
+  tripId,
+  expense,
+  orderKey,
+  user,
+  clientId = '',
+  deleted = false
+}) => {
+  requireUser(user);
+  const expenseId = String(expense?.id || '').trim();
+  if (!tripId || !expenseId) throw new Error('Missing expense id');
+
+  const expenseRef = getTripExpenseDocRef(tripId, expenseId);
+  const now = new Date().toISOString();
+  const payload = buildTripExpenseDocument({
+    expense,
+    orderKey,
+    user,
+    clientId,
+    deleted,
+    now
+  });
+  const snapshot = await getDoc(expenseRef);
+
+  if (snapshot.exists()) {
+    await updateDoc(expenseRef, payload);
+  } else {
+    await setDoc(expenseRef, {
+      ...payload,
+      createdAt: now
+    }, { merge: true });
+  }
+
+  return normalizeTripExpenseDocumentForApp(payload);
+};
+
+export const saveTripExpenseDocument = async ({
+  tripId,
+  expense,
+  orderKey,
+  user,
+  clientId = ''
+}) => writeTripExpenseDocument({
+  tripId,
+  expense,
+  orderKey,
+  user,
+  clientId,
+  deleted: false
+});
+
+export const deleteTripExpenseDocument = async ({
+  tripId,
+  expense,
+  expenseId,
+  user,
+  clientId = ''
+}) => {
+  const safeExpense = {
+    ...(expense || {}),
+    id: String(expenseId || expense?.id || '').trim()
+  };
+  return writeTripExpenseDocument({
+    tripId,
+    expense: safeExpense,
+    orderKey: Number(expense?.orderKey || 0),
+    user,
+    clientId,
+    deleted: true
+  });
+};
+
+const writeTripPlaceIdeaDocument = async ({
+  tripId,
+  place,
+  orderKey,
+  user,
+  clientId = '',
+  deleted = false
+}) => {
+  requireUser(user);
+  const placeId = String(place?.id || '').trim();
+  if (!tripId || !placeId) throw new Error('Missing place idea id');
+
+  const placeRef = getTripPlaceIdeaDocRef(tripId, placeId);
+  const now = new Date().toISOString();
+  const payload = buildTripPlaceIdeaDocument({
+    place,
+    orderKey,
+    user,
+    clientId,
+    deleted,
+    now
+  });
+  const snapshot = await getDoc(placeRef);
+
+  if (snapshot.exists()) {
+    await updateDoc(placeRef, payload);
+  } else {
+    await setDoc(placeRef, {
+      ...payload,
+      createdAt: now
+    }, { merge: true });
+  }
+
+  return normalizeTripPlaceIdeaDocumentForApp(payload);
+};
+
+export const saveTripPlaceIdeaDocument = async ({
+  tripId,
+  place,
+  orderKey,
+  user,
+  clientId = ''
+}) => writeTripPlaceIdeaDocument({
+  tripId,
+  place,
+  orderKey,
+  user,
+  clientId,
+  deleted: false
+});
+
+export const deleteTripPlaceIdeaDocument = async ({
+  tripId,
+  place,
+  placeId,
+  user,
+  clientId = ''
+}) => {
+  const safePlace = {
+    ...(place || {}),
+    id: String(placeId || place?.id || '').trim()
+  };
+  return writeTripPlaceIdeaDocument({
+    tripId,
+    place: safePlace,
+    orderKey: Number(place?.orderKey || 0),
+    user,
+    clientId,
+    deleted: true
+  });
+};
+
+const writeTripShoppingCategoryDocument = async ({
+  tripId,
+  category,
+  name,
+  orderKey,
+  user,
+  clientId = '',
+  deleted = false
+}) => {
+  requireUser(user);
+  const payload = buildShoppingCategoryDocument({
+    category,
+    name,
+    orderKey,
+    user,
+    clientId,
+    deleted
+  });
+  const categoryId = String(payload.id || category?.id || '').trim();
+  if (!tripId || !categoryId) throw new Error('Missing shopping category id');
+
+  const categoryRef = getTripShoppingCategoryDocRef(tripId, categoryId);
+  const now = new Date().toISOString();
+  const document = {
+    ...payload,
+    updatedAt: now
+  };
+  const snapshot = await getDoc(categoryRef);
+
+  if (snapshot.exists()) {
+    await updateDoc(categoryRef, document);
+  } else {
+    await setDoc(categoryRef, {
+      ...document,
+      createdAt: now
+    }, { merge: true });
+  }
+
+  return normalizeShoppingCategoryDocumentForApp(document);
+};
+
+export const saveTripShoppingCategoryDocument = async ({
+  tripId,
+  category,
+  name,
+  orderKey,
+  user,
+  clientId = ''
+}) => writeTripShoppingCategoryDocument({
+  tripId,
+  category,
+  name,
+  orderKey,
+  user,
+  clientId,
+  deleted: false
+});
+
+export const deleteTripShoppingCategoryDocument = async ({
+  tripId,
+  category,
+  categoryId,
+  name,
+  user,
+  clientId = ''
+}) => writeTripShoppingCategoryDocument({
+  tripId,
+  category: {
+    ...(category || {}),
+    id: String(categoryId || category?.id || '').trim(),
+    name: name || category?.name || ''
+  },
+  name,
+  orderKey: Number(category?.orderKey || 0),
+  user,
+  clientId,
+  deleted: true
+});
 
 export const getTripMemberRole = async (tripId, uid) => {
   if (!uid) return '';

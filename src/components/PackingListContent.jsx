@@ -80,6 +80,7 @@ const SUGGESTIONS = {
 const getItemCategory = (item) => item.category || 'other';
 const getItemDay = (item) => item.day || 1;
 const getGroupId = (value) => (value == null ? '' : String(value));
+const getItemId = (value) => (value == null ? '' : String(value));
 
 const isItemInCategory = (item, activeCategory, selectedDay) => {
   const category = getItemCategory(item);
@@ -214,14 +215,14 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
   const handleToggleItem = (id) => {
     const newItems = items.map((item) =>
-      item.id === id ? { ...item, done: !item.done } : item
+      getItemId(item.id) === getItemId(id) ? { ...item, done: !item.done } : item
     );
     onUpdate(newItems);
   };
 
   const handleConfirmDelete = () => {
     if (!itemToDelete) return;
-    onUpdate(items.filter((item) => item.id !== itemToDelete.id));
+    onUpdate(items.filter((item) => getItemId(item.id) !== getItemId(itemToDelete.id)));
     setItemToDelete(null);
   };
 
@@ -240,7 +241,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
     }
 
     const newItems = items.map((item) =>
-      item.id === editingId ? { ...item, text: nextText } : item
+      getItemId(item.id) === getItemId(editingId) ? { ...item, text: nextText } : item
     );
     onUpdate(newItems);
     setEditingId(null);
@@ -255,10 +256,10 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   };
 
   const reorderItem = (targetId) => {
-    if (!draggedItemId || draggedItemId === targetId) return;
+    if (!draggedItemId || getItemId(draggedItemId) === getItemId(targetId)) return;
 
-    const sourceIndex = items.findIndex((item) => item.id === draggedItemId);
-    const targetIndex = items.findIndex((item) => item.id === targetId);
+    const sourceIndex = items.findIndex((item) => getItemId(item.id) === getItemId(draggedItemId));
+    const targetIndex = items.findIndex((item) => getItemId(item.id) === getItemId(targetId));
 
     if (sourceIndex === -1 || targetIndex === -1) return;
 
@@ -270,7 +271,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
   const handleDragStart = (event, id) => {
     if (editingId === id) return;
-    setDraggedItemId(id);
+    setDraggedItemId(getItemId(id));
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -287,7 +288,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
   const handleTouchStart = (event, id) => {
     if (!sortMode || editingId === id) return;
-    setDraggedItemId(id);
+    setDraggedItemId(getItemId(id));
   };
 
   const handleTouchMove = (event) => {
@@ -304,7 +305,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
     const targetRow = target?.closest('[data-item-id]');
     if (!targetRow) return;
 
-    const targetId = Number(targetRow.getAttribute('data-item-id'));
+    const targetId = targetRow.getAttribute('data-item-id');
     reorderItem(targetId);
   };
 

@@ -15,6 +15,8 @@ const {
 } = require('../src/domain/tripSchema.js');
 const { buildPresenceUiState } = require('../src/utils/presence.js');
 const {
+  getChecklistStatusOnlyChanges,
+  getShoppingStatusOnlyChanges,
   mergeRealtimeChecklistStatus,
   mergeRealtimeShoppingStatus,
   mergeRealtimeVotesIntoPlaces,
@@ -22,6 +24,29 @@ const {
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
 const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
+const {
+  applyTripEventDocumentsToItinerary,
+  buildTripEventDocument,
+  getAppendOrderKey,
+  getOrderKeyBetween
+} = require('../src/utils/tripEventDocuments.js');
+const {
+  applyChecklistItemDocumentsToChecklists,
+  applyShoppingItemDocumentsToList,
+  buildChecklistItemDocument,
+  buildShoppingItemDocument,
+  getSparseOrderKeyForItem,
+  getTripItemChanges
+} = require('../src/utils/tripItemDocuments.js');
+const {
+  applyShoppingCategoryDocumentsToList,
+  applyTripExpenseDocumentsToList,
+  applyTripPlaceIdeaDocumentsToPool,
+  buildShoppingCategoryDocument,
+  buildTripExpenseDocument,
+  buildTripPlaceIdeaDocument,
+  makeShoppingCategoryId
+} = require('../src/utils/tripCollectionDocuments.js');
 const { buildDayReadiness, buildEventReadiness } = require('../src/utils/eventReadiness.js');
 const {
   PLACE_VOTE_OPERATION,
@@ -96,6 +121,201 @@ test('moves itinerary events between adjacent days with undo insert position', (
   assert.deepEqual(restored[0].events.map((event) => event.id), ['a', 'b']);
   assert.deepEqual(restored[1].events.map((event) => event.id), ['c']);
   assert.equal(moveEventToDay(itinerary, 'missing', 1, 2), itinerary);
+});
+
+test('overlays trip event documents on legacy itinerary without rewriting base arrays', () => {
+  const itinerary = [
+    { day: 1, events: [{ id: 'a', title: 'Legacy A' }, { id: 'b', title: 'Legacy B' }] },
+    { day: 2, events: [] }
+  ];
+
+  const overlaid = applyTripEventDocumentsToItinerary(itinerary, [
+    { id: 'a', dayNumber: 2, title: 'Moved A', time: '10:00', orderKey: 1000 },
+    { id: 'b', deleted: true, dayNumber: 1, orderKey: 2000 },
+    { id: 'c', dayNumber: 1, title: 'New C', time: '09:00', orderKey: 500 }
+  ]);
+
+  assert.deepEqual(overlaid[0].events.map((event) => event.id), ['c']);
+  assert.equal(overlaid[0].events[0].title, 'New C');
+  assert.deepEqual(overlaid[1].events.map((event) => event.id), ['a']);
+  assert.equal(overlaid[1].events[0].title, 'Moved A');
+  assert.deepEqual(itinerary[0].events.map((event) => event.id), ['a', 'b']);
+});
+
+test('builds event document order keys for sparse ordering', () => {
+  assert.equal(getOrderKeyBetween({ orderKey: 1000 }, { orderKey: 2000 }, 1), 1500);
+  assert.equal(getAppendOrderKey([{ id: 'a', orderKey: 1000 }]), 2000);
+
+  const document = buildTripEventDocument({
+    event: {
+      id: 'event-1',
+      title: 'Lunch',
+      time: '12:00',
+      locationPlace: { name: 'Cafe', address: 'Tokyo' },
+      cost: 1200,
+      currency: 'JPY'
+    },
+    dayNumber: 2,
+    orderKey: 3000,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+
+  assert.equal(document.id, 'event-1');
+  assert.equal(document.dayNumber, 2);
+  assert.equal(document.orderKey, 3000);
+  assert.equal(document.updatedByUid, 'user-1');
+  assert.equal(document.updatedByClientId, 'client-1');
+  assert.equal(document.deleted, false);
+});
+
+test('overlays checklist item documents on legacy checklists', () => {
+  const checklists = {
+    preTrip: [
+      { id: 'a', text: 'Passport', done: false },
+      { id: 'b', text: 'Visa', done: false }
+    ],
+    packing: [
+      { id: 'p1', text: 'Socks', done: false, category: 'clothing', day: 1 }
+    ]
+  };
+
+  const overlaid = applyChecklistItemDocumentsToChecklists(checklists, [
+    { id: 'a', listId: 'packing', text: 'Passport', done: true, orderKey: 500 },
+    { id: 'b', listId: 'preTrip', deleted: true, orderKey: 2000 },
+    { id: 'c', listId: 'preTrip', text: 'SIM card', done: false, orderKey: 1000 }
+  ]);
+
+  assert.deepEqual(overlaid.preTrip.map((item) => item.id), ['c']);
+  assert.equal(overlaid.preTrip[0].text, 'SIM card');
+  assert.deepEqual(overlaid.packing.map((item) => item.id), ['a', 'p1']);
+  assert.equal(overlaid.packing[0].done, true);
+  assert.deepEqual(checklists.preTrip.map((item) => item.id), ['a', 'b']);
+});
+
+test('overlays shopping item documents on legacy shopping list', () => {
+  const shoppingList = [
+    { id: 'a', name: 'Tea', purchased: false },
+    { id: 'b', name: 'Cookies', purchased: false }
+  ];
+
+  const overlaid = applyShoppingItemDocumentsToList(shoppingList, [
+    { id: 'a', name: 'Green tea', purchased: true, quantity: 2, orderKey: 2000 },
+    { id: 'b', deleted: true, orderKey: 3000 },
+    { id: 'c', name: 'Candy', purchased: false, quantity: 1, orderKey: 1000 }
+  ]);
+
+  assert.deepEqual(overlaid.map((item) => item.id), ['c', 'a']);
+  assert.equal(overlaid[1].name, 'Green tea');
+  assert.equal(overlaid[1].purchased, true);
+  assert.deepEqual(shoppingList.map((item) => item.id), ['a', 'b']);
+});
+
+test('builds item documents and detects sparse reorder changes', () => {
+  const checklistDocument = buildChecklistItemDocument({
+    item: { id: 'check-1', text: 'Umbrella', done: true, category: 'other' },
+    listId: 'packing',
+    orderKey: 1500,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+  const shoppingDocument = buildShoppingItemDocument({
+    item: { id: 'shop-1', name: 'Snack', quantity: 3, purchased: false },
+    orderKey: 2500,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+  const changes = getTripItemChanges({
+    previousItems: [{ id: 'a' }, { id: 'b' }, { id: 'c' }],
+    nextItems: [{ id: 'b' }, { id: 'a' }, { id: 'c' }],
+    fields: ['done']
+  });
+
+  assert.equal(checklistDocument.id, 'check-1');
+  assert.equal(checklistDocument.listId, 'packing');
+  assert.equal(checklistDocument.orderKey, 1500);
+  assert.equal(checklistDocument.updatedByClientId, 'client-1');
+  assert.equal(shoppingDocument.quantity, 3);
+  assert.equal(shoppingDocument.orderKey, 2500);
+  assert.equal(changes.movedItemId, 'b');
+  assert.equal(getSparseOrderKeyForItem([{ id: 'b' }, { id: 'a', orderKey: 1000 }], 'b'), 0);
+});
+
+test('overlays expense documents on legacy expenses', () => {
+  const expenses = [
+    { id: 'a', title: 'Lunch', amount: 1000 },
+    { id: 'b', title: 'Train', amount: 500 }
+  ];
+
+  const overlaid = applyTripExpenseDocumentsToList(expenses, [
+    { id: 'a', title: 'Dinner', amount: 2000, currency: 'JPY', orderKey: 2000 },
+    { id: 'b', deleted: true, orderKey: 3000 },
+    { id: 'c', title: 'Coffee', amount: 300, currency: 'JPY', orderKey: 1000 }
+  ]);
+  const document = buildTripExpenseDocument({
+    expense: { id: 'd', title: 'Hotel', amount: 12000, involved: ['A', 'B'] },
+    orderKey: 4000,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+
+  assert.deepEqual(overlaid.map((expense) => expense.id), ['c', 'a']);
+  assert.equal(overlaid[1].title, 'Dinner');
+  assert.deepEqual(expenses.map((expense) => expense.id), ['a', 'b']);
+  assert.equal(document.id, 'd');
+  assert.equal(document.updatedByClientId, 'client-1');
+  assert.deepEqual(document.involved, ['A', 'B']);
+});
+
+test('overlays place idea documents on legacy place pool', () => {
+  const placePool = [
+    { id: 'a', name: 'Legacy Cafe', votes: [] },
+    { id: 'b', name: 'Legacy Museum', votes: [] }
+  ];
+
+  const overlaid = applyTripPlaceIdeaDocumentsToPool(placePool, [
+    { id: 'a', name: 'Updated Cafe', status: 'planned', plannedDay: 2, orderKey: 2000 },
+    { id: 'b', deleted: true, orderKey: 3000 },
+    { id: 'c', name: 'New Park', address: 'Tokyo', orderKey: 1000 }
+  ]);
+  const document = buildTripPlaceIdeaDocument({
+    place: { id: 'd', name: 'Shrine', address: 'Kyoto', votes: [{ voterId: 'u1', value: 1 }] },
+    orderKey: 4000,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+
+  assert.deepEqual(overlaid.map((place) => place.id), ['c', 'a']);
+  assert.equal(overlaid[1].status, 'planned');
+  assert.equal(overlaid[1].plannedDay, 2);
+  assert.equal(document.id, 'd');
+  assert.equal(document.votes[0].voterId, 'u1');
+});
+
+test('overlays shopping category documents on legacy categories', () => {
+  const legacyCategories = ['Food', 'Clothes', 'Gifts'];
+  const clothesId = makeShoppingCategoryId('Clothes');
+  const overlaid = applyShoppingCategoryDocumentsToList(legacyCategories, [
+    { id: clothesId, name: 'Clothes', deleted: true, orderKey: 2000 },
+    { id: makeShoppingCategoryId('Snacks'), name: 'Snacks', orderKey: 500 }
+  ]);
+  const document = buildShoppingCategoryDocument({
+    name: 'Cosmetics',
+    orderKey: 4000,
+    user: { uid: 'user-1' },
+    clientId: 'client-1',
+    now: '2026-05-28T00:00:00.000Z'
+  });
+
+  assert.deepEqual(overlaid, ['Snacks', 'Food', 'Gifts']);
+  assert.equal(document.id, makeShoppingCategoryId('Cosmetics'));
+  assert.equal(document.name, 'Cosmetics');
+  assert.equal(document.updatedByUid, 'user-1');
 });
 
 test('summarizes event readiness from time and place data', () => {
@@ -545,6 +765,45 @@ test('merges realtime overlays into UI-only copies', () => {
     milk: { purchased: true, updatedAt: 10 }
   });
   assert.equal(shopping[0].purchased, true);
+});
+
+test('detects realtime-only status changes without treating structure edits as safe', () => {
+  const checklistBefore = [
+    { id: 'passport', text: 'Passport', done: false },
+    { id: 'charger', text: 'Charger', done: false }
+  ];
+  const checklistAfter = [
+    { id: 'passport', text: 'Passport', done: true },
+    { id: 'charger', text: 'Charger', done: false }
+  ];
+  const checklistStatusOnly = getChecklistStatusOnlyChanges(checklistBefore, checklistAfter);
+  assert.equal(checklistStatusOnly.statusOnly, true);
+  assert.deepEqual(checklistStatusOnly.changes, [{ itemId: 'passport', value: true }]);
+
+  const checklistWithTextEdit = getChecklistStatusOnlyChanges(checklistBefore, [
+    { id: 'passport', text: 'Passport and visa', done: true },
+    { id: 'charger', text: 'Charger', done: false }
+  ]);
+  assert.equal(checklistWithTextEdit.statusOnly, false);
+
+  const shoppingStatusOnly = getShoppingStatusOnlyChanges(
+    [{ id: 'milk', name: 'Milk', purchased: false }],
+    [{ id: 'milk', name: 'Milk', purchased: true }]
+  );
+  assert.equal(shoppingStatusOnly.statusOnly, true);
+  assert.deepEqual(shoppingStatusOnly.changes, [{ itemId: 'milk', value: true }]);
+
+  const shoppingWithReorder = getShoppingStatusOnlyChanges(
+    [
+      { id: 'milk', name: 'Milk', purchased: false },
+      { id: 'tea', name: 'Tea', purchased: false }
+    ],
+    [
+      { id: 'tea', name: 'Tea', purchased: false },
+      { id: 'milk', name: 'Milk', purchased: true }
+    ]
+  );
+  assert.equal(shoppingWithReorder.statusOnly, false);
 });
 
 let failed = 0;

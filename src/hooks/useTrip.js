@@ -3,6 +3,12 @@ import {
   ensureTripAccess,
   loadTrip,
   saveTrip,
+  subscribeTripExpenseDocuments,
+  subscribeTripChecklistItemDocuments,
+  subscribeTripEventDocuments,
+  subscribeTripPlaceIdeaDocuments,
+  subscribeTripShoppingCategoryDocuments,
+  subscribeTripShoppingItemDocuments,
   subscribeTrip,
   subscribeTripMembers
 } from '../services/tripService';
@@ -20,6 +26,16 @@ import {
   shouldKeepLocalChangesForSameClientSnapshot,
   shouldTreatRemoteAsConflict
 } from '../utils/tripSync';
+import { applyTripEventDocumentsToItinerary } from '../utils/tripEventDocuments';
+import {
+  applyChecklistItemDocumentsToChecklists,
+  applyShoppingItemDocumentsToList
+} from '../utils/tripItemDocuments';
+import {
+  applyShoppingCategoryDocumentsToList,
+  applyTripExpenseDocumentsToList,
+  applyTripPlaceIdeaDocumentsToPool
+} from '../utils/tripCollectionDocuments';
 import { logger } from '../utils/logger';
 
 const AUTO_SAVE_DELAY_MS = 1000;
@@ -107,17 +123,53 @@ const applyNormalizedData = ({
   fallbackData,
   initialTripDetails,
   initialItinerary,
-  setters
+  setters,
+  eventDocuments = [],
+  checklistItemDocuments = [],
+  shoppingItemDocuments = [],
+  expenseDocuments = [],
+  placeIdeaDocuments = [],
+  shoppingCategoryDocuments = []
 }) => {
   const normalized = normalizeTripDocumentForApp(data || fallbackData, fallbackData);
   const normalizedTripDetails = normalizeTripDateFields(normalized.tripDetails || initialTripDetails);
+  const normalizedItinerary = ensureItineraryComplete(normalized.itinerary || initialItinerary, normalizedTripDetails);
+  const normalizedChecklists = normalized.checklists || { preTrip: [], packing: [] };
+  const normalizedShoppingList = Array.isArray(normalized.shoppingList) ? normalized.shoppingList : [];
+  const normalizedExpenses = Array.isArray(normalized.expenses) ? normalized.expenses : [];
+  const normalizedPlacePool = Array.isArray(normalized.placePool) ? normalized.placePool : [];
+  const normalizedShoppingCategories = Array.isArray(normalized.shoppingCategories) ? normalized.shoppingCategories : [];
   setters.setTripDetails(normalizedTripDetails);
-  setters.setItinerary(ensureItineraryComplete(normalized.itinerary || initialItinerary, normalizedTripDetails));
-  setters.setChecklists(normalized.checklists || { preTrip: [], packing: [] });
-  setters.setExpenses(normalized.expenses || []);
-  setters.setShoppingList(Array.isArray(normalized.shoppingList) ? normalized.shoppingList : []);
-  setters.setShoppingCategories(Array.isArray(normalized.shoppingCategories) ? normalized.shoppingCategories : []);
-  setters.setPlacePool(normalized.placePool || []);
+  setters.setItinerary(
+    Array.isArray(eventDocuments) && eventDocuments.length
+      ? applyTripEventDocumentsToItinerary(normalizedItinerary, eventDocuments)
+      : normalizedItinerary
+  );
+  setters.setChecklists(
+    Array.isArray(checklistItemDocuments) && checklistItemDocuments.length
+      ? applyChecklistItemDocumentsToChecklists(normalizedChecklists, checklistItemDocuments)
+      : normalizedChecklists
+  );
+  setters.setExpenses(
+    Array.isArray(expenseDocuments) && expenseDocuments.length
+      ? applyTripExpenseDocumentsToList(normalizedExpenses, expenseDocuments)
+      : normalizedExpenses
+  );
+  setters.setShoppingList(
+    Array.isArray(shoppingItemDocuments) && shoppingItemDocuments.length
+      ? applyShoppingItemDocumentsToList(normalizedShoppingList, shoppingItemDocuments)
+      : normalizedShoppingList
+  );
+  setters.setShoppingCategories(
+    Array.isArray(shoppingCategoryDocuments) && shoppingCategoryDocuments.length
+      ? applyShoppingCategoryDocumentsToList(normalizedShoppingCategories, shoppingCategoryDocuments)
+      : normalizedShoppingCategories
+  );
+  setters.setPlacePool(
+    Array.isArray(placeIdeaDocuments) && placeIdeaDocuments.length
+      ? applyTripPlaceIdeaDocumentsToPool(normalizedPlacePool, placeIdeaDocuments)
+      : normalizedPlacePool
+  );
   setters.setCollaboration(normalized.collaboration || defaultCollaboration);
   setters.setAccess(normalized.access || {});
   setters.setSyncMeta(normalized.syncMeta || { revision: 0 });
@@ -142,6 +194,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const applyingRemoteRef = useRef(false);
   const baseRevisionRef = useRef(0);
   const placePoolRef = useRef([]);
+  const tripEventDocumentsRef = useRef([]);
+  const tripChecklistItemDocumentsRef = useRef([]);
+  const tripShoppingItemDocumentsRef = useRef([]);
+  const tripExpenseDocumentsRef = useRef([]);
+  const tripPlaceIdeaDocumentsRef = useRef([]);
+  const tripShoppingCategoryDocumentsRef = useRef([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -214,6 +272,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
 
     let cancelled = false;
     let unsubscribeTrip = null;
+    let unsubscribeTripEvents = null;
+    let unsubscribeTripChecklistItems = null;
+    let unsubscribeTripShoppingItems = null;
+    let unsubscribeTripExpenses = null;
+    let unsubscribeTripPlaceIdeas = null;
+    let unsubscribeTripShoppingCategories = null;
     let unsubscribeMembers = null;
 
     const initialize = async () => {
@@ -316,7 +380,13 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
               fallbackData,
               initialTripDetails,
               initialItinerary,
-              setters: rawSetters
+              setters: rawSetters,
+              eventDocuments: tripEventDocumentsRef.current,
+              checklistItemDocuments: tripChecklistItemDocumentsRef.current,
+              shoppingItemDocuments: tripShoppingItemDocumentsRef.current,
+              expenseDocuments: tripExpenseDocumentsRef.current,
+              placeIdeaDocuments: tripPlaceIdeaDocumentsRef.current,
+              shoppingCategoryDocuments: tripShoppingCategoryDocumentsRef.current
             });
             applyingRemoteRef.current = false;
             baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
@@ -335,6 +405,84 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
             setAccessError(error.message || '暫時無法載入最新旅程內容，請稍後再試。');
             setIsLoading(false);
           }
+        );
+
+        unsubscribeTripEvents = subscribeTripEventDocuments(
+          safeTripId,
+          (eventDocuments) => {
+            if (cancelled) return;
+            tripEventDocumentsRef.current = Array.isArray(eventDocuments) ? eventDocuments : [];
+            if (!tripEventDocumentsRef.current.length) return;
+            setItineraryState((currentItinerary) => (
+              applyTripEventDocumentsToItinerary(currentItinerary, tripEventDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('??銵?即時文件同步失敗:', error)
+        );
+
+        unsubscribeTripChecklistItems = subscribeTripChecklistItemDocuments(
+          safeTripId,
+          (itemDocuments) => {
+            if (cancelled) return;
+            tripChecklistItemDocumentsRef.current = Array.isArray(itemDocuments) ? itemDocuments : [];
+            if (!tripChecklistItemDocumentsRef.current.length) return;
+            setChecklistsState((currentChecklists) => (
+              applyChecklistItemDocumentsToChecklists(currentChecklists, tripChecklistItemDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Checklist item documents snapshot failed:', error)
+        );
+
+        unsubscribeTripShoppingItems = subscribeTripShoppingItemDocuments(
+          safeTripId,
+          (itemDocuments) => {
+            if (cancelled) return;
+            tripShoppingItemDocumentsRef.current = Array.isArray(itemDocuments) ? itemDocuments : [];
+            if (!tripShoppingItemDocumentsRef.current.length) return;
+            setShoppingListState((currentShoppingList) => (
+              applyShoppingItemDocumentsToList(currentShoppingList, tripShoppingItemDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Shopping item documents snapshot failed:', error)
+        );
+
+        unsubscribeTripExpenses = subscribeTripExpenseDocuments(
+          safeTripId,
+          (expenseDocuments) => {
+            if (cancelled) return;
+            tripExpenseDocumentsRef.current = Array.isArray(expenseDocuments) ? expenseDocuments : [];
+            if (!tripExpenseDocumentsRef.current.length) return;
+            setExpensesState((currentExpenses) => (
+              applyTripExpenseDocumentsToList(currentExpenses, tripExpenseDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Expense documents snapshot failed:', error)
+        );
+
+        unsubscribeTripPlaceIdeas = subscribeTripPlaceIdeaDocuments(
+          safeTripId,
+          (placeIdeaDocuments) => {
+            if (cancelled) return;
+            tripPlaceIdeaDocumentsRef.current = Array.isArray(placeIdeaDocuments) ? placeIdeaDocuments : [];
+            if (!tripPlaceIdeaDocumentsRef.current.length) return;
+            setPlacePoolState((currentPlacePool) => (
+              applyTripPlaceIdeaDocumentsToPool(currentPlacePool, tripPlaceIdeaDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Place idea documents snapshot failed:', error)
+        );
+
+        unsubscribeTripShoppingCategories = subscribeTripShoppingCategoryDocuments(
+          safeTripId,
+          (categoryDocuments) => {
+            if (cancelled) return;
+            tripShoppingCategoryDocumentsRef.current = Array.isArray(categoryDocuments) ? categoryDocuments : [];
+            if (!tripShoppingCategoryDocumentsRef.current.length) return;
+            setShoppingCategoriesState((currentCategories) => (
+              applyShoppingCategoryDocumentsToList(currentCategories, tripShoppingCategoryDocumentsRef.current)
+            ));
+          },
+          (error) => logger.warn('Shopping category documents snapshot failed:', error)
         );
 
         unsubscribeMembers = subscribeTripMembers(
@@ -360,6 +508,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     return () => {
       cancelled = true;
       unsubscribeTrip?.();
+      unsubscribeTripEvents?.();
+      unsubscribeTripChecklistItems?.();
+      unsubscribeTripShoppingItems?.();
+      unsubscribeTripExpenses?.();
+      unsubscribeTripPlaceIdeas?.();
+      unsubscribeTripShoppingCategories?.();
       unsubscribeMembers?.();
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
@@ -480,7 +634,13 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       fallbackData,
       initialTripDetails,
       initialItinerary,
-      setters: rawSetters
+      setters: rawSetters,
+      eventDocuments: tripEventDocumentsRef.current,
+      checklistItemDocuments: tripChecklistItemDocumentsRef.current,
+      shoppingItemDocuments: tripShoppingItemDocumentsRef.current,
+      expenseDocuments: tripExpenseDocumentsRef.current,
+      placeIdeaDocuments: tripPlaceIdeaDocumentsRef.current,
+      shoppingCategoryDocuments: tripShoppingCategoryDocumentsRef.current
     });
     applyingRemoteRef.current = false;
     baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
@@ -554,7 +714,13 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         fallbackData,
         initialTripDetails,
         initialItinerary,
-        setters: rawSetters
+        setters: rawSetters,
+        eventDocuments: tripEventDocumentsRef.current,
+        checklistItemDocuments: tripChecklistItemDocumentsRef.current,
+        shoppingItemDocuments: tripShoppingItemDocumentsRef.current,
+        expenseDocuments: tripExpenseDocumentsRef.current,
+        placeIdeaDocuments: tripPlaceIdeaDocumentsRef.current,
+        shoppingCategoryDocuments: tripShoppingCategoryDocumentsRef.current
       });
       applyingRemoteRef.current = false;
       baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
@@ -569,6 +735,30 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     hasLocalChangesRef.current = true;
     return saveNow({ force: true });
   };
+
+  const applyItineraryPatch = useCallback((updater) => {
+    setItineraryState(updater);
+  }, []);
+
+  const applyChecklistsPatch = useCallback((updater) => {
+    setChecklistsState(updater);
+  }, []);
+
+  const applyExpensesPatch = useCallback((updater) => {
+    setExpensesState(updater);
+  }, []);
+
+  const applyShoppingListPatch = useCallback((updater) => {
+    setShoppingListState(updater);
+  }, []);
+
+  const applyShoppingCategoriesPatch = useCallback((updater) => {
+    setShoppingCategoriesState(updater);
+  }, []);
+
+  const applyPlacePoolPatch = useCallback((updater) => {
+    setPlacePoolState(updater);
+  }, []);
 
   return {
     isLoading,
@@ -585,15 +775,21 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
     setTripDetails,
     itinerary,
     setItinerary,
+    applyItineraryPatch,
     checklists,
+    applyChecklistsPatch,
     setChecklists,
     expenses,
+    applyExpensesPatch,
     setExpenses,
     shoppingList,
+    applyShoppingListPatch,
     setShoppingList,
     shoppingCategories,
+    applyShoppingCategoriesPatch,
     setShoppingCategories,
     placePool,
+    applyPlacePoolPatch,
     setPlacePool,
     collaboration,
     setCollaboration,
