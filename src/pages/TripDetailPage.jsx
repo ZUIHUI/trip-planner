@@ -1342,6 +1342,7 @@ const TripDetailPage = () => {
     otherOnlineMembers: presenceUi.otherOnlineMembers,
     onlineByTab: presenceUi.onlineByTab,
     editingByEventId: presenceUi.editingByEventId,
+    editingByTarget: presenceUi.editingByTarget,
     presenceSummaryText: presenceUi.summaryText,
     presenceError,
     placeVotesByPlaceId,

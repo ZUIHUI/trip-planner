@@ -9,6 +9,7 @@ import {
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 import { inviteCodeInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 import { PresenceStatusDot } from '../PresenceStatus';
+import { getEditingTargetLabel } from '../../utils/presence';
 
 const defaultCollaboration = {
   enabled: false,
@@ -85,12 +86,7 @@ const getMemberName = (member = {}) => (
   '未命名旅伴'
 );
 
-const formatEditingTarget = (target = '') => {
-  if (!target) return '';
-  if (target === 'event:new') return '正在新增行程';
-  if (target.startsWith('event:')) return '正在編輯行程';
-  return '正在編輯';
-};
+const formatEditingTarget = (target = '') => getEditingTargetLabel(target);
 
 const getAppShareUrl = () => {
   if (typeof window !== 'undefined' && window.location?.origin) {

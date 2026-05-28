@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Bed,
   CalendarDays,
@@ -10,10 +10,16 @@ import {
   MapPin,
   Plane,
   Search,
+  UsersRound,
   Wallet
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
+import {
+  formatEditingMembersText,
+  getEditingMembersForTarget,
+  getEditingTargetLabel
+} from '../../utils/presence';
 import { getFlightLookupAvailability } from '../../services/flightService';
 import { dateInputProps, moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 import {
@@ -45,6 +51,20 @@ const directionMeta = {
     colorClass: 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
   }
 };
+
+const tripDetailEditingTargets = {
+  meta: 'trip-details:meta',
+  accommodation: 'trip-details:accommodation',
+  budget: 'trip-details:budget',
+  outboundFlight: 'trip-details:flights:outbound',
+  inboundFlight: 'trip-details:flights:inbound'
+};
+
+const getFlightEditingTarget = (direction) => (
+  direction === 'inbound'
+    ? tripDetailEditingTargets.inboundFlight
+    : tripDetailEditingTargets.outboundFlight
+);
 
 const getFlightDateFallbackYear = (tripDetails) => {
   const tripStart = tripDetails?.dateRange?.start;
@@ -131,6 +151,22 @@ const InfoTile = ({ label, value, icon: Icon }) => (
     </p>
   </div>
 );
+
+const EditingNotice = ({ target, members = [] }) => {
+  if (!members.length) return null;
+  const memberText = formatEditingMembersText(members);
+  const targetLabel = getEditingTargetLabel(target);
+  if (!memberText || !targetLabel) return null;
+
+  return (
+    <div className="mb-3 flex min-w-0 max-w-full items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200">
+      <UsersRound size={14} className="mt-0.5 shrink-0" />
+      <span className="min-w-0 break-words">
+        {memberText} {targetLabel}
+      </span>
+    </div>
+  );
+};
 
 const CompletionPanel = ({ tripDetails }) => {
   const tasks = getInfoTasks(tripDetails);
@@ -230,10 +266,25 @@ const MobileSectionSwitcher = ({ activeSection, onChange, sectionStatus }) => {
   );
 };
 
-const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = false }) => {
+const TripInfoCard = ({
+  tripDetails,
+  setTripDetails,
+  metaEditingMembers = [],
+  budgetEditingMembers = [],
+  onEditingFocus,
+  onEditingBlur,
+  idPrefix = '',
+  compact = false
+}) => {
   const startDate = tripDetails?.dateRange?.start || '';
   const endDate = tripDetails?.dateRange?.end || '';
   const invalidDateRange = Boolean(startDate && endDate && new Date(endDate) < new Date(startDate));
+  const getEditingHandlers = (target) => ({
+    onFocus: () => onEditingFocus?.(target),
+    onBlur: (event) => onEditingBlur?.(target, event)
+  });
+  const metaEditingHandlers = getEditingHandlers(tripDetailEditingTargets.meta);
+  const budgetEditingHandlers = getEditingHandlers(tripDetailEditingTargets.budget);
 
   return (
     <Card className="p-3 sm:p-4">
@@ -248,12 +299,15 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
           </Badge>
         )}
       />
+      <EditingNotice target={tripDetailEditingTargets.meta} members={metaEditingMembers} />
+      <EditingNotice target={tripDetailEditingTargets.budget} members={budgetEditingMembers} />
 
       <div className="grid min-w-0 gap-3">
         <Field label="旅程名稱" htmlFor={`${idPrefix}trip-title`}>
           <Input
             id={`${idPrefix}trip-title`}
             {...plainTextInputProps}
+            {...metaEditingHandlers}
             placeholder="旅程名稱"
             value={tripDetails?.title || ''}
             onChange={(event) =>
@@ -270,6 +324,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
             <Input
               id={`${idPrefix}trip-start-date`}
               {...dateInputProps}
+              {...metaEditingHandlers}
               className="tp-date-input"
               value={startDate}
               onChange={(event) =>
@@ -289,6 +344,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
             <Input
               id={`${idPrefix}trip-end-date`}
               {...dateInputProps}
+              {...metaEditingHandlers}
               className="tp-date-input"
               value={endDate}
               onChange={(event) =>
@@ -316,6 +372,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
           <Field label="旅程狀態" htmlFor={`${idPrefix}trip-status`}>
             <Select
               id={`${idPrefix}trip-status`}
+              {...metaEditingHandlers}
               value={tripDetails?.status || 'planning'}
               onChange={(event) =>
                 setTripDetails((prev) => ({
@@ -333,6 +390,7 @@ const TripInfoCard = ({ tripDetails, setTripDetails, idPrefix = '', compact = fa
             <Input
               id={`${idPrefix}trip-budget`}
               {...moneyInputProps}
+              {...budgetEditingHandlers}
               min="0"
               placeholder="例如 50000"
               value={tripDetails?.budget?.total || ''}
@@ -359,16 +417,24 @@ const AccommodationCard = ({
   onAddressChange,
   onPlaceSelect,
   onClearPlace,
+  editingMembers = [],
+  onEditingFocus,
+  onEditingBlur,
   idPrefix = '',
   compact = false
 }) => (
-  <Card className="p-3 sm:p-4">
+  <Card
+    className="p-3 sm:p-4"
+    onFocusCapture={() => onEditingFocus?.(tripDetailEditingTargets.accommodation)}
+    onBlurCapture={(event) => onEditingBlur?.(tripDetailEditingTargets.accommodation, event)}
+  >
     <SectionHeading
       icon={Bed}
       title="住宿資訊"
       description="住宿名稱與地址。"
       compactDescription={compact}
     />
+    <EditingNotice target={tripDetailEditingTargets.accommodation} members={editingMembers} />
 
     <div className="mb-4 grid min-w-0 gap-3 sm:grid-cols-2">
       <InfoTile label="飯店" value={tripDetails?.accommodation?.name} icon={Bed} />
@@ -735,6 +801,9 @@ const FlightCard = ({
   handleLookupFlight,
   isLookingUp,
   lookupError,
+  editingMembers = [],
+  onEditingFocus,
+  onEditingBlur,
   compact = false,
   idPrefix = ''
 }) => {
@@ -754,9 +823,14 @@ const FlightCard = ({
     : hasFlightCode
       ? `用旅程日期 ${lookupAvailability.normalizedDate} 查航班`
       : '輸入航班號後可用旅程日期查航班';
+  const editingTarget = getFlightEditingTarget(direction);
 
   return (
-    <div className="min-w-0 max-w-full rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
+    <div
+      className="min-w-0 max-w-full rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45"
+      onFocusCapture={() => onEditingFocus?.(editingTarget)}
+      onBlurCapture={(event) => onEditingBlur?.(editingTarget, event)}
+    >
       <div className="mb-3 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${meta.colorClass}`}>
@@ -782,6 +856,7 @@ const FlightCard = ({
           {isLookingUp ? '查詢中...' : '查詢航班'}
         </Button>
       </div>
+      <EditingNotice target={editingTarget} members={editingMembers} />
 
       <p className={`mb-3 max-w-full break-words rounded-lg border px-3 py-2 text-xs font-semibold ${
         lookupAvailability.canLookup
@@ -933,6 +1008,9 @@ const FlightSection = ({
   handleLookupFlight,
   isLookingUpFlight,
   flightLookupError,
+  editingByTarget = {},
+  onEditingFocus,
+  onEditingBlur,
   mobile = false
 }) => {
   const [activeDirection, setActiveDirection] = useState('outbound');
@@ -986,6 +1064,9 @@ const FlightSection = ({
           handleLookupFlight={handleLookupFlight}
           isLookingUp={Boolean(isLookingUpFlight?.[activeDirection])}
           lookupError={flightLookupError?.[activeDirection]}
+          editingMembers={getEditingMembersForTarget(editingByTarget, getFlightEditingTarget(activeDirection))}
+          onEditingFocus={onEditingFocus}
+          onEditingBlur={onEditingBlur}
           compact
           idPrefix="mobile-"
         />
@@ -1009,6 +1090,9 @@ const FlightSection = ({
           handleLookupFlight={handleLookupFlight}
           isLookingUp={Boolean(isLookingUpFlight?.outbound)}
           lookupError={flightLookupError?.outbound}
+          editingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.outboundFlight)}
+          onEditingFocus={onEditingFocus}
+          onEditingBlur={onEditingBlur}
           idPrefix="desktop-"
         />
         <FlightCard
@@ -1018,6 +1102,9 @@ const FlightSection = ({
           handleLookupFlight={handleLookupFlight}
           isLookingUp={Boolean(isLookingUpFlight?.inbound)}
           lookupError={flightLookupError?.inbound}
+          editingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.inboundFlight)}
+          onEditingFocus={onEditingFocus}
+          onEditingBlur={onEditingBlur}
           idPrefix="desktop-"
         />
       </div>
@@ -1031,9 +1118,33 @@ const LogisticsTab = () => {
     setTripDetails,
     handleLookupFlight,
     isLookingUpFlight,
-    flightLookupError
+    flightLookupError,
+    editingByTarget,
+    updatePresenceEditingTarget
   } = useTripWorkspace();
   const [activeMobileSection, setActiveMobileSection] = useState('trip');
+
+  const handleEditingFocus = useCallback((target) => {
+    if (!target) return;
+    updatePresenceEditingTarget?.(target);
+  }, [updatePresenceEditingTarget]);
+
+  const handleEditingBlur = useCallback((target, event) => {
+    if (!target) return;
+    const nextFocusedElement = event?.relatedTarget;
+    if (nextFocusedElement && event.currentTarget?.contains?.(nextFocusedElement)) {
+      return;
+    }
+    updatePresenceEditingTarget?.('');
+  }, [updatePresenceEditingTarget]);
+
+  useEffect(() => () => {
+    updatePresenceEditingTarget?.('');
+  }, [updatePresenceEditingTarget]);
+
+  useEffect(() => {
+    updatePresenceEditingTarget?.('');
+  }, [activeMobileSection, updatePresenceEditingTarget]);
 
   const tripSnapshot = useMemo(() => {
     const budget = Number(tripDetails?.budget?.total || 0);
@@ -1098,6 +1209,9 @@ const LogisticsTab = () => {
           onAddressChange={handleAccommodationAddressChange}
           onPlaceSelect={handleAccommodationPlaceSelect}
           onClearPlace={handleAccommodationPlaceClear}
+          editingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.accommodation)}
+          onEditingFocus={handleEditingFocus}
+          onEditingBlur={handleEditingBlur}
           idPrefix="mobile-"
           compact
         />
@@ -1112,6 +1226,9 @@ const LogisticsTab = () => {
           handleLookupFlight={handleLookupFlight}
           isLookingUpFlight={isLookingUpFlight}
           flightLookupError={flightLookupError}
+          editingByTarget={editingByTarget}
+          onEditingFocus={handleEditingFocus}
+          onEditingBlur={handleEditingBlur}
           mobile
         />
       );
@@ -1121,6 +1238,10 @@ const LogisticsTab = () => {
       <TripInfoCard
         tripDetails={tripDetails}
         setTripDetails={setTripDetails}
+        metaEditingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.meta)}
+        budgetEditingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.budget)}
+        onEditingFocus={handleEditingFocus}
+        onEditingBlur={handleEditingBlur}
         idPrefix="mobile-"
         compact
       />
@@ -1153,6 +1274,10 @@ const LogisticsTab = () => {
           <TripInfoCard
             tripDetails={tripDetails}
             setTripDetails={setTripDetails}
+            metaEditingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.meta)}
+            budgetEditingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.budget)}
+            onEditingFocus={handleEditingFocus}
+            onEditingBlur={handleEditingBlur}
             idPrefix="desktop-"
           />
           <AccommodationCard
@@ -1161,6 +1286,9 @@ const LogisticsTab = () => {
             onAddressChange={handleAccommodationAddressChange}
             onPlaceSelect={handleAccommodationPlaceSelect}
             onClearPlace={handleAccommodationPlaceClear}
+            editingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.accommodation)}
+            onEditingFocus={handleEditingFocus}
+            onEditingBlur={handleEditingBlur}
             idPrefix="desktop-"
           />
         </div>
@@ -1171,6 +1299,9 @@ const LogisticsTab = () => {
           handleLookupFlight={handleLookupFlight}
           isLookingUpFlight={isLookingUpFlight}
           flightLookupError={flightLookupError}
+          editingByTarget={editingByTarget}
+          onEditingFocus={handleEditingFocus}
+          onEditingBlur={handleEditingBlur}
         />
       </div>
     </div>

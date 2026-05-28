@@ -13,7 +13,12 @@ const {
   createTripAppData,
   normalizeTripDocumentForApp
 } = require('../src/domain/tripSchema.js');
-const { buildPresenceUiState } = require('../src/utils/presence.js');
+const {
+  buildPresenceUiState,
+  formatEditingMembersText,
+  getEditingMembersForTarget,
+  getEditingTargetLabel
+} = require('../src/utils/presence.js');
 const {
   getChecklistStatusOnlyChanges,
   getShoppingStatusOnlyChanges,
@@ -1005,6 +1010,71 @@ test('builds a roster with online editing and offline member states', () => {
   assert.equal(state.statusCounts.online, 1);
   assert.equal(state.statusCounts.editing, 1);
   assert.equal(state.statusCounts.offline, 1);
+});
+
+test('groups presence editing targets by event and trip detail section', () => {
+  const state = buildPresenceUiState({
+    currentUser: { uid: 'owner-1', displayName: 'Owner' },
+    members: [
+      { uid: 'owner-1', displayName: 'Owner', role: 'owner' },
+      { uid: 'member-1', displayName: 'Ada', role: 'editor' },
+      { uid: 'member-2', displayName: 'Ben', role: 'editor' },
+      { uid: 'member-3', displayName: 'Cia', role: 'editor' }
+    ],
+    onlineMembers: [
+      {
+        uid: 'owner-1',
+        online: true,
+        profile: { displayName: 'Owner' },
+        connections: [{ clientId: 'self', editingTarget: 'trip-details:meta' }]
+      },
+      {
+        uid: 'member-1',
+        online: true,
+        profile: { displayName: 'Ada' },
+        connections: [
+          { clientId: 'a', editingTarget: 'trip-details:flights:outbound' },
+          { clientId: 'b', editingTarget: 'event:event-1' }
+        ]
+      },
+      {
+        uid: 'member-2',
+        online: true,
+        profile: { displayName: 'Ben' },
+        connections: [{ clientId: 'c', editingTarget: 'trip-details:flights:outbound' }]
+      },
+      {
+        uid: 'member-3',
+        online: true,
+        profile: { displayName: 'Cia' },
+        connections: [
+          { clientId: 'd', editingTarget: 'trip-details:flights:outbound' },
+          { clientId: 'e', editingTarget: 'trip-details:flights:outbound' }
+        ]
+      }
+    ]
+  });
+
+  assert.deepEqual(state.editingByEventId['event-1'].map((member) => member.uid), ['member-1']);
+  assert.deepEqual(
+    state.editingByTarget['trip-details:flights:outbound'].map((member) => member.uid),
+    ['member-1', 'member-2', 'member-3']
+  );
+  assert.equal(getEditingMembersForTarget(state.editingByTarget, 'trip-details:meta').length, 0);
+  assert.equal(
+    formatEditingMembersText(getEditingMembersForTarget(state.editingByTarget, 'trip-details:flights:outbound')),
+    'Ada、Ben 等 1 人'
+  );
+});
+
+test('labels supported editing targets', () => {
+  assert.equal(getEditingTargetLabel('trip-details:meta'), '正在編輯旅程資訊');
+  assert.equal(getEditingTargetLabel('trip-details:accommodation'), '正在編輯住宿資訊');
+  assert.equal(getEditingTargetLabel('trip-details:budget'), '正在編輯旅程預算');
+  assert.equal(getEditingTargetLabel('trip-details:flights:outbound'), '正在編輯去程航班');
+  assert.equal(getEditingTargetLabel('trip-details:flights:inbound'), '正在編輯回程航班');
+  assert.equal(getEditingTargetLabel('event:new'), '正在新增行程');
+  assert.equal(getEditingTargetLabel('event:event-1'), '正在編輯行程');
 });
 
 test('normalizes realtime trip overlays without replacing canonical records', () => {

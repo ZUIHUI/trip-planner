@@ -45,11 +45,39 @@ export const getPresenceInitials = (name = '') => {
 
 export const getPresenceTabLabel = (tab = '') => presenceTabLabels[tab] || '在線';
 
+const editingTargetLabels = {
+  'trip-details:meta': '正在編輯旅程資訊',
+  'trip-details:accommodation': '正在編輯住宿資訊',
+  'trip-details:budget': '正在編輯旅程預算',
+  'trip-details:flights:outbound': '正在編輯去程航班',
+  'trip-details:flights:inbound': '正在編輯回程航班'
+};
+
 export const getEditingTargetLabel = (target = '') => {
   if (!target) return '';
+  if (editingTargetLabels[target]) return editingTargetLabels[target];
   if (target === 'event:new') return '正在新增行程';
   if (target.startsWith('event:')) return '正在編輯行程';
   return '正在編輯';
+};
+
+export const getEditingMembersForTarget = (editingByTarget = {}, target = '') => {
+  if (!target) return [];
+  const members = editingByTarget?.[target];
+  return Array.isArray(members) ? members : [];
+};
+
+export const formatEditingMembersText = (members = []) => {
+  const safeMembers = (Array.isArray(members) ? members : [])
+    .filter((member) => member?.uid)
+    .map((member) => member.name || member.email || member.uid || '旅伴');
+  if (!safeMembers.length) return '';
+
+  const visibleNames = safeMembers.slice(0, 2);
+  const extraCount = safeMembers.length - visibleNames.length;
+  return extraCount > 0
+    ? `${visibleNames.join('、')} 等 ${extraCount} 人`
+    : visibleNames.join('、');
 };
 
 export const formatLastActiveAt = (timestamp = 0, now = Date.now()) => {
@@ -208,6 +236,7 @@ export const buildPresenceUiState = ({
   }, {});
   const onlineByTab = {};
   const editingByEventId = {};
+  const editingByTarget = {};
 
   otherOnlineMembers.forEach((person) => {
     if (person.activeTab) {
@@ -222,11 +251,22 @@ export const buildPresenceUiState = ({
 
     connections.forEach((connection) => {
       const target = String(connection?.editingTarget || '');
-      if (!target.startsWith('event:') || target === 'event:new') return;
-      const eventId = target.slice('event:'.length);
-      if (!eventId) return;
-      if (!editingByEventId[eventId]) editingByEventId[eventId] = [];
-      addUniquePerson(editingByEventId[eventId], person);
+      if (!target) return;
+      const targetPerson = {
+        ...person,
+        editingTarget: target,
+        editingLabel: getEditingTargetLabel(target)
+      };
+
+      if (!editingByTarget[target]) editingByTarget[target] = [];
+      addUniquePerson(editingByTarget[target], targetPerson);
+
+      if (target.startsWith('event:') && target !== 'event:new') {
+        const eventId = target.slice('event:'.length);
+        if (!eventId) return;
+        if (!editingByEventId[eventId]) editingByEventId[eventId] = [];
+        addUniquePerson(editingByEventId[eventId], targetPerson);
+      }
     });
   });
 
@@ -239,6 +279,7 @@ export const buildPresenceUiState = ({
     statusCounts,
     onlineByTab,
     editingByEventId,
+    editingByTarget,
     summaryText: otherOnlineMembers.length
       ? `${otherOnlineMembers.length} 位旅伴在線`
       : selfOnline ? '你在線' : '同步在線狀態中'
