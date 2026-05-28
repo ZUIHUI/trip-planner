@@ -3,6 +3,7 @@ import { CalendarDays, Clock, MapPin, Navigation, Plus, StickyNote, Wallet } fro
 import WeatherWidget from './WeatherWidget';
 import {
   formatDailyCost,
+  formatEventTime,
   formatEventCost,
   getEventDestination,
   getEventLocationText,
@@ -71,7 +72,7 @@ const NextEventWidget = ({
           <h3 className="mt-1 text-xl font-bold leading-tight">{nextEvent.title || '未命名行程'}</h3>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-brand-50">
             <Clock size={15} className="shrink-0" />
-            <span className="font-mono font-semibold">{nextEvent.time || '--:--'}</span>
+            <span className="font-mono font-semibold">{formatEventTime(nextEvent)}</span>
             {nextLocationText && (
               <>
                 <span className="text-white/40">•</span>

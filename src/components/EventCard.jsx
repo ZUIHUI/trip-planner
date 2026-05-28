@@ -26,6 +26,7 @@ import {
 import { Badge, Button, Card } from './ui';
 import { normalizeExternalUrl } from '../utils/externalUrl';
 import { buildEventReadiness } from '../utils/eventReadiness';
+import { formatEventTime, getEventDestination } from '../utils/tripEvents';
 
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
@@ -83,6 +84,8 @@ const EventCard = ({
   const Icon = meta.icon;
   const readiness = buildEventReadiness(event);
   const locationText = readiness.locationText;
+  const eventTimeText = formatEventTime(event);
+  const eventDestination = getEventDestination(event);
   const costText = formatCost(event);
   const externalUrl = normalizeExternalUrl(event.url);
   const editingText = getEditingMembersText(editingMembers);
@@ -104,14 +107,14 @@ const EventCard = ({
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
     if (!locationText || !onOpenGoogleMaps) return;
-    onOpenGoogleMaps(prevLocation, event.locationPlace || event.location);
+    onOpenGoogleMaps(prevLocation, eventDestination);
   };
 
   const handleMapClick = (clickEvent) => {
     clickEvent.preventDefault();
     clickEvent.stopPropagation();
     if (!locationText || !onOpenGoogleMaps) return;
-    onOpenGoogleMaps('', event.locationPlace || event.location);
+    onOpenGoogleMaps('', eventDestination);
   };
 
   const handleMoveClick = (direction) => (clickEvent) => {
@@ -146,7 +149,7 @@ const EventCard = ({
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-base font-black text-slate-800 dark:text-slate-100">{event.time || '--:--'}</span>
+                <span className="font-mono text-base font-black text-slate-800 dark:text-slate-100">{eventTimeText}</span>
                 <Badge variant="muted">{meta.label}</Badge>
                 {event.urgent && (
                   <Badge variant="warning">

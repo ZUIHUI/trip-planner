@@ -4,6 +4,7 @@ import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { togglePlaceVote } from '../../services/tripService';
 import { mergeRealtimeVotesIntoPlaces } from '../../utils/tripRealtime';
+import { normalizeEventTime } from '../../utils/tripEvents';
 import { Badge, Button, Card, Field } from '../ui';
 
 const makePlaceId = () => `place-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -316,7 +317,7 @@ const PlacePoolCard = ({
         if (Number(day.day) !== Number(targetDay)) return day;
         return {
           ...day,
-          events: [...(day.events || []), nextEvent].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+          events: [...(day.events || []), nextEvent].sort((a, b) => normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time)))
         };
       }));
     }

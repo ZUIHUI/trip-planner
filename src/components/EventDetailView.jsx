@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button } from './ui';
 import { getExternalUrlHost, normalizeExternalUrl } from '../utils/externalUrl';
+import { formatEventTime, getEventDestination, getEventLocationText } from '../utils/tripEvents';
 
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
@@ -29,12 +30,6 @@ const eventTypeMeta = {
 
 const getEventMeta = (type) =>
   eventTypeMeta[type] || { label: '行程', icon: MapPin, className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' };
-
-const getLocationText = (event) => {
-  if (!event) return '';
-  if (typeof event.location === 'string') return event.location;
-  return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
-};
 
 const readCost = (event) => {
   const rawAmount = event?.cost?.amount ?? event?.cost;
@@ -79,8 +74,8 @@ const DetailRow = ({ icon: Icon, label, children }) => (
 const EventDetailView = ({ event, prevLocation, onEdit, onClose, onOpenGoogleMaps }) => {
   const meta = getEventMeta(event?.type);
   const Icon = meta.icon;
-  const locationText = getLocationText(event);
-  const mapDestination = event?.locationPlace || event?.location;
+  const locationText = getEventLocationText(event);
+  const mapDestination = getEventDestination(event);
   const costText = formatCost(event);
   const hasUrl = Boolean(String(event?.url || '').trim());
   const hasNavigation = Boolean(locationText && prevLocation && onOpenGoogleMaps);
@@ -105,7 +100,7 @@ const EventDetailView = ({ event, prevLocation, onEdit, onClose, onOpenGoogleMap
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-base font-black text-slate-800 dark:text-slate-100">
-              {event?.time || '--:--'}
+              {formatEventTime(event)}
             </span>
             <Badge variant="muted">{meta.label}</Badge>
             {event?.urgent && (

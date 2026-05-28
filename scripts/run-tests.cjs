@@ -30,6 +30,7 @@ const {
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
+const { getEventLocationText, normalizeEventTime } = require('../src/utils/tripEvents.js');
 const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
 const {
   applyTripEventDocumentsToItinerary,
@@ -144,6 +145,23 @@ test('builds itinerary route readiness without hiding missing locations', () => 
   assert.equal(state.routeStops[1].itineraryIndex, 2);
   assert.equal(state.missingEvents[0].title, 'Lunch');
   assert.equal(state.hasPartialRoute, true);
+});
+
+test('uses manual event locations when saved place details are empty', () => {
+  const event = {
+    id: 'manual-location',
+    title: 'Manual stop',
+    time: '10:15:00.000',
+    location: 'Taipei Main Station',
+    locationPlace: {}
+  };
+  const state = buildItineraryRouteState([event]);
+
+  assert.equal(getEventLocationText(event), 'Taipei Main Station');
+  assert.equal(normalizeEventTime(event.time), '10:15');
+  assert.equal(state.routeStopCount, 1);
+  assert.equal(state.routeStops[0].text, 'Taipei Main Station');
+  assert.equal(state.routeStops[0].time, '10:15');
 });
 
 test('moves itinerary events without sorting by time', () => {
@@ -278,7 +296,7 @@ test('builds event document order keys for sparse ordering', () => {
     event: {
       id: 'event-1',
       title: 'Lunch',
-      time: '12:00',
+      time: '12:00:00.000',
       locationPlace: { name: 'Cafe', address: 'Tokyo' },
       cost: 1200,
       currency: 'JPY'
@@ -291,6 +309,7 @@ test('builds event document order keys for sparse ordering', () => {
   });
 
   assert.equal(document.id, 'event-1');
+  assert.equal(document.time, '12:00');
   assert.equal(document.dayNumber, 2);
   assert.equal(document.orderKey, 3000);
   assert.equal(document.updatedByUid, 'user-1');
@@ -458,6 +477,15 @@ test('summarizes event readiness from time and place data', () => {
   assert.equal(ready.canNavigate, true);
   assert.equal(ready.locationText, 'Tokyo Station');
   assert.equal(ready.missingItems.length, 0);
+
+  const normalized = buildEventReadiness({
+    time: '09:30:00.000',
+    location: 'Taipei Main Station',
+    locationPlace: {}
+  });
+  assert.equal(normalized.hasTime, true);
+  assert.equal(normalized.hasLocation, true);
+  assert.equal(normalized.locationText, 'Taipei Main Station');
 
   const missing = buildEventReadiness({ title: 'Draft' });
   assert.equal(missing.isReadyForRoute, false);

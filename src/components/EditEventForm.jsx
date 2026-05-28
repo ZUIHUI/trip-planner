@@ -3,6 +3,7 @@ import { AlertCircle, ExternalLink, Link as LinkIcon, MapPin, Navigation, Save, 
 import GooglePlaceInput from './GooglePlaceInput';
 import { Button, Field, Input, Select, Textarea } from './ui';
 import { moneyInputProps, plainTextInputProps, timeInputProps, urlInputProps } from '../utils/mobileInputProps';
+import { normalizeEventTime } from '../utils/tripEvents';
 import { validateOptionalUrl, validateRequiredText } from '../utils/validation';
 
 const DEFAULT_EVENT = {
@@ -46,7 +47,7 @@ const MAP_SEARCH_RECOMMENDATIONS = [
 const getInitialFormState = (event) => ({
   ...DEFAULT_EVENT,
   ...(event || {}),
-  time: event?.time || '',
+  time: normalizeEventTime(event?.time),
   title: event?.title || '',
   type: event?.type || DEFAULT_EVENT.type,
   location: typeof event?.location === 'string'
@@ -155,6 +156,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
 
     onSave({
       ...formData,
+      time: normalizeEventTime(formData.time),
       currency: formData.currency || 'JPY',
       cost: formData.cost ?? '',
       transport: {

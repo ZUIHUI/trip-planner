@@ -1,7 +1,7 @@
-import { getEventLocationText } from './tripEvents';
+import { getEventLocationText, normalizeEventTime } from './tripEvents';
 
 export const hasEventTime = (event) => {
-  const time = String(event?.time || '').trim();
+  const time = normalizeEventTime(event?.time);
   return Boolean(time && time !== '--:--');
 };
 

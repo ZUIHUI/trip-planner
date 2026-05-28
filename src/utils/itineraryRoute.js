@@ -1,6 +1,7 @@
 import { normalizePlaceText } from './placeText';
+import { getEventDestination, formatEventTime } from './tripEvents';
 
-export const getRouteEventDestination = (event) => event?.locationPlace || event?.location || '';
+export const getRouteEventDestination = getEventDestination;
 
 export const buildRouteStop = (event, itineraryIndex = 0) => {
   const destination = getRouteEventDestination(event);
@@ -10,7 +11,7 @@ export const buildRouteStop = (event, itineraryIndex = 0) => {
   return {
     id: event?.id || '',
     title: event?.title || text,
-    time: event?.time || '--:--',
+    time: formatEventTime(event),
     destination,
     text,
     itineraryIndex
@@ -20,7 +21,7 @@ export const buildRouteStop = (event, itineraryIndex = 0) => {
 export const buildMissingRouteEvent = (event, itineraryIndex = 0) => ({
   id: event?.id || `missing-${itineraryIndex}`,
   title: event?.title || `行程 ${itineraryIndex + 1}`,
-  time: event?.time || '--:--',
+  time: formatEventTime(event),
   itineraryIndex
 });
 

@@ -21,6 +21,12 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import {
+  formatEventTime,
+  getEventDestination,
+  getEventLocationText,
+  normalizeEventTime
+} from '../../utils/tripEvents';
 
 const emptyText = '未設定';
 const eventTypeLabels = {
@@ -34,15 +40,9 @@ const eventTypeLabels = {
   other: '其他'
 };
 
-const getLocationText = (event) => {
-  if (!event) return '';
-  if (typeof event.location === 'string') return event.location;
-  return event.location?.address || event.location?.name || event.locationPlace?.address || event.locationPlace?.name || '';
-};
-
 const getSummaryNextEvent = (itinerary = [], selectedDay = 1) => {
   const day = itinerary.find((item) => item.day === selectedDay) || itinerary[0] || null;
-  const events = [...(day?.events || [])].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')));
+  const events = [...(day?.events || [])].sort((a, b) => normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time)));
 
   if (!day || events.length === 0) {
     return { day, event: null };
@@ -50,7 +50,7 @@ const getSummaryNextEvent = (itinerary = [], selectedDay = 1) => {
 
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const nextEvent = events.find((event) => String(event.time || '') > currentTime) || events[0];
+  const nextEvent = events.find((event) => normalizeEventTime(event.time) > currentTime) || events[0];
 
   return { day, event: nextEvent };
 };
@@ -317,7 +317,7 @@ const CommandCenterCard = ({
 
 const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
   const { day, event } = nextSummary;
-  const locationText = getLocationText(event);
+  const locationText = getEventLocationText(event);
 
   return (
     <Card className="order-1 overflow-hidden p-4">
@@ -337,7 +337,7 @@ const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
                   <Badge variant="info">{eventTypeLabels[event.type] || '行程'}</Badge>
                   <span className="inline-flex items-center gap-1 text-sm font-black text-brand-700 dark:text-brand-300">
                     <Clock size={14} />
-                    {event.time || '--:--'}
+                    {formatEventTime(event)}
                   </span>
                 </div>
                 <h3 className="mt-2 break-words text-xl font-black leading-tight text-slate-950 dark:text-white">
@@ -360,7 +360,7 @@ const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
             {locationText && (
               <Button
                 variant="secondary"
-                onClick={() => onOpenMaps?.('', event.locationPlace || event.location)}
+                onClick={() => onOpenMaps?.('', getEventDestination(event))}
                 className="w-full"
               >
                 <MapPin size={16} />

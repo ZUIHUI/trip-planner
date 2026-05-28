@@ -1,10 +1,27 @@
-export const getEventDestination = (event) => event?.locationPlace || event?.location || '';
+import { normalizePlaceText } from './placeText';
+
+export const normalizeEventTime = (value) => {
+  const text = String(value || '').trim();
+  const match = text.match(/^([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d(?:\.\d+)?)?$/);
+  if (!match) return text;
+  return `${String(match[1]).padStart(2, '0')}:${match[2]}`;
+};
+
+export const formatEventTime = (event, fallback = '--:--') => (
+  normalizeEventTime(event?.time) || fallback
+);
+
+export const getEventDestination = (event) => {
+  const locationPlace = event?.locationPlace;
+  if (normalizePlaceText(locationPlace)) return locationPlace;
+  if (normalizePlaceText(event?.location)) return event.location;
+  return '';
+};
 
 export const getEventLocationText = (event) => {
   if (!event) return '';
   const destination = getEventDestination(event);
-  if (typeof destination === 'string') return destination;
-  return destination?.address || destination?.name || destination?.formattedAddress || destination?.label || '';
+  return normalizePlaceText(destination);
 };
 
 export const getEventMemoText = (event) => {
@@ -16,7 +33,7 @@ export const getEventMemoText = (event) => {
 };
 
 export const sortEventsByTime = (events = []) => (
-  [...events].sort((a, b) => String(a.time || '').localeCompare(String(b.time || '')))
+  [...events].sort((a, b) => normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time)))
 );
 
 export const pickNextEvent = (events = [], now = new Date()) => {
@@ -24,7 +41,7 @@ export const pickNextEvent = (events = [], now = new Date()) => {
   if (!sortedEvents.length) return null;
 
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  return sortedEvents.find((event) => String(event.time || '') > currentTime) || sortedEvents[0];
+  return sortedEvents.find((event) => normalizeEventTime(event.time) > currentTime) || sortedEvents[0];
 };
 
 export const readEventCost = (event) => {

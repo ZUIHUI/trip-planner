@@ -27,6 +27,7 @@ import {
 } from '../../services/googleMapsService';
 import {
   formatDailyCost,
+  formatEventTime,
   formatEventCost,
   getEventDestination,
   getEventLocationText,
@@ -46,7 +47,7 @@ const getRouteStop = (event) => {
   return {
     id: event.id,
     title: event.title || text,
-    time: event.time || '--:--',
+    time: formatEventTime(event),
     destination,
     text
   };
@@ -57,7 +58,7 @@ const getChecklistRemaining = (items = []) => (
 );
 
 const readEventTimeMinutes = (event) => {
-  const match = String(event?.time || '').trim().match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  const match = formatEventTime(event, '').match(/^([01]\d|2[0-3]):([0-5]\d)$/);
   if (!match) return null;
   return Number(match[1]) * 60 + Number(match[2]);
 };
@@ -96,7 +97,7 @@ const buildDayStatus = ({
     routeStopCount: routeStops.length,
     missingLocationCount,
     checklistRemaining,
-    nextTime: nextEvent?.time || '--:--'
+    nextTime: formatEventTime(nextEvent)
   };
 };
 
@@ -360,7 +361,7 @@ const TodayHero = ({
           </h3>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-brand-50">
             <Clock size={15} className="shrink-0" />
-            <span className="font-mono">{nextEvent.time || '--:--'}</span>
+            <span className="font-mono">{formatEventTime(nextEvent)}</span>
             {nextLocationText && (
               <>
                 <span className="text-white/40">/</span>
@@ -660,7 +661,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
             return (
               <li key={event.id || `${event.time}-${event.title}-${index}`} className="flex min-w-0 gap-3">
                 <div className="w-12 shrink-0 pt-1 text-right font-mono text-sm font-black text-slate-700 dark:text-slate-200">
-                  {event.time || '--:--'}
+                  {formatEventTime(event)}
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="mt-1 h-3 w-3 rounded-full bg-brand-600 ring-4 ring-brand-50 dark:bg-brand-300 dark:ring-brand-950/50" />

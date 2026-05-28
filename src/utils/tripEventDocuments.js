@@ -1,3 +1,5 @@
+import { normalizeEventTime } from './tripEvents';
+
 const ORDER_STEP = 1000;
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
@@ -50,7 +52,7 @@ export const normalizeTripEventDocumentForApp = (document = {}) => {
     id: id || makeTripEventId(),
     dayNumber: Number.isFinite(dayNumber) ? dayNumber : 1,
     orderKey: Number.isFinite(orderKey) ? orderKey : ORDER_STEP,
-    time: cleanString(source.time || source.startTime),
+    time: normalizeEventTime(source.time || source.startTime),
     type: cleanString(source.type, 'sightseeing'),
     title: cleanString(source.title, '行程'),
     desc: cleanString(source.desc || source.description),
@@ -89,7 +91,7 @@ export const buildTripEventDocument = ({
     schemaVersion: 1,
     dayNumber: Number(source.dayNumber),
     orderKey: Number(source.orderKey),
-    time: cleanString(source.time),
+    time: normalizeEventTime(source.time),
     type: cleanString(source.type, 'sightseeing'),
     title: cleanString(source.title, '行程'),
     desc: cleanString(source.desc),
@@ -156,7 +158,7 @@ export const applyTripEventDocumentsToItinerary = (itinerary = [], eventDocument
       .sort((a, b) => {
         const orderDiff = getEventOrderKeyAtIndex(a, 0) - getEventOrderKeyAtIndex(b, 0);
         if (orderDiff !== 0) return orderDiff;
-        return String(a.time || '').localeCompare(String(b.time || ''));
+        return normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time));
       })
   }));
 };
