@@ -32,6 +32,13 @@ const {
   shouldTreatRemoteAsConflict
 } = require('../src/utils/tripSync.js');
 const { dateInputProps, timeInputProps } = require('../src/utils/mobileInputProps.js');
+const {
+  buildFlightDateValue,
+  buildFlightTimeValue,
+  getFlightDateSelectParts,
+  getFlightDateValue,
+  getFlightTimeSelectParts
+} = require('../src/utils/flightDateTimeFields.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -224,11 +231,49 @@ test('does not clear local dirty state for stale save completions', () => {
   assert.equal(isSaveResultCurrent(4, 5), false);
 });
 
-test('uses native date and time pickers without numeric input mode', () => {
+test('keeps date and time helpers free of numeric input mode', () => {
   assert.equal(dateInputProps.type, 'date');
   assert.equal(timeInputProps.type, 'time');
   assert.equal(Object.prototype.hasOwnProperty.call(dateInputProps, 'inputMode'), false);
   assert.equal(Object.prototype.hasOwnProperty.call(timeInputProps, 'inputMode'), false);
+});
+
+test('maps legacy flight month/day dates into select parts with fallback year', () => {
+  assert.deepEqual(getFlightDateSelectParts('2/23', 2026), {
+    year: '2026',
+    month: '02',
+    day: '23'
+  });
+  assert.deepEqual(getFlightDateSelectParts('2026-11-05', null), {
+    year: '2026',
+    month: '11',
+    day: '05'
+  });
+  assert.equal(getFlightDateValue('2/23', 2026), '2026-02-23');
+});
+
+test('rejects invalid flight date select values', () => {
+  assert.equal(getFlightDateValue('2/31', 2026), '');
+  assert.equal(getFlightDateValue('2026-02-31', null), '');
+  assert.equal(buildFlightDateValue({ year: '2026', month: '02', day: '31' }), '');
+  assert.deepEqual(getFlightDateSelectParts('not a date', 2026), {
+    year: '',
+    month: '',
+    day: ''
+  });
+});
+
+test('splits and builds flight time select values', () => {
+  assert.deepEqual(getFlightTimeSelectParts('9:05'), {
+    hour: '09',
+    minute: '05'
+  });
+  assert.equal(buildFlightTimeValue({ hour: '9', minute: '5' }), '09:05');
+  assert.equal(buildFlightTimeValue({ hour: '24', minute: '00' }), '');
+  assert.deepEqual(getFlightTimeSelectParts('late'), {
+    hour: '',
+    minute: ''
+  });
 });
 
 test('keeps conflict protection for other users and other devices', () => {

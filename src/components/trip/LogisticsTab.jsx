@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bed,
   CalendarDays,
@@ -13,13 +13,19 @@ import {
   Wallet
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
-import { formatDateRangeText, normalizeTripDateFields, toDateInputValue } from '../../utils/tripDates';
+import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
 import { getFlightLookupAvailability } from '../../services/flightService';
-import { dateInputProps, moneyInputProps, plainTextInputProps, timeInputProps } from '../../utils/mobileInputProps';
+import { dateInputProps, moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
+import {
+  buildFlightDateValue,
+  buildFlightTimeValue,
+  getFlightDateDayCount,
+  getFlightDateSelectParts,
+  getFlightTimeSelectParts
+} from '../../utils/flightDateTimeFields';
 import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
-import ReservationImportCard from './ReservationImportCard';
 
 const statusMeta = {
   planning: { label: '規劃中', variant: 'warning' },
@@ -40,8 +46,6 @@ const directionMeta = {
   }
 };
 
-const padDateNumber = (value) => String(value).padStart(2, '0');
-
 const getFlightDateFallbackYear = (tripDetails) => {
   const tripStart = tripDetails?.dateRange?.start;
   if (typeof tripStart === 'string') {
@@ -53,37 +57,6 @@ const getFlightDateFallbackYear = (tripDetails) => {
   if (typeof datesText !== 'string') return null;
   const matchedDatesYear = datesText.match(/\b(19|20)\d{2}\b/);
   return matchedDatesYear ? Number(matchedDatesYear[0]) : null;
-};
-
-const getFlightDateInputValue = (value, fallbackYear) => {
-  if (typeof value !== 'string') return '';
-  const trimmedValue = value.trim();
-  if (!trimmedValue) return '';
-
-  const normalized = toDateInputValue(trimmedValue);
-  if (normalized) return normalized;
-
-  const monthDayMatch = trimmedValue.match(/^(\d{1,2})[-./](\d{1,2})$/);
-  if (!monthDayMatch) return '';
-
-  const month = Number(monthDayMatch[1]);
-  const day = Number(monthDayMatch[2]);
-  const numericYear = Number(fallbackYear);
-  if (
-    !Number.isInteger(month) ||
-    !Number.isInteger(day) ||
-    !Number.isInteger(numericYear) ||
-    month < 1 ||
-    month > 12 ||
-    day < 1 ||
-    day > 31 ||
-    numericYear < 1900 ||
-    numericYear > 9999
-  ) {
-    return '';
-  }
-
-  return toDateInputValue(`${numericYear}-${padDateNumber(month)}-${padDateNumber(day)}`) || '';
 };
 
 const getInfoTasks = (tripDetails) => [
@@ -471,6 +444,232 @@ const AccommodationCard = ({
   </Card>
 );
 
+const flightMonthOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'));
+const flightHourOptions = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'));
+const flightMinuteOptions = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0'));
+
+const isEmptyDateDraft = (parts) => !parts.year && !parts.month && !parts.day;
+const isEmptyTimeDraft = (parts) => !parts.hour && !parts.minute;
+
+const getFlightYearOptions = (...sourceYears) => {
+  const currentYear = new Date().getFullYear();
+  const baseYear = sourceYears
+    .map((value) => Number(value))
+    .find((value) => Number.isInteger(value) && value >= 1900 && value <= 9999) || currentYear;
+  const years = new Set();
+  for (let year = baseYear - 1; year <= baseYear + 3; year += 1) {
+    years.add(year);
+  }
+  sourceYears.forEach((value) => {
+    const year = Number(value);
+    if (Number.isInteger(year) && year >= 1900 && year <= 9999) {
+      years.add(year);
+    }
+  });
+  return [...years].sort((left, right) => left - right).map(String);
+};
+
+const getFlightDayOptions = (year, month) =>
+  Array.from({ length: getFlightDateDayCount(year, month) }, (_, index) => String(index + 1).padStart(2, '0'));
+
+const updateFlightFieldValue = (setTripDetails, direction, field, nextValue) => {
+  setTripDetails((prev) => ({
+    ...prev,
+    flights: {
+      ...(prev?.flights || {}),
+      [direction]: {
+        ...((prev?.flights && prev.flights[direction]) || {}),
+        [field]: field === 'code' ? nextValue.toUpperCase() : nextValue
+      }
+    }
+  }));
+};
+
+const FlightDateSelectField = ({
+  label,
+  field,
+  direction,
+  value,
+  setTripDetails,
+  dateFallbackYear = null,
+  idPrefix = ''
+}) => {
+  const parsedValueParts = useMemo(
+    () => getFlightDateSelectParts(value, dateFallbackYear),
+    [value, dateFallbackYear]
+  );
+  const [draftParts, setDraftParts] = useState(parsedValueParts);
+
+  useEffect(() => {
+    setDraftParts(parsedValueParts);
+  }, [parsedValueParts]);
+
+  const yearOptions = useMemo(
+    () => getFlightYearOptions(draftParts.year, parsedValueParts.year, dateFallbackYear),
+    [dateFallbackYear, draftParts.year, parsedValueParts.year]
+  );
+  const dayOptions = useMemo(
+    () => getFlightDayOptions(draftParts.year, draftParts.month),
+    [draftParts.year, draftParts.month]
+  );
+  const baseId = `${idPrefix}flight-${direction}-${field}`;
+
+  const handleChange = (part, nextValue) => {
+    const nextParts = {
+      ...draftParts,
+      [part]: nextValue
+    };
+
+    if ((part === 'year' || part === 'month') && nextParts.day) {
+      const nextDayOptions = getFlightDayOptions(nextParts.year, nextParts.month);
+      if (!nextDayOptions.includes(nextParts.day)) {
+        nextParts.day = '';
+      }
+    }
+
+    setDraftParts(nextParts);
+    const nextDateValue = buildFlightDateValue(nextParts);
+    if (nextDateValue || isEmptyDateDraft(nextParts)) {
+      updateFlightFieldValue(setTripDetails, direction, field, nextDateValue);
+    }
+  };
+
+  const handleClear = () => {
+    const emptyParts = { year: '', month: '', day: '' };
+    setDraftParts(emptyParts);
+    updateFlightFieldValue(setTripDetails, direction, field, '');
+  };
+
+  return (
+    <Field label={label} htmlFor={`${baseId}-year`}>
+      <div className="grid min-w-0 grid-cols-3 gap-2">
+        <Select
+          id={`${baseId}-year`}
+          aria-label={`${label} year`}
+          value={draftParts.year}
+          onChange={(event) => handleChange('year', event.target.value)}
+          className="min-w-0"
+        >
+          <option value="">年</option>
+          {yearOptions.map((year) => (
+            <option key={year} value={year}>{year}</option>
+          ))}
+        </Select>
+        <Select
+          id={`${baseId}-month`}
+          aria-label={`${label} month`}
+          value={draftParts.month}
+          onChange={(event) => handleChange('month', event.target.value)}
+          className="min-w-0"
+        >
+          <option value="">月</option>
+          {flightMonthOptions.map((month) => (
+            <option key={month} value={month}>{month}</option>
+          ))}
+        </Select>
+        <Select
+          id={`${baseId}-day`}
+          aria-label={`${label} day`}
+          value={draftParts.day}
+          onChange={(event) => handleChange('day', event.target.value)}
+          className="min-w-0"
+        >
+          <option value="">日</option>
+          {dayOptions.map((day) => (
+            <option key={day} value={day}>{day}</option>
+          ))}
+        </Select>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleClear}
+        disabled={isEmptyDateDraft(draftParts)}
+        className="mt-2 w-full justify-center"
+      >
+        清除
+      </Button>
+    </Field>
+  );
+};
+
+const FlightTimeSelectField = ({
+  label,
+  field,
+  direction,
+  value,
+  setTripDetails,
+  idPrefix = ''
+}) => {
+  const parsedValueParts = useMemo(() => getFlightTimeSelectParts(value), [value]);
+  const [draftParts, setDraftParts] = useState(parsedValueParts);
+  const baseId = `${idPrefix}flight-${direction}-${field}`;
+
+  useEffect(() => {
+    setDraftParts(parsedValueParts);
+  }, [parsedValueParts]);
+
+  const handleChange = (part, nextValue) => {
+    const nextParts = {
+      ...draftParts,
+      [part]: nextValue
+    };
+    setDraftParts(nextParts);
+    const nextTimeValue = buildFlightTimeValue(nextParts);
+    if (nextTimeValue || isEmptyTimeDraft(nextParts)) {
+      updateFlightFieldValue(setTripDetails, direction, field, nextTimeValue);
+    }
+  };
+
+  const handleClear = () => {
+    const emptyParts = { hour: '', minute: '' };
+    setDraftParts(emptyParts);
+    updateFlightFieldValue(setTripDetails, direction, field, '');
+  };
+
+  return (
+    <Field label={label} htmlFor={`${baseId}-hour`}>
+      <div className="grid min-w-0 grid-cols-2 gap-2">
+        <Select
+          id={`${baseId}-hour`}
+          aria-label={`${label} hour`}
+          value={draftParts.hour}
+          onChange={(event) => handleChange('hour', event.target.value)}
+          className="min-w-0"
+        >
+          <option value="">時</option>
+          {flightHourOptions.map((hour) => (
+            <option key={hour} value={hour}>{hour}</option>
+          ))}
+        </Select>
+        <Select
+          id={`${baseId}-minute`}
+          aria-label={`${label} minute`}
+          value={draftParts.minute}
+          onChange={(event) => handleChange('minute', event.target.value)}
+          className="min-w-0"
+        >
+          <option value="">分</option>
+          {flightMinuteOptions.map((minute) => (
+            <option key={minute} value={minute}>{minute}</option>
+          ))}
+        </Select>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleClear}
+        disabled={isEmptyTimeDraft(draftParts)}
+        className="mt-2 w-full justify-center"
+      >
+        清除
+      </Button>
+    </Field>
+  );
+};
+
 const FlightField = ({
   label,
   field,
@@ -479,47 +678,24 @@ const FlightField = ({
   setTripDetails,
   placeholder,
   type = 'text',
-  dateFallbackYear = null,
   idPrefix = ''
-}) => {
-  const isDateField = field === 'date';
-  const isTimeField = field.toLowerCase().includes('time');
-  const inputProps = isDateField
-    ? dateInputProps
-    : isTimeField
-      ? timeInputProps
-      : { ...plainTextInputProps, type };
-  const inputValue = isDateField ? getFlightDateInputValue(value, dateFallbackYear) : (value || '');
-
-  return (
-    <Field label={label} htmlFor={`${idPrefix}flight-${direction}-${field}`}>
-      <Input
-        id={`${idPrefix}flight-${direction}-${field}`}
-        {...inputProps}
-        className={isDateField ? 'tp-date-input' : undefined}
-        autoComplete="off"
-        autoCapitalize={field === 'code' ? 'characters' : 'none'}
-        autoCorrect="off"
-        spellCheck={false}
-        enterKeyHint="next"
-        placeholder={placeholder}
-        value={inputValue}
-        onChange={(event) =>
-          setTripDetails((prev) => ({
-            ...prev,
-            flights: {
-              ...(prev?.flights || {}),
-              [direction]: {
-                ...((prev?.flights && prev?.flights[direction]) || {}),
-                [field]: field === 'code' ? event.target.value.toUpperCase() : event.target.value
-              }
-            }
-          }))
-        }
-      />
-    </Field>
-  );
-};
+}) => (
+  <Field label={label} htmlFor={`${idPrefix}flight-${direction}-${field}`}>
+    <Input
+      id={`${idPrefix}flight-${direction}-${field}`}
+      {...plainTextInputProps}
+      type={type}
+      autoComplete="off"
+      autoCapitalize={field === 'code' ? 'characters' : 'none'}
+      autoCorrect="off"
+      spellCheck={false}
+      enterKeyHint="next"
+      placeholder={placeholder}
+      value={value || ''}
+      onChange={(event) => updateFlightFieldValue(setTripDetails, direction, field, event.target.value)}
+    />
+  </Field>
+);
 
 const FlightAirportField = ({
   label,
@@ -697,32 +873,29 @@ const FlightCard = ({
             )}
 
             <div className="grid min-w-0 gap-3 sm:grid-cols-3">
-              <FlightField
+              <FlightDateSelectField
                 label="日期"
                 field="date"
                 direction={direction}
                 value={flight.date}
                 setTripDetails={setTripDetails}
-                placeholder="YYYY-MM-DD"
                 dateFallbackYear={flightDateFallbackYear}
                 idPrefix={idPrefix}
               />
-              <FlightField
+              <FlightTimeSelectField
                 label="起飛時間"
                 field="departureTime"
                 direction={direction}
                 value={flight.departureTime}
                 setTripDetails={setTripDetails}
-                placeholder="HH:mm"
                 idPrefix={idPrefix}
               />
-              <FlightField
+              <FlightTimeSelectField
                 label="抵達時間"
                 field="arrivalTime"
                 direction={direction}
                 value={flight.arrivalTime}
                 setTripDetails={setTripDetails}
-                placeholder="HH:mm"
                 idPrefix={idPrefix}
               />
             </div>
@@ -957,8 +1130,6 @@ const LogisticsTab = () => {
   return (
     <div className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8">
       <CompletionPanel tripDetails={tripDetails} />
-
-      <ReservationImportCard tripDetails={tripDetails} setTripDetails={setTripDetails} />
 
       <MobileSectionSwitcher
         activeSection={activeMobileSection}
