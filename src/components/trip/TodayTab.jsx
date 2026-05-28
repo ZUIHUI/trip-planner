@@ -12,6 +12,7 @@ import {
   Map,
   MapPin,
   Navigation,
+  Plane,
   Plus,
   StickyNote,
   Wallet
@@ -33,6 +34,9 @@ import {
   pickNextEvent,
   sortEventsByTime
 } from '../../utils/tripEvents';
+import { getAirportDayFlights } from '../../utils/airportDayFlights';
+
+const emptyFlightText = '未設定';
 
 const getRouteStop = (event) => {
   const destination = getEventDestination(event);
@@ -204,6 +208,96 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
         <ChevronRight size={19} />
       </button>
     </div>
+  );
+};
+
+const FlightDetailTile = ({ label, value }) => (
+  <div className="min-w-0 rounded-lg bg-white/75 px-3 py-2 dark:bg-slate-950/35">
+    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{label}</p>
+    <p className="mt-0.5 truncate text-sm font-black text-slate-950 dark:text-white" title={value || emptyFlightText}>
+      {value || emptyFlightText}
+    </p>
+  </div>
+);
+
+const AirportDayFlightRow = ({ flight }) => {
+  const timeText = [
+    flight.departureTime ? `起飛 ${flight.departureTime}` : '',
+    flight.arrivalTime ? `抵達 ${flight.arrivalTime}` : ''
+  ].filter(Boolean).join(' / ');
+  const terminalText = [
+    flight.depTerminal ? `出發 ${flight.depTerminal}` : '',
+    flight.arrTerminal ? `抵達 ${flight.arrTerminal}` : ''
+  ].filter(Boolean).join(' / ');
+
+  return (
+    <div className="min-w-0 rounded-lg border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/60 dark:bg-sky-950/25">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">
+            {flight.label}航班
+          </p>
+          {flight.hasFlightCode ? (
+            <p className="mt-1 truncate font-mono text-lg font-black text-slate-950 dark:text-white" title={flight.code}>
+              {flight.code}
+            </p>
+          ) : (
+            <p className="mt-1 text-base font-black text-slate-950 dark:text-white">
+              尚未設定{flight.label}航班
+            </p>
+          )}
+        </div>
+        <Badge variant={flight.hasFlightCode ? 'info' : 'warning'}>{flight.hasFlightCode ? '已設定' : '待補'}</Badge>
+      </div>
+
+      <p className="mt-1 truncate text-sm font-semibold text-slate-600 dark:text-slate-300" title={flight.airline || emptyFlightText}>
+        {flight.airline || emptyFlightText}
+      </p>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <FlightDetailTile label="出發機場" value={flight.dep} />
+        <FlightDetailTile label="抵達機場" value={flight.arr} />
+        <FlightDetailTile label="時間" value={timeText} />
+        <FlightDetailTile label="航廈" value={terminalText} />
+      </div>
+
+      {flight.date && (
+        <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+          航班日期：{flight.date}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const AirportDayFlightCard = ({ flights, onEditFlights }) => {
+  if (!flights.length) return null;
+
+  const hasAnyFlightCode = flights.some((flight) => flight.hasFlightCode);
+
+  return (
+    <Card className="border-sky-200 bg-white/95 p-4 shadow-sm dark:border-sky-900/70 dark:bg-slate-900/95">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="tp-icon-chip bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300">
+            <Plane size={20} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="tp-section-title">機場航班</h3>
+            <p className="tp-section-subtitle mt-1">出發前快速確認時間、機場與航廈。</p>
+          </div>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onEditFlights} className="shrink-0">
+          {hasAnyFlightCode ? '編輯' : '補航班'}
+        </Button>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        {flights.map((flight) => (
+          <AirportDayFlightRow key={flight.id} flight={flight} />
+        ))}
+      </div>
+    </Card>
   );
 };
 
@@ -701,7 +795,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
   );
 };
 
-const TodayTab = () => {
+const TodayTab = ({ onTabChange }) => {
   const {
     itinerary,
     selectedDay,
@@ -758,6 +852,10 @@ const TodayTab = () => {
     }),
     [events, routeStops, checklists, nextEvent]
   );
+  const airportDayFlights = useMemo(
+    () => getAirportDayFlights({ itinerary, selectedDay, tripDetails }),
+    [itinerary, selectedDay, tripDetails]
+  );
 
   const handleNavigateNext = () => {
     const destination = getEventDestination(nextEvent);
@@ -778,6 +876,11 @@ const TodayTab = () => {
         currentDayTitle={currentDayTitle}
         currentDayDate={currentDayDate}
         onSelectDay={setSelectedDay}
+      />
+
+      <AirportDayFlightCard
+        flights={airportDayFlights}
+        onEditFlights={() => onTabChange?.('flights')}
       />
 
       <TodayHero

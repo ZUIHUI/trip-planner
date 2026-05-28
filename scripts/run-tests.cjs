@@ -39,6 +39,7 @@ const {
   getFlightDateValue,
   getFlightTimeSelectParts
 } = require('../src/utils/flightDateTimeFields.js');
+const { getAirportDayFlights } = require('../src/utils/airportDayFlights.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -274,6 +275,111 @@ test('splits and builds flight time select values', () => {
     hour: '',
     minute: ''
   });
+});
+
+test('shows outbound flight on the first travel day', () => {
+  const flights = getAirportDayFlights({
+    itinerary: [{ day: 1 }, { day: 2 }, { day: 3 }],
+    selectedDay: 1,
+    tripDetails: {
+      flights: {
+        outbound: { code: 'BR198', dep: 'TPE', arr: 'NRT' },
+        inbound: { code: 'BR197', dep: 'NRT', arr: 'TPE' }
+      }
+    }
+  });
+
+  assert.equal(flights.length, 1);
+  assert.equal(flights[0].direction, 'outbound');
+  assert.equal(flights[0].code, 'BR198');
+  assert.equal(flights[0].hasFlightCode, true);
+});
+
+test('shows inbound flight on the last travel day', () => {
+  const flights = getAirportDayFlights({
+    itinerary: [{ day: 1 }, { day: 2 }, { day: 3 }],
+    selectedDay: 3,
+    tripDetails: {
+      flights: {
+        outbound: { code: 'BR198', dep: 'TPE', arr: 'NRT' },
+        inbound: { code: 'BR197', dep: 'NRT', arr: 'TPE' }
+      }
+    }
+  });
+
+  assert.equal(flights.length, 1);
+  assert.equal(flights[0].direction, 'inbound');
+  assert.equal(flights[0].code, 'BR197');
+});
+
+test('hides airport flight card data on middle travel days', () => {
+  const flights = getAirportDayFlights({
+    itinerary: [{ day: 1 }, { day: 2 }, { day: 3 }],
+    selectedDay: 2,
+    tripDetails: {
+      flights: {
+        outbound: { code: 'BR198' },
+        inbound: { code: 'BR197' }
+      }
+    }
+  });
+
+  assert.deepEqual(flights, []);
+});
+
+test('shows both airport flights for single-day trips', () => {
+  const flights = getAirportDayFlights({
+    itinerary: [{ day: 1 }],
+    selectedDay: 1,
+    tripDetails: {
+      flights: {
+        outbound: { code: 'JX802' },
+        inbound: { code: 'JX803' }
+      }
+    }
+  });
+
+  assert.deepEqual(flights.map((flight) => flight.direction), ['outbound', 'inbound']);
+});
+
+test('keeps missing airport flight state visible on airport days', () => {
+  const flights = getAirportDayFlights({
+    itinerary: [{ day: 1 }, { day: 2 }],
+    selectedDay: 1,
+    tripDetails: { flights: {} }
+  });
+
+  assert.equal(flights.length, 1);
+  assert.equal(flights[0].direction, 'outbound');
+  assert.equal(flights[0].code, '');
+  assert.equal(flights[0].hasFlightCode, false);
+});
+
+test('finds airport days by day number even when itinerary order is changed', () => {
+  const tripDetails = {
+    flights: {
+      outbound: { code: 'OUT123' },
+      inbound: { code: 'IN456' }
+    }
+  };
+
+  assert.deepEqual(
+    getAirportDayFlights({
+      itinerary: [{ day: 2 }, { day: 1 }, { day: 3 }],
+      selectedDay: 1,
+      tripDetails
+    }).map((flight) => flight.direction),
+    ['outbound']
+  );
+
+  assert.deepEqual(
+    getAirportDayFlights({
+      itinerary: [{ day: 3 }, { day: 1 }, { day: 2 }],
+      selectedDay: 3,
+      tripDetails
+    }).map((flight) => flight.direction),
+    ['inbound']
+  );
 });
 
 test('keeps conflict protection for other users and other devices', () => {

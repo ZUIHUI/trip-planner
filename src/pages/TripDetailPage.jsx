@@ -1000,7 +1000,7 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'today' && (
-            <TodayTab />
+            <TodayTab onTabChange={setActiveTab} />
           )}
 
           {activeTab === 'summary' && (
