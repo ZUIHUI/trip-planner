@@ -7,7 +7,9 @@ import {
   getDoc,
   getDocs,
   increment,
+  limit,
   onSnapshot,
+  orderBy,
   query,
   runTransaction,
   setDoc,
@@ -59,6 +61,9 @@ import {
   normalizeTripCollaborationSettings,
   normalizeTripSettingDocumentForApp
 } from '../utils/tripSettingDocuments';
+import { TRIP_DOCUMENT_TOUCH_OPERATIONS } from '../utils/tripSync';
+import { getLatestIsoTimestamp } from '../utils/tripTimestamps';
+import { logger } from '../utils/logger';
 
 const PRIMARY_OWNER_EMAIL = (import.meta.env.VITE_PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
 
@@ -103,14 +108,21 @@ const withoutUndefined = (value) => {
   }, {});
 };
 
-const buildTripFieldUpdateMeta = ({ user, clientId = '', operation = 'trip-details', now = new Date().toISOString() }) => ({
+const buildTripFieldUpdateMeta = ({
+  user,
+  clientId = '',
+  operation = 'trip-details',
+  entityId = '',
+  now = new Date().toISOString()
+}) => ({
   savedAt: now,
   updatedAt: now,
   'meta.updatedAt': now,
   'syncMeta.revision': increment(1),
   'syncMeta.updatedByUid': cleanString(user?.uid),
   'syncMeta.updatedByClientId': cleanString(clientId),
-  'syncMeta.updatedByOperation': operation,
+  'syncMeta.updatedByOperation': cleanString(operation),
+  'syncMeta.updatedEntityId': cleanString(entityId),
   'syncMeta.updatedAt': now
 });
 
@@ -162,6 +174,63 @@ const getTripPlaceIdeaCollectionRef = (tripId) => collection(db, 'trips', tripId
 const getTripPlaceIdeaDocRef = (tripId, placeId) => doc(db, 'trips', tripId, 'placeIdeas', String(placeId));
 const getTripShoppingCategoryCollectionRef = (tripId) => collection(db, 'trips', tripId, 'shoppingCategories');
 const getTripShoppingCategoryDocRef = (tripId, categoryId) => doc(db, 'trips', tripId, 'shoppingCategories', String(categoryId));
+
+const getTripActivityCollectionRefs = (tripId) => [
+  getTripDetailCollectionRef(tripId),
+  getTripSettingCollectionRef(tripId),
+  getTripDayCollectionRef(tripId),
+  getTripEventCollectionRef(tripId),
+  getTripChecklistItemCollectionRef(tripId),
+  getTripShoppingItemCollectionRef(tripId),
+  getTripExpenseCollectionRef(tripId),
+  getTripPlaceIdeaCollectionRef(tripId),
+  getTripShoppingCategoryCollectionRef(tripId)
+];
+
+const getTripLatestActivityAt = async (tripId) => {
+  if (!tripId) return '';
+
+  const timestamps = await Promise.all(getTripActivityCollectionRefs(tripId).map(async (collectionRef) => {
+    try {
+      const snapshot = await getDocs(query(collectionRef, orderBy('updatedAt', 'desc'), limit(1)));
+      return snapshot.docs[0]?.data()?.updatedAt || '';
+    } catch (error) {
+      logger.warn('Trip activity timestamp lookup failed.', error);
+      return '';
+    }
+  }));
+
+  return getLatestIsoTimestamp(timestamps);
+};
+
+const enrichTripListItemWithActivity = async (item) => {
+  const latestActivityAt = await getTripLatestActivityAt(item?.id);
+  const latestUpdatedAt = getLatestIsoTimestamp(item?.updatedAt, latestActivityAt);
+  return latestUpdatedAt && latestUpdatedAt !== item?.updatedAt
+    ? { ...item, updatedAt: latestUpdatedAt }
+    : item;
+};
+
+const touchTripRootUpdatedAt = async ({
+  tripId,
+  user,
+  clientId = '',
+  operation,
+  entityId = '',
+  now = new Date().toISOString()
+}) => {
+  try {
+    await updateDoc(getTripDocRef(tripId), buildTripFieldUpdateMeta({
+      user,
+      clientId,
+      operation,
+      entityId,
+      now
+    }));
+  } catch (error) {
+    logger.warn('Trip root timestamp touch failed after split document write.', error);
+  }
+};
 
 const commitInChunks = async (operations, chunkSize = 240) => {
   for (let index = 0; index < operations.length; index += chunkSize) {
@@ -367,6 +436,14 @@ const writeTripEventDocument = async ({
       createdAt: now
     }, { merge: true });
   }
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.event,
+    entityId: eventId,
+    now
+  });
 
   return normalizeTripEventDocumentForApp(payload);
 };
@@ -425,7 +502,7 @@ export const moveTripEventDocument = async ({
   const eventRef = getTripEventDocRef(tripId, eventId);
   const now = new Date().toISOString();
 
-  return runTransaction(db, async (transaction) => {
+  const result = await runTransaction(db, async (transaction) => {
     const snapshot = await transaction.get(eventRef);
     const payload = buildTripEventDocument({
       event: {
@@ -449,9 +526,17 @@ export const moveTripEventDocument = async ({
         createdAt: now
       }, { merge: true });
     }
-
     return normalizeTripEventDocumentForApp(payload);
   });
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.event,
+    entityId: eventId,
+    now
+  });
+  return result;
 };
 
 const writeTripChecklistItemDocument = async ({
@@ -488,6 +573,14 @@ const writeTripChecklistItemDocument = async ({
       createdAt: now
     }, { merge: true });
   }
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.checklistItem,
+    entityId: itemId,
+    now
+  });
 
   return normalizeChecklistItemDocumentForApp(payload);
 };
@@ -547,7 +640,7 @@ export const moveTripChecklistItemDocument = async ({
   const itemRef = getTripChecklistItemDocRef(tripId, itemId);
   const now = new Date().toISOString();
 
-  return runTransaction(db, async (transaction) => {
+  const result = await runTransaction(db, async (transaction) => {
     const snapshot = await transaction.get(itemRef);
     const payload = buildChecklistItemDocument({
       item: {
@@ -571,9 +664,17 @@ export const moveTripChecklistItemDocument = async ({
         createdAt: now
       }, { merge: true });
     }
-
     return normalizeChecklistItemDocumentForApp(payload);
   });
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.checklistItem,
+    entityId: itemId,
+    now
+  });
+  return result;
 };
 
 const writeTripShoppingItemDocument = async ({
@@ -608,6 +709,14 @@ const writeTripShoppingItemDocument = async ({
       createdAt: now
     }, { merge: true });
   }
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.shoppingItem,
+    entityId: itemId,
+    now
+  });
 
   return normalizeShoppingItemDocumentForApp(payload);
 };
@@ -662,7 +771,7 @@ export const moveTripShoppingItemDocument = async ({
   const itemRef = getTripShoppingItemDocRef(tripId, itemId);
   const now = new Date().toISOString();
 
-  return runTransaction(db, async (transaction) => {
+  const result = await runTransaction(db, async (transaction) => {
     const snapshot = await transaction.get(itemRef);
     const payload = buildShoppingItemDocument({
       item: {
@@ -685,9 +794,17 @@ export const moveTripShoppingItemDocument = async ({
         createdAt: now
       }, { merge: true });
     }
-
     return normalizeShoppingItemDocumentForApp(payload);
   });
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.shoppingItem,
+    entityId: itemId,
+    now
+  });
+  return result;
 };
 
 export const updateTripMetaFields = async ({
@@ -1014,6 +1131,14 @@ const writeTripExpenseDocument = async ({
       createdAt: now
     }, { merge: true });
   }
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.expense,
+    entityId: expenseId,
+    now
+  });
 
   return normalizeTripExpenseDocumentForApp(payload);
 };
@@ -1086,6 +1211,14 @@ const writeTripPlaceIdeaDocument = async ({
       createdAt: now
     }, { merge: true });
   }
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.placeIdea,
+    entityId: placeId,
+    now
+  });
 
   return normalizeTripPlaceIdeaDocumentForApp(payload);
 };
@@ -1163,6 +1296,14 @@ const writeTripShoppingCategoryDocument = async ({
       createdAt: now
     }, { merge: true });
   }
+  await touchTripRootUpdatedAt({
+    tripId,
+    user,
+    clientId,
+    operation: TRIP_DOCUMENT_TOUCH_OPERATIONS.shoppingCategory,
+    entityId: categoryId,
+    now
+  });
 
   return normalizeShoppingCategoryDocumentForApp(document);
 };
@@ -1323,12 +1464,13 @@ export const listTrips = async ({ user } = {}) => {
   requireUser(user);
   const tripsById = new Map();
   const ownedSnapshot = await getDocs(query(collection(db, 'trips'), where('access.ownerUid', '==', user.uid)));
-  ownedSnapshot.docs.forEach((snapshotDoc) => {
-    tripsById.set(snapshotDoc.id, {
+  await Promise.all(ownedSnapshot.docs.map(async (snapshotDoc) => {
+    const item = await enrichTripListItemWithActivity({
       ...buildTripListItem(snapshotDoc.id, snapshotDoc.data()),
       accessRole: 'owner'
     });
-  });
+    tripsById.set(snapshotDoc.id, item);
+  }));
 
   const memberSnapshot = await getDocs(query(collectionGroup(db, 'members'), where('uid', '==', user.uid)));
   await Promise.all(memberSnapshot.docs.map(async (memberDoc) => {
@@ -1336,10 +1478,11 @@ export const listTrips = async ({ user } = {}) => {
     if (!tripRef || tripsById.has(tripRef.id)) return;
     const tripSnap = await getDoc(tripRef);
     if (tripSnap.exists()) {
-      tripsById.set(tripSnap.id, {
+      const item = await enrichTripListItemWithActivity({
         ...buildTripListItem(tripSnap.id, tripSnap.data()),
         accessRole: memberDoc.data()?.role || 'view'
       });
+      tripsById.set(tripSnap.id, item);
     }
   }));
 

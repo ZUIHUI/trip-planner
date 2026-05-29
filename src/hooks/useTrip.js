@@ -25,6 +25,7 @@ import {
 import {
   isSaveResultCurrent,
   isOwnPlaceVoteWrite,
+  isTripDocumentTouchOperation,
   mergePlaceVoteIntoPlacePool,
   shouldKeepLocalChangesForSameClientSnapshot,
   shouldTreatRemoteAsConflict
@@ -216,6 +217,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   const localChangeSeqRef = useRef(0);
   const applyingRemoteRef = useRef(false);
   const baseRevisionRef = useRef(0);
+  const hasAppliedRootSnapshotRef = useRef(false);
   const placePoolRef = useRef([]);
   const tripDetailDocumentsRef = useRef([]);
   const tripSettingDocumentsRef = useRef([]);
@@ -314,6 +316,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       setIsLoading(true);
       setAccessError('');
       setSaveError(null);
+      hasAppliedRootSnapshotRef.current = false;
 
       try {
         const legacyRaw = !localStorage.getItem(storageKey) ? localStorage.getItem(LEGACY_TRIP_STORAGE_KEY) : null;
@@ -353,6 +356,23 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
               uid,
               clientId: clientIdRef.current
             });
+            const documentTouchWrite = isTripDocumentTouchOperation(remoteSync);
+
+            if (documentTouchWrite && hasAppliedRootSnapshotRef.current) {
+              const remoteRevision = Number(remoteSync.revision);
+              const nextRevision = Number.isFinite(remoteRevision)
+                ? Math.max(remoteRevision, Number(baseRevisionRef.current || 0))
+                : Number(baseRevisionRef.current || 0);
+              baseRevisionRef.current = nextRevision;
+              setSyncMeta((currentSyncMeta) => ({
+                ...currentSyncMeta,
+                ...remoteSync,
+                revision: nextRevision
+              }));
+              setSyncConflict(null);
+              setIsLoading(false);
+              return;
+            }
 
             if (hasLocalChanges && ownPlaceVoteWrite) {
               const mergeResult = mergePlaceVoteIntoPlacePool(
@@ -422,6 +442,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
               shoppingCategoryDocuments: tripShoppingCategoryDocumentsRef.current
             });
             applyingRemoteRef.current = false;
+            hasAppliedRootSnapshotRef.current = true;
             baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
             hasLocalChangesRef.current = false;
             setSyncConflict(null);
@@ -725,6 +746,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
       shoppingCategoryDocuments: tripShoppingCategoryDocumentsRef.current
     });
     applyingRemoteRef.current = false;
+    hasAppliedRootSnapshotRef.current = true;
     baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
     hasLocalChangesRef.current = false;
     return true;
@@ -808,6 +830,7 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
         shoppingCategoryDocuments: tripShoppingCategoryDocumentsRef.current
       });
       applyingRemoteRef.current = false;
+      hasAppliedRootSnapshotRef.current = true;
       baseRevisionRef.current = Number(normalized.syncMeta?.revision || 0);
       hasLocalChangesRef.current = false;
       setSyncConflict(null);

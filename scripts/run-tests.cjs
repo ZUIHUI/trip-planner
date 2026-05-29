@@ -65,12 +65,15 @@ const {
 const { buildDayReadiness, buildEventReadiness } = require('../src/utils/eventReadiness.js');
 const {
   PLACE_VOTE_OPERATION,
+  TRIP_DOCUMENT_TOUCH_OPERATIONS,
   isSaveResultCurrent,
   isOwnPlaceVoteWrite,
+  isTripDocumentTouchOperation,
   mergePlaceVoteIntoPlacePool,
   shouldKeepLocalChangesForSameClientSnapshot,
   shouldTreatRemoteAsConflict
 } = require('../src/utils/tripSync.js');
+const { getLatestIsoTimestamp } = require('../src/utils/tripTimestamps.js');
 const { dateInputProps, timeInputProps } = require('../src/utils/mobileInputProps.js');
 const {
   buildFlightDateValue,
@@ -778,6 +781,23 @@ test('does not create a conflict for same-client place vote snapshots', () => {
     uid: 'user-1',
     clientId: 'client-1'
   }), false);
+});
+
+test('recognizes split document writes as root timestamp touch snapshots', () => {
+  Object.values(TRIP_DOCUMENT_TOUCH_OPERATIONS).forEach((operation) => {
+    assert.equal(isTripDocumentTouchOperation({ updatedByOperation: operation }), true);
+  });
+  assert.equal(isTripDocumentTouchOperation({ updatedByOperation: 'trip-details' }), false);
+  assert.equal(isTripDocumentTouchOperation({ updatedByOperation: PLACE_VOTE_OPERATION }), false);
+});
+
+test('chooses the latest valid trip activity timestamp', () => {
+  assert.equal(getLatestIsoTimestamp(
+    '2026-05-28T10:00:00.000Z',
+    '2026-05-29T09:30:00.000Z',
+    'not-a-date'
+  ), '2026-05-29T09:30:00.000Z');
+  assert.equal(getLatestIsoTimestamp(['', null, undefined]), '');
 });
 
 test('keeps unsaved local edits for same-client save snapshots', () => {

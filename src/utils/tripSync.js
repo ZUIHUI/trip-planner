@@ -1,5 +1,20 @@
 export const PLACE_VOTE_OPERATION = 'place-vote';
 
+export const TRIP_DOCUMENT_TOUCH_OPERATIONS = Object.freeze({
+  event: 'trip-event',
+  checklistItem: 'trip-checklist-item',
+  shoppingItem: 'trip-shopping-item',
+  expense: 'trip-expense',
+  placeIdea: 'trip-place-idea',
+  shoppingCategory: 'trip-shopping-category'
+});
+
+const TRIP_DOCUMENT_TOUCH_OPERATION_VALUES = Object.freeze(Object.values(TRIP_DOCUMENT_TOUCH_OPERATIONS));
+
+export const isTripDocumentTouchOperation = (syncMeta = {}) => (
+  TRIP_DOCUMENT_TOUCH_OPERATION_VALUES.includes(String(syncMeta?.updatedByOperation || ''))
+);
+
 export const isSameClientWrite = (syncMeta = {}, { uid = '', clientId = '' } = {}) => {
   const localUid = String(uid || '').trim();
   const localClientId = String(clientId || '').trim();
