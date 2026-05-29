@@ -1238,6 +1238,42 @@ test('groups presence editing targets by event and trip detail section', () => {
   );
 });
 
+test('groups top-level presence editing targets without connection targets', () => {
+  const state = buildPresenceUiState({
+    currentUser: { uid: 'owner-1', displayName: 'Owner' },
+    onlineMembers: [
+      {
+        uid: 'owner-1',
+        online: true,
+        editingTarget: 'trip-details:meta',
+        profile: { displayName: 'Owner' },
+        connections: []
+      },
+      {
+        uid: 'member-1',
+        online: true,
+        editingTarget: 'trip-details:flights:inbound',
+        profile: { displayName: 'Ada' },
+        connections: []
+      },
+      {
+        uid: 'member-2',
+        online: true,
+        editingTarget: 'event:event-2',
+        profile: { displayName: 'Ben' },
+        connections: []
+      }
+    ]
+  });
+
+  assert.deepEqual(
+    state.editingByTarget['trip-details:flights:inbound'].map((member) => member.uid),
+    ['member-1']
+  );
+  assert.deepEqual(state.editingByEventId['event-2'].map((member) => member.uid), ['member-2']);
+  assert.equal(getEditingMembersForTarget(state.editingByTarget, 'trip-details:meta').length, 0);
+});
+
 test('labels supported editing targets', () => {
   assert.equal(getEditingTargetLabel('trip-details:meta'), '正在編輯旅程資訊');
   assert.equal(getEditingTargetLabel('trip-details:accommodation'), '正在編輯住宿資訊');

@@ -248,10 +248,12 @@ export const buildPresenceUiState = ({
     if (!presence?.uid || presence.uid === currentUid) return;
     const person = normalizePresencePerson(presence, membersByUid, now);
     const connections = Array.isArray(presence.connections) ? presence.connections : [];
+    const targets = [
+      String(presence.editingTarget || ''),
+      ...connections.map((connection) => String(connection?.editingTarget || ''))
+    ].filter(Boolean);
 
-    connections.forEach((connection) => {
-      const target = String(connection?.editingTarget || '');
-      if (!target) return;
+    Array.from(new Set(targets)).forEach((target) => {
       const targetPerson = {
         ...person,
         editingTarget: target,
