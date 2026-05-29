@@ -132,7 +132,7 @@ const IdeasTab = () => {
   ]);
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
+    <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-40 sm:px-6 sm:pb-24 lg:max-w-5xl lg:px-8">
       <PlacePoolCard
         tripId={tripId}
         placePool={placePool}

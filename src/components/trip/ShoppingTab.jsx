@@ -253,7 +253,7 @@ const ShoppingTab = () => {
   ]);
 
   return (
-    <div className="mt-2 pb-20">
+    <div className="mt-2 pb-44 sm:pb-28 lg:pb-20">
       <ShoppingListContent
         ref={shoppingListRef}
         shoppingList={visibleShoppingList}

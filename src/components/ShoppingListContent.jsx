@@ -528,6 +528,8 @@ const ShoppingItemFormModal = ({
                 min="1"
                 value={formData.quantity}
                 onFocus={(event) => event.target.select()}
+                onClick={(event) => event.currentTarget.select()}
+                onMouseUp={(event) => event.preventDefault()}
                 onChange={(event) => setFormData({ ...formData, quantity: parseInt(event.target.value, 10) || 1 })}
               />
             </Field>
@@ -587,7 +589,7 @@ const ShoppingItemFormModal = ({
           </Field>
         </section>
 
-        <div className="sticky bottom-0 -mx-4 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
+        <div className="sticky bottom-0 -mx-4 border-t border-slate-100 bg-white/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
           <Button type="submit" className="w-full">
             {editingId ? '儲存修改' : '加入購物清單'}
           </Button>

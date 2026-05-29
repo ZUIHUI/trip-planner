@@ -1577,7 +1577,7 @@ const TripDetailPage = () => {
 
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
-    <div className={`tp-page-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "72px" }}>
+    <div className={`tp-page-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "calc(72px + env(safe-area-inset-bottom))" }}>
       <Header 
         details={tripDetails}
         onGoToTrips={handleBackToTrips}
@@ -1588,7 +1588,7 @@ const TripDetailPage = () => {
         presenceUi={presenceUi}
       />
 
-      <PageContainer className="pb-24 lg:pb-36">
+      <PageContainer className="pb-36 lg:pb-36">
         <div className="pt-4">
           {isReadOnly && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">

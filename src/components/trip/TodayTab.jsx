@@ -32,7 +32,9 @@ import {
   getEventDestination,
   getEventLocationText,
   getEventMemoText,
+  getLocalIsoDate,
   pickNextEvent,
+  getTripDayIsoDate,
   sortEventsByTime
 } from '../../utils/tripEvents';
 import { getAirportDayFlights } from '../../utils/airportDayFlights';
@@ -72,14 +74,18 @@ const buildDayStatus = ({
   routeStops,
   checklists,
   nextEvent,
+  dayIsoDate = '',
   now = new Date()
 }) => {
   const currentMinutes = getCurrentTimeMinutes(now);
+  const isCurrentTripDay = !dayIsoDate || dayIsoDate === getLocalIsoDate(now);
   const timedEvents = events
     .map((event) => ({ event, minutes: readEventTimeMinutes(event) }))
     .filter((item) => item.minutes !== null)
     .sort((a, b) => a.minutes - b.minutes);
-  const completedTimedEvents = timedEvents.filter((item) => item.minutes < currentMinutes).length;
+  const completedTimedEvents = isCurrentTripDay
+    ? timedEvents.filter((item) => item.minutes < currentMinutes).length
+    : 0;
   const completedEvents = timedEvents.length
     ? completedTimedEvents
     : 0;
@@ -823,7 +829,14 @@ const TodayTab = ({ onTabChange }) => {
     () => sortEventsByTime(dayEvents),
     [dayEvents]
   );
-  const nextEvent = useMemo(() => pickNextEvent(events), [events]);
+  const selectedDayIsoDate = useMemo(
+    () => getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay),
+    [tripDetails?.dateRange?.start, selectedDay]
+  );
+  const nextEvent = useMemo(
+    () => pickNextEvent(events, new Date(), selectedDayIsoDate),
+    [events, selectedDayIsoDate]
+  );
   const routeStops = useMemo(() => dayEvents.map(getRouteStop).filter(Boolean), [dayEvents]);
   const origin = currentLocation?.locationName ||
     tripDetails?.accommodation?.address ||
@@ -849,9 +862,10 @@ const TodayTab = ({ onTabChange }) => {
       events,
       routeStops,
       checklists,
-      nextEvent
+      nextEvent,
+      dayIsoDate: selectedDayIsoDate
     }),
-    [events, routeStops, checklists, nextEvent]
+    [events, routeStops, checklists, nextEvent, selectedDayIsoDate]
   );
   const airportDayFlights = useMemo(
     () => getAirportDayFlights({ itinerary, selectedDay, tripDetails }),

@@ -80,7 +80,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-cyan-100 bg-white/95 pb-2 shadow-[0_-18px_44px_-34px_rgba(14,165,233,0.72)] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(960px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-cyan-100 lg:pb-0 dark:border-slate-800 dark:bg-slate-900/95 ${
+        className={`fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-cyan-100 bg-white/95 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-18px_44px_-34px_rgba(14,165,233,0.72)] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(960px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-cyan-100 lg:pb-0 dark:border-slate-800 dark:bg-slate-900/95 ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
@@ -138,7 +138,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
         </div>
       </nav>
 
-      <div className="h-16 lg:h-24" />
+      <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:h-24" />
     </>
   );
 };

@@ -30,7 +30,12 @@ const {
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
 const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
-const { getEventLocationText, normalizeEventTime } = require('../src/utils/tripEvents.js');
+const {
+  getEventLocationText,
+  getTripDayIsoDate,
+  normalizeEventTime,
+  pickNextEvent
+} = require('../src/utils/tripEvents.js');
 const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
 const {
   applyTripEventDocumentsToItinerary,
@@ -165,6 +170,30 @@ test('uses manual event locations when saved place details are empty', () => {
   assert.equal(state.routeStopCount, 1);
   assert.equal(state.routeStops[0].text, 'Taipei Main Station');
   assert.equal(state.routeStops[0].time, '10:15');
+});
+
+test('picks next event with trip-day dates instead of only wall-clock time', () => {
+  const events = [
+    { id: 'late', title: 'Late stop', time: '12:00' },
+    { id: 'early', title: 'Early stop', time: '10:00' }
+  ];
+  const now = new Date(2026, 4, 29, 11, 30);
+
+  assert.equal(getTripDayIsoDate('2026/5/29', 3), '2026-05-31');
+  assert.equal(pickNextEvent(events, now, '2026-06-02').id, 'early');
+  assert.equal(pickNextEvent(events, now, '2026-05-29').id, 'late');
+  assert.equal(pickNextEvent(events, now, '').id, 'late');
+});
+
+test('passes trip-day dates into travel next-event surfaces', () => {
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+  const nextWidgetSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/NextEventWidget.jsx'), 'utf8');
+  const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/SummaryTab.jsx'), 'utf8');
+
+  assert.match(todaySource, /getTripDayIsoDate\(tripDetails\?\.dateRange\?\.start,\s*selectedDay\)/);
+  assert.match(todaySource, /pickNextEvent\(events,\s*new Date\(\),\s*selectedDayIsoDate\)/);
+  assert.match(nextWidgetSource, /pickNextEvent\(events,\s*new Date\(\),\s*selectedDayIsoDate\)/);
+  assert.match(summarySource, /getSummaryNextEvent\(itinerary,\s*selectedDay,\s*tripDetails\)/);
 });
 
 test('moves itinerary events without sorting by time', () => {
@@ -662,6 +691,7 @@ test('keeps companion invite flows as an explicit navigation destination', () =>
   const detailPageSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
   const bottomNavigationSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/BottomNavigation.jsx'), 'utf8');
   const moreTabSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
+  const shareCardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ShareCollaborationCard.jsx'), 'utf8');
 
   assert.match(detailPageSource, /MORE_CHILD_TABS = new Set\(\[[^\]]*'companions'/);
   assert.match(detailPageSource, /activeTab === 'companions'/);
@@ -670,6 +700,7 @@ test('keeps companion invite flows as an explicit navigation destination', () =>
   assert.match(moreTabSource, /section === 'companions'/);
   assert.match(moreTabSource, /onTabChange\?\.\('companions'\)/);
   assert.doesNotMatch(moreTabSource, /trip-collaboration-card/);
+  assert.match(shareCardSource, /isInviteLoading \? '邀請碼載入中\.\.\.'/);
 });
 
 test('keeps high-friction mobile form controls explicit', () => {
@@ -677,10 +708,24 @@ test('keeps high-friction mobile form controls explicit', () => {
   const shoppingSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ShoppingListContent.jsx'), 'utf8');
   const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/SummaryTab.jsx'), 'utf8');
   const logisticsSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/LogisticsTab.jsx'), 'utf8');
+  const bottomNavigationSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/BottomNavigation.jsx'), 'utf8');
+  const ideasSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/IdeasTab.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const shoppingTabSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ShoppingTab.jsx'), 'utf8');
+  const editEventSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/EditEventForm.jsx'), 'utf8');
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
 
   assert.match(placePoolSource, /id="place-pool-target-day"/);
   assert.match(placePoolSource, /setTargetDay\(Number\(event\.target\.value\)\)/);
   assert.match(shoppingSource, /onFocus=\{\(event\) => event\.target\.select\(\)\}/);
+  assert.match(shoppingSource, /onClick=\{\(event\) => event\.currentTarget\.select\(\)\}/);
+  assert.match(shoppingSource, /onMouseUp=\{\(event\) => event\.preventDefault\(\)\}/);
+  assert.match(bottomNavigationSource, /env\(safe-area-inset-bottom\)/);
+  assert.match(tripDetailSource, /--footer-nav-height[\s\S]*env\(safe-area-inset-bottom\)/);
+  assert.match(ideasSource, /pb-40/);
+  assert.match(itinerarySource, /pb-40/);
+  assert.match(shoppingTabSource, /pb-44/);
+  assert.match(editEventSource, /fixed inset-x-0 bottom-0/);
   assert.match(summarySource, /budgetSummaryText/);
   assert.match(summarySource, /totalCost\.toLocaleString\(\)/);
   assert.match(logisticsSource, /compactSummary/);

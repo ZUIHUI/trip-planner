@@ -99,7 +99,7 @@ const ItineraryTab = () => {
         </div>
       )}
 
-      <div className="mt-4 px-4 pb-24 sm:px-6 lg:px-8">
+      <div className="mt-4 px-4 pb-40 sm:px-6 sm:pb-28 lg:px-8">
         {shouldShowCostToggle && (
           <div className="flex justify-stretch sm:justify-end">
             <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={toggleSecondaryModules} aria-expanded={showSecondaryModules}>

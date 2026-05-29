@@ -25,7 +25,8 @@ import {
   formatEventTime,
   getEventDestination,
   getEventLocationText,
-  normalizeEventTime
+  getTripDayIsoDate,
+  pickNextEvent
 } from '../../utils/tripEvents';
 
 const emptyText = '未設定';
@@ -40,17 +41,16 @@ const eventTypeLabels = {
   other: '其他'
 };
 
-const getSummaryNextEvent = (itinerary = [], selectedDay = 1) => {
+const getSummaryNextEvent = (itinerary = [], selectedDay = 1, tripDetails = {}) => {
   const day = itinerary.find((item) => item.day === selectedDay) || itinerary[0] || null;
-  const events = [...(day?.events || [])].sort((a, b) => normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time)));
+  const events = day?.events || [];
 
   if (!day || events.length === 0) {
     return { day, event: null };
   }
 
-  const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const nextEvent = events.find((event) => normalizeEventTime(event.time) > currentTime) || events[0];
+  const dayIsoDate = getTripDayIsoDate(tripDetails?.dateRange?.start, day.day || selectedDay);
+  const nextEvent = pickNextEvent(events, new Date(), dayIsoDate);
 
   return { day, event: nextEvent };
 };
@@ -733,8 +733,8 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
   const [showMoreOverview, setShowMoreOverview] = useState(false);
 
   const nextSummary = useMemo(
-    () => getSummaryNextEvent(itinerary, selectedDay),
-    [itinerary, selectedDay]
+    () => getSummaryNextEvent(itinerary, selectedDay, tripDetails),
+    [itinerary, selectedDay, tripDetails]
   );
 
   const readinessItems = useMemo(

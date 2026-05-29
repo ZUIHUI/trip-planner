@@ -8,6 +8,7 @@ import {
   getEventDestination,
   getEventLocationText,
   getEventMemoText,
+  getTripDayIsoDate,
   pickNextEvent
 } from '../utils/tripEvents';
 
@@ -27,7 +28,14 @@ const NextEventWidget = ({
   );
 
   const events = currentDayData?.events || [];
-  const nextEvent = useMemo(() => pickNextEvent(events), [events]);
+  const selectedDayIsoDate = useMemo(
+    () => getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay),
+    [tripDetails?.dateRange?.start, selectedDay]
+  );
+  const nextEvent = useMemo(
+    () => pickNextEvent(events, new Date(), selectedDayIsoDate),
+    [events, selectedDayIsoDate]
+  );
   const nextLocationText = getEventLocationText(nextEvent);
   const weatherLocation = nextLocationText || tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '東京';
 

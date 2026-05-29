@@ -167,7 +167,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="min-w-0 max-w-full space-y-4 overflow-x-hidden text-slate-700 dark:text-slate-200">
+    <form onSubmit={handleSubmit} className="min-w-0 max-w-full space-y-4 overflow-x-hidden pb-24 text-slate-700 dark:text-slate-200 sm:pb-0">
       {formError && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200" role="alert">
           {formError}
@@ -390,7 +390,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
       </FormSection>
 
       {readOnly ? (
-        <div className="sticky bottom-0 z-10 -mx-4 grid min-w-0 gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:grid-cols-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
+        <div className="fixed inset-x-0 bottom-0 z-[120] grid min-w-0 gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:grid-cols-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 sm:pb-1 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
           <Button type="button" variant="secondary" onClick={onCancel} className="w-full">
             關閉
           </Button>
@@ -401,7 +401,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           )}
         </div>
       ) : (
-        <div className="sticky bottom-0 z-10 -mx-4 grid min-w-0 gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:grid-cols-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
+        <div className="fixed inset-x-0 bottom-0 z-[120] grid min-w-0 gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] supports-[backdrop-filter]:backdrop-blur sm:static sm:mx-0 sm:grid-cols-2 sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 sm:pb-1 dark:border-slate-800 dark:bg-slate-900/95 sm:dark:bg-transparent">
           <Button type="button" variant="secondary" onClick={onCancel} className="w-full">
             取消
           </Button>

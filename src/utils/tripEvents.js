@@ -36,9 +36,35 @@ export const sortEventsByTime = (events = []) => (
   [...events].sort((a, b) => normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time)))
 );
 
-export const pickNextEvent = (events = [], now = new Date()) => {
+export const getLocalIsoDate = (date = new Date()) => (
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+);
+
+export const normalizeIsoDate = (value) => {
+  const text = String(value || '').trim();
+  const match = text.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (!match) return '';
+  return `${match[1]}-${String(match[2]).padStart(2, '0')}-${String(match[3]).padStart(2, '0')}`;
+};
+
+export const getTripDayIsoDate = (startDate = '', selectedDay = 1) => {
+  const normalizedStartDate = normalizeIsoDate(startDate);
+  const match = normalizedStartDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return '';
+
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  date.setDate(date.getDate() + Math.max(0, Number(selectedDay || 1) - 1));
+  return getLocalIsoDate(date);
+};
+
+export const pickNextEvent = (events = [], now = new Date(), eventDate = '') => {
   const sortedEvents = sortEventsByTime(events);
   if (!sortedEvents.length) return null;
+
+  const normalizedEventDate = normalizeIsoDate(eventDate);
+  if (normalizedEventDate && normalizedEventDate !== getLocalIsoDate(now)) {
+    return sortedEvents[0];
+  }
 
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   return sortedEvents.find((event) => normalizeEventTime(event.time) > currentTime) || sortedEvents[0];

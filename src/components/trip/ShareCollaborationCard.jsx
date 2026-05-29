@@ -138,6 +138,7 @@ const ShareCollaborationCard = ({
   const settings = normalizeSettings(collaboration);
   const [message, setMessage] = useState('');
   const [isWorking, setIsWorking] = useState(false);
+  const [isInviteLoading, setIsInviteLoading] = useState(false);
   const [displayNameDraft, setDisplayNameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [invite, setInvite] = useState(defaultInvite);
   const [selectedPermission, setSelectedPermission] = useState(settings.permission);
@@ -161,6 +162,7 @@ const ShareCollaborationCard = ({
 
     let cancelled = false;
     setIsWorking(true);
+    setIsInviteLoading(true);
     getTripInviteCode({ tripId, user: currentUser })
       .then((result) => {
         if (cancelled) return;
@@ -178,7 +180,10 @@ const ShareCollaborationCard = ({
         }
       })
       .finally(() => {
-        if (!cancelled) setIsWorking(false);
+        if (!cancelled) {
+          setIsWorking(false);
+          setIsInviteLoading(false);
+        }
       });
 
     return () => {
@@ -393,7 +398,7 @@ const ShareCollaborationCard = ({
               <Input
                 id="trip-invite-code"
                 {...inviteCodeInputProps}
-                value={invite.enabled && invite.code ? invite.code : '尚未建立邀請碼'}
+                value={isInviteLoading ? '邀請碼載入中...' : invite.enabled && invite.code ? invite.code : '尚未建立邀請碼'}
                 readOnly
                 className="font-mono text-lg font-black uppercase tracking-widest"
                 onFocus={(event) => event.target.select()}
