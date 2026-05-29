@@ -10,6 +10,7 @@ import {
   ShoppingCart,
   Star,
   Ticket,
+  UsersRound,
 } from 'lucide-react';
 
 const mobileTabs = [
@@ -28,7 +29,8 @@ const desktopTabs = [
   { id: 'preTrip', label: '行前', icon: CheckSquare },
   { id: 'packing', label: '行李', icon: Luggage },
   { id: 'expenses', label: '記帳', icon: DollarSign },
-  { id: 'shopping', label: '購物', icon: ShoppingCart }
+  { id: 'shopping', label: '購物', icon: ShoppingCart },
+  { id: 'companions', label: '旅伴', icon: UsersRound }
 ];
 
 const mobileMoreTabIds = [
@@ -38,6 +40,7 @@ const mobileMoreTabIds = [
   'packing',
   'expenses',
   'shopping',
+  'companions',
   'more'
 ];
 

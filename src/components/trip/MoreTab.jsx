@@ -73,7 +73,7 @@ const ModuleSection = ({ title, children }) => (
   </Card>
 );
 
-const MoreTab = ({ onTabChange, onOpenSettings }) => {
+const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
   const {
     tripId,
     tripDetails,
@@ -97,6 +97,44 @@ const MoreTab = ({ onTabChange, onOpenSettings }) => {
   const eventCount = (Array.isArray(itinerary) ? itinerary : [])
     .reduce((total, day) => total + (day.events?.length || 0), 0);
   const onlineCount = presenceUi?.otherOnlineMembers?.length || 0;
+  const collaborationCard = (
+    <ShareCollaborationCard
+      tripId={tripId}
+      collaboration={collaboration}
+      setCollaboration={setCollaboration}
+      currentUser={currentUser}
+      userProfile={userProfile}
+      updateDisplayName={updateDisplayName}
+      isSharedSession={isSharedSession}
+      accessRole={accessRole}
+      members={members}
+      onlineMembers={onlineMembers}
+      presenceByUid={presenceByUid}
+      presenceError={presenceError}
+    />
+  );
+
+  if (section === 'companions') {
+    return (
+      <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
+        <Card className="p-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="tp-icon-chip h-11 w-11">
+              <UsersRound size={20} />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-lg font-black text-slate-950 dark:text-white">旅伴與邀請</h2>
+              <p className="mt-1 break-words text-sm font-semibold text-slate-500 dark:text-slate-400">
+                管理邀請碼、旅伴名單、在線狀態與我的顯示名稱。
+              </p>
+            </div>
+          </div>
+        </Card>
+        {collaborationCard}
+        <div className="h-2" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
@@ -154,7 +192,7 @@ const MoreTab = ({ onTabChange, onOpenSettings }) => {
           title="旅伴與邀請"
           description="查看旅伴、在線狀態、邀請碼與我的顯示名稱。"
           meta={onlineCount ? `${onlineCount} 在線` : `${members?.length || 0} 位旅伴`}
-          onClick={() => document.getElementById('trip-collaboration-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          onClick={() => onTabChange?.('companions')}
         />
         <ModuleButton
           icon={Settings}
@@ -164,23 +202,6 @@ const MoreTab = ({ onTabChange, onOpenSettings }) => {
           onClick={onOpenSettings}
         />
       </ModuleSection>
-
-      <div id="trip-collaboration-card" className="scroll-mt-24">
-        <ShareCollaborationCard
-          tripId={tripId}
-          collaboration={collaboration}
-          setCollaboration={setCollaboration}
-          currentUser={currentUser}
-          userProfile={userProfile}
-          updateDisplayName={updateDisplayName}
-          isSharedSession={isSharedSession}
-          accessRole={accessRole}
-          members={members}
-          onlineMembers={onlineMembers}
-          presenceByUid={presenceByUid}
-          presenceError={presenceError}
-        />
-      </div>
 
       <div className="h-2" />
     </div>

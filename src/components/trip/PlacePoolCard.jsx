@@ -5,7 +5,7 @@ import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { togglePlaceVote } from '../../services/tripService';
 import { mergeRealtimeVotesIntoPlaces } from '../../utils/tripRealtime';
 import { normalizeEventTime } from '../../utils/tripEvents';
-import { Badge, Button, Card, Field } from '../ui';
+import { Badge, Button, Card, Field, Select } from '../ui';
 
 const makePlaceId = () => `place-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -284,6 +284,21 @@ const PlacePoolCard = ({
   const topVoteScore = useMemo(() => safePlacePool.reduce((maxScore, place) => (
     Math.max(maxScore, getVoteScore(place.votes))
   ), 0), [safePlacePool]);
+  const dayOptions = useMemo(() => (Array.isArray(itinerary) ? itinerary : [])
+    .map((day) => Number(day?.day))
+    .filter((dayNumber) => Number.isFinite(dayNumber) && dayNumber > 0), [itinerary]);
+  const normalizedSelectedDay = Number(selectedDay || dayOptions[0] || 1);
+  const [targetDay, setTargetDay] = React.useState(
+    dayOptions.includes(normalizedSelectedDay) ? normalizedSelectedDay : (dayOptions[0] || 1)
+  );
+
+  React.useEffect(() => {
+    const nextDay = dayOptions.includes(normalizedSelectedDay)
+      ? normalizedSelectedDay
+      : (dayOptions[0] || 1);
+    setTargetDay(nextDay);
+  }, [dayOptions, normalizedSelectedDay]);
+
   const visiblePlaces = useMemo(() => safePlacePool
     .slice()
     .sort((a, b) => {
@@ -292,7 +307,6 @@ const PlacePoolCard = ({
       return String(b.addedAt || '').localeCompare(String(a.addedAt || ''));
     })
     .slice(0, 8), [safePlacePool]);
-  const targetDay = selectedDay || itinerary[0]?.day || 1;
   const canAdd = canManageIdeas && Boolean(String(draftText || '').trim() || selectedPlace);
   const votesEnabled = collaboration?.votesEnabled !== false;
   const voterId = currentUser?.uid || '';
@@ -380,6 +394,27 @@ const PlacePoolCard = ({
         </div>
         <Badge variant="muted">{safePlacePool.length} 個</Badge>
       </div>
+
+      {canScheduleIdeas && dayOptions.length > 0 && (
+        <div className="mb-3 flex min-w-0 flex-col gap-2 rounded-lg border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/60 dark:bg-sky-950/25 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2 text-sm font-black text-sky-800 dark:text-sky-200">
+            <CalendarPlus size={16} className="shrink-0" />
+            <span className="min-w-0 truncate">目前排入：Day {targetDay}</span>
+          </div>
+          <div className="min-w-0 sm:w-36">
+            <label className="sr-only" htmlFor="place-pool-target-day">選擇排入日期</label>
+            <Select
+              id="place-pool-target-day"
+              value={targetDay}
+              onChange={(event) => setTargetDay(Number(event.target.value))}
+            >
+              {dayOptions.map((dayNumber) => (
+                <option key={dayNumber} value={dayNumber}>Day {dayNumber}</option>
+              ))}
+            </Select>
+          </div>
+        </div>
+      )}
 
       {canManageIdeas ? (
         <div className="grid gap-3">

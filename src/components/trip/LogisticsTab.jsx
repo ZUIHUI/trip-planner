@@ -824,6 +824,15 @@ const FlightCard = ({
       ? `用旅程日期 ${lookupAvailability.normalizedDate} 查航班`
       : '輸入航班號後可用旅程日期查航班';
   const editingTarget = getFlightEditingTarget(direction);
+  const compactRoute = flight.dep || flight.arr
+    ? `${flight.dep || '未設定'} -> ${flight.arr || '未設定'}`
+    : '';
+  const compactTime = flight.departureTime || flight.arrivalTime
+    ? `${flight.departureTime || '未設定'} / ${flight.arrivalTime || '未設定'}`
+    : '';
+  const compactSummary = [flight.airline, compactRoute, flight.date, compactTime]
+    .filter(Boolean)
+    .join(' | ');
 
   return (
     <div
@@ -842,6 +851,11 @@ const FlightCard = ({
               {flight.code ? <Badge variant="info">{flight.code}</Badge> : <Badge variant="muted">未設定</Badge>}
             </div>
             <p className="mt-1 break-words text-xs leading-5 text-slate-500 dark:text-slate-400">{meta.helper}</p>
+            {compact && compactSummary && (
+              <p className="mt-2 max-w-full break-words rounded-lg bg-white px-2.5 py-1.5 text-xs font-black text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                {compactSummary}
+              </p>
+            )}
           </div>
         </div>
         <Button

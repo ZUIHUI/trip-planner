@@ -77,7 +77,7 @@ const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
 const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
-const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping']);
+const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping', 'companions']);
 const sameJsonValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 
 const getDateRangeDays = (startDate, endDate) => {
@@ -266,8 +266,10 @@ const TripDetailPage = () => {
     currentUser,
     userProfile
   });
+  const [isSavingTripDetails, setIsSavingTripDetails] = useState(false);
   const tripDetailsRef = useRef(tripDetails);
   const collaborationRef = useRef(collaboration);
+  const tripDetailsSaveCountRef = useRef(0);
 
   useEffect(() => {
     tripDetailsRef.current = tripDetails;
@@ -308,6 +310,18 @@ const TripDetailPage = () => {
     activeTab,
     enabled: !isLoading && !accessError
   });
+
+  const beginTripDetailsSave = useCallback(() => {
+    tripDetailsSaveCountRef.current += 1;
+    setIsSavingTripDetails(true);
+
+    return () => {
+      tripDetailsSaveCountRef.current = Math.max(0, tripDetailsSaveCountRef.current - 1);
+      if (!tripDetailsSaveCountRef.current) {
+        setIsSavingTripDetails(false);
+      }
+    };
+  }, []);
 
   const handleDocumentPersistenceError = useCallback((error, {
     label = '這次變更',
@@ -398,6 +412,8 @@ const TripDetailPage = () => {
 
     if (!operations.length) return;
 
+    const finishTripDetailsSave = beginTripDetailsSave();
+
     void Promise.all(operations).catch((error) => {
       if (isPermissionDeniedError(error)) {
         handleDocumentPersistenceError(error, {
@@ -414,9 +430,10 @@ const TripDetailPage = () => {
         title: '已改用完整儲存',
         description: '局部同步失敗，已退回原本的旅程儲存。'
       });
-    });
+    }).finally(finishTripDetailsSave);
   }, [
     applyTripDetailsPatch,
+    beginTripDetailsSave,
     canEdit,
     clientId,
     currentUser,
@@ -1565,7 +1582,7 @@ const TripDetailPage = () => {
         details={tripDetails}
         onGoToTrips={handleBackToTrips}
         onSettingsOpen={() => setIsSettingsOpen(true)}
-        isSaving={isSaving}
+        isSaving={isSaving || isSavingTripDetails}
         coverImageUrl={coverImageUrl}
         shouldShowCoverBackground={shouldShowCoverBackground}
         presenceUi={presenceUi}
@@ -1625,8 +1642,9 @@ const TripDetailPage = () => {
             <IdeasTab />
           )}
 
-          {activeTab === 'more' && (
+          {(activeTab === 'more' || activeTab === 'companions') && (
             <MoreTab
+              section={activeTab === 'companions' ? 'companions' : 'home'}
               onTabChange={setActiveTab}
               onOpenSettings={() => setIsSettingsOpen(true)}
             />

@@ -636,6 +636,56 @@ test('detects trip detail patch sections for field-level saves', () => {
   assert.equal(changedUntracked.changed.any, true);
 });
 
+test('saves split trip detail documents before best-effort root mirrors', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'src/services/tripService.js'), 'utf8');
+  const metaBody = source.match(/export const updateTripMetaFields[\s\S]*?return meta;\n};/)?.[0] || '';
+  const accommodationBody = source.match(/export const updateTripAccommodationFields[\s\S]*?return nextAccommodation;\n};/)?.[0] || '';
+  const flightsBody = source.match(/export const updateTripFlightsFields[\s\S]*?return nextFlights;\n};/)?.[0] || '';
+  const budgetBody = source.match(/export const updateTripBudgetFields[\s\S]*?return nextBudget;\n};/)?.[0] || '';
+
+  assert.match(source, /const updateTripRootMirrorFields = async/);
+  assert.match(metaBody, /await setDoc\(detailRef/);
+  assert.match(metaBody, /await updateTripRootMirrorFields/);
+  assert.doesNotMatch(metaBody, /batch\.update/);
+  assert.match(accommodationBody, /await setDoc\(getTripDetailDocRef/);
+  assert.match(accommodationBody, /await updateTripRootMirrorFields/);
+  assert.doesNotMatch(accommodationBody, /batch\.update/);
+  assert.match(flightsBody, /await setDoc\(getTripDetailDocRef/);
+  assert.match(flightsBody, /await updateTripRootMirrorFields/);
+  assert.doesNotMatch(flightsBody, /batch\.update/);
+  assert.match(budgetBody, /await setDoc\(getTripDetailDocRef/);
+  assert.match(budgetBody, /await updateTripRootMirrorFields/);
+  assert.doesNotMatch(budgetBody, /batch\.update/);
+});
+
+test('keeps companion invite flows as an explicit navigation destination', () => {
+  const detailPageSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  const bottomNavigationSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/BottomNavigation.jsx'), 'utf8');
+  const moreTabSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
+
+  assert.match(detailPageSource, /MORE_CHILD_TABS = new Set\(\[[^\]]*'companions'/);
+  assert.match(detailPageSource, /activeTab === 'companions'/);
+  assert.match(bottomNavigationSource, /id: 'companions'/);
+  assert.match(bottomNavigationSource, /mobileMoreTabIds[\s\S]*'companions'/);
+  assert.match(moreTabSource, /section === 'companions'/);
+  assert.match(moreTabSource, /onTabChange\?\.\('companions'\)/);
+  assert.doesNotMatch(moreTabSource, /trip-collaboration-card/);
+});
+
+test('keeps high-friction mobile form controls explicit', () => {
+  const placePoolSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/PlacePoolCard.jsx'), 'utf8');
+  const shoppingSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ShoppingListContent.jsx'), 'utf8');
+  const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/SummaryTab.jsx'), 'utf8');
+  const logisticsSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/LogisticsTab.jsx'), 'utf8');
+
+  assert.match(placePoolSource, /id="place-pool-target-day"/);
+  assert.match(placePoolSource, /setTargetDay\(Number\(event\.target\.value\)\)/);
+  assert.match(shoppingSource, /onFocus=\{\(event\) => event\.target\.select\(\)\}/);
+  assert.match(summarySource, /budgetSummaryText/);
+  assert.match(summarySource, /totalCost\.toLocaleString\(\)/);
+  assert.match(logisticsSource, /compactSummary/);
+});
+
 test('normalizes trip detail section documents for the app', () => {
   assert.deepEqual(normalizeTripDetailDocumentForApp({
     id: 'meta',

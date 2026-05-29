@@ -227,6 +227,8 @@ const CommandCenterCard = ({
   tripDetails,
   itinerary,
   placePool,
+  budgetInfo,
+  budgetTarget,
   budgetProgress,
   onTabChange,
   onAddEvent
@@ -236,6 +238,12 @@ const CommandCenterCard = ({
   const flights = tripDetails?.flights || {};
   const totalEvents = itinerary.reduce((sum, day) => sum + (day.events?.length || 0), 0);
   const safePlacePool = Array.isArray(placePool) ? placePool : [];
+  const totalCost = Number(budgetInfo?.totalCost || 0);
+  const budgetSummaryText = budgetTarget > 0
+    ? `${totalCost.toLocaleString()} / ${Number(budgetTarget).toLocaleString()}`
+    : totalCost > 0
+      ? `已花 ${totalCost.toLocaleString()}`
+      : '';
   const steps = [
     {
       id: 'dates',
@@ -307,7 +315,7 @@ const CommandCenterCard = ({
           <div className="grid grid-cols-3 gap-2 sm:w-44 sm:grid-cols-1">
             <InfoPill label="行程" value={`${totalEvents} 個`} />
             <InfoPill label="想去" value={`${safePlacePool.length} 個`} />
-            <InfoPill label="預算" value={budgetProgress ? `${budgetProgress}%` : '未設定'} />
+            <InfoPill label="預算" value={budgetSummaryText || (budgetProgress ? `${budgetProgress}%` : '未設定')} />
           </div>
         </div>
       </div>
@@ -740,6 +748,8 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
         tripDetails={tripDetails}
         itinerary={itinerary}
         placePool={placePool}
+        budgetInfo={budgetInfo}
+        budgetTarget={budgetTarget}
         budgetProgress={budgetProgress}
         onTabChange={onTabChange}
         onAddEvent={onAddEvent}

@@ -527,6 +527,7 @@ const ShoppingItemFormModal = ({
                 {...integerInputProps}
                 min="1"
                 value={formData.quantity}
+                onFocus={(event) => event.target.select()}
                 onChange={(event) => setFormData({ ...formData, quantity: parseInt(event.target.value, 10) || 1 })}
               />
             </Field>
