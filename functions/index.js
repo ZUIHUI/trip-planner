@@ -19,6 +19,7 @@ const FLIGHTAPI_IO_KEY = defineSecret('FLIGHTAPI_IO_KEY');
 const GOOGLE_GEOCODING_API_KEY = defineSecret('GOOGLE_GEOCODING_API_KEY');
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const EMAIL_CODE_SEND_COOLDOWN_MS = 60 * 1000;
+const EMAIL_CODE_VERIFICATION_LOCK_MS = 60 * 1000;
 const EMAIL_CODE_MAX_ATTEMPTS = 5;
 const INVITE_CODE_RATE_WINDOW_MS = 5 * 60 * 1000;
 const INVITE_CODE_MAX_ATTEMPTS = 12;
@@ -1031,6 +1032,15 @@ exports.verifyEmailLoginCode = onCall(
         return;
       }
 
+      const verificationStartedAtMs = Number(data.verificationStartedAtMs || 0);
+      const verificationLocked = data.verificationInProgress
+        && verificationStartedAtMs
+        && now - verificationStartedAtMs < EMAIL_CODE_VERIFICATION_LOCK_MS;
+      if (verificationLocked) {
+        verificationError = new HttpsError('failed-precondition', '這組驗證碼正在驗證中，請稍候再試。');
+        return;
+      }
+
       if (Number(data.expiresAtMs || 0) < now) {
         transaction.set(challengeRef, {
           expiredAt: admin.firestore.FieldValue.serverTimestamp()
@@ -1061,8 +1071,10 @@ exports.verifyEmailLoginCode = onCall(
 
       transaction.set(challengeRef, {
         attempts: attempts + 1,
-        consumed: true,
-        consumedAt: admin.firestore.FieldValue.serverTimestamp()
+        verificationInProgress: true,
+        verificationStartedAt: admin.firestore.FieldValue.serverTimestamp(),
+        verificationStartedAtMs: now,
+        lastAttemptAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     });
 
@@ -1070,8 +1082,37 @@ exports.verifyEmailLoginCode = onCall(
       throw verificationError;
     }
 
-    const userRecord = await getOrCreateEmailUser(email);
-    const customToken = await admin.auth().createCustomToken(userRecord.uid);
+    let userRecord;
+    let customToken;
+    try {
+      userRecord = await getOrCreateEmailUser(email);
+      customToken = await admin.auth().createCustomToken(userRecord.uid);
+      await challengeRef.set({
+        consumed: true,
+        consumedAt: admin.firestore.FieldValue.serverTimestamp(),
+        verificationInProgress: false,
+        verifiedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      console.error('Email login verification failed after code acceptance', {
+        code: error?.code || '',
+        message: error?.message || ''
+      });
+      await challengeRef.set({
+        verificationInProgress: false,
+        verificationFailedAt: admin.firestore.FieldValue.serverTimestamp(),
+        verificationFailedMessage: error?.message || 'verification failed'
+      }, { merge: true }).catch(() => {});
+
+      const isTokenPermissionError = error?.code === 'auth/insufficient-permission'
+        || /signBlob/i.test(String(error?.message || ''));
+      throw new HttpsError(
+        isTokenPermissionError ? 'failed-precondition' : 'internal',
+        isTokenPermissionError
+          ? '登入服務權限尚未完成設定，請稍後再試。'
+          : '登入驗證暫時失敗，請稍後再試。'
+      );
+    }
 
     return {
       customToken,

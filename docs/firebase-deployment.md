@@ -105,6 +105,8 @@ Set the optional sender display value to match the Gmail account or an allowed G
 EMAIL_FROM="Trip Planner <your-gmail@gmail.com>"
 ```
 
+Email verification completes sign-in by creating a Firebase custom token. The Cloud Functions runtime service account must be able to sign tokens; if `verifyEmailLoginCode` logs `iam.serviceAccounts.signBlob` or `auth/insufficient-permission`, grant `roles/iam.serviceAccountTokenCreator` to the Functions service account on itself before redeploying Functions.
+
 ## Install
 
 ```bash
