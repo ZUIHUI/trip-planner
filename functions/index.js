@@ -3,6 +3,7 @@ const { HttpsError, onCall } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 admin.initializeApp();
 
@@ -10,13 +11,14 @@ const firestore = admin.firestore();
 const realtimeDb = admin.database();
 const serverTimestamp = admin.database.ServerValue.TIMESTAMP;
 const PRIMARY_OWNER_EMAIL = (process.env.PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
-const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
+const GMAIL_SMTP_USER = defineSecret('GMAIL_SMTP_USER');
+const GMAIL_SMTP_APP_PASSWORD = defineSecret('GMAIL_SMTP_APP_PASSWORD');
 const EMAIL_CODE_PEPPER = defineSecret('EMAIL_CODE_PEPPER');
 const INVITE_CODE_PEPPER = defineSecret('INVITE_CODE_PEPPER');
 const FLIGHTAPI_IO_KEY = defineSecret('FLIGHTAPI_IO_KEY');
 const GOOGLE_GEOCODING_API_KEY = defineSecret('GOOGLE_GEOCODING_API_KEY');
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
-const EMAIL_CODE_RESEND_COOLDOWN_MS = 60 * 1000;
+const EMAIL_CODE_SEND_COOLDOWN_MS = 60 * 1000;
 const EMAIL_CODE_MAX_ATTEMPTS = 5;
 const INVITE_CODE_RATE_WINDOW_MS = 5 * 60 * 1000;
 const INVITE_CODE_MAX_ATTEMPTS = 12;
@@ -25,7 +27,7 @@ const FLIGHT_LOOKUP_MAX_ATTEMPTS = 20;
 const GOOGLE_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
 const GOOGLE_LOOKUP_MAX_ATTEMPTS = 120;
 const INVITE_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-const DEFAULT_EMAIL_FROM = 'Trip Planner <onboarding@resend.dev>';
+const DEFAULT_EMAIL_FROM_NAME = 'Trip Planner';
 const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
 const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 const GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
@@ -92,24 +94,32 @@ const safeCompareHex = (left, right) => {
 
 const generateEmailCode = () => String(crypto.randomInt(100000, 1000000));
 
-const getEmailFromAddress = () => process.env.EMAIL_FROM || DEFAULT_EMAIL_FROM;
+const getEmailFromAddress = (smtpUser) => (
+  process.env.EMAIL_FROM || `${DEFAULT_EMAIL_FROM_NAME} <${smtpUser}>`
+);
 
 const sendEmailCode = async ({ email, code }) => {
-  const apiKey = RESEND_API_KEY.value();
-  if (!apiKey) {
-    throw new HttpsError('failed-precondition', 'Email 寄送服務尚未設定。');
+  const smtpUser = String(GMAIL_SMTP_USER.value() || '').trim();
+  const smtpPassword = String(GMAIL_SMTP_APP_PASSWORD.value() || '').replace(/\s+/g, '');
+
+  if (!smtpUser || !smtpPassword) {
+    throw new HttpsError('failed-precondition', 'Email 寄送服務尚未完成 Gmail SMTP 設定。');
   }
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'User-Agent': 'trip-planner-functions',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from: getEmailFromAddress(),
-      to: [email],
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: smtpUser,
+      pass: smtpPassword
+    }
+  });
+
+  try {
+    return await transporter.sendMail({
+      from: getEmailFromAddress(smtpUser),
+      to: email,
       subject: `${code} 是你的 Trip Planner 驗證碼`,
       text: `你的 Trip Planner 驗證碼是 ${code}，10 分鐘內有效。若不是你本人操作，可以忽略這封信。`,
       html: `
@@ -121,24 +131,36 @@ const sendEmailCode = async ({ email, code }) => {
           <p style="color:#6b7280;font-size:13px">若不是你本人操作，可以忽略這封信。</p>
         </div>
       `
-    })
-  });
+    });
+  } catch (error) {
+    console.error('Gmail SMTP email send failed', {
+      code: error?.code || '',
+      command: error?.command || '',
+      responseCode: error?.responseCode || '',
+      message: error?.message || ''
+    });
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    console.error('Resend email send failed', payload);
-    const resendMessage = String(payload?.message || payload?.error?.message || '');
-    const isDefaultSenderLimit = response.status === 403
-      && /resend\.dev|testing emails|verify a domain/i.test(resendMessage);
+    const isConfigurationError = error?.code === 'EAUTH'
+      || error?.responseCode === 535
+      || error?.responseCode === 534
+      || error?.responseCode === 530;
+
+    if (isConfigurationError) {
+      throw new HttpsError('failed-precondition', 'Email 寄送服務尚未完成 Gmail SMTP 設定。');
+    }
+
+    const isRateLimitError = error?.responseCode === 421
+      || error?.responseCode === 450
+      || error?.responseCode === 452
+      || error?.responseCode === 454;
+
     throw new HttpsError(
-      isDefaultSenderLimit ? 'failed-precondition' : 'internal',
-      isDefaultSenderLimit
-        ? '目前的測試寄件地址只能寄給 Resend 帳號本人。其他旅伴請先用 Google 登入，或完成寄件網域設定。'
+      isRateLimitError ? 'resource-exhausted' : 'internal',
+      isRateLimitError
+        ? 'Gmail 寄送額度暫時受限，請稍後再試。'
         : '驗證碼寄送失敗，請稍後再試。'
     );
   }
-
-  return payload;
 };
 
 const normalizeInviteCode = (code) => String(code || '')
@@ -908,7 +930,7 @@ exports.lookupFlight = onCall(
 );
 
 exports.requestEmailLoginCode = onCall(
-  { secrets: [RESEND_API_KEY, EMAIL_CODE_PEPPER] },
+  { secrets: [GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, EMAIL_CODE_PEPPER] },
   async (request) => {
     const email = normalizeEmail(request.data?.email);
     if (!isValidEmail(email)) {
@@ -927,7 +949,7 @@ exports.requestEmailLoginCode = onCall(
       const rateSnap = await transaction.get(rateRef);
       const rateData = rateSnap.exists ? rateSnap.data() : {};
       const lastSentAtMs = Number(rateData.lastSentAtMs || 0);
-      const waitMs = EMAIL_CODE_RESEND_COOLDOWN_MS - (now - lastSentAtMs);
+      const waitMs = EMAIL_CODE_SEND_COOLDOWN_MS - (now - lastSentAtMs);
 
       if (lastSentAtMs && waitMs > 0) {
         retryAfterSeconds = Math.ceil(waitMs / 1000);
@@ -975,7 +997,7 @@ exports.requestEmailLoginCode = onCall(
     return {
       challengeId: challengeRef.id,
       expiresAt: new Date(expiresAtMs).toISOString(),
-      resendAvailableAt: new Date(now + EMAIL_CODE_RESEND_COOLDOWN_MS).toISOString()
+      resendAvailableAt: new Date(now + EMAIL_CODE_SEND_COOLDOWN_MS).toISOString()
     };
   }
 );

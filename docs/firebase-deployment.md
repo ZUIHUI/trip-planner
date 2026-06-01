@@ -6,7 +6,7 @@ This project uses Firestore as the source of truth and Realtime Database only fo
 
 Enable these products in the same Firebase project:
 
-- Authentication: Email link and Google provider
+- Authentication: Email/Password and Google provider
 - Cloud Firestore: production mode
 - Realtime Database: locked mode
 - Hosting
@@ -22,7 +22,7 @@ In Firebase Console for `trip-planner-36455`:
 2. Click Get started if Authentication has not been initialized.
 3. Open Sign-in method.
 4. Enable Google, set a public-facing project name and support email, then Save.
-5. Enable Email/Password and turn on Email link passwordless sign-in.
+5. Enable Email/Password.
 6. Open Settings > Authorized domains.
 7. Confirm these domains are listed:
    - `trip-planner-36455.web.app`
@@ -31,13 +31,7 @@ In Firebase Console for `trip-planner-36455`:
 
 Firebase CLI can deploy Hosting, Firestore rules, Realtime Database rules, and Functions from this repo, but sign-in providers are still configured in the Firebase Console.
 
-Email link login uses Firebase Auth `sendSignInLinkToEmail` with `handleCodeInApp: true`. The link lands on:
-
-```text
-https://<app-domain>/login?redirect=<internal-path>
-```
-
-The app stores the requested email locally before sending the link. If the user opens the link on another device, the login page asks for the same email again before completing `signInWithEmailLink`. Do not add the email address into the URL.
+Email verification-code login uses the `requestEmailLoginCode` callable Function to send a 6-digit code through Gmail SMTP, then signs in with a Firebase custom token after `verifyEmailLoginCode` accepts the code.
 
 ### Vercel Authentication Setup
 
@@ -58,7 +52,7 @@ Firebase Console > Authentication > Settings > Authorized domains:
 trip-planner-mu-red.vercel.app
 ```
 
-For email link login, the same Vercel domain must also remain in Firebase Auth authorized domains because Firebase validates the `ActionCodeSettings.url` domain.
+Keep the same Vercel domain in Firebase Auth authorized domains so Google sign-in and Firebase Auth helper flows can complete from the deployed app.
 
 Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client > Authorized JavaScript origins:
 
@@ -93,6 +87,23 @@ VITE_PRIMARY_OWNER_EMAIL=owner@example.com
 ```
 
 Keep provider API keys in Firebase Functions secrets, not in Vercel frontend env vars.
+
+Email verification-code login uses Gmail SMTP. Use a dedicated Gmail account when possible, enable 2-Step Verification, then create a Google App Password for SMTP. Personal Gmail accounts are subject to Gmail sending limits, commonly 500 sent messages per day; if the limit is reached, sending can pause for 1 to 24 hours.
+
+Configure the Functions secrets before deploying Functions:
+
+```bash
+firebase functions:secrets:set GMAIL_SMTP_USER
+firebase functions:secrets:set GMAIL_SMTP_APP_PASSWORD
+firebase functions:secrets:set EMAIL_CODE_PEPPER
+firebase functions:secrets:set INVITE_CODE_PEPPER
+```
+
+Set the optional sender display value to match the Gmail account or an allowed Gmail alias:
+
+```bash
+EMAIL_FROM="Trip Planner <your-gmail@gmail.com>"
+```
 
 ## Install
 
