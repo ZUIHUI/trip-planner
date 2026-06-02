@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  AlertTriangle,
   CalendarDays,
   ChevronDown,
   Check,
@@ -200,6 +201,7 @@ const TripListPage = () => {
   const [newTripTitle, setNewTripTitle] = useState('');
   const [keyword, setKeyword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [cloudSyncWarning, setCloudSyncWarning] = useState('');
   const [failedCoverImages, setFailedCoverImages] = useState({});
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [expandedCards, setExpandedCards] = useState({});
@@ -247,7 +249,9 @@ const TripListPage = () => {
           setTrips(mergedTrips);
           saveLocalTrips(uid, mergedTrips);
         }
+        setCloudSyncWarning('');
       } catch (error) {
+        setCloudSyncWarning('雲端同步暫時失敗，正在顯示本機資料。請稍後重新整理或再試一次。');
         logger.warn('讀取雲端旅程列表失敗，改用本地資料', error);
       }
     };
@@ -629,6 +633,13 @@ const TripListPage = () => {
               />
             </div>
           </div>
+
+          {cloudSyncWarning && (
+            <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100" role="status" aria-live="polite">
+              <AlertTriangle size={17} className="mt-0.5 shrink-0" />
+              <p>{cloudSyncWarning}</p>
+            </div>
+          )}
 
           <div className="mt-4">
             {isLoading ? (

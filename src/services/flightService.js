@@ -1,5 +1,7 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from './firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app from './firebase';
+
+const functions = getFunctions(app);
 
 const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
 const normalizeAirportCode = (rawCode = '') => String(rawCode || '').trim().toUpperCase();

@@ -15,9 +15,7 @@ import {
   signOut,
   updateProfile
 } from 'firebase/auth';
-import { httpsCallable } from 'firebase/functions';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db, functions } from '../services/firebase';
+import { auth, getCloudFunctions, getFirestoreDb } from '../services/firebase';
 import { logger } from '../utils/logger';
 
 const AuthContext = createContext(null);
@@ -91,6 +89,10 @@ const readRedirectFromEmailLink = (href) => {
 
 const syncUserProfile = async (user, patch = {}) => {
   if (!user?.uid) return null;
+  const [{ doc, getDoc, setDoc }, db] = await Promise.all([
+    import('firebase/firestore'),
+    getFirestoreDb()
+  ]);
   const profileRef = doc(db, 'userProfiles', user.uid);
   const snapshot = await getDoc(profileRef);
   const now = new Date().toISOString();
@@ -109,6 +111,16 @@ const syncUserProfile = async (user, patch = {}) => {
   };
   await setDoc(profileRef, nextProfile, { merge: true });
   return nextProfile;
+};
+
+const callAuthFunction = async (name, payload) => {
+  const [{ httpsCallable }, functions] = await Promise.all([
+    import('firebase/functions'),
+    getCloudFunctions()
+  ]);
+  const callable = httpsCallable(functions, name);
+  const response = await callable(payload);
+  return response.data || {};
 };
 
 export const AuthProvider = ({ children }) => {
@@ -175,15 +187,14 @@ export const AuthProvider = ({ children }) => {
     }
 
     const safeRedirectPath = normalizeRedirectPath(redirectPath);
-    const callable = httpsCallable(functions, 'requestEmailLoginCode');
-    const response = await callable({
+    const data = await callAuthFunction('requestEmailLoginCode', {
       email: safeEmail,
       redirectPath: safeRedirectPath
     });
 
     localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, safeEmail);
     localStorage.setItem(REDIRECT_AFTER_SIGN_IN_KEY, safeRedirectPath);
-    return response.data || {};
+    return data;
   }, []);
 
   const verifyEmailCode = useCallback(async ({
@@ -202,13 +213,11 @@ export const AuthProvider = ({ children }) => {
     }
 
     await applyAuthPersistence(rememberDevice);
-    const callable = httpsCallable(functions, 'verifyEmailLoginCode');
-    const response = await callable({
+    const data = await callAuthFunction('verifyEmailLoginCode', {
       email: safeEmail,
       code: safeCode,
       challengeId
     });
-    const data = response.data || {};
 
     if (!data.customToken) {
       throw new Error('無法完成登入，請重新取得驗證碼');

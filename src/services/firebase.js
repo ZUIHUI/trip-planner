@@ -1,8 +1,5 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getDatabase } from 'firebase/database';
-import { getFunctions } from 'firebase/functions';
 import { logger } from '../utils/logger';
 
 // Firebase web config is public by design. Keep this project's config pinned so
@@ -35,9 +32,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const rtdb = firebaseConfig.databaseURL ? getDatabase(app) : null;
-export const functions = getFunctions(app);
+
+let firestoreDbPromise = null;
+let cloudFunctionsPromise = null;
+
+export const hasRealtimeDatabaseConfig = () => Boolean(firebaseConfig.databaseURL);
+
+export const getFirestoreDb = () => {
+  if (!firestoreDbPromise) {
+    firestoreDbPromise = import('firebase/firestore')
+      .then(({ getFirestore }) => getFirestore(app));
+  }
+  return firestoreDbPromise;
+};
+
+export const getCloudFunctions = () => {
+  if (!cloudFunctionsPromise) {
+    cloudFunctionsPromise = import('firebase/functions')
+      .then(({ getFunctions }) => getFunctions(app));
+  }
+  return cloudFunctionsPromise;
+};
 
 export const getFirebaseAnalytics = async () => {
   try {

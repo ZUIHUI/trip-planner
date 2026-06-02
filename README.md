@@ -82,7 +82,7 @@ npm run preview
 
 - 前端 Vite 變數：Firebase web app 設定、Realtime Database URL、主要 owner email，皆使用 `VITE_` 前綴；不要把第三方 provider API key 放在前端變數。
 - Server-side 變數：航班查詢使用 FlightAPI.io，地點搜尋 / Geocoding 使用 Google API，API key 必須放在 Firebase Functions secret，不要加上 `VITE_` 前綴。
-- Firebase Functions secrets：Email 驗證碼、邀請碼、航班查詢、Google 地點查詢與寄信服務使用 `RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`、`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY` 等 secrets。
+- Firebase Functions secrets：Email 驗證碼、邀請碼、航班查詢、Google 地點查詢與 Gmail SMTP 寄信服務使用 `GMAIL_SMTP_USER`、`GMAIL_SMTP_APP_PASSWORD`、`EMAIL_FROM`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`、`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY` 等 secrets / runtime env。
 
 航班查詢範例：
 
@@ -98,7 +98,7 @@ firebase functions:secrets:set GOOGLE_GEOCODING_API_KEY
 正式進 staging 前請逐項確認：
 
 - 輪替任何曾經進入 Git history、issue、聊天紀錄或部署 log 的 API key / secret。
-- 設定 Firebase Functions secrets：`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY`、`RESEND_API_KEY`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`。
+- 設定 Firebase Functions secrets / runtime env：`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY`、`GMAIL_SMTP_USER`、`GMAIL_SMTP_APP_PASSWORD`、`EMAIL_FROM`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`。
 - 部署安全規則與後端：`firebase deploy --only firestore:rules,functions`。
 - Firebase Web API key 必須限制允許網域；Google server key 請限制可用 API，並在曾經公開過時重新產生。
 - 航班查詢只允許登入後透過 Callable Function；公開 `/api/flight-lookup` 應固定回 401。

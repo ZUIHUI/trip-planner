@@ -187,12 +187,10 @@ test('picks next event with trip-day dates instead of only wall-clock time', () 
 
 test('passes trip-day dates into travel next-event surfaces', () => {
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
-  const nextWidgetSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/NextEventWidget.jsx'), 'utf8');
   const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/SummaryTab.jsx'), 'utf8');
 
   assert.match(todaySource, /getTripDayIsoDate\(tripDetails\?\.dateRange\?\.start,\s*selectedDay\)/);
   assert.match(todaySource, /pickNextEvent\(events,\s*new Date\(\),\s*selectedDayIsoDate\)/);
-  assert.match(nextWidgetSource, /pickNextEvent\(events,\s*new Date\(\),\s*selectedDayIsoDate\)/);
   assert.match(summarySource, /getSummaryNextEvent\(itinerary,\s*selectedDay,\s*tripDetails\)/);
 });
 

@@ -1,4 +1,5 @@
 import {
+  getDatabase,
   off,
   onDisconnect,
   onValue,
@@ -8,9 +9,12 @@ import {
   set,
   update
 } from 'firebase/database';
-import { httpsCallable } from 'firebase/functions';
-import { functions, rtdb } from './firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app, { hasRealtimeDatabaseConfig } from './firebase';
 import { PRESENCE_CLIENT_ID_KEY } from '../utils/storageKeys';
+
+const functions = getFunctions(app);
+const rtdb = hasRealtimeDatabaseConfig() ? getDatabase(app) : null;
 
 export const hasRealtimeDatabase = () => Boolean(rtdb);
 

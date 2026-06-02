@@ -1,10 +1,12 @@
-import { httpsCallable } from 'firebase/functions';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { logger } from '../utils/logger';
 import {
   getPlaceId,
   normalizePlaceText as normalizeSharedPlaceText
 } from '../utils/placeText';
-import { functions } from './firebase';
+import app from './firebase';
+
+const functions = getFunctions(app);
 
 const PLACE_PREDICTION_CACHE_LIMIT = 40;
 const placePredictionCache = new Map();

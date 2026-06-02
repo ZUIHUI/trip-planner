@@ -1,4 +1,5 @@
 import {
+  getDatabase,
   off,
   onDisconnect,
   onValue,
@@ -7,8 +8,11 @@ import {
   serverTimestamp,
   set
 } from 'firebase/database';
-import { httpsCallable } from 'firebase/functions';
-import { functions, rtdb } from './firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import app, { hasRealtimeDatabaseConfig } from './firebase';
+
+const functions = getFunctions(app);
+const rtdb = hasRealtimeDatabaseConfig() ? getDatabase(app) : null;
 
 export const hasTripRealtimeDatabase = () => Boolean(rtdb);
 

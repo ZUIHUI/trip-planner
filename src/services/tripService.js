@@ -1,4 +1,4 @@
-import { db, functions } from './firebase';
+import app from './firebase';
 import {
   collection,
   collectionGroup,
@@ -6,6 +6,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  getFirestore,
   increment,
   limit,
   onSnapshot,
@@ -17,7 +18,7 @@ import {
   where,
   writeBatch
 } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   buildTripDocumentFromAppState,
   buildTripListItem,
@@ -65,6 +66,8 @@ import { TRIP_DOCUMENT_TOUCH_OPERATIONS } from '../utils/tripSync';
 import { getLatestIsoTimestamp } from '../utils/tripTimestamps';
 import { logger } from '../utils/logger';
 
+const db = getFirestore(app);
+const functions = getFunctions(app);
 const PRIMARY_OWNER_EMAIL = (import.meta.env.VITE_PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
 
 const getUserEmail = (user) => String(user?.email || '').toLowerCase();
