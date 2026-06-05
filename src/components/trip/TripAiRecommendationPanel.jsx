@@ -88,6 +88,7 @@ const RecommendationCard = ({
   const eventKey = getRecommendationKey(recommendation, 'event');
   const placeApplied = appliedKeys.has(placeKey);
   const eventApplied = appliedKeys.has(eventKey);
+  const hasGooglePlace = recommendation.source === 'google_places' || Boolean(recommendation.googlePlace?.placeId);
 
   const handleApply = async (target) => {
     if (!canEdit || isApplying) return;
@@ -119,6 +120,9 @@ const RecommendationCard = ({
         </div>
         <Badge variant={recommendation.kind === 'event' ? 'info' : 'success'}>
           {recommendation.kind === 'event' ? '行程' : '想去'}
+        </Badge>
+        <Badge variant={hasGooglePlace ? 'info' : 'muted'}>
+          {hasGooglePlace ? 'Google 地點資料' : 'AI 推測'}
         </Badge>
       </div>
 

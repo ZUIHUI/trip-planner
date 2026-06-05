@@ -107,8 +107,10 @@ const {
   isPermissionDeniedError
 } = require('../src/utils/persistenceErrors.js');
 const {
+  buildGooglePlaceSearchQueries,
   buildTripRecommendationSnapshot,
   normalizeMode: normalizeTripRecommendationMode,
+  normalizeExternalGoogleCandidate,
   normalizeRecommendationResponse,
   recommendationResponseSchema
 } = require('../functions/tripRecommendations.js');
@@ -205,6 +207,44 @@ test('sanitizes trip snapshots for AI recommendations', () => {
   assert.doesNotMatch(serialized, /uid-private|uid-1|Private Name|private person|private payer/);
 });
 
+test('builds sanitized Google candidate queries for place recommendations', () => {
+  const snapshot = buildTripRecommendationSnapshot({
+    trip: {
+      access: { ownerEmail: 'owner@example.com' },
+      tripDetails: {
+        title: 'Osaka family trip',
+        accommodation: { name: 'Namba Stay', address: 'Namba Osaka' }
+      },
+      itinerary: [
+        { day: 1, events: [{ title: 'Castle', location: 'Osaka Castle', updatedByUid: 'uid-private' }] }
+      ]
+    },
+    placeIdeas: [
+      { id: 'idea-1', name: 'Aquarium', address: 'Osaka Bay', votes: [{ voterId: 'uid-1', value: 1 }] }
+    ]
+  }, {
+    mode: 'placeIdeas',
+    selectedDay: 1
+  });
+  const queries = buildGooglePlaceSearchQueries(snapshot);
+  const candidate = normalizeExternalGoogleCandidate({
+    query: queries[0],
+    placeId: 'google-place-1',
+    name: 'Namba Parks',
+    address: 'Naniwa, Osaka',
+    lat: 34.661,
+    lng: 135.502,
+    types: ['shopping_mall', 'point_of_interest', 'extra-one', 'extra-two', 'extra-three', 'extra-four', 'extra-five', 'extra-six', 'extra-seven']
+  });
+
+  assert.equal(queries.length > 0 && queries.length <= 5, true);
+  assert.match(queries[0], /Osaka family trip|Namba Osaka|Namba Stay/);
+  assert.doesNotMatch(JSON.stringify(queries), /owner@example\.com|uid-private|uid-1/);
+  assert.equal(candidate.source, 'google_places');
+  assert.equal(candidate.placeId, 'google-place-1');
+  assert.equal(candidate.types.length, 8);
+});
+
 test('normalizes AI recommendation responses and clamps invalid days', () => {
   const payload = {
     headline: '  今日小提案  ',
@@ -239,15 +279,58 @@ test('normalizes AI recommendation responses and clamps invalid days', () => {
   assert.equal(result.recommendations[1].time, '09:30');
 });
 
+test('normalizes AI recommendations with Google place source data', () => {
+  const result = normalizeRecommendationResponse({
+    headline: 'Google-backed ideas',
+    companionLine: 'Grounded candidates',
+    recommendations: [{
+      id: 'rec-google-1',
+      kind: 'place',
+      title: 'Namba Parks',
+      locationText: 'Naniwa, Osaka',
+      suggestedDay: 1,
+      time: '',
+      durationMinutes: 0,
+      reason: 'Fits the Namba base.',
+      caution: 'Check opening hours manually.',
+      tags: ['shopping'],
+      source: 'google_places',
+      googlePlace: {
+        placeId: 'google-place-1',
+        name: 'Namba Parks',
+        address: 'Naniwa, Osaka',
+        lat: 34.661,
+        lng: 135.502,
+        types: ['shopping_mall']
+      },
+      placeDraft: { name: 'Namba Parks', address: 'Naniwa, Osaka', note: 'Near the stay.' },
+      eventDraft: { title: 'Namba Parks', location: 'Naniwa, Osaka', time: '', type: 'shopping', desc: 'Browse nearby.', durationMinutes: 90 }
+    }]
+  }, {
+    mode: 'placeIdeas',
+    selectedDay: 1,
+    validDayNumbers: [1, 2]
+  });
+
+  assert.equal(result.recommendations[0].source, 'google_places');
+  assert.equal(result.recommendations[0].googlePlace.placeId, 'google-place-1');
+  assert.equal(result.recommendations[0].googlePlace.lat, 34.661);
+});
+
 test('wires AI recommendations through server-only OpenAI configuration', () => {
   const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
 
   assert.equal(normalizeTripRecommendationMode('placeIdeas'), 'placeIdeas');
   assert.equal(normalizeTripRecommendationMode('bad'), '');
   assert.equal(recommendationResponseSchema.properties.recommendations.maxItems, 5);
+  assert.equal(recommendationResponseSchema.properties.recommendations.items.properties.source.enum.includes('google_places'), true);
+  assert.equal(recommendationResponseSchema.properties.recommendations.items.properties.googlePlace.required.includes('placeId'), true);
   assert.match(functionsSource, /const OPENAI_API_KEY = defineSecret\('OPENAI_API_KEY'\)/);
   assert.match(functionsSource, /getConfiguredOpenAIKey/);
-  assert.match(functionsSource, /exports\.generateTripRecommendations = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY\]/);
+  assert.match(functionsSource, /exports\.generateTripRecommendations = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY,\s*GOOGLE_GEOCODING_API_KEY\]/);
+  assert.match(functionsSource, /buildExternalPlaceCandidateContext/);
+  assert.match(functionsSource, /mode !== 'placeIdeas'/);
+  assert.match(functionsSource, /AI place recommendation Google fallback/);
   assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
 });
 
@@ -285,6 +368,44 @@ test('builds app objects from AI recommendation cards', () => {
   assert.equal(event.transport.duration, '75 分鐘');
 });
 
+test('builds place ideas with Google place fields from AI recommendations', () => {
+  const response = normalizeAiRecommendationResponse({
+    generatedAt: '2026-06-05T00:00:00.000Z',
+    headline: 'Google candidates',
+    companionLine: 'Pick one',
+    recommendations: [{
+      id: 'rec-google-1',
+      kind: 'place',
+      title: 'Namba Parks',
+      locationText: 'Naniwa, Osaka',
+      suggestedDay: 1,
+      time: '',
+      durationMinutes: 0,
+      reason: 'Near the hotel.',
+      caution: 'Check hours manually.',
+      tags: ['shopping'],
+      source: 'google_places',
+      googlePlace: {
+        placeId: 'google-place-1',
+        name: 'Namba Parks',
+        address: 'Naniwa, Osaka',
+        lat: 34.661,
+        lng: 135.502,
+        types: ['shopping_mall']
+      },
+      placeDraft: { name: 'Namba Parks', address: 'Naniwa, Osaka', note: 'Near the hotel.' },
+      eventDraft: { title: 'Namba Parks', location: 'Naniwa, Osaka', time: '', type: 'shopping', desc: 'Browse.', durationMinutes: 90 }
+    }]
+  });
+  const place = createPlaceFromAiRecommendation(response.recommendations[0]);
+
+  assert.equal(place.name, 'Namba Parks');
+  assert.equal(place.address, 'Naniwa, Osaka');
+  assert.equal(place.placeId, 'google-place-1');
+  assert.equal(place.lat, 34.661);
+  assert.equal(place.lng, 135.502);
+});
+
 test('keeps AI recommendation entry points visible in trip tabs', () => {
   const panelSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripAiRecommendationPanel.jsx'), 'utf8');
   const hookSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'hooks', 'useTripAiRecommendations.js'), 'utf8');
@@ -304,6 +425,8 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /isCompanionHidden/);
   assert.match(panelSource, /onHideCompanion/);
   assert.match(panelSource, /onSummon/);
+  assert.match(panelSource, /Google 地點資料/);
+  assert.match(panelSource, /AI 推測/);
   assert.doesNotMatch(panelSource, /petMoodClasses|petMoodDotClasses|ring-2/);
   assert.match(hookSource, /COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner\.aiCompanionHidden'/);
   assert.match(hookSource, /isCompanionHidden/);

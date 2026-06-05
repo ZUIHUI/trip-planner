@@ -5,8 +5,10 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const {
+  buildGooglePlaceSearchQueries,
   buildTripRecommendationSnapshot,
   normalizeMode,
+  normalizeExternalGoogleCandidate,
   normalizeRecommendationResponse,
   recommendationPrompt,
   recommendationResponseSchema
@@ -762,7 +764,10 @@ const normalizeGoogleDetails = (place, fallbackText = '') => {
     address,
     placeId: normalizeGoogleLookupText(place?.place_id, 180),
     lat: readGoogleCoordinate(location.lat),
-    lng: readGoogleCoordinate(location.lng)
+    lng: readGoogleCoordinate(location.lng),
+    types: Array.isArray(place?.types)
+      ? place.types.map((type) => normalizeGoogleLookupText(type, 48)).filter(Boolean).slice(0, 8)
+      : []
   };
 };
 
@@ -822,6 +827,77 @@ const loadTripRecommendationSource = async (tripRef, trip) => {
   };
 };
 
+const fetchGooglePlaceCandidatesForRecommendation = async ({ apiKey, snapshot }) => {
+  const queries = buildGooglePlaceSearchQueries(snapshot);
+  const byPlaceId = new Map();
+
+  for (const query of queries) {
+    if (byPlaceId.size >= 8) break;
+
+    const autocompleteParams = new URLSearchParams({
+      input: query,
+      key: apiKey,
+      language: 'zh-TW'
+    });
+    const autocompletePayload = await fetchGoogleJson(GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT, autocompleteParams);
+    const predictions = Array.isArray(autocompletePayload?.predictions)
+      ? autocompletePayload.predictions.map(normalizeGooglePrediction).filter((item) => item.placeId).slice(0, 2)
+      : [];
+
+    for (const prediction of predictions) {
+      if (byPlaceId.size >= 8) break;
+      if (byPlaceId.has(prediction.placeId)) continue;
+
+      const detailsParams = new URLSearchParams({
+        place_id: prediction.placeId,
+        fields: 'place_id,name,formatted_address,geometry,types',
+        key: apiKey,
+        language: 'zh-TW'
+      });
+      const detailsPayload = await fetchGoogleJson(GOOGLE_PLACE_DETAILS_ENDPOINT, detailsParams);
+      const candidate = normalizeExternalGoogleCandidate({
+        query,
+        ...normalizeGoogleDetails(detailsPayload?.result || {}, prediction.description || query)
+      }, byPlaceId.size);
+
+      if (candidate?.placeId) {
+        byPlaceId.set(candidate.placeId, candidate);
+      }
+    }
+  }
+
+  return Array.from(byPlaceId.values());
+};
+
+const buildExternalPlaceCandidateContext = async ({ uid, mode, snapshot }) => {
+  if (mode !== 'placeIdeas') {
+    return { status: 'not_applicable', candidates: [] };
+  }
+
+  try {
+    await assertGoogleLookupRateLimit(uid);
+    const apiKey = getGoogleApiKey();
+    if (!apiKey) {
+      return { status: GOOGLE_PLACE_STATUS.missingApiKey, candidates: [] };
+    }
+
+    const candidates = await fetchGooglePlaceCandidatesForRecommendation({ apiKey, snapshot });
+    return {
+      status: candidates.length ? 'success' : 'empty',
+      candidates
+    };
+  } catch (error) {
+    console.warn('AI place recommendation Google fallback', {
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    return {
+      status: error?.details?.googlePlacesStatus || error?.code || 'fallback',
+      candidates: []
+    };
+  }
+};
+
 const extractOpenAIResponseText = (payload) => {
   if (typeof payload?.output_text === 'string') {
     return payload.output_text;
@@ -871,7 +947,7 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
         instructions: 'You are a practical Traditional Chinese travel-planning assistant inside a collaborative trip planner app.',
         input: recommendationPrompt({ mode, snapshot }),
         reasoning: { effort: 'low' },
-        max_output_tokens: 1800,
+        max_output_tokens: 2200,
         text: {
           verbosity: 'low',
           format: {
@@ -1030,7 +1106,7 @@ exports.geocodeGooglePlace = onCall(
 );
 
 exports.generateTripRecommendations = onCall(
-  { secrets: [OPENAI_API_KEY] },
+  { secrets: [OPENAI_API_KEY, GOOGLE_GEOCODING_API_KEY] },
   async (request) => {
     const uid = requireSignedIn(request);
     const tripId = normalizeGoogleLookupText(request.data?.tripId, 180);
@@ -1053,9 +1129,20 @@ exports.generateTripRecommendations = onCall(
 
     const apiKey = getConfiguredOpenAIKey();
     const source = await loadTripRecommendationSource(tripRef, trip);
-    const snapshot = buildTripRecommendationSnapshot(source, {
+    const baseSnapshot = buildTripRecommendationSnapshot(source, {
       mode,
       selectedDay: request.data?.selectedDay
+    });
+    const externalContext = await buildExternalPlaceCandidateContext({
+      uid,
+      mode,
+      snapshot: baseSnapshot
+    });
+    const snapshot = buildTripRecommendationSnapshot(source, {
+      mode,
+      selectedDay: request.data?.selectedDay,
+      externalLookupStatus: externalContext.status,
+      externalCandidates: externalContext.candidates
     });
 
     const aiPayload = await callOpenAITripRecommendations({

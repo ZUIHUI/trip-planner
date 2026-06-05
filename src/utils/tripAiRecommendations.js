@@ -32,21 +32,43 @@ const normalizeDay = (value, fallback = 1) => {
   return Number.isFinite(number) && number > 0 ? Math.round(number) : fallback;
 };
 
+const normalizeCoordinate = (value, maxAbs) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.abs(number) <= maxAbs ? number : null;
+};
+
 const normalizeTags = (tags) => asArray(tags)
   .map((tag) => cleanAiText(tag, 24))
   .filter(Boolean)
   .slice(0, 4);
 
+const normalizeGooglePlace = (place = {}) => {
+  const source = asObject(place);
+  return {
+    placeId: cleanAiText(source.placeId || source.place_id, 180),
+    name: cleanAiText(source.name, 160),
+    address: cleanAiText(source.address || source.formatted_address, 220),
+    lat: normalizeCoordinate(source.lat, 90),
+    lng: normalizeCoordinate(source.lng, 180),
+    types: normalizeTags(source.types)
+  };
+};
+
 export const normalizeAiRecommendation = (recommendation = {}, index = 0) => {
   const source = asObject(recommendation);
   const placeDraft = asObject(source.placeDraft);
   const eventDraft = asObject(source.eventDraft);
-  const title = cleanAiText(source.title || placeDraft.name || eventDraft.title, 120);
-  const locationText = cleanAiText(source.locationText || placeDraft.address || eventDraft.location || title, 180);
+  const googlePlace = normalizeGooglePlace(source.googlePlace);
+  const title = cleanAiText(source.title || placeDraft.name || eventDraft.title || googlePlace.name, 120);
+  const locationText = cleanAiText(source.locationText || placeDraft.address || eventDraft.location || googlePlace.address || title, 180);
   const eventType = VALID_EVENT_TYPES.has(eventDraft.type) ? eventDraft.type : 'sightseeing';
   const durationMinutes = Math.max(0, Math.min(720, Math.round(Number(
     source.durationMinutes || eventDraft.durationMinutes || 0
   ) || 0)));
+  const recommendationSource = (source.source === 'google_places' || googlePlace.placeId)
+    ? 'google_places'
+    : 'ai';
 
   if (!title && !locationText) return null;
 
@@ -61,9 +83,11 @@ export const normalizeAiRecommendation = (recommendation = {}, index = 0) => {
     reason: cleanAiText(source.reason, 280),
     caution: cleanAiText(source.caution, 220),
     tags: normalizeTags(source.tags),
+    source: recommendationSource,
+    googlePlace,
     placeDraft: {
-      name: cleanAiText(placeDraft.name || title || locationText, 120),
-      address: cleanAiText(placeDraft.address || locationText || title, 180),
+      name: cleanAiText(placeDraft.name || googlePlace.name || title || locationText, 120),
+      address: cleanAiText(placeDraft.address || googlePlace.address || locationText || title, 180),
       note: cleanAiText(placeDraft.note || source.reason, 280)
     },
     eventDraft: {
@@ -104,16 +128,17 @@ const buildNoteText = (recommendation) => [
 
 export const createPlaceFromAiRecommendation = (recommendation = {}) => {
   const normalized = normalizeAiRecommendation(recommendation) || {};
-  const name = cleanAiText(normalized.placeDraft?.name || normalized.title || normalized.locationText, 120);
-  const address = cleanAiText(normalized.placeDraft?.address || normalized.locationText || name, 180);
+  const googlePlace = normalized.googlePlace || {};
+  const name = cleanAiText(googlePlace.name || normalized.placeDraft?.name || normalized.title || normalized.locationText, 120);
+  const address = cleanAiText(googlePlace.address || normalized.placeDraft?.address || normalized.locationText || name, 180);
 
   return {
     id: makeAiPlaceId(),
     name,
     address,
-    placeId: '',
-    lat: null,
-    lng: null,
+    placeId: cleanAiText(googlePlace.placeId, 180),
+    lat: normalizeCoordinate(googlePlace.lat, 90),
+    lng: normalizeCoordinate(googlePlace.lng, 180),
     note: buildNoteText(normalized),
     status: 'idea',
     plannedDay: null,
@@ -126,8 +151,9 @@ export const createPlaceFromAiRecommendation = (recommendation = {}) => {
 export const createEventFromAiRecommendation = (recommendation = {}) => {
   const normalized = normalizeAiRecommendation(recommendation) || {};
   const eventDraft = normalized.eventDraft || {};
+  const googlePlace = normalized.googlePlace || {};
   const title = cleanAiText(eventDraft.title || normalized.title || normalized.locationText, 120);
-  const location = cleanAiText(eventDraft.location || normalized.locationText || title, 180);
+  const location = cleanAiText(eventDraft.location || googlePlace.address || normalized.locationText || title, 180);
   const durationText = normalized.durationMinutes > 0 ? `${normalized.durationMinutes} 分鐘` : '';
   const desc = [
     cleanAiText(eventDraft.desc || normalized.reason, 320),
@@ -142,11 +168,11 @@ export const createEventFromAiRecommendation = (recommendation = {}) => {
     location,
     locationPlace: location
       ? {
-          name: title,
+          name: cleanAiText(googlePlace.name || title, 120),
           address: location,
-          placeId: '',
-          lat: null,
-          lng: null
+          placeId: cleanAiText(googlePlace.placeId, 180),
+          lat: normalizeCoordinate(googlePlace.lat, 90),
+          lng: normalizeCoordinate(googlePlace.lng, 180)
         }
       : null,
     desc,
