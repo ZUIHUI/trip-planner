@@ -287,6 +287,8 @@ test('builds app objects from AI recommendation cards', () => {
 
 test('keeps AI recommendation entry points visible in trip tabs', () => {
   const panelSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripAiRecommendationPanel.jsx'), 'utf8');
+  const hookSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'hooks', 'useTripAiRecommendations.js'), 'utf8');
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', 'TripDetailPage.jsx'), 'utf8');
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TodayTab.jsx'), 'utf8');
   const ideasSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'IdeasTab.jsx'), 'utf8');
   const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'styles', 'index.css'), 'utf8');
@@ -297,6 +299,19 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /pixel-navibun-atlas\.png/);
   assert.match(panelSource, /petAnimationStates/);
   assert.match(panelSource, /petMood/);
+  assert.match(panelSource, /Compass/);
+  assert.match(panelSource, /EyeOff/);
+  assert.match(panelSource, /isCompanionHidden/);
+  assert.match(panelSource, /onHideCompanion/);
+  assert.match(panelSource, /onSummon/);
+  assert.doesNotMatch(panelSource, /petMoodClasses|petMoodDotClasses|ring-2/);
+  assert.match(hookSource, /COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner\.aiCompanionHidden'/);
+  assert.match(hookSource, /isCompanionHidden/);
+  assert.match(hookSource, /hideCompanion/);
+  assert.match(hookSource, /summonCompanion/);
+  assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
+  assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
+  assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
   assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);
   assert.match(stylesSource, /@keyframes tp-ai-pet-sprite/);

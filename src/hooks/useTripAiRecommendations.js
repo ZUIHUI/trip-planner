@@ -1,9 +1,34 @@
 import { useCallback, useState } from 'react';
 import { requestTripRecommendations } from '../services/tripAiService';
 
+const COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner.aiCompanionHidden';
 const validModes = new Set(['placeIdeas', 'dayPlan']);
 
 const normalizeMode = (mode) => (validModes.has(mode) ? mode : 'placeIdeas');
+
+const readCompanionHidden = () => {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    return window.localStorage.getItem(COMPANION_HIDDEN_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const persistCompanionHidden = (hidden) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if (hidden) {
+      window.localStorage.setItem(COMPANION_HIDDEN_STORAGE_KEY, '1');
+    } else {
+      window.localStorage.removeItem(COMPANION_HIDDEN_STORAGE_KEY);
+    }
+  } catch {
+    // Local storage is a nice-to-have preference; the companion still works without it.
+  }
+};
 
 export const useTripAiRecommendations = ({
   tripId,
@@ -16,15 +41,31 @@ export const useTripAiRecommendations = ({
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCompanionHidden, setIsCompanionHidden] = useState(readCompanionHidden);
 
   const openPanel = useCallback((nextMode = mode) => {
     setMode(normalizeMode(nextMode));
+    setIsCompanionHidden(false);
+    persistCompanionHidden(false);
     setIsOpen(true);
   }, [mode]);
 
   const closePanel = useCallback(() => {
     setIsOpen(false);
   }, []);
+
+  const hideCompanion = useCallback(() => {
+    setIsCompanionHidden(true);
+    persistCompanionHidden(true);
+    setIsOpen(false);
+  }, []);
+
+  const summonCompanion = useCallback((nextMode = mode) => {
+    setMode(normalizeMode(nextMode));
+    setIsCompanionHidden(false);
+    persistCompanionHidden(false);
+    setIsOpen(true);
+  }, [mode]);
 
   const generate = useCallback(async (nextMode = mode) => {
     const safeMode = normalizeMode(nextMode);
@@ -64,9 +105,12 @@ export const useTripAiRecommendations = ({
     response,
     isLoading,
     error,
+    isCompanionHidden,
     setMode: (nextMode) => setMode(normalizeMode(nextMode)),
     openPanel,
     closePanel,
+    hideCompanion,
+    summonCompanion,
     generate
   };
 };

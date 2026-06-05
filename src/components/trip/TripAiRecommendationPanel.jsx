@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import {
   CalendarPlus,
   CheckCircle2,
+  Compass,
+  EyeOff,
   Lightbulb,
   MapPin,
   Sparkles,
@@ -14,20 +16,6 @@ const modeOptions = [
   { id: 'placeIdeas', label: '想去推薦', icon: Lightbulb },
   { id: 'dayPlan', label: '今日行程', icon: CalendarPlus }
 ];
-
-const petMoodClasses = {
-  error: 'ring-rose-300 bg-rose-50/85 dark:ring-rose-700 dark:bg-rose-950/45',
-  happy: 'ring-emerald-300 bg-emerald-50/85 dark:ring-emerald-700 dark:bg-emerald-950/40',
-  idle: 'ring-sky-300 bg-sky-50/85 dark:ring-brand-700 dark:bg-brand-950/40',
-  thinking: 'ring-amber-300 bg-amber-50/85 dark:ring-amber-700 dark:bg-amber-950/40'
-};
-
-const petMoodDotClasses = {
-  error: 'bg-rose-500',
-  happy: 'bg-emerald-500',
-  idle: 'bg-brand-500',
-  thinking: 'bg-amber-500'
-};
 
 const PET_CELL_WIDTH = 192;
 const PET_CELL_HEIGHT = 208;
@@ -56,8 +44,6 @@ const petMoodAnimation = {
 const AiTravelPet = ({ mood = 'idle', size = 'md' }) => {
   const isButton = size === 'button';
   const wrapperSize = isButton ? 'h-16 w-16' : 'h-20 w-20';
-  const moodClass = petMoodClasses[mood] || petMoodClasses.idle;
-  const dotClass = petMoodDotClasses[mood] || petMoodDotClasses.idle;
   const animation = petAnimationStates[petMoodAnimation[mood] || 'idle'];
   const spriteWidth = isButton ? 58 : 74;
   const spriteScale = spriteWidth / PET_CELL_WIDTH;
@@ -80,14 +66,10 @@ const AiTravelPet = ({ mood = 'idle', size = 'md' }) => {
 
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl ring-2 shadow-sm ${wrapperSize} ${moodClass}`}
+      className={`relative flex shrink-0 items-center justify-center overflow-visible ${wrapperSize}`}
       aria-hidden="true"
     >
-      <span className={`absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full ${dotClass} shadow-sm`} />
       <span className="tp-ai-pet-sprite block select-none" style={spriteStyle} />
-      {mood === 'happy' && (
-        <Sparkles size={13} className="absolute -right-1 top-0 text-emerald-500 dark:text-emerald-300" />
-      )}
     </div>
   );
 };
@@ -197,8 +179,11 @@ const TripAiRecommendationPanel = ({
   error,
   canEdit,
   isHidden = false,
+  isCompanionHidden = false,
   onOpen,
   onClose,
+  onHideCompanion,
+  onSummon,
   onModeChange,
   onGenerate,
   onApplyPlace,
@@ -226,6 +211,22 @@ const TripAiRecommendationPanel = ({
   };
 
   if (isHidden) return null;
+
+  if (isCompanionHidden) {
+    return (
+      <div className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28">
+        <button
+          type="button"
+          onClick={() => onSummon?.(mode)}
+          className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-full text-brand-700 transition hover:bg-sky-50/70 hover:text-brand-900 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-200 dark:hover:bg-slate-800/60 dark:hover:text-white"
+          aria-label="召喚 AI 旅伴"
+          title="召喚 AI 旅伴"
+        >
+          <Compass size={20} />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28">
@@ -255,15 +256,26 @@ const TripAiRecommendationPanel = ({
                 </h3>
               </div>
             </div>
-            <button
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+              type="button"
+              onClick={onHideCompanion}
+              className="touch-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+              aria-label="隱藏 AI 旅伴"
+              title="隱藏旅伴"
+            >
+                <EyeOff size={17} />
+              </button>
+              <button
               type="button"
               onClick={onClose}
               className="touch-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
               aria-label="關閉 AI 旅伴"
               title="關閉"
             >
-              <X size={18} />
-            </button>
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600 dark:text-slate-300">

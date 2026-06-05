@@ -1805,8 +1805,11 @@ const TripDetailPage = () => {
         error={tripAi.error}
         canEdit={canEdit}
         isHidden={isAnyModalOpen}
+        isCompanionHidden={tripAi.isCompanionHidden}
         onOpen={tripAi.openPanel}
         onClose={tripAi.closePanel}
+        onHideCompanion={tripAi.hideCompanion}
+        onSummon={tripAi.summonCompanion}
         onModeChange={tripAi.setMode}
         onGenerate={tripAi.generate}
         onApplyPlace={handleApplyAiPlaceRecommendation}
