@@ -191,11 +191,13 @@ test('sanitizes trip snapshots for AI recommendations', () => {
     ]
   }, {
     mode: 'dayPlan',
-    selectedDay: 99
+    selectedDay: 99,
+    userIdea: '想晚點出門，晚上吃燒肉，不要排太滿'
   });
 
   assert.equal(snapshot.mode, 'dayPlan');
   assert.equal(snapshot.selectedDay, 1);
+  assert.equal(snapshot.userIdea, '想晚點出門，晚上吃燒肉，不要排太滿');
   assert.deepEqual(snapshot.validDayNumbers, [1, 2]);
   assert.equal(snapshot.trip.accommodation.name, 'Split Hotel');
   assert.equal(snapshot.placeIdeas[0].voteScore, 1);
@@ -330,6 +332,7 @@ test('wires AI recommendations through server-only OpenAI configuration', () => 
   assert.match(functionsSource, /exports\.generateTripRecommendations = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY,\s*GOOGLE_GEOCODING_API_KEY\]/);
   assert.match(functionsSource, /buildExternalPlaceCandidateContext/);
   assert.match(functionsSource, /mode !== 'placeIdeas'/);
+  assert.match(functionsSource, /userIdea: request\.data\?\.userIdea/);
   assert.match(functionsSource, /AI place recommendation Google fallback/);
   assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
 });
@@ -409,6 +412,7 @@ test('builds place ideas with Google place fields from AI recommendations', () =
 test('keeps AI recommendation entry points visible in trip tabs', () => {
   const panelSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripAiRecommendationPanel.jsx'), 'utf8');
   const hookSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'hooks', 'useTripAiRecommendations.js'), 'utf8');
+  const serviceSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'services', 'tripAiService.js'), 'utf8');
   const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', 'TripDetailPage.jsx'), 'utf8');
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TodayTab.jsx'), 'utf8');
   const ideasSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'IdeasTab.jsx'), 'utf8');
@@ -425,21 +429,39 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /isCompanionHidden/);
   assert.match(panelSource, /onHideCompanion/);
   assert.match(panelSource, /onSummon/);
+  assert.match(panelSource, /PET_POSITION_STORAGE_KEY = 'tripPlanner\.aiCompanionPosition'/);
+  assert.match(panelSource, /onPointerDown=\{handleCompanionPointerDown\}/);
+  assert.match(panelSource, /onPointerMove=\{handleCompanionPointerMove\}/);
+  assert.match(panelSource, /onPointerUp=\{handleCompanionPointerEnd\}/);
+  assert.match(panelSource, /data-drag-state=\{companionDragState\}/);
+  assert.match(panelSource, /floatingPetMood/);
+  assert.match(panelSource, /AI_INITIAL_IDEA_MAX_LENGTH = 600/);
+  assert.match(panelSource, /id="trip-ai-initial-idea"/);
+  assert.match(panelSource, /onGenerate\?\.\('dayPlan', \{ userIdea: initialIdeaText \}\)/);
+  assert.doesNotMatch(panelSource, /modeOptions\.map|id: 'placeIdeas'/);
   assert.doesNotMatch(panelSource, /Google 地點資料|AI 推測|我只會讀這趟旅程目前的內容/);
-  assert.doesNotMatch(panelSource, /petMoodClasses|petMoodDotClasses|ring-2/);
+  assert.doesNotMatch(panelSource, /petMoodClasses|petMoodDotClasses/);
   assert.match(hookSource, /COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner\.aiCompanionHidden'/);
   assert.match(hookSource, /isCompanionHidden/);
   assert.match(hookSource, /hideCompanion/);
   assert.match(hookSource, /summonCompanion/);
+  assert.match(hookSource, /const validModes = new Set\(\['dayPlan'\]\)/);
+  assert.match(hookSource, /userIdea: requestOptions\.userIdea/);
+  assert.match(serviceSource, /MAX_USER_IDEA_LENGTH = 600/);
+  assert.match(serviceSource, /payload\.userIdea = safeUserIdea/);
   assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
   assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
   assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
   assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);
   assert.match(stylesSource, /@keyframes tp-ai-pet-sprite/);
+  assert.match(stylesSource, /@keyframes tp-ai-companion-lift/);
+  assert.match(stylesSource, /@keyframes tp-ai-companion-land/);
   assert.match(stylesSource, /\.tp-ai-pet-sprite/);
+  assert.match(stylesSource, /\.tp-ai-companion-button\[data-drag-state="dragging"\]/);
+  assert.match(stylesSource, /\.tp-ai-companion-button\[data-drag-state="landing"\]/);
   assert.match(todaySource, /openAiRecommendations\?\.\('dayPlan'\)/);
-  assert.match(ideasSource, /openAiRecommendations\?\.\('placeIdeas'\)/);
+  assert.doesNotMatch(ideasSource, /openAiRecommendations\?\.\('placeIdeas'\)/);
 });
 
 test('builds itinerary route readiness without hiding missing locations', () => {

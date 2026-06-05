@@ -1131,7 +1131,8 @@ exports.generateTripRecommendations = onCall(
     const source = await loadTripRecommendationSource(tripRef, trip);
     const baseSnapshot = buildTripRecommendationSnapshot(source, {
       mode,
-      selectedDay: request.data?.selectedDay
+      selectedDay: request.data?.selectedDay,
+      userIdea: request.data?.userIdea
     });
     const externalContext = await buildExternalPlaceCandidateContext({
       uid,
@@ -1141,6 +1142,7 @@ exports.generateTripRecommendations = onCall(
     const snapshot = buildTripRecommendationSnapshot(source, {
       mode,
       selectedDay: request.data?.selectedDay,
+      userIdea: request.data?.userIdea,
       externalLookupStatus: externalContext.status,
       externalCandidates: externalContext.candidates
     });

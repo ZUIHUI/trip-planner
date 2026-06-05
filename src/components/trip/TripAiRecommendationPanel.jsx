@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarPlus,
   CheckCircle2,
@@ -13,14 +13,75 @@ import { Badge, Button } from '../ui';
 import pixelNaviBunAtlas from '../../assets/ai/pixel-navibun-atlas.png';
 
 const modeOptions = [
-  { id: 'placeIdeas', label: '想去推薦', icon: Lightbulb },
   { id: 'dayPlan', label: '今日行程', icon: CalendarPlus }
 ];
+
+const AI_INITIAL_IDEA_MAX_LENGTH = 600;
 
 const PET_CELL_WIDTH = 192;
 const PET_CELL_HEIGHT = 208;
 const PET_ATLAS_COLUMNS = 8;
 const PET_ATLAS_ROWS = 9;
+const PET_BUTTON_SIZE = 64;
+const PET_DRAG_MARGIN = 8;
+const PET_POSITION_STORAGE_KEY = 'tripPlanner.aiCompanionPosition';
+
+const clampCompanionPosition = (position) => {
+  const rawX = Number.isFinite(position?.x) ? position.x : 12;
+  const rawY = Number.isFinite(position?.y) ? position.y : 360;
+
+  if (typeof window === 'undefined') {
+    return { x: rawX, y: rawY };
+  }
+
+  const maxX = Math.max(PET_DRAG_MARGIN, window.innerWidth - PET_BUTTON_SIZE - PET_DRAG_MARGIN);
+  const maxY = Math.max(PET_DRAG_MARGIN, window.innerHeight - PET_BUTTON_SIZE - PET_DRAG_MARGIN);
+
+  return {
+    x: Math.min(Math.max(rawX, PET_DRAG_MARGIN), maxX),
+    y: Math.min(Math.max(rawY, PET_DRAG_MARGIN), maxY)
+  };
+};
+
+const getDefaultCompanionPosition = () => {
+  if (typeof window === 'undefined') {
+    return { x: 12, y: 360 };
+  }
+
+  const sideOffset = window.innerWidth >= 640 ? 20 : 12;
+  const bottomOffset = window.innerWidth >= 1024 ? 112 : 76;
+  return clampCompanionPosition({
+    x: window.innerWidth >= 640 ? window.innerWidth - PET_BUTTON_SIZE - sideOffset : sideOffset,
+    y: window.innerHeight - PET_BUTTON_SIZE - bottomOffset
+  });
+};
+
+const readCompanionPosition = () => {
+  if (typeof window === 'undefined') {
+    return getDefaultCompanionPosition();
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(PET_POSITION_STORAGE_KEY) || 'null');
+    if (Number.isFinite(parsed?.x) && Number.isFinite(parsed?.y)) {
+      return clampCompanionPosition(parsed);
+    }
+  } catch {
+    // Position is only a local preference; fall back quietly if storage is unavailable.
+  }
+
+  return getDefaultCompanionPosition();
+};
+
+const persistCompanionPosition = (position) => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(PET_POSITION_STORAGE_KEY, JSON.stringify(clampCompanionPosition(position)));
+  } catch {
+    // The companion remains draggable even when localStorage is blocked.
+  }
+};
 
 const petAnimationStates = {
   idle: { row: 0, frames: 6, duration: '1100ms' },
@@ -38,6 +99,8 @@ const petMoodAnimation = {
   error: 'failed',
   happy: 'waving',
   idle: 'idle',
+  landing: 'jumping',
+  lifted: 'waiting',
   thinking: 'running'
 };
 
@@ -190,15 +253,140 @@ const TripAiRecommendationPanel = ({
   onApplyEvent
 }) => {
   const [appliedKeys, setAppliedKeys] = useState(() => new Set());
+  const [initialIdeaText, setInitialIdeaText] = useState('');
+  const [companionPosition, setCompanionPosition] = useState(readCompanionPosition);
+  const [companionDragState, setCompanionDragState] = useState('idle');
+  const companionDragRef = useRef(null);
+  const suppressCompanionClickRef = useRef(false);
+  const landingTimerRef = useRef(null);
   const recommendations = response?.recommendations || [];
   const petMood = error
     ? 'error'
     : (isLoading ? 'thinking' : (recommendations.length ? 'happy' : 'idle'));
+  const floatingPetMood = companionDragState === 'landing'
+    ? 'landing'
+    : ((companionDragState === 'lifted' || companionDragState === 'dragging') ? 'lifted' : petMood);
   const activeModeOption = useMemo(
     () => modeOptions.find((option) => option.id === mode) || modeOptions[0],
     [mode]
   );
   const ActiveModeIcon = activeModeOption.icon;
+  const companionContainerClassName = isOpen
+    ? 'fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28'
+    : 'fixed z-50';
+  const companionContainerStyle = isOpen
+    ? undefined
+    : { left: `${companionPosition.x}px`, top: `${companionPosition.y}px` };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleResize = () => {
+      setCompanionPosition((currentPosition) => {
+        const nextPosition = clampCompanionPosition(currentPosition || getDefaultCompanionPosition());
+        persistCompanionPosition(nextPosition);
+        return nextPosition;
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => () => {
+    if (landingTimerRef.current && typeof window !== 'undefined') {
+      window.clearTimeout(landingTimerRef.current);
+    }
+  }, []);
+
+  const playCompanionLanding = useCallback(() => {
+    if (landingTimerRef.current && typeof window !== 'undefined') {
+      window.clearTimeout(landingTimerRef.current);
+    }
+
+    setCompanionDragState('landing');
+    if (typeof window !== 'undefined') {
+      landingTimerRef.current = window.setTimeout(() => {
+        setCompanionDragState('idle');
+        landingTimerRef.current = null;
+      }, 440);
+    }
+  }, []);
+
+  const handleCompanionPointerDown = useCallback((event) => {
+    if (isOpen || (event.button != null && event.button !== 0)) return;
+
+    if (landingTimerRef.current && typeof window !== 'undefined') {
+      window.clearTimeout(landingTimerRef.current);
+      landingTimerRef.current = null;
+    }
+
+    companionDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      origin: companionPosition,
+      moved: false
+    };
+    setCompanionDragState('lifted');
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, [companionPosition, isOpen]);
+
+  const handleCompanionPointerMove = useCallback((event) => {
+    const drag = companionDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    const hasMoved = Math.abs(dx) + Math.abs(dy) > 4;
+    if (hasMoved) {
+      drag.moved = true;
+      setCompanionDragState('dragging');
+    }
+
+    setCompanionPosition(clampCompanionPosition({
+      x: drag.origin.x + dx,
+      y: drag.origin.y + dy
+    }));
+  }, []);
+
+  const handleCompanionPointerEnd = useCallback((event) => {
+    const drag = companionDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    companionDragRef.current = null;
+
+    const finalPosition = clampCompanionPosition({
+      x: drag.origin.x + event.clientX - drag.startX,
+      y: drag.origin.y + event.clientY - drag.startY
+    });
+    setCompanionPosition(finalPosition);
+    persistCompanionPosition(finalPosition);
+
+    if (drag.moved) {
+      suppressCompanionClickRef.current = true;
+      event.preventDefault();
+      playCompanionLanding();
+      return;
+    }
+
+    setCompanionDragState('idle');
+  }, [playCompanionLanding]);
+
+  const handleCompanionClick = useCallback((event) => {
+    if (suppressCompanionClickRef.current) {
+      suppressCompanionClickRef.current = false;
+      event.preventDefault();
+      return;
+    }
+
+    onOpen?.(mode);
+  }, [mode, onOpen]);
+
+  const handleGenerateRecommendations = useCallback(() => {
+    onGenerate?.('dayPlan', { userIdea: initialIdeaText });
+  }, [initialIdeaText, onGenerate]);
 
   const handleApplyPlace = async (recommendation) => {
     await onApplyPlace?.(recommendation);
@@ -229,16 +417,21 @@ const TripAiRecommendationPanel = ({
   }
 
   return (
-    <div className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28">
+    <div className={companionContainerClassName} style={companionContainerStyle}>
       {!isOpen && (
         <button
           type="button"
-          onClick={() => onOpen?.(mode)}
-          className="touch-target tp-press-feedback inline-flex items-center justify-center rounded-full transition active:scale-95"
+          onClick={handleCompanionClick}
+          onPointerDown={handleCompanionPointerDown}
+          onPointerMove={handleCompanionPointerMove}
+          onPointerUp={handleCompanionPointerEnd}
+          onPointerCancel={handleCompanionPointerEnd}
+          data-drag-state={companionDragState}
+          className="touch-target tp-ai-companion-button inline-flex items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
           aria-label="開啟 AI 旅伴"
           title="AI 旅伴"
         >
-          <AiTravelPet mood={petMood} size="button" />
+          <AiTravelPet mood={floatingPetMood} size="button" />
         </button>
       )}
 
@@ -279,31 +472,26 @@ const TripAiRecommendationPanel = ({
           </div>
 
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {modeOptions.map((option) => {
-              const Icon = option.icon;
-              const active = option.id === mode;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => onModeChange?.(option.id)}
-                  className={`touch-target inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-black transition ${
-                    active
-                      ? 'border-cyan-200 bg-sky-50 text-brand-800 dark:border-brand-800 dark:bg-brand-950/35 dark:text-brand-100'
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300 dark:hover:bg-slate-800'
-                  }`}
-                  aria-pressed={active}
-                >
-                  <Icon size={16} />
-                  {option.label}
-                </button>
-              );
-            })}
+          <div className="mt-4">
+            <label
+              htmlFor="trip-ai-initial-idea"
+              className="mb-1.5 block text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400"
+            >
+              初始想法
+            </label>
+            <textarea
+              id="trip-ai-initial-idea"
+              value={initialIdeaText}
+              onChange={(event) => setInitialIdeaText(event.target.value.slice(0, AI_INITIAL_IDEA_MAX_LENGTH))}
+              placeholder="例如：想晚點出門、安排室內備案、晚上想吃燒肉"
+              rows={3}
+              maxLength={AI_INITIAL_IDEA_MAX_LENGTH}
+              className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-slate-800 dark:bg-slate-950/70 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-brand-500 dark:focus:ring-brand-950"
+            />
           </div>
 
           <Button
-            onClick={() => onGenerate?.(mode)}
+            onClick={handleGenerateRecommendations}
             disabled={!canEdit || isLoading}
             className="mt-3 w-full justify-center"
           >

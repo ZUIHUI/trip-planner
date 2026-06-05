@@ -6,6 +6,7 @@ const MAX_PROMPT_CHECKLIST_ITEMS = 12;
 const MAX_EXTERNAL_PLACE_CANDIDATES = 8;
 const MAX_EXTERNAL_PLACE_TYPES = 8;
 const MAX_GOOGLE_PLACE_SEARCH_QUERIES = 5;
+const MAX_USER_IDEA_LENGTH = 600;
 const VALID_MODES = new Set(['placeIdeas', 'dayPlan']);
 const VALID_EVENT_TYPES = new Set([
   'flight',
@@ -554,6 +555,7 @@ const buildTripRecommendationSnapshot = (source = {}, options = {}) => {
     mode,
     selectedDay,
     validDayNumbers,
+    userIdea: cleanText(options.userIdea, MAX_USER_IDEA_LENGTH),
     trip: {
       title: tripDetails.title,
       dates: tripDetails.dates,
@@ -582,10 +584,14 @@ const recommendationPrompt = ({ mode, snapshot }) => {
   const externalInstruction = externalCandidates.length
     ? 'externalCandidates are Google Places candidate data. If a recommendation uses one, set source to "google_places" and copy placeId, name, address, lat, lng, and types into googlePlace. They do not prove opening hours, ticket price, crowding, or live availability.'
     : 'No external place candidates are available. Set source to "ai" and return googlePlace with empty strings, null coordinates, and an empty types array.';
+  const userIdeaInstruction = snapshot?.userIdea
+    ? 'The userIdea field contains the user-provided starting idea, constraints, or preferences for this generation. Treat it as high-priority guidance while staying consistent with the trip snapshot.'
+    : 'No user-provided starting idea was supplied.';
 
   return [
     modeInstruction,
     externalInstruction,
+    userIdeaInstruction,
     'Use only the provided trip snapshot and externalCandidates. Do not claim you checked live availability, opening hours, prices, maps routing, or any source not present in the snapshot.',
     'Write Traditional Chinese for user-facing strings. Keep each item practical and short.',
     'If data is missing, make conservative suggestions and explain what should be checked manually.',

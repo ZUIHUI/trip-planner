@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react';
 import { requestTripRecommendations } from '../services/tripAiService';
 
 const COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner.aiCompanionHidden';
-const validModes = new Set(['placeIdeas', 'dayPlan']);
+const validModes = new Set(['dayPlan']);
 
-const normalizeMode = (mode) => (validModes.has(mode) ? mode : 'placeIdeas');
+const normalizeMode = (mode) => (validModes.has(mode) ? mode : 'dayPlan');
 
 const readCompanionHidden = () => {
   if (typeof window === 'undefined') return false;
@@ -37,7 +37,7 @@ export const useTripAiRecommendations = ({
   toast
 } = {}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState('placeIdeas');
+  const [mode, setMode] = useState('dayPlan');
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -67,8 +67,10 @@ export const useTripAiRecommendations = ({
     setIsOpen(true);
   }, [mode]);
 
-  const generate = useCallback(async (nextMode = mode) => {
-    const safeMode = normalizeMode(nextMode);
+  const generate = useCallback(async (nextMode = mode, options = {}) => {
+    const requestOptions = nextMode && typeof nextMode === 'object' ? nextMode : options;
+    const requestedMode = nextMode && typeof nextMode === 'object' ? nextMode.mode : nextMode;
+    const safeMode = normalizeMode(requestedMode);
     setMode(safeMode);
 
     if (!canEdit) {
@@ -85,7 +87,8 @@ export const useTripAiRecommendations = ({
       const nextResponse = await requestTripRecommendations({
         tripId,
         selectedDay,
-        mode: safeMode
+        mode: safeMode,
+        userIdea: requestOptions.userIdea
       });
       setResponse(nextResponse);
       return nextResponse;
