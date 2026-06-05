@@ -1,6 +1,8 @@
 import React, { useCallback, useRef } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import PlacePoolCard from './PlacePoolCard';
+import { Button } from '../ui';
 import {
   getItemOrderKeyAtIndex,
   getTripItemChanges,
@@ -38,6 +40,7 @@ const IdeasTab = () => {
     placeVotesByPlaceId,
     realtimeError,
     openAddModal,
+    openAiRecommendations,
     handleAppendEvent,
     saveTripPlaceIdeaDocument,
     deleteTripPlaceIdeaDocument,
@@ -133,6 +136,17 @@ const IdeasTab = () => {
 
   return (
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-40 sm:px-6 sm:pb-24 lg:max-w-5xl lg:px-8">
+      <div className="flex justify-stretch sm:justify-end">
+        <Button
+          variant="secondary"
+          onClick={() => openAiRecommendations?.('placeIdeas')}
+          disabled={!canManageIdeas}
+          className="w-full justify-center sm:w-auto"
+        >
+          <Sparkles size={16} />
+          AI 旅伴推薦想去
+        </Button>
+      </div>
       <PlacePoolCard
         tripId={tripId}
         placePool={placePool}

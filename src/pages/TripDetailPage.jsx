@@ -17,6 +17,7 @@ import PreTripTab from '../components/trip/PreTripTab';
 import PackingTab from '../components/trip/PackingTab';
 import ShoppingTab from '../components/trip/ShoppingTab';
 import ExpensesTab from '../components/trip/ExpensesTab';
+import TripAiRecommendationPanel from '../components/trip/TripAiRecommendationPanel';
 import { TripWorkspaceProvider } from '../contexts/TripWorkspaceContext';
 import { useTrip } from '../hooks/useTrip';
 import { useTripPresence } from '../hooks/useTripPresence';
@@ -24,6 +25,7 @@ import { useTripRealtime } from '../hooks/useTripRealtime';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { useFlightLookup } from '../hooks/useFlightLookup';
+import { useTripAiRecommendations } from '../hooks/useTripAiRecommendations';
 import { fetchJPYRate } from '../services/currencyService';
 import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../services/googleMapsService';
 import {
@@ -61,6 +63,11 @@ import {
   getOrderKeyBetween,
   makeTripEventId
 } from '../utils/tripEventDocuments';
+import { getItemOrderKeyBetween } from '../utils/tripItemDocuments';
+import {
+  createEventFromAiRecommendation,
+  createPlaceFromAiRecommendation
+} from '../utils/tripAiRecommendations';
 import { getPermissionDeniedToast, isPermissionDeniedError } from '../utils/persistenceErrors';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
@@ -514,6 +521,12 @@ const TripDetailPage = () => {
     canEdit,
     tripDetails,
     setTripDetails: handleTripDetailsChange
+  });
+  const tripAi = useTripAiRecommendations({
+    tripId,
+    selectedDay,
+    canEdit,
+    toast
   });
 
   useEffect(() => {
@@ -1240,6 +1253,97 @@ const TripDetailPage = () => {
     setShowSecondaryModules((prev) => !prev);
   };
 
+  const handleApplyAiPlaceRecommendation = useCallback((recommendation) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '無法套用 AI 推薦', description: '目前是唯讀權限，不能加入想去清單。' });
+      return null;
+    }
+
+    const currentPlaces = Array.isArray(placePool) ? placePool : [];
+    const orderKey = getItemOrderKeyBetween(null, currentPlaces[0] || null, 0);
+    const nextPlace = {
+      ...createPlaceFromAiRecommendation(recommendation),
+      orderKey
+    };
+    const nextPlaces = [nextPlace, ...currentPlaces];
+    const fallbackToTripSave = () => {
+      setPlacePool(nextPlaces);
+    };
+
+    applyPlacePoolPatch?.(nextPlaces);
+
+    if (tripId && currentUser?.uid && saveTripPlaceIdeaDocument) {
+      void saveTripPlaceIdeaDocument({
+        tripId,
+        place: nextPlace,
+        orderKey,
+        user: currentUser,
+        clientId
+      }).catch((error) => {
+        if (handleDocumentPersistenceError) {
+          handleDocumentPersistenceError(error, {
+            label: 'AI 想去推薦',
+            fallback: fallbackToTripSave,
+            deniedLogMessage: 'AI place recommendation write denied; skipping root trip autosave fallback.',
+            fallbackLogMessage: 'AI place recommendation write failed; falling back to full trip autosave.'
+          });
+          return;
+        }
+        fallbackToTripSave();
+      });
+    } else {
+      fallbackToTripSave();
+    }
+
+    toast({
+      variant: 'success',
+      title: '已加入想去',
+      description: nextPlace.name || nextPlace.address
+    });
+    return nextPlace;
+  }, [
+    applyPlacePoolPatch,
+    canEdit,
+    clientId,
+    currentUser,
+    handleDocumentPersistenceError,
+    placePool,
+    saveTripPlaceIdeaDocument,
+    setPlacePool,
+    toast,
+    tripId
+  ]);
+
+  const handleApplyAiEventRecommendation = useCallback((recommendation) => {
+    if (!canEdit) {
+      toast({ variant: 'warning', title: '無法套用 AI 推薦', description: '目前是唯讀權限，不能加入行程。' });
+      return null;
+    }
+
+    const validDayNumbers = itinerary
+      .map((day) => Number(day?.day))
+      .filter((dayNumber) => Number.isFinite(dayNumber) && dayNumber > 0);
+    const suggestedDay = Number(recommendation?.suggestedDay || selectedDay);
+    const targetDay = validDayNumbers.includes(suggestedDay) ? suggestedDay : selectedDay;
+    const nextEvent = handleAppendEventDocument(createEventFromAiRecommendation(recommendation), targetDay);
+
+    if (nextEvent) {
+      toast({
+        variant: 'success',
+        title: `已排入 Day ${targetDay}`,
+        description: nextEvent.title || 'AI 推薦行程'
+      });
+    }
+
+    return nextEvent;
+  }, [
+    canEdit,
+    handleAppendEventDocument,
+    itinerary,
+    selectedDay,
+    toast
+  ]);
+
   const editingEventPrevLocation = useMemo(() => {
     if (!editingEvent || !currentDayData?.events?.length) {
       return tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
@@ -1349,6 +1453,7 @@ const TripDetailPage = () => {
     startDayMetaEdit,
     cancelDayMetaEdit,
     saveDayMeta,
+    openAiRecommendations: tripAi.openPanel,
     openAddModal,
     openEditModal,
     handleDeleteEvent: handleDeleteEventDocument,
@@ -1420,6 +1525,7 @@ const TripDetailPage = () => {
     showSecondaryModules,
     isEditingDayMeta,
     dayMetaDraft,
+    tripAi.openPanel,
     handleAppendEventDocument,
     isLookingUpFlight,
     flightLookupError
@@ -1690,6 +1796,22 @@ const TripDetailPage = () => {
           </div>
         </div>
       )}
+
+      <TripAiRecommendationPanel
+        isOpen={tripAi.isOpen}
+        mode={tripAi.mode}
+        response={tripAi.response}
+        isLoading={tripAi.isLoading}
+        error={tripAi.error}
+        canEdit={canEdit}
+        isHidden={isAnyModalOpen}
+        onOpen={tripAi.openPanel}
+        onClose={tripAi.closePanel}
+        onModeChange={tripAi.setMode}
+        onGenerate={tripAi.generate}
+        onApplyPlace={handleApplyAiPlaceRecommendation}
+        onApplyEvent={handleApplyAiEventRecommendation}
+      />
 
       <BottomNavigation
         activeTab={activeTab}

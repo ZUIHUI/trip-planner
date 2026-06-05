@@ -457,6 +457,15 @@ body {
   }
 }
 
+@keyframes tp-ai-pet-sprite {
+  from {
+    background-position: 0 var(--tp-pet-row-y);
+  }
+  to {
+    background-position: var(--tp-pet-to-x) var(--tp-pet-row-y);
+  }
+}
+
 .tp-fade-in {
   animation: tp-fade-in 180ms ease-out both;
 }
@@ -482,6 +491,13 @@ body {
   background-image: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.58) 45%, transparent 72%);
   background-size: 220% 100%;
   animation: tp-shimmer 1.45s ease-in-out infinite;
+}
+
+.tp-ai-pet-sprite {
+  animation-name: tp-ai-pet-sprite;
+  animation-iteration-count: infinite;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
 }
 
 .tp-press-feedback {
@@ -532,11 +548,12 @@ body {
   .tp-fade-in,
   .tp-slide-up,
   .tp-animate-enter,
-  .tp-pop,
-  .tp-soft-pulse,
-  .tp-status-pulse,
-  .tp-status-dot-editing,
-  .tp-shimmer {
+    .tp-pop,
+    .tp-soft-pulse,
+    .tp-status-pulse,
+    .tp-status-dot-editing,
+    .tp-shimmer,
+    .tp-ai-pet-sprite {
     animation: none !important;
   }
 

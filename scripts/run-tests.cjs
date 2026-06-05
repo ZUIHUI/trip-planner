@@ -106,6 +106,17 @@ const {
   getSaveErrorMessage,
   isPermissionDeniedError
 } = require('../src/utils/persistenceErrors.js');
+const {
+  buildTripRecommendationSnapshot,
+  normalizeMode: normalizeTripRecommendationMode,
+  normalizeRecommendationResponse,
+  recommendationResponseSchema
+} = require('../functions/tripRecommendations.js');
+const {
+  createEventFromAiRecommendation,
+  createPlaceFromAiRecommendation,
+  normalizeAiRecommendationResponse
+} = require('../src/utils/tripAiRecommendations.js');
 
 const tests = [];
 const test = (name, fn) => tests.push({ name, fn });
@@ -136,6 +147,162 @@ test('classifies permission denied persistence errors for safe save handling', (
     title: '儲存權限不足',
     description: '行程更新被權限規則拒絕，已停止自動重試。請重新整理後再試一次。'
   });
+});
+
+test('sanitizes trip snapshots for AI recommendations', () => {
+  const snapshot = buildTripRecommendationSnapshot({
+    trip: {
+      access: { ownerEmail: 'owner@example.com' },
+      tripDetails: {
+        title: '東京吃喝行',
+        dateRange: { start: '2026-05-01', end: '2026-05-03' },
+        accommodation: { name: 'Ueno Hotel', address: 'Ueno' },
+        budget: { total: '50000', currency: 'JPY' }
+      },
+      itinerary: [
+        {
+          day: 1,
+          title: '上野',
+          date: '5/1',
+          events: [{ title: '抵達飯店', time: '16:00', location: 'Ueno', updatedByUid: 'uid-private' }]
+        },
+        { day: 2, title: '淺草', date: '5/2', events: [] }
+      ]
+    },
+    details: [
+      { id: 'logistics', accommodation: { name: 'Split Hotel', address: 'Taito' } }
+    ],
+    placeIdeas: [
+      {
+        id: 'place-1',
+        name: '淺草寺',
+        address: 'Asakusa',
+        votes: [{ voterId: 'uid-1', name: 'Private Name', value: 1 }]
+      }
+    ],
+    checklistItems: [
+      { id: 'check-1', text: '買交通卡', done: false, assignedTo: 'private person' },
+      { id: 'check-2', text: '已完成', done: true }
+    ],
+    expenses: [
+      { id: 'expense-1', title: '晚餐', amount: 3000, currency: 'JPY', payer: 'private payer' }
+    ]
+  }, {
+    mode: 'dayPlan',
+    selectedDay: 99
+  });
+
+  assert.equal(snapshot.mode, 'dayPlan');
+  assert.equal(snapshot.selectedDay, 1);
+  assert.deepEqual(snapshot.validDayNumbers, [1, 2]);
+  assert.equal(snapshot.trip.accommodation.name, 'Split Hotel');
+  assert.equal(snapshot.placeIdeas[0].voteScore, 1);
+  assert.equal(snapshot.checklists.preTripRemaining, 1);
+  assert.equal(snapshot.expenses.totalByCurrency[0].amount, 3000);
+
+  const serialized = JSON.stringify(snapshot);
+  assert.doesNotMatch(serialized, /owner@example\.com/);
+  assert.doesNotMatch(serialized, /uid-private|uid-1|Private Name|private person|private payer/);
+});
+
+test('normalizes AI recommendation responses and clamps invalid days', () => {
+  const payload = {
+    headline: '  今日小提案  ',
+    companionLine: '  我幫你看過目前安排  ',
+    recommendations: Array.from({ length: 6 }, (_, index) => ({
+      id: `raw-${index}`,
+      kind: index % 2 ? 'event' : 'place',
+      title: `推薦 ${index}`,
+      locationText: `地點 ${index}`,
+      suggestedDay: 99,
+      time: index === 0 ? '9:5' : '09:30',
+      durationMinutes: 90,
+      reason: '符合目前路線',
+      caution: '請自行確認營業時間',
+      tags: ['親子', '雨天', '很長很長很長很長很長很長'],
+      placeDraft: { name: `點 ${index}`, address: `地址 ${index}`, note: 'note' },
+      eventDraft: { title: `行程 ${index}`, location: `地址 ${index}`, time: '25:00', type: 'bad-type', desc: 'desc', durationMinutes: 90 }
+    }))
+  };
+  const result = normalizeRecommendationResponse(payload, {
+    mode: 'dayPlan',
+    selectedDay: 2,
+    validDayNumbers: [1, 2, 3]
+  });
+
+  assert.equal(result.headline, '今日小提案');
+  assert.equal(result.recommendations.length, 5);
+  assert.equal(result.recommendations[0].suggestedDay, 2);
+  assert.equal(result.recommendations[0].kind, 'event');
+  assert.equal(result.recommendations[0].time, '');
+  assert.equal(result.recommendations[0].eventDraft.type, 'sightseeing');
+  assert.equal(result.recommendations[1].time, '09:30');
+});
+
+test('wires AI recommendations through server-only OpenAI configuration', () => {
+  const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
+
+  assert.equal(normalizeTripRecommendationMode('placeIdeas'), 'placeIdeas');
+  assert.equal(normalizeTripRecommendationMode('bad'), '');
+  assert.equal(recommendationResponseSchema.properties.recommendations.maxItems, 5);
+  assert.match(functionsSource, /const OPENAI_API_KEY = defineSecret\('OPENAI_API_KEY'\)/);
+  assert.match(functionsSource, /getConfiguredOpenAIKey/);
+  assert.match(functionsSource, /exports\.generateTripRecommendations = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY\]/);
+  assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
+});
+
+test('builds app objects from AI recommendation cards', () => {
+  const response = normalizeAiRecommendationResponse({
+    generatedAt: '2026-06-05T00:00:00.000Z',
+    headline: 'AI 建議',
+    companionLine: '先試試這些',
+    recommendations: [{
+      id: 'rec-1',
+      kind: 'event',
+      title: '上野散步',
+      locationText: 'Ueno Park',
+      suggestedDay: 2,
+      time: '9:05',
+      durationMinutes: 75,
+      reason: '離住宿近',
+      caution: '雨天備案',
+      tags: ['輕鬆'],
+      placeDraft: { name: '上野公園', address: 'Ueno Park', note: '靠近住宿' },
+      eventDraft: { title: '上野公園散步', location: 'Ueno Park', time: '09:05', type: 'bad', desc: '散步', durationMinutes: 75 }
+    }]
+  });
+  const recommendation = response.recommendations[0];
+  const place = createPlaceFromAiRecommendation(recommendation);
+  const event = createEventFromAiRecommendation(recommendation);
+
+  assert.equal(response.recommendations.length, 1);
+  assert.equal(place.status, 'idea');
+  assert.equal(place.plannedDay, null);
+  assert.match(place.note, /AI 建議/);
+  assert.equal(event.title, '上野公園散步');
+  assert.equal(event.time, '09:05');
+  assert.equal(event.type, 'sightseeing');
+  assert.equal(event.transport.duration, '75 分鐘');
+});
+
+test('keeps AI recommendation entry points visible in trip tabs', () => {
+  const panelSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripAiRecommendationPanel.jsx'), 'utf8');
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TodayTab.jsx'), 'utf8');
+  const ideasSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'IdeasTab.jsx'), 'utf8');
+  const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'styles', 'index.css'), 'utf8');
+  const petAssetPath = path.join(__dirname, '..', 'src', 'assets', 'ai', 'pixel-navibun.png');
+  const petAtlasPath = path.join(__dirname, '..', 'src', 'assets', 'ai', 'pixel-navibun-atlas.png');
+
+  assert.match(panelSource, /const AiTravelPet/);
+  assert.match(panelSource, /pixel-navibun-atlas\.png/);
+  assert.match(panelSource, /petAnimationStates/);
+  assert.match(panelSource, /petMood/);
+  assert.equal(fs.existsSync(petAssetPath), true);
+  assert.equal(fs.existsSync(petAtlasPath), true);
+  assert.match(stylesSource, /@keyframes tp-ai-pet-sprite/);
+  assert.match(stylesSource, /\.tp-ai-pet-sprite/);
+  assert.match(todaySource, /openAiRecommendations\?\.\('dayPlan'\)/);
+  assert.match(ideasSource, /openAiRecommendations\?\.\('placeIdeas'\)/);
 });
 
 test('builds itinerary route readiness without hiding missing locations', () => {

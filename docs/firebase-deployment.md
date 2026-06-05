@@ -97,6 +97,7 @@ firebase functions:secrets:set GMAIL_SMTP_USER
 firebase functions:secrets:set GMAIL_SMTP_APP_PASSWORD
 firebase functions:secrets:set EMAIL_CODE_PEPPER
 firebase functions:secrets:set INVITE_CODE_PEPPER
+firebase functions:secrets:set OPENAI_API_KEY
 ```
 
 Set the optional sender display value to match the Gmail account or an allowed Gmail alias:
@@ -104,6 +105,8 @@ Set the optional sender display value to match the Gmail account or an allowed G
 ```bash
 EMAIL_FROM="Trip Planner <your-gmail@gmail.com>"
 ```
+
+AI trip recommendations use the `generateTripRecommendations` callable Function. Keep `OPENAI_API_KEY` as a Functions secret; optionally set `OPENAI_MODEL` as a Functions runtime environment value when a different OpenAI model should be used. Do not expose either provider key through `VITE_` frontend variables.
 
 Email verification completes sign-in by creating a Firebase custom token. The Cloud Functions runtime service account must be able to sign tokens; if `verifyEmailLoginCode` logs `iam.serviceAccounts.signBlob` or `auth/insufficient-permission`, grant `roles/iam.serviceAccountTokenCreator` to the Functions service account on itself before redeploying Functions.
 

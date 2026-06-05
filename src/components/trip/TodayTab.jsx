@@ -14,6 +14,7 @@ import {
   Navigation,
   Plane,
   Plus,
+  Sparkles,
   StickyNote,
   Wallet
 } from 'lucide-react';
@@ -818,7 +819,8 @@ const TodayTab = ({ onTabChange }) => {
     canEdit,
     openAddModal,
     openEditModal,
-    handleOpenGoogleMaps
+    handleOpenGoogleMaps,
+    openAiRecommendations
   } = useTripWorkspace();
 
   const dayEvents = useMemo(
@@ -917,6 +919,16 @@ const TodayTab = ({ onTabChange }) => {
         onAddEvent={openAddModal}
         onNavigateNext={handleNavigateNext}
       />
+
+      <Button
+        variant="secondary"
+        onClick={() => openAiRecommendations?.('dayPlan')}
+        disabled={!canEdit}
+        className="w-full justify-center"
+      >
+        <Sparkles size={16} />
+        AI 旅伴幫我排 Day {selectedDay}
+      </Button>
 
       <DayReadinessStrip
         events={dayEvents}

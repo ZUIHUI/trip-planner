@@ -4,6 +4,13 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const {
+  buildTripRecommendationSnapshot,
+  normalizeMode,
+  normalizeRecommendationResponse,
+  recommendationPrompt,
+  recommendationResponseSchema
+} = require('./tripRecommendations');
 
 admin.initializeApp();
 
@@ -17,6 +24,7 @@ const EMAIL_CODE_PEPPER = defineSecret('EMAIL_CODE_PEPPER');
 const INVITE_CODE_PEPPER = defineSecret('INVITE_CODE_PEPPER');
 const FLIGHTAPI_IO_KEY = defineSecret('FLIGHTAPI_IO_KEY');
 const GOOGLE_GEOCODING_API_KEY = defineSecret('GOOGLE_GEOCODING_API_KEY');
+const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const EMAIL_CODE_SEND_COOLDOWN_MS = 60 * 1000;
 const EMAIL_CODE_VERIFICATION_LOCK_MS = 60 * 1000;
@@ -27,9 +35,12 @@ const FLIGHT_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
 const FLIGHT_LOOKUP_MAX_ATTEMPTS = 20;
 const GOOGLE_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
 const GOOGLE_LOOKUP_MAX_ATTEMPTS = 120;
+const AI_RECOMMENDATION_RATE_WINDOW_MS = 10 * 60 * 1000;
+const AI_RECOMMENDATION_MAX_ATTEMPTS = 10;
 const INVITE_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const DEFAULT_EMAIL_FROM_NAME = 'Trip Planner';
 const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
+const OPENAI_RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
 const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 const GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 const GOOGLE_PLACE_DETAILS_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/details/json';
@@ -450,6 +461,35 @@ const assertGoogleLookupRateLimit = async (uid) => {
   }
 };
 
+const assertAiRecommendationRateLimit = async (uid) => {
+  const now = Date.now();
+  const rateRef = firestore.collection('aiRecommendationRateLimits').doc(uid);
+  let waitSeconds = 0;
+
+  await firestore.runTransaction(async (transaction) => {
+    const snap = await transaction.get(rateRef);
+    const data = snap.exists ? snap.data() : {};
+    const windowStartedAtMs = Number(data.windowStartedAtMs || 0);
+    const attempts = Number(data.attempts || 0);
+    const isSameWindow = windowStartedAtMs && now - windowStartedAtMs < AI_RECOMMENDATION_RATE_WINDOW_MS;
+
+    if (isSameWindow && attempts >= AI_RECOMMENDATION_MAX_ATTEMPTS) {
+      waitSeconds = Math.ceil((AI_RECOMMENDATION_RATE_WINDOW_MS - (now - windowStartedAtMs)) / 1000);
+      return;
+    }
+
+    transaction.set(rateRef, {
+      attempts: isSameWindow ? attempts + 1 : 1,
+      windowStartedAtMs: isSameWindow ? windowStartedAtMs : now,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+
+  if (waitSeconds > 0) {
+    throw new HttpsError('resource-exhausted', `AI 推薦產生太頻繁，請 ${waitSeconds} 秒後再試。`);
+  }
+};
+
 const getOrCreateEmailUser = async (email) => {
   try {
     const existingUser = await admin.auth().getUserByEmail(email);
@@ -738,6 +778,149 @@ const getConfiguredGoogleApiKey = () => {
   return apiKey;
 };
 
+const getConfiguredOpenAIKey = () => {
+  const apiKey = String(OPENAI_API_KEY.value() || '').trim();
+  if (!apiKey) {
+    throw new HttpsError('failed-precondition', 'AI 推薦服務尚未設定 OpenAI API key。');
+  }
+  return apiKey;
+};
+
+const readCollectionDocuments = async (collectionRef) => {
+  const snapshot = await collectionRef.get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+};
+
+const loadTripRecommendationSource = async (tripRef, trip) => {
+  const [
+    details,
+    days,
+    events,
+    placeIdeas,
+    checklistItems,
+    expenses
+  ] = await Promise.all([
+    readCollectionDocuments(tripRef.collection('details')),
+    readCollectionDocuments(tripRef.collection('days')),
+    readCollectionDocuments(tripRef.collection('events')),
+    readCollectionDocuments(tripRef.collection('placeIdeas')),
+    readCollectionDocuments(tripRef.collection('checklistItems')),
+    readCollectionDocuments(tripRef.collection('expenses'))
+  ]);
+
+  return {
+    trip,
+    details,
+    days,
+    events,
+    placeIdeas,
+    checklistItems,
+    expenses
+  };
+};
+
+const extractOpenAIResponseText = (payload) => {
+  if (typeof payload?.output_text === 'string') {
+    return payload.output_text;
+  }
+
+  const output = Array.isArray(payload?.output) ? payload.output : [];
+  const parts = [];
+
+  output.forEach((item) => {
+    if (typeof item?.content === 'string') {
+      parts.push(item.content);
+      return;
+    }
+
+    if (!Array.isArray(item?.content)) return;
+    item.content.forEach((contentPart) => {
+      if (typeof contentPart?.text === 'string') {
+        parts.push(contentPart.text);
+      }
+    });
+  });
+
+  return parts.join('\n').trim();
+};
+
+const openAIProviderErrorCode = (status) => {
+  if (status === 401 || status === 403) return 'failed-precondition';
+  if (status === 429) return 'resource-exhausted';
+  if (status >= 400 && status < 500) return 'invalid-argument';
+  return 'unavailable';
+};
+
+const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
+  const model = String(process.env.OPENAI_MODEL || 'gpt-5.5').trim() || 'gpt-5.5';
+  let response = null;
+  let payload = null;
+
+  try {
+    response = await fetch(OPENAI_RESPONSES_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        instructions: 'You are a practical Traditional Chinese travel-planning assistant inside a collaborative trip planner app.',
+        input: recommendationPrompt({ mode, snapshot }),
+        reasoning: { effort: 'low' },
+        max_output_tokens: 1800,
+        text: {
+          verbosity: 'low',
+          format: {
+            type: 'json_schema',
+            name: 'trip_recommendations',
+            strict: true,
+            schema: recommendationResponseSchema
+          }
+        }
+      })
+    });
+    payload = await response.json().catch(() => ({}));
+  } catch (error) {
+    console.error('OpenAI recommendation request failed', {
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    throw new HttpsError('unavailable', 'AI 推薦暫時無法連線，請稍後再試。');
+  }
+
+  if (!response.ok) {
+    console.error('OpenAI recommendation HTTP error', {
+      status: response.status,
+      message: payload?.error?.message || ''
+    });
+    throw new HttpsError(
+      openAIProviderErrorCode(response.status),
+      response.status === 429
+        ? 'AI 推薦額度暫時受限，請稍後再試。'
+        : 'AI 推薦服務暫時無法完成請求。'
+    );
+  }
+
+  const text = extractOpenAIResponseText(payload);
+  if (!text) {
+    throw new HttpsError('data-loss', 'AI 推薦回傳格式不完整，請稍後再試。');
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('OpenAI recommendation JSON parse failed', {
+      message: error?.message || '',
+      responseId: payload?.id || ''
+    });
+    throw new HttpsError('data-loss', 'AI 推薦回傳格式不正確，請稍後再試。');
+  }
+};
+
 exports.searchGooglePlaces = onCall(
   { secrets: [GOOGLE_GEOCODING_API_KEY] },
   async (request) => {
@@ -842,6 +1025,53 @@ exports.geocodeGooglePlace = onCall(
       formattedAddress: place.address || query,
       lat: place.lat,
       lng: place.lng
+    };
+  }
+);
+
+exports.generateTripRecommendations = onCall(
+  { secrets: [OPENAI_API_KEY] },
+  async (request) => {
+    const uid = requireSignedIn(request);
+    const tripId = normalizeGoogleLookupText(request.data?.tripId, 180);
+    const mode = normalizeMode(request.data?.mode);
+
+    if (!tripId) {
+      throw new HttpsError('invalid-argument', '請提供旅程資訊。');
+    }
+
+    if (!mode) {
+      throw new HttpsError('invalid-argument', 'AI 推薦模式不正確。');
+    }
+
+    const { tripRef, trip, role } = await getTripRoleForUid({ tripId, uid });
+    if (role !== 'owner' && role !== 'editor') {
+      throw new HttpsError('permission-denied', '只有可編輯旅程的成員可以產生 AI 推薦。');
+    }
+
+    await assertAiRecommendationRateLimit(uid);
+
+    const apiKey = getConfiguredOpenAIKey();
+    const source = await loadTripRecommendationSource(tripRef, trip);
+    const snapshot = buildTripRecommendationSnapshot(source, {
+      mode,
+      selectedDay: request.data?.selectedDay
+    });
+
+    const aiPayload = await callOpenAITripRecommendations({
+      apiKey,
+      mode,
+      snapshot
+    });
+    const normalized = normalizeRecommendationResponse(aiPayload, {
+      mode,
+      selectedDay: snapshot.selectedDay,
+      validDayNumbers: snapshot.validDayNumbers
+    });
+
+    return {
+      generatedAt: new Date().toISOString(),
+      ...normalized
     };
   }
 );
