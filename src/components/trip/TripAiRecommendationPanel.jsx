@@ -88,7 +88,6 @@ const RecommendationCard = ({
   const eventKey = getRecommendationKey(recommendation, 'event');
   const placeApplied = appliedKeys.has(placeKey);
   const eventApplied = appliedKeys.has(eventKey);
-  const hasGooglePlace = recommendation.source === 'google_places' || Boolean(recommendation.googlePlace?.placeId);
 
   const handleApply = async (target) => {
     if (!canEdit || isApplying) return;
@@ -120,9 +119,6 @@ const RecommendationCard = ({
         </div>
         <Badge variant={recommendation.kind === 'event' ? 'info' : 'success'}>
           {recommendation.kind === 'event' ? '行程' : '想去'}
-        </Badge>
-        <Badge variant={hasGooglePlace ? 'info' : 'muted'}>
-          {hasGooglePlace ? 'Google 地點資料' : 'AI 推測'}
         </Badge>
       </div>
 
@@ -282,9 +278,6 @@ const TripAiRecommendationPanel = ({
             </div>
           </div>
 
-          <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600 dark:text-slate-300">
-            {response?.companionLine || '我只會讀這趟旅程目前的內容，先產生候選卡，你再決定要不要加入。'}
-          </p>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
             {modeOptions.map((option) => {

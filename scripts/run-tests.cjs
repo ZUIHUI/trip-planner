@@ -425,8 +425,7 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /isCompanionHidden/);
   assert.match(panelSource, /onHideCompanion/);
   assert.match(panelSource, /onSummon/);
-  assert.match(panelSource, /Google 地點資料/);
-  assert.match(panelSource, /AI 推測/);
+  assert.doesNotMatch(panelSource, /Google 地點資料|AI 推測|我只會讀這趟旅程目前的內容/);
   assert.doesNotMatch(panelSource, /petMoodClasses|petMoodDotClasses|ring-2/);
   assert.match(hookSource, /COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner\.aiCompanionHidden'/);
   assert.match(hookSource, /isCompanionHidden/);
