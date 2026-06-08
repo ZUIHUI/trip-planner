@@ -644,9 +644,14 @@ test('enables collaboration notifications through Web Push preferences', () => {
   const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions/index.js'), 'utf8');
   const pushServiceSource = fs.readFileSync(path.join(__dirname, '..', 'src/services/pushNotificationService.js'), 'utf8');
   const cardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripNotificationCard.jsx'), 'utf8');
+  const moreSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
 
   assert.match(pushServiceSource, /collaboration:\s*true/);
   assert.match(cardSource, /旅伴更新/);
+  assert.match(moreSource, /TripNotificationCard/);
+  assert.match(moreSource, /提醒與裝置/);
+  assert.doesNotMatch(todaySource, /TripNotificationCard/);
   assert.match(functionsSource, /category:\s*'collaboration'/);
   assert.match(functionsSource, /isCollaborationNotificationEnabled/);
   assert.match(functionsSource, /notifyTripEventWrite/);

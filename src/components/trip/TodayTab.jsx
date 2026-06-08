@@ -19,11 +19,9 @@ import {
   Wallet
 } from 'lucide-react';
 import WeatherWidget from '../WeatherWidget';
-import InstallAppPrompt from '../InstallAppPrompt';
 import { Badge, Button, Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import DayReadinessStrip from './DayReadinessStrip';
-import TripNotificationCard from './TripNotificationCard';
 import {
   buildGoogleMapsMultiStopDirectionsUrl,
   normalizePlaceText
@@ -798,7 +796,6 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
 
 const TodayTab = ({ onTabChange }) => {
   const {
-    tripId,
     itinerary,
     selectedDay,
     setSelectedDay,
@@ -808,7 +805,6 @@ const TodayTab = ({ onTabChange }) => {
     tripDetails,
     currentLocation,
     checklists,
-    currentUser,
     budgetTarget,
     remainingBudget,
     canEdit,
@@ -889,10 +885,6 @@ const TodayTab = ({ onTabChange }) => {
         currentDayDate={currentDayDate}
         onSelectDay={setSelectedDay}
       />
-
-      <InstallAppPrompt />
-
-      <TripNotificationCard tripId={tripId} currentUser={currentUser} />
 
       <AirportDayFlightCard
         flights={airportDayFlights}

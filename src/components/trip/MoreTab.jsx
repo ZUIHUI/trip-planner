@@ -9,9 +9,11 @@ import {
   ShoppingCart,
   UsersRound
 } from 'lucide-react';
+import InstallAppPrompt from '../InstallAppPrompt';
 import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import ShareCollaborationCard from './ShareCollaborationCard';
+import TripNotificationCard from './TripNotificationCard';
 
 const getChecklistProgress = (items = []) => {
   const safeItems = Array.isArray(items) ? items : [];
@@ -191,6 +193,12 @@ const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
           onClick={onOpenSettings}
         />
       </ModuleSection>
+
+      <section className="space-y-3" aria-label="提醒與裝置">
+        <h2 className="px-1 text-sm font-black text-slate-950 dark:text-white">提醒與裝置</h2>
+        <InstallAppPrompt />
+        <TripNotificationCard tripId={tripId} currentUser={currentUser} />
+      </section>
 
       <div className="h-2" />
     </div>
