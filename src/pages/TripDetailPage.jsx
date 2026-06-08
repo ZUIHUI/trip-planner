@@ -181,6 +181,16 @@ const buildTravelersFromMembers = (members = [], currentUser = null, userProfile
   }];
 };
 
+const readRealtimeActivityMs = (activity = {}) => {
+  const value = activity.updatedAt || activity.createdAt;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
 const TripDetailPage = () => {
   const { tripId: paramTripId } = useParams();
   const tripId = typeof paramTripId === 'string' ? paramTripId.trim() : '';
@@ -277,6 +287,10 @@ const TripDetailPage = () => {
   const tripDetailsRef = useRef(tripDetails);
   const collaborationRef = useRef(collaboration);
   const tripDetailsSaveCountRef = useRef(0);
+  const seenCollaborationActivityIdsRef = useRef(new Set());
+  const collaborationActivityTripIdRef = useRef('');
+  const collaborationActivityReadyRef = useRef(false);
+  const collaborationActivityStartedAtRef = useRef(Date.now());
 
   useEffect(() => {
     tripDetailsRef.current = tripDetails;
@@ -317,6 +331,57 @@ const TripDetailPage = () => {
     activeTab,
     enabled: !isLoading && !accessError
   });
+
+  useEffect(() => {
+    const activities = Array.isArray(recentActivities) ? recentActivities : [];
+    const seenIds = seenCollaborationActivityIdsRef.current;
+
+    if (collaborationActivityTripIdRef.current !== tripId) {
+      seenIds.clear();
+      collaborationActivityTripIdRef.current = tripId;
+      collaborationActivityReadyRef.current = false;
+      collaborationActivityStartedAtRef.current = Date.now();
+    }
+
+    const startedAt = collaborationActivityStartedAtRef.current;
+    if (!collaborationActivityReadyRef.current) {
+      activities.forEach((activity) => {
+        if (activity?.id && readRealtimeActivityMs(activity) <= startedAt) {
+          seenIds.add(activity.id);
+        }
+      });
+      collaborationActivityReadyRef.current = true;
+    }
+
+    const currentUid = currentUser?.uid || '';
+    const newActivities = activities
+      .filter((activity) => (
+        activity?.type === 'collaboration-update'
+        && activity.id
+        && !seenIds.has(activity.id)
+        && readRealtimeActivityMs(activity) > startedAt
+      ))
+      .reverse();
+
+    newActivities.forEach((activity) => {
+      seenIds.add(activity.id);
+      if (activity.actorUid && activity.actorUid === currentUid) return;
+
+      toast({
+        variant: 'info',
+        title: activity.title || '協作更新',
+        description: activity.body || '',
+        duration: 4200
+      });
+    });
+
+    if (seenIds.size > 240) {
+      const recentIds = activities
+        .map((activity) => activity?.id)
+        .filter(Boolean);
+      seenCollaborationActivityIdsRef.current = new Set(recentIds);
+    }
+  }, [currentUser?.uid, recentActivities, toast, tripId]);
 
   const beginTripDetailsSave = useCallback(() => {
     tripDetailsSaveCountRef.current += 1;

@@ -4,11 +4,9 @@ const SERVICE_WORKER_URL = '/service-worker.js';
 const PUSH_DEVICE_STORAGE_KEY = 'tripPlanner.pushDeviceId';
 
 const DEFAULT_CATEGORIES = {
-  dailySummary: true,
   event: true,
   flight: true,
-  checklist: true,
-  collaboration: true
+  checklist: true
 };
 
 const getWindow = () => (typeof window === 'undefined' ? null : window);

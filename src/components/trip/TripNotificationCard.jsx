@@ -9,7 +9,7 @@ const stateCopy = {
     badge: '已開啟',
     badgeVariant: 'success',
     title: '手機提醒已開啟',
-    description: '每日摘要、航班、行程前與出發待辦會送到這台裝置。',
+    description: '航班、行程前與出發待辦會送到這台裝置。',
     action: '關閉提醒',
     actionVariant: 'secondary'
   },
@@ -64,6 +64,12 @@ const stateCopy = {
   }
 };
 
+const notificationCategoryLabels = [
+  '行程提醒',
+  '航班提醒',
+  '待辦提醒'
+];
+
 const TripNotificationCard = ({ tripId, currentUser }) => {
   const {
     status,
@@ -96,7 +102,7 @@ const TripNotificationCard = ({ tripId, currentUser }) => {
               {copy.description}
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {['每日摘要', '航班提醒', '行程提醒', '待辦提醒', '旅伴更新'].map((label) => (
+              {notificationCategoryLabels.map((label) => (
                 <Badge key={label} variant="muted">{label}</Badge>
               ))}
             </div>

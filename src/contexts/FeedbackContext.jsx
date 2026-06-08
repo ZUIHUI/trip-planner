@@ -50,6 +50,7 @@ const ToastItem = ({ toast, onDismiss }) => {
   } = toast;
   const style = toastStyles[variant] || toastStyles.info;
   const Icon = style.icon;
+  const hasCountdown = duration > 0;
 
   useEffect(() => {
     if (duration <= 0) return undefined;
@@ -82,6 +83,14 @@ const ToastItem = ({ toast, onDismiss }) => {
               <RotateCcw size={13} />
               {actionLabel}
             </button>
+          )}
+          {hasCountdown && (
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-current/15">
+              <span
+                className="tp-toast-countdown block h-full rounded-full bg-current/45"
+                style={{ animationDuration: `${duration}ms` }}
+              />
+            </div>
           )}
         </div>
         <button

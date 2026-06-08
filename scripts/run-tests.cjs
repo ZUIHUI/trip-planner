@@ -600,17 +600,17 @@ test('builds due trip notification candidates with timezone-aware dedupe keys', 
     preference: { enabled: true, timezone: 'Asia/Taipei' },
     now: new Date('2026-05-02T00:05:00.000Z')
   });
-  assert.equal(daily.length, 1);
-  assert.equal(daily[0].category, 'dailySummary');
-  assert.equal(daily[0].dedupeId, 'dailySummary:trip-notify:2026-05-02');
-  assert.match(daily[0].body, /10:30 Hotel check-in/);
+  assert.equal(daily.some((candidate) => candidate.category === 'dailySummary'), false);
 
   const event = buildTripNotificationCandidates({
     ...source,
     preference: { enabled: true, timezone: 'Asia/Taipei' },
     now: new Date('2026-05-02T01:35:00.000Z')
   });
-  assert.equal(event.some((candidate) => candidate.dedupeId === 'event:trip-notify:event-1:60'), true);
+  const eventCandidate = event.find((candidate) => candidate.dedupeId === 'event:trip-notify:event-1:60');
+  assert.ok(eventCandidate);
+  assert.equal(eventCandidate.body, 'Ueno');
+  assert.doesNotMatch(eventCandidate.body, /\d{2}:\d{2}/);
   assert.equal(event.some((candidate) => /missing-time/.test(candidate.dedupeId)), false);
 
   const flight = buildTripNotificationCandidates({
@@ -618,9 +618,12 @@ test('builds due trip notification candidates with timezone-aware dedupe keys', 
     preference: { enabled: true, timezone: 'Asia/Taipei' },
     now: new Date('2026-05-02T01:05:00.000Z')
   });
-  assert.equal(flight.some((candidate) => (
+  const flightCandidate = flight.find((candidate) => (
     candidate.dedupeId === 'flight:trip-notify:outbound:2026-05-03:09:00:24'
-  )), true);
+  ));
+  assert.ok(flightCandidate);
+  assert.equal(flightCandidate.body, 'BR198 即將起飛');
+  assert.doesNotMatch(flightCandidate.body, /\d{2}:\d{2}/);
   assert.equal(flight.some((candidate) => /inbound/.test(candidate.dedupeId)), false);
 
   const checklist = buildTripNotificationCandidates({
@@ -637,23 +640,33 @@ test('builds due trip notification candidates with timezone-aware dedupe keys', 
   assert.equal(payload.data.category, 'event');
 });
 
-test('enables collaboration notifications through Web Push preferences', () => {
-  assert.equal(normalizeCategories({}).collaboration, true);
-  assert.equal(normalizeCategories({ collaboration: false }).collaboration, false);
+test('routes collaboration updates to in-app realtime notifications', () => {
+  const normalizedCategories = normalizeCategories({});
+  assert.equal(normalizedCategories.event, true);
+  assert.equal(normalizedCategories.flight, true);
+  assert.equal(normalizedCategories.checklist, true);
+  assert.equal(Object.prototype.hasOwnProperty.call(normalizedCategories, 'collaboration'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(normalizedCategories, 'dailySummary'), false);
 
   const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions/index.js'), 'utf8');
   const pushServiceSource = fs.readFileSync(path.join(__dirname, '..', 'src/services/pushNotificationService.js'), 'utf8');
   const cardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripNotificationCard.jsx'), 'utf8');
   const moreSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
 
-  assert.match(pushServiceSource, /collaboration:\s*true/);
-  assert.match(cardSource, /旅伴更新/);
+  assert.doesNotMatch(pushServiceSource, /collaboration:\s*true/);
+  assert.doesNotMatch(pushServiceSource, /dailySummary:\s*true/);
+  assert.match(cardSource, /notificationCategoryLabels/);
+  assert.doesNotMatch(cardSource, /旅伴更新/);
   assert.match(moreSource, /TripNotificationCard/);
   assert.match(moreSource, /提醒與裝置/);
   assert.doesNotMatch(todaySource, /TripNotificationCard/);
-  assert.match(functionsSource, /category:\s*'collaboration'/);
-  assert.match(functionsSource, /isCollaborationNotificationEnabled/);
+  assert.match(functionsSource, /type:\s*'collaboration-update'/);
+  assert.match(functionsSource, /appendRealtimeActivity/);
+  assert.match(functionsSource, /publishTripCollaborationActivity/);
+  assert.doesNotMatch(functionsSource, /category:\s*'collaboration'/);
+  assert.doesNotMatch(functionsSource, /isCollaborationNotificationEnabled/);
   assert.match(functionsSource, /notifyTripEventWrite/);
   assert.match(functionsSource, /notifyTripDayWrite/);
   assert.match(functionsSource, /notifyTripDetailWrite/);
@@ -663,6 +676,9 @@ test('enables collaboration notifications through Web Push preferences', () => {
   assert.match(functionsSource, /notifyTripPlaceIdeaWrite/);
   assert.match(functionsSource, /notifyTripShoppingCategoryWrite/);
   assert.doesNotMatch(functionsSource, /notifyTripRootWrite/);
+  assert.match(tripDetailSource, /collaboration-update/);
+  assert.match(tripDetailSource, /seenCollaborationActivityIdsRef/);
+  assert.match(tripDetailSource, /duration:\s*4200/);
 });
 
 test('passes trip-day dates into travel next-event surfaces', () => {

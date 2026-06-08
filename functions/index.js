@@ -972,8 +972,6 @@ const normalizeLeadTimePreferences = (leadTimes = {}) => {
     : [];
 
   return {
-    dailySummaryLocalTime: normalizeTimeText(source.dailySummaryLocalTime)
-      || DEFAULT_NOTIFICATION_LEAD_TIMES.dailySummaryLocalTime,
     eventMinutes: Number.isFinite(eventMinutes) && eventMinutes >= 5 && eventMinutes <= 1440
       ? eventMinutes
       : DEFAULT_NOTIFICATION_LEAD_TIMES.eventMinutes,
@@ -1157,22 +1155,6 @@ const getCollaborationActionText = (action) => {
   return '更新';
 };
 
-const getTimestampText = (value) => {
-  if (typeof value === 'string' && value.trim()) {
-    return cleanPushString(value, 120);
-  }
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return String(value);
-  }
-  if (value && typeof value.toMillis === 'function') {
-    return String(value.toMillis());
-  }
-  if (value && typeof value.toDate === 'function') {
-    return value.toDate().toISOString();
-  }
-  return '';
-};
-
 const getCollaborationActorUid = (beforeData, afterData) => cleanPushString(
   afterData.updatedByUid || beforeData.updatedByUid,
   200
@@ -1215,71 +1197,39 @@ const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
   return config.fallback || cleanPushString(documentId, 100) || '一個項目';
 };
 
-const buildCollaborationNotificationCandidate = ({
+const buildCollaborationActivity = ({
   tripId,
   collectionId,
   documentId,
   action,
   data,
-  actorName,
-  eventId
+  actorUid,
+  actorName
 }) => {
   const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
   const label = config.label || '旅程內容';
   const actionText = getCollaborationActionText(action);
   const entityTitle = getCollaborationEntityTitle({ collectionId, documentId, data });
-  const changeStamp = (
-    getTimestampText(data.updatedAt)
-    || getTimestampText(data.deletedAt)
-    || cleanPushString(eventId, 160)
-    || hashValue(`${collectionId}:${documentId}:${JSON.stringify(data).slice(0, 2000)}`).slice(0, 32)
-  );
-  const now = new Date().toISOString();
+  const body = cleanPushString(entityTitle, 180);
 
   return {
+    type: 'collaboration-update',
     tripId,
-    category: 'collaboration',
-    dedupeId: `collaboration:${tripId}:${collectionId}:${documentId}:${action}:${changeStamp}`,
-    dueAt: now,
+    actorUid,
+    actorName,
+    action,
+    actionText,
+    collectionId,
+    documentId,
+    label,
+    entityTitle: body,
     title: cleanPushString(`${actorName} ${actionText}了${label}`, 100),
-    body: cleanPushString(entityTitle ? `${entityTitle}` : '打開旅程查看最新內容', 180),
-    url: `/trip/${tripId}`,
-    tag: `trip-${tripId}-collaboration`
+    body,
+    url: `/trip/${tripId}`
   };
 };
 
-const isCollaborationNotificationEnabled = (preference = null) => {
-  if (!preference || preference.enabled !== true) return false;
-  return normalizeCategories(preference.categories).collaboration !== false;
-};
-
-const sendCollaborationCandidateToUser = async ({ uid, candidate, now }) => {
-  const preferenceSnap = await getTripNotificationPreferenceRef(uid, candidate.tripId).get();
-  const preference = preferenceSnap.exists ? preferenceSnap.data() || {} : null;
-  if (!isCollaborationNotificationEnabled(preference)) return;
-
-  const deliveryRef = await claimNotificationDelivery({ uid, candidate, now });
-  if (!deliveryRef) return;
-
-  const devices = await getActivePushDevices(uid);
-  if (!devices.length) {
-    await updateNotificationDelivery(deliveryRef, {
-      status: 'no-active-devices',
-      sentCount: 0,
-      failedCount: 0
-    });
-    return;
-  }
-
-  const result = await sendNotificationCandidateToDevices({ uid, candidate, devices });
-  await updateNotificationDelivery(deliveryRef, {
-    status: result.sentCount > 0 ? 'sent' : 'failed',
-    sentCount: result.sentCount,
-    failedCount: result.failedCount
-  });
-};
-
-const sendTripCollaborationNotification = async (event, collectionId) => {
+const publishTripCollaborationActivity = async (event, collectionId) => {
   const tripId = cleanPushString(event.params?.tripId, 200);
   const documentId = cleanPushString(event.params?.documentId, 200);
   if (!tripId || !documentId || !COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId]) return;
@@ -1294,13 +1244,6 @@ const sendTripCollaborationNotification = async (event, collectionId) => {
   const data = action === 'deleted' ? beforeData : afterData;
   const actorUid = getCollaborationActorUid(beforeData, afterData);
   if (!actorUid) return;
-
-  try {
-    configureWebPush();
-  } catch (error) {
-    console.warn('Web Push is not configured; skipping collaboration notification.', error?.message || error);
-    return;
-  }
 
   const tripRef = firestore.collection('trips').doc(tripId);
   const [tripSnap, membersSnapshot] = await Promise.all([
@@ -1326,30 +1269,22 @@ const sendTripCollaborationNotification = async (event, collectionId) => {
   }
 
   const actorName = getCollaborationMemberName(membersByUid.get(actorUid), actorUid);
-  const candidate = buildCollaborationNotificationCandidate({
+  const activity = buildCollaborationActivity({
     tripId,
     collectionId,
     documentId,
     action,
     data,
-    actorName,
-    eventId: event.id || ''
+    actorUid,
+    actorName
   });
-  const now = new Date().toISOString();
-  const recipients = Array.from(membersByUid.values())
-    .map((member) => cleanPushString(member.uid, 200))
-    .filter((uid) => uid && uid !== actorUid);
 
-  await Promise.all(recipients.map((uid) => sendCollaborationCandidateToUser({
-    uid,
-    candidate,
-    now
-  })));
+  await appendRealtimeActivity({ tripId, activity });
 };
 
 const onTripCollaborationDocumentWritten = (document, collectionId) => onDocumentWritten(
-  { document, secrets: WEB_PUSH_SECRET_DEFINITIONS },
-  async (event) => sendTripCollaborationNotification(event, collectionId)
+  document,
+  async (event) => publishTripCollaborationActivity(event, collectionId)
 );
 
 const fetchGooglePlaceCandidatesForRecommendation = async ({ apiKey, snapshot }) => {

@@ -7,18 +7,15 @@ const DEFAULT_LOOK_BEHIND_MINUTES = 20;
 const DEFAULT_LOOK_AHEAD_MINUTES = 0;
 const MAX_AUTO_TRIP_DAYS = 45;
 
-const NOTIFICATION_CATEGORIES = ['dailySummary', 'event', 'flight', 'checklist', 'collaboration'];
+const NOTIFICATION_CATEGORIES = ['event', 'flight', 'checklist'];
 
 const DEFAULT_NOTIFICATION_CATEGORIES = Object.freeze({
-  dailySummary: true,
   event: true,
   flight: true,
-  checklist: true,
-  collaboration: true
+  checklist: true
 });
 
 const DEFAULT_NOTIFICATION_LEAD_TIMES = Object.freeze({
-  dailySummaryLocalTime: DEFAULT_DAILY_SUMMARY_TIME,
   eventMinutes: DEFAULT_EVENT_LEAD_MINUTES,
   flightHours: DEFAULT_FLIGHT_LEAD_HOURS,
   checklistDays: DEFAULT_CHECKLIST_LEAD_DAYS
@@ -393,16 +390,6 @@ const makeCandidate = ({
   tag: `trip-${cleanString(tripId)}-${category}`
 });
 
-const buildDailySummaryBody = (day, dayEvents = []) => {
-  const eventTexts = asArray(dayEvents)
-    .slice(0, 3)
-    .map((event) => `${event.time} ${event.title}`);
-  if (eventTexts.length) {
-    return `${day.title}: ${eventTexts.join('、')}`;
-  }
-  return `${day.title}: 今天還沒有排定時間行程，記得看一下待辦和交通。`;
-};
-
 const buildTripNotificationCandidates = ({
   tripId,
   trip = {},
@@ -430,7 +417,6 @@ const buildTripNotificationCandidates = ({
   if (!Number.isFinite(nowMs)) return [];
 
   const tripDetails = normalizeTripDetails({ trip, details });
-  const normalizedDays = normalizeDays({ trip, details, days });
   const normalizedEvents = normalizeEvents({ trip, details, days, events });
   const normalizedChecklistItems = normalizeChecklistItems({ trip, checklistItems });
   const candidates = [];
@@ -440,27 +426,6 @@ const buildTripNotificationCandidates = ({
     lookBehindMinutes,
     lookAheadMinutes
   });
-
-  if (categories.dailySummary) {
-    const dailyTime = normalizeTimeText(leadTimes.dailySummaryLocalTime) || DEFAULT_DAILY_SUMMARY_TIME;
-    normalizedDays.forEach((day) => {
-      const dueAtMs = zonedDateTimeToUtcMs({
-        date: day.isoDate,
-        time: dailyTime,
-        timeZone: safeTimeZone
-      });
-      if (!dueInWindow(dueAtMs)) return;
-      const dayEvents = normalizedEvents.filter((event) => event.dayNumber === day.dayNumber);
-      candidates.push(makeCandidate({
-        tripId: safeTripId,
-        category: 'dailySummary',
-        dedupeKey: day.isoDate,
-        dueAtMs,
-        title: `${tripDetails.title} 今日提醒`,
-        body: buildDailySummaryBody(day, dayEvents)
-      }));
-    });
-  }
 
   if (categories.event) {
     const leadMinutes = Number(leadTimes.eventMinutes) || DEFAULT_EVENT_LEAD_MINUTES;
@@ -478,7 +443,7 @@ const buildTripNotificationCandidates = ({
         dedupeKey: `${event.id}:${leadMinutes}`,
         dueAtMs,
         title: `${leadMinutes} 分鐘後：${event.title}`,
-        body: event.location ? `${event.time} @ ${event.location}` : `${event.time} 開始`
+        body: event.location || '行程即將開始'
       }));
     });
   }
@@ -512,7 +477,7 @@ const buildTripNotificationCandidates = ({
           dedupeKey: `${direction}:${flightDate}:${departureTime}:${leadHours}`,
           dueAtMs,
           title: `${directionLabel}航班 ${leadHours} 小時前提醒`,
-          body: `${code || '航班'} ${flightDate} ${departureTime} 起飛`
+          body: `${code || '航班'} 即將起飛`
         }));
       });
     });
