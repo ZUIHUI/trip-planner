@@ -1,9 +1,11 @@
 const { onDocumentDeleted, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { HttpsError, onCall } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const webPush = require('web-push');
 const {
   buildGooglePlaceSearchQueries,
   buildTripRecommendationSnapshot,
@@ -13,6 +15,15 @@ const {
   recommendationPrompt,
   recommendationResponseSchema
 } = require('./tripRecommendations');
+const {
+  DEFAULT_NOTIFICATION_LEAD_TIMES,
+  DEFAULT_TIME_ZONE,
+  buildTripNotificationCandidates,
+  buildWebPushPayload,
+  normalizeCategories,
+  normalizeTimeText,
+  normalizeTimeZone
+} = require('./tripNotificationReminders');
 
 admin.initializeApp();
 
@@ -27,6 +38,14 @@ const INVITE_CODE_PEPPER = defineSecret('INVITE_CODE_PEPPER');
 const FLIGHTAPI_IO_KEY = defineSecret('FLIGHTAPI_IO_KEY');
 const GOOGLE_GEOCODING_API_KEY = defineSecret('GOOGLE_GEOCODING_API_KEY');
 const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
+const WEB_PUSH_VAPID_PUBLIC_KEY = defineSecret('WEB_PUSH_VAPID_PUBLIC_KEY');
+const WEB_PUSH_VAPID_PRIVATE_KEY = defineSecret('WEB_PUSH_VAPID_PRIVATE_KEY');
+const WEB_PUSH_VAPID_SUBJECT = defineSecret('WEB_PUSH_VAPID_SUBJECT');
+const WEB_PUSH_SECRET_DEFINITIONS = [
+  WEB_PUSH_VAPID_PUBLIC_KEY,
+  WEB_PUSH_VAPID_PRIVATE_KEY,
+  WEB_PUSH_VAPID_SUBJECT
+];
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const EMAIL_CODE_SEND_COOLDOWN_MS = 60 * 1000;
 const EMAIL_CODE_VERIFICATION_LOCK_MS = 60 * 1000;
@@ -46,6 +65,57 @@ const OPENAI_RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
 const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 const GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 const GOOGLE_PLACE_DETAILS_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/details/json';
+const CANONICAL_APP_ORIGIN = 'https://trip-planner-36455.firebaseapp.com';
+const WEB_PUSH_DEVICE_ENDPOINT_MAX_LENGTH = 2000;
+const WEB_PUSH_KEY_MAX_LENGTH = 512;
+const WEB_PUSH_DELIVERY_LOOK_BEHIND_MINUTES = 20;
+const COLLABORATION_NOTIFICATION_COLLECTIONS = Object.freeze({
+  events: {
+    label: '行程',
+    fallback: '一個行程',
+    titleFields: ['title', 'location']
+  },
+  days: {
+    label: '日期',
+    fallback: '一天安排',
+    titleFields: ['title', 'date']
+  },
+  details: {
+    label: '旅程資訊',
+    fallback: '旅程資訊',
+    titleFields: ['title'],
+    sectionLabels: {
+      meta: '基本資料',
+      logistics: '交通住宿',
+      finance: '預算'
+    }
+  },
+  checklistItems: {
+    label: '待辦',
+    fallback: '一個待辦',
+    titleFields: ['text', 'category']
+  },
+  shoppingItems: {
+    label: '購物',
+    fallback: '一個購物項目',
+    titleFields: ['name', 'category']
+  },
+  expenses: {
+    label: '花費',
+    fallback: '一筆花費',
+    titleFields: ['title', 'payer']
+  },
+  placeIdeas: {
+    label: '想去地點',
+    fallback: '一個地點',
+    titleFields: ['name', 'address']
+  },
+  shoppingCategories: {
+    label: '購物分類',
+    fallback: '一個分類',
+    titleFields: ['name']
+  }
+});
 
 const normalizeRole = (role) => {
   if (role === 'owner') return 'owner';
@@ -827,6 +897,461 @@ const loadTripRecommendationSource = async (tripRef, trip) => {
   };
 };
 
+const getRuntimeValue = (secret, envName, fallback = '') => {
+  try {
+    const value = String(secret.value() || '').trim();
+    if (value) return value;
+  } catch {
+    // Local checks and unbound functions can fall back to environment values.
+  }
+
+  return String(process.env[envName] || fallback || '').trim();
+};
+
+const getConfiguredWebPushPublicKey = () => {
+  const publicKey = getRuntimeValue(WEB_PUSH_VAPID_PUBLIC_KEY, 'WEB_PUSH_VAPID_PUBLIC_KEY');
+  if (!publicKey) {
+    throw new HttpsError('failed-precondition', 'Web Push is not configured.');
+  }
+  return publicKey;
+};
+
+const getConfiguredWebPushDetails = () => {
+  const publicKey = getConfiguredWebPushPublicKey();
+  const privateKey = getRuntimeValue(WEB_PUSH_VAPID_PRIVATE_KEY, 'WEB_PUSH_VAPID_PRIVATE_KEY');
+  const subject = getRuntimeValue(
+    WEB_PUSH_VAPID_SUBJECT,
+    'WEB_PUSH_VAPID_SUBJECT',
+    `mailto:${PRIMARY_OWNER_EMAIL}`
+  );
+
+  if (!privateKey) {
+    throw new HttpsError('failed-precondition', 'Web Push private key is not configured.');
+  }
+
+  return { publicKey, privateKey, subject };
+};
+
+const configureWebPush = () => {
+  const { publicKey, privateKey, subject } = getConfiguredWebPushDetails();
+  webPush.setVapidDetails(subject, publicKey, privateKey);
+};
+
+const cleanPushString = (value, maxLength) => String(value || '')
+  .trim()
+  .replace(/[\u0000-\u001f\u007f]/g, '')
+  .slice(0, maxLength);
+
+const normalizePushSubscription = (subscription = {}) => {
+  const source = subscription && typeof subscription === 'object' ? subscription : {};
+  const keys = source.keys && typeof source.keys === 'object' ? source.keys : {};
+  const endpoint = cleanPushString(source.endpoint, WEB_PUSH_DEVICE_ENDPOINT_MAX_LENGTH);
+  const p256dh = cleanPushString(keys.p256dh, WEB_PUSH_KEY_MAX_LENGTH);
+  const auth = cleanPushString(keys.auth, WEB_PUSH_KEY_MAX_LENGTH);
+
+  if (!endpoint || !endpoint.startsWith('https://') || !p256dh || !auth) {
+    throw new HttpsError('invalid-argument', 'A valid Web Push subscription is required.');
+  }
+
+  const expirationTime = source.expirationTime == null ? null : Number(source.expirationTime);
+  return {
+    endpoint,
+    expirationTime: Number.isFinite(expirationTime) ? expirationTime : null,
+    keys: { p256dh, auth }
+  };
+};
+
+const normalizeLeadTimePreferences = (leadTimes = {}) => {
+  const source = leadTimes && typeof leadTimes === 'object' ? leadTimes : {};
+  const eventMinutes = Number(source.eventMinutes);
+  const flightHours = Array.isArray(source.flightHours)
+    ? source.flightHours.map(Number).filter((value) => Number.isFinite(value) && value > 0 && value <= 72)
+    : [];
+  const checklistDays = Array.isArray(source.checklistDays)
+    ? source.checklistDays.map(Number).filter((value) => Number.isFinite(value) && value >= 0 && value <= 14)
+    : [];
+
+  return {
+    dailySummaryLocalTime: normalizeTimeText(source.dailySummaryLocalTime)
+      || DEFAULT_NOTIFICATION_LEAD_TIMES.dailySummaryLocalTime,
+    eventMinutes: Number.isFinite(eventMinutes) && eventMinutes >= 5 && eventMinutes <= 1440
+      ? eventMinutes
+      : DEFAULT_NOTIFICATION_LEAD_TIMES.eventMinutes,
+    flightHours: flightHours.length ? flightHours : DEFAULT_NOTIFICATION_LEAD_TIMES.flightHours,
+    checklistDays: checklistDays.length ? checklistDays : DEFAULT_NOTIFICATION_LEAD_TIMES.checklistDays
+  };
+};
+
+const getPushDeviceRef = (uid, deviceId) => (
+  firestore
+    .collection('userPushSubscriptions')
+    .doc(uid)
+    .collection('devices')
+    .doc(deviceId)
+);
+
+const getTripNotificationPreferenceRef = (uid, tripId) => (
+  firestore
+    .collection('userNotificationSettings')
+    .doc(uid)
+    .collection('tripPrefs')
+    .doc(tripId)
+);
+
+const makePushDeviceId = (endpoint) => hashValue(endpoint).slice(0, 48);
+
+const getActivePushDevices = async (uid) => {
+  const snapshot = await firestore
+    .collection('userPushSubscriptions')
+    .doc(uid)
+    .collection('devices')
+    .get();
+
+  return snapshot.docs
+    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .filter((device) => (
+      !device.disabledAt &&
+      device.subscription?.endpoint &&
+      device.subscription?.keys?.p256dh &&
+      device.subscription?.keys?.auth
+    ));
+};
+
+const loadTripNotificationSource = async (tripRef, trip) => {
+  const [
+    details,
+    days,
+    events,
+    checklistItems
+  ] = await Promise.all([
+    readCollectionDocuments(tripRef.collection('details')),
+    readCollectionDocuments(tripRef.collection('days')),
+    readCollectionDocuments(tripRef.collection('events')),
+    readCollectionDocuments(tripRef.collection('checklistItems'))
+  ]);
+
+  return {
+    trip,
+    details,
+    days,
+    events,
+    checklistItems
+  };
+};
+
+const toCanonicalNotificationUrl = (url) => {
+  try {
+    const target = new URL(String(url || '/'), CANONICAL_APP_ORIGIN);
+    if (target.origin !== CANONICAL_APP_ORIGIN) {
+      return `${CANONICAL_APP_ORIGIN}/`;
+    }
+    return target.toString();
+  } catch {
+    return `${CANONICAL_APP_ORIGIN}/`;
+  }
+};
+
+const claimNotificationDelivery = async ({ uid, candidate, now }) => {
+  const deliveryId = hashValue(`${uid}:${candidate.dedupeId}`);
+  const deliveryRef = firestore.collection('notificationDeliveries').doc(deliveryId);
+  const shouldSend = await firestore.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(deliveryRef);
+    if (snapshot.exists) return false;
+
+    transaction.set(deliveryRef, {
+      uid,
+      tripId: candidate.tripId,
+      category: candidate.category,
+      dedupeId: candidate.dedupeId,
+      dueAt: candidate.dueAt,
+      title: candidate.title,
+      status: 'pending',
+      createdAt: now,
+      updatedAt: now
+    });
+    return true;
+  });
+
+  return shouldSend ? deliveryRef : null;
+};
+
+const updateNotificationDelivery = async (deliveryRef, patch) => {
+  if (!deliveryRef) return;
+  await deliveryRef.set({
+    ...patch,
+    updatedAt: new Date().toISOString()
+  }, { merge: true });
+};
+
+const markPushDeviceFailure = async ({ uid, deviceId, error }) => {
+  const statusCode = Number(error?.statusCode || error?.status);
+  const terminal = statusCode === 404 || statusCode === 410;
+  const patch = {
+    failureCount: admin.firestore.FieldValue.increment(1),
+    lastFailureAt: new Date().toISOString(),
+    lastFailureStatus: Number.isFinite(statusCode) ? statusCode : null,
+    lastFailureMessage: cleanPushString(error?.message, 240)
+  };
+
+  if (terminal) {
+    patch.disabledAt = new Date().toISOString();
+    patch.disabledReason = `web-push-${statusCode}`;
+  }
+
+  await getPushDeviceRef(uid, deviceId).set(patch, { merge: true });
+};
+
+const sendNotificationCandidateToDevices = async ({ uid, candidate, devices }) => {
+  const payload = buildWebPushPayload({
+    ...candidate,
+    url: toCanonicalNotificationUrl(candidate.url)
+  });
+  let sentCount = 0;
+  let failedCount = 0;
+
+  for (const device of devices) {
+    try {
+      await webPush.sendNotification(device.subscription, payload, {
+        TTL: 60 * 60 * 24,
+        urgency: candidate.category === 'flight' ? 'high' : 'normal'
+      });
+      sentCount += 1;
+      await getPushDeviceRef(uid, device.id).set({
+        lastSentAt: new Date().toISOString(),
+        failureCount: 0
+      }, { merge: true });
+    } catch (error) {
+      failedCount += 1;
+      console.error('Web Push send failed', {
+        uid,
+        deviceId: device.id,
+        statusCode: error?.statusCode || error?.status || '',
+        message: error?.message || ''
+      });
+      await markPushDeviceFailure({ uid, deviceId: device.id, error });
+    }
+  }
+
+  return { sentCount, failedCount };
+};
+
+const asPlainObject = (value) => (
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+);
+
+const getChangeSnapshotData = (snapshot) => (
+  snapshot?.exists ? asPlainObject(snapshot.data()) : {}
+);
+
+const getCollaborationWriteAction = ({ beforeData, afterData, beforeExists, afterExists }) => {
+  if (!beforeExists && afterExists) return 'created';
+  if (beforeExists && !afterExists) return 'deleted';
+  if (!beforeData.deleted && afterData.deleted) return 'deleted';
+  if (beforeData.deleted && !afterData.deleted) return 'created';
+  return 'updated';
+};
+
+const getCollaborationActionText = (action) => {
+  if (action === 'created') return '新增';
+  if (action === 'deleted') return '刪除';
+  return '更新';
+};
+
+const getTimestampText = (value) => {
+  if (typeof value === 'string' && value.trim()) {
+    return cleanPushString(value, 120);
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+  if (value && typeof value.toMillis === 'function') {
+    return String(value.toMillis());
+  }
+  if (value && typeof value.toDate === 'function') {
+    return value.toDate().toISOString();
+  }
+  return '';
+};
+
+const getCollaborationActorUid = (beforeData, afterData) => cleanPushString(
+  afterData.updatedByUid || beforeData.updatedByUid,
+  200
+);
+
+const getCollaborationMemberName = (member = {}, uid = '') => {
+  const email = cleanPushString(member.email, 160);
+  return cleanPushString(
+    member.displayName || member.name || (email ? email.split('@')[0] : '') || uid || '旅伴',
+    80
+  );
+};
+
+const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
+  const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
+
+  if (collectionId === 'details') {
+    const section = cleanPushString(data.section || data.id || documentId, 80);
+    return config.sectionLabels?.[section] || config.fallback || section;
+  }
+
+  if (collectionId === 'events') {
+    const time = cleanPushString(data.time || data.startTime, 20);
+    const title = cleanPushString(data.title || data.location, 100);
+    const eventTitle = [time, title].filter(Boolean).join(' ');
+    if (eventTitle) return eventTitle;
+  }
+
+  const fields = Array.isArray(config.titleFields) ? config.titleFields : [];
+  for (const field of fields) {
+    const value = data[field];
+    if (typeof value === 'string' && value.trim()) {
+      return cleanPushString(value, 100);
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+
+  return config.fallback || cleanPushString(documentId, 100) || '一個項目';
+};
+
+const buildCollaborationNotificationCandidate = ({
+  tripId,
+  collectionId,
+  documentId,
+  action,
+  data,
+  actorName,
+  eventId
+}) => {
+  const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
+  const label = config.label || '旅程內容';
+  const actionText = getCollaborationActionText(action);
+  const entityTitle = getCollaborationEntityTitle({ collectionId, documentId, data });
+  const changeStamp = (
+    getTimestampText(data.updatedAt)
+    || getTimestampText(data.deletedAt)
+    || cleanPushString(eventId, 160)
+    || hashValue(`${collectionId}:${documentId}:${JSON.stringify(data).slice(0, 2000)}`).slice(0, 32)
+  );
+  const now = new Date().toISOString();
+
+  return {
+    tripId,
+    category: 'collaboration',
+    dedupeId: `collaboration:${tripId}:${collectionId}:${documentId}:${action}:${changeStamp}`,
+    dueAt: now,
+    title: cleanPushString(`${actorName} ${actionText}了${label}`, 100),
+    body: cleanPushString(entityTitle ? `${entityTitle}` : '打開旅程查看最新內容', 180),
+    url: `/trip/${tripId}`,
+    tag: `trip-${tripId}-collaboration`
+  };
+};
+
+const isCollaborationNotificationEnabled = (preference = null) => {
+  if (!preference || preference.enabled !== true) return false;
+  return normalizeCategories(preference.categories).collaboration !== false;
+};
+
+const sendCollaborationCandidateToUser = async ({ uid, candidate, now }) => {
+  const preferenceSnap = await getTripNotificationPreferenceRef(uid, candidate.tripId).get();
+  const preference = preferenceSnap.exists ? preferenceSnap.data() || {} : null;
+  if (!isCollaborationNotificationEnabled(preference)) return;
+
+  const deliveryRef = await claimNotificationDelivery({ uid, candidate, now });
+  if (!deliveryRef) return;
+
+  const devices = await getActivePushDevices(uid);
+  if (!devices.length) {
+    await updateNotificationDelivery(deliveryRef, {
+      status: 'no-active-devices',
+      sentCount: 0,
+      failedCount: 0
+    });
+    return;
+  }
+
+  const result = await sendNotificationCandidateToDevices({ uid, candidate, devices });
+  await updateNotificationDelivery(deliveryRef, {
+    status: result.sentCount > 0 ? 'sent' : 'failed',
+    sentCount: result.sentCount,
+    failedCount: result.failedCount
+  });
+};
+
+const sendTripCollaborationNotification = async (event, collectionId) => {
+  const tripId = cleanPushString(event.params?.tripId, 200);
+  const documentId = cleanPushString(event.params?.documentId, 200);
+  if (!tripId || !documentId || !COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId]) return;
+
+  const beforeExists = Boolean(event.data?.before?.exists);
+  const afterExists = Boolean(event.data?.after?.exists);
+  if (!beforeExists && !afterExists) return;
+
+  const beforeData = getChangeSnapshotData(event.data?.before);
+  const afterData = getChangeSnapshotData(event.data?.after);
+  const action = getCollaborationWriteAction({ beforeData, afterData, beforeExists, afterExists });
+  const data = action === 'deleted' ? beforeData : afterData;
+  const actorUid = getCollaborationActorUid(beforeData, afterData);
+  if (!actorUid) return;
+
+  try {
+    configureWebPush();
+  } catch (error) {
+    console.warn('Web Push is not configured; skipping collaboration notification.', error?.message || error);
+    return;
+  }
+
+  const tripRef = firestore.collection('trips').doc(tripId);
+  const [tripSnap, membersSnapshot] = await Promise.all([
+    tripRef.get(),
+    tripRef.collection('members').get()
+  ]);
+  if (!tripSnap.exists) return;
+
+  const trip = tripSnap.data() || {};
+  const membersByUid = new Map();
+  membersSnapshot.docs.forEach((doc) => {
+    const member = doc.data() || {};
+    membersByUid.set(doc.id, { uid: doc.id, ...member });
+  });
+
+  const ownerUid = cleanPushString(trip.access?.ownerUid, 200);
+  if (ownerUid && !membersByUid.has(ownerUid)) {
+    membersByUid.set(ownerUid, {
+      uid: ownerUid,
+      displayName: trip.access?.ownerName || '',
+      email: trip.access?.ownerEmail || ''
+    });
+  }
+
+  const actorName = getCollaborationMemberName(membersByUid.get(actorUid), actorUid);
+  const candidate = buildCollaborationNotificationCandidate({
+    tripId,
+    collectionId,
+    documentId,
+    action,
+    data,
+    actorName,
+    eventId: event.id || ''
+  });
+  const now = new Date().toISOString();
+  const recipients = Array.from(membersByUid.values())
+    .map((member) => cleanPushString(member.uid, 200))
+    .filter((uid) => uid && uid !== actorUid);
+
+  await Promise.all(recipients.map((uid) => sendCollaborationCandidateToUser({
+    uid,
+    candidate,
+    now
+  })));
+};
+
+const onTripCollaborationDocumentWritten = (document, collectionId) => onDocumentWritten(
+  { document, secrets: WEB_PUSH_SECRET_DEFINITIONS },
+  async (event) => sendTripCollaborationNotification(event, collectionId)
+);
+
 const fetchGooglePlaceCandidatesForRecommendation = async ({ apiKey, snapshot }) => {
   const queries = buildGooglePlaceSearchQueries(snapshot);
   const byPlaceId = new Map();
@@ -996,6 +1521,180 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
     throw new HttpsError('data-loss', 'AI 推薦回傳格式不正確，請稍後再試。');
   }
 };
+
+exports.getWebPushConfig = onCall(
+  { secrets: [WEB_PUSH_VAPID_PUBLIC_KEY] },
+  async (request) => {
+    requireSignedIn(request);
+    return {
+      publicKey: getConfiguredWebPushPublicKey()
+    };
+  }
+);
+
+exports.registerPushDevice = onCall(async (request) => {
+  const uid = requireSignedIn(request);
+  const subscription = normalizePushSubscription(request.data?.subscription);
+  const endpointHash = hashValue(subscription.endpoint);
+  const deviceId = makePushDeviceId(subscription.endpoint);
+  const deviceRef = getPushDeviceRef(uid, deviceId);
+  const now = new Date().toISOString();
+  const snapshot = await deviceRef.get();
+
+  await deviceRef.set({
+    uid,
+    deviceId,
+    endpointHash,
+    subscription,
+    platform: cleanPushString(request.data?.platform, 80),
+    displayMode: cleanPushString(request.data?.displayMode, 40),
+    timezone: normalizeTimeZone(request.data?.timezone || DEFAULT_TIME_ZONE),
+    userAgent: cleanPushString(request.data?.userAgent, 500),
+    disabledAt: null,
+    disabledReason: '',
+    lastSeenAt: now,
+    updatedAt: now,
+    ...(snapshot.exists ? {} : { createdAt: now })
+  }, { merge: true });
+
+  return {
+    deviceId,
+    endpointHash
+  };
+});
+
+exports.unregisterPushDevice = onCall(async (request) => {
+  const uid = requireSignedIn(request);
+  const deviceId = cleanPushString(request.data?.deviceId, 80);
+  if (!deviceId || deviceId.includes('/')) {
+    throw new HttpsError('invalid-argument', 'deviceId is required.');
+  }
+
+  await getPushDeviceRef(uid, deviceId).set({
+    disabledAt: new Date().toISOString(),
+    disabledReason: 'user-disabled',
+    updatedAt: new Date().toISOString()
+  }, { merge: true });
+
+  return { deviceId, disabled: true };
+});
+
+exports.setTripNotificationPreference = onCall(async (request) => {
+  const uid = requireSignedIn(request);
+  const tripId = cleanPushString(request.data?.tripId, 200);
+  if (!tripId || tripId.includes('/')) {
+    throw new HttpsError('invalid-argument', 'tripId is required.');
+  }
+
+  await getTripRoleForUid({ tripId, uid });
+
+  const enabled = request.data?.enabled !== false;
+  const categories = normalizeCategories(request.data?.categories);
+  const leadTimes = normalizeLeadTimePreferences(request.data?.leadTimes);
+  const timezone = normalizeTimeZone(request.data?.timezone || DEFAULT_TIME_ZONE);
+  const now = new Date().toISOString();
+
+  await getTripNotificationPreferenceRef(uid, tripId).set({
+    uid,
+    tripId,
+    enabled,
+    categories,
+    leadTimes,
+    timezone,
+    updatedAt: now,
+    ...(enabled ? { disabledAt: null } : { disabledAt: now })
+  }, { merge: true });
+
+  return {
+    tripId,
+    enabled,
+    categories,
+    leadTimes,
+    timezone
+  };
+});
+
+exports.sendDueTripNotifications = onSchedule(
+  {
+    schedule: 'every 15 minutes',
+    timeZone: 'UTC',
+    secrets: WEB_PUSH_SECRET_DEFINITIONS
+  },
+  async () => {
+    try {
+      configureWebPush();
+    } catch (error) {
+      console.warn('Web Push is not configured; skipping scheduled notifications.', error?.message || error);
+      return;
+    }
+
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const preferencesSnapshot = await firestore
+      .collectionGroup('tripPrefs')
+      .where('enabled', '==', true)
+      .get();
+
+    for (const preferenceDoc of preferencesSnapshot.docs) {
+      const uid = preferenceDoc.ref.parent.parent?.id || '';
+      const tripId = preferenceDoc.id;
+      if (!uid || !tripId) continue;
+
+      const preference = preferenceDoc.data() || {};
+      const tripRef = firestore.collection('trips').doc(tripId);
+      const tripSnap = await tripRef.get();
+      if (!tripSnap.exists) continue;
+
+      try {
+        await getTripRoleForUid({ tripId, uid });
+      } catch (error) {
+        await preferenceDoc.ref.set({
+          enabled: false,
+          disabledAt: nowIso,
+          disabledReason: 'trip-access-removed',
+          updatedAt: nowIso
+        }, { merge: true });
+        continue;
+      }
+
+      const devices = await getActivePushDevices(uid);
+      const source = await loadTripNotificationSource(tripRef, {
+        id: tripSnap.id,
+        ...tripSnap.data()
+      });
+      const candidates = buildTripNotificationCandidates({
+        tripId,
+        ...source,
+        preference,
+        now,
+        timeZone: preference.timezone || DEFAULT_TIME_ZONE,
+        lookBehindMinutes: WEB_PUSH_DELIVERY_LOOK_BEHIND_MINUTES,
+        lookAheadMinutes: 0
+      });
+
+      for (const candidate of candidates) {
+        const deliveryRef = await claimNotificationDelivery({ uid, candidate, now: nowIso });
+        if (!deliveryRef) continue;
+
+        if (!devices.length) {
+          await updateNotificationDelivery(deliveryRef, {
+            status: 'no-active-devices',
+            sentCount: 0,
+            failedCount: 0
+          });
+          continue;
+        }
+
+        const result = await sendNotificationCandidateToDevices({ uid, candidate, devices });
+        await updateNotificationDelivery(deliveryRef, {
+          status: result.sentCount > 0 ? 'sent' : 'failed',
+          sentCount: result.sentCount,
+          failedCount: result.failedCount
+        });
+      }
+    }
+  }
+);
 
 exports.searchGooglePlaces = onCall(
   { secrets: [GOOGLE_GEOCODING_API_KEY] },
@@ -2021,6 +2720,46 @@ exports.claimExistingTrips = onCall(async (request) => {
     skippedTripIds
   };
 });
+
+exports.notifyTripEventWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/events/{documentId}',
+  'events'
+);
+
+exports.notifyTripDayWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/days/{documentId}',
+  'days'
+);
+
+exports.notifyTripDetailWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/details/{documentId}',
+  'details'
+);
+
+exports.notifyTripChecklistItemWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/checklistItems/{documentId}',
+  'checklistItems'
+);
+
+exports.notifyTripShoppingItemWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/shoppingItems/{documentId}',
+  'shoppingItems'
+);
+
+exports.notifyTripExpenseWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/expenses/{documentId}',
+  'expenses'
+);
+
+exports.notifyTripPlaceIdeaWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/placeIdeas/{documentId}',
+  'placeIdeas'
+);
+
+exports.notifyTripShoppingCategoryWrite = onTripCollaborationDocumentWritten(
+  'trips/{tripId}/shoppingCategories/{documentId}',
+  'shoppingCategories'
+);
 
 exports.syncPresenceAclOnMemberWrite = onDocumentWritten(
   'trips/{tripId}/members/{uid}',

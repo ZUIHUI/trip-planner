@@ -542,6 +542,26 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /userPushSubscriptions/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+
+      match /devices/{deviceId} {
+        allow read: if signedIn() && request.auth.uid == uid;
+        allow write: if false;
+      }
+    }
+
+    match /userNotificationSettings/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+
+      match /tripPrefs/{tripId} {
+        allow read: if signedIn() && request.auth.uid == uid;
+        allow write: if false;
+      }
+    }
+
     match /{path=**}/members/{memberId} {
       allow list: if signedIn()
         && resource.data.uid == request.auth.uid;
@@ -819,6 +839,10 @@ service cloud.firestore {
     }
 
     match /emailLoginRateLimits/{rateLimitId} {
+      allow read, write: if false;
+    }
+
+    match /notificationDeliveries/{deliveryId} {
       allow read, write: if false;
     }
 

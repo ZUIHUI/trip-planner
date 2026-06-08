@@ -1,6 +1,7 @@
 {
   "name": "Trip Planner",
   "short_name": "TripPlanner",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#238ff4",

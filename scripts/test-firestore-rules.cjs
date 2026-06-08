@@ -516,6 +516,20 @@ const run = async () => {
       updatedAt: now
     }));
 
+    await assertSucceeds(getDoc(doc(ownerDb, 'userPushSubscriptions/ownerUid/devices/device-1')));
+    await assertFails(getDoc(doc(editorDb, 'userPushSubscriptions/ownerUid/devices/device-1')));
+    await assertFails(setDoc(doc(ownerDb, 'userPushSubscriptions/ownerUid/devices/device-1'), {
+      endpointHash: 'hash',
+      updatedAt: now
+    }));
+
+    await assertSucceeds(getDoc(doc(ownerDb, 'userNotificationSettings/ownerUid/tripPrefs/trip-secure')));
+    await assertFails(getDoc(doc(viewerDb, 'userNotificationSettings/ownerUid/tripPrefs/trip-secure')));
+    await assertFails(setDoc(doc(ownerDb, 'userNotificationSettings/ownerUid/tripPrefs/trip-secure'), {
+      enabled: true,
+      updatedAt: now
+    }));
+
     await assertFails(getDoc(doc(ownerDb, 'flightLookupRateLimits/ownerUid')));
     await assertFails(deleteDoc(doc(ownerDb, 'flightLookupRateLimits/ownerUid')));
     await assertFails(getDoc(doc(ownerDb, 'googleLookupRateLimits/ownerUid')));
@@ -524,6 +538,11 @@ const run = async () => {
       resetAt: now
     }));
     await assertFails(deleteDoc(doc(ownerDb, 'googleLookupRateLimits/ownerUid')));
+    await assertFails(getDoc(doc(ownerDb, 'notificationDeliveries/delivery-1')));
+    await assertFails(setDoc(doc(ownerDb, 'notificationDeliveries/delivery-1'), {
+      status: 'sent',
+      updatedAt: now
+    }));
 
     console.log('Firestore rules security scenarios passed.');
   } finally {

@@ -115,6 +115,12 @@ const {
   recommendationResponseSchema
 } = require('../functions/tripRecommendations.js');
 const {
+  buildTripNotificationCandidates,
+  buildWebPushPayload,
+  normalizeCategories,
+  zonedDateTimeToUtcMs
+} = require('../functions/tripNotificationReminders.js');
+const {
   createEventFromAiRecommendation,
   createPlaceFromAiRecommendation,
   normalizeAiRecommendationResponse
@@ -540,6 +546,118 @@ test('picks next event with trip-day dates instead of only wall-clock time', () 
   assert.equal(pickNextEvent(events, now, '2026-06-02').id, 'early');
   assert.equal(pickNextEvent(events, now, '2026-05-29').id, 'late');
   assert.equal(pickNextEvent(events, now, '').id, 'late');
+});
+
+test('builds due trip notification candidates with timezone-aware dedupe keys', () => {
+  const source = {
+    tripId: 'trip-notify',
+    trip: {
+      id: 'trip-notify',
+      checklists: {
+        preTrip: [{ id: 'passport', text: 'Passport', done: false }],
+        packing: [{ id: 'charger', text: 'Charger', done: true }]
+      }
+    },
+    details: [
+      {
+        id: 'meta',
+        title: 'Tokyo',
+        dateRange: { start: '2026-05-02', end: '2026-05-04' }
+      },
+      {
+        id: 'logistics',
+        flights: {
+          outbound: {
+            code: 'BR198',
+            date: '2026-05-03',
+            departureTime: '09:00'
+          },
+          inbound: {
+            code: 'BR197',
+            date: '2026-05-05',
+            departureTime: ''
+          }
+        }
+      }
+    ],
+    days: [
+      { id: 'day-1', dayNumber: 1, title: 'Arrival', date: '2026-05-02' }
+    ],
+    events: [
+      { id: 'event-1', dayNumber: 1, title: 'Hotel check-in', time: '10:30', location: 'Ueno' },
+      { id: 'event-missing-time', dayNumber: 1, title: 'No time', location: 'Tokyo' }
+    ],
+    checklistItems: []
+  };
+
+  assert.equal(
+    zonedDateTimeToUtcMs({ date: '2026-05-02', time: '08:00', timeZone: 'Asia/Taipei' }),
+    Date.parse('2026-05-02T00:00:00.000Z')
+  );
+
+  const daily = buildTripNotificationCandidates({
+    ...source,
+    preference: { enabled: true, timezone: 'Asia/Taipei' },
+    now: new Date('2026-05-02T00:05:00.000Z')
+  });
+  assert.equal(daily.length, 1);
+  assert.equal(daily[0].category, 'dailySummary');
+  assert.equal(daily[0].dedupeId, 'dailySummary:trip-notify:2026-05-02');
+  assert.match(daily[0].body, /10:30 Hotel check-in/);
+
+  const event = buildTripNotificationCandidates({
+    ...source,
+    preference: { enabled: true, timezone: 'Asia/Taipei' },
+    now: new Date('2026-05-02T01:35:00.000Z')
+  });
+  assert.equal(event.some((candidate) => candidate.dedupeId === 'event:trip-notify:event-1:60'), true);
+  assert.equal(event.some((candidate) => /missing-time/.test(candidate.dedupeId)), false);
+
+  const flight = buildTripNotificationCandidates({
+    ...source,
+    preference: { enabled: true, timezone: 'Asia/Taipei' },
+    now: new Date('2026-05-02T01:05:00.000Z')
+  });
+  assert.equal(flight.some((candidate) => (
+    candidate.dedupeId === 'flight:trip-notify:outbound:2026-05-03:09:00:24'
+  )), true);
+  assert.equal(flight.some((candidate) => /inbound/.test(candidate.dedupeId)), false);
+
+  const checklist = buildTripNotificationCandidates({
+    ...source,
+    preference: { enabled: true, timezone: 'Asia/Taipei' },
+    now: new Date('2026-05-01T00:05:00.000Z')
+  });
+  assert.equal(checklist.some((candidate) => (
+    candidate.dedupeId === 'checklist:trip-notify:2026-05-02:1'
+  )), true);
+
+  const payload = JSON.parse(buildWebPushPayload(event.find((candidate) => candidate.category === 'event')));
+  assert.equal(payload.data.url, '/trip/trip-notify');
+  assert.equal(payload.data.category, 'event');
+});
+
+test('enables collaboration notifications through Web Push preferences', () => {
+  assert.equal(normalizeCategories({}).collaboration, true);
+  assert.equal(normalizeCategories({ collaboration: false }).collaboration, false);
+
+  const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions/index.js'), 'utf8');
+  const pushServiceSource = fs.readFileSync(path.join(__dirname, '..', 'src/services/pushNotificationService.js'), 'utf8');
+  const cardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripNotificationCard.jsx'), 'utf8');
+
+  assert.match(pushServiceSource, /collaboration:\s*true/);
+  assert.match(cardSource, /旅伴更新/);
+  assert.match(functionsSource, /category:\s*'collaboration'/);
+  assert.match(functionsSource, /isCollaborationNotificationEnabled/);
+  assert.match(functionsSource, /notifyTripEventWrite/);
+  assert.match(functionsSource, /notifyTripDayWrite/);
+  assert.match(functionsSource, /notifyTripDetailWrite/);
+  assert.match(functionsSource, /notifyTripChecklistItemWrite/);
+  assert.match(functionsSource, /notifyTripShoppingItemWrite/);
+  assert.match(functionsSource, /notifyTripExpenseWrite/);
+  assert.match(functionsSource, /notifyTripPlaceIdeaWrite/);
+  assert.match(functionsSource, /notifyTripShoppingCategoryWrite/);
+  assert.doesNotMatch(functionsSource, /notifyTripRootWrite/);
 });
 
 test('passes trip-day dates into travel next-event surfaces', () => {
