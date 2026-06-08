@@ -292,7 +292,6 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
           </div>
           <div className="min-w-0">
             <h3 className="tp-section-title">機場航班</h3>
-            <p className="tp-section-subtitle mt-1">出發前快速確認時間、機場與航廈。</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={onEditFlights} className="shrink-0">
@@ -513,15 +512,14 @@ const TravelStatusPanel = ({ status }) => {
   const hasRouteWarning = status.missingLocationCount > 0;
   const hasChecklistWarning = status.checklistRemaining > 0;
   const summaryText = status.totalEvents
-    ? `${status.completedEvents}/${status.totalEvents} 已過行程，下一站 ${status.nextTime}`
-    : '今天還沒有排程，先新增一個行程。';
+    ? `${status.completedEvents}/${status.totalEvents} 已過，下一站 ${status.nextTime}`
+    : '未排程';
 
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">Travel mode</p>
-          <h3 className="mt-1 text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
+          <h3 className="text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{summaryText}</p>
         </div>
         <Badge variant={status.totalEvents ? 'info' : 'muted'}>
@@ -593,7 +591,7 @@ const TravelStatusPanel = ({ status }) => {
 
           {hasRouteWarning && (
             <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-              有 {status.missingLocationCount} 個行程還沒有地點，補上後才能產生完整路線。
+              缺地點：{status.missingLocationCount} 個
             </p>
           )}
         </div>
@@ -609,9 +607,6 @@ const ReminderStrip = ({ reminders }) => {
         <CheckCircle2 size={19} className="mt-0.5 shrink-0" />
         <div className="min-w-0">
           <p className="text-sm font-black">今天看起來準備好了</p>
-          <p className="mt-0.5 text-xs font-semibold text-emerald-700/80 dark:text-emerald-100/75">
-            已就緒。
-          </p>
         </div>
       </div>
     );
@@ -646,7 +641,6 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
           </div>
           <div className="min-w-0">
             <h3 className="tp-section-title">今日行程</h3>
-            <p className="tp-section-subtitle mt-1">{events.length ? `${events.length} 個安排` : '還沒有安排'}</p>
           </div>
         </div>
         <Badge variant={events.length ? 'info' : 'muted'}>{events.length || 0}</Badge>
@@ -654,7 +648,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
 
       {events.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-          新增行程後顯示。
+          目前尚無行程
         </div>
       ) : (
         <ol className="space-y-3">
@@ -732,9 +726,6 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
             </div>
             <div className="min-w-0">
               <h3 className="tp-section-title">今日路線</h3>
-              <p className="tp-section-subtitle mt-1">
-                {routeStops.length ? `${routeStops.length} 個可導航地點` : '今日行程尚未設定地點'}
-              </p>
             </div>
           </div>
           {routeUrl && (

@@ -124,9 +124,6 @@ const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
             </span>
             <div className="min-w-0">
               <h2 className="text-lg font-black text-slate-950 dark:text-white">旅伴與邀請</h2>
-              <p className="mt-1 break-words text-sm font-semibold text-slate-500 dark:text-slate-400">
-                管理邀請碼、旅伴名單、在線狀態與我的顯示名稱。
-              </p>
             </div>
           </div>
         </Card>
@@ -142,28 +139,24 @@ const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
         <ModuleButton
           icon={LayoutDashboard}
           title="控制台"
-          description="檢查旅程資料、下一步與整體進度。"
           meta={`${eventCount} 行程`}
           onClick={() => onTabChange?.('summary')}
         />
         <ModuleButton
           icon={Plane}
           title="住宿航班"
-          description="日期、住宿地址、去回程航班與交通資訊。"
           meta={getLogisticsStatus(tripDetails)}
           onClick={() => onTabChange?.('flights')}
         />
         <ModuleButton
           icon={CheckSquare}
           title="行前"
-          description="票券、文件、保險、簽證和出發前待辦。"
           meta={getChecklistStatus(checklists?.preTrip)}
           onClick={() => onTabChange?.('preTrip')}
         />
         <ModuleButton
           icon={Luggage}
           title="行李"
-          description="打包清單、行李分配與尚未打包項目。"
           meta={getChecklistStatus(checklists?.packing, '尚未建立')}
           onClick={() => onTabChange?.('packing')}
         />
@@ -173,14 +166,12 @@ const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
         <ModuleButton
           icon={ReceiptText}
           title="記帳"
-          description="記錄支出、查看預算與分帳。"
           meta={Array.isArray(expenses) && expenses.length ? `${expenses.length} 筆` : '尚未記帳'}
           onClick={() => onTabChange?.('expenses')}
         />
         <ModuleButton
           icon={ShoppingCart}
           title="購物"
-          description="伴手禮、藥妝、購物清單與待買項目。"
           meta="購物清單"
           onClick={() => onTabChange?.('shopping')}
         />
@@ -190,14 +181,12 @@ const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
         <ModuleButton
           icon={UsersRound}
           title="旅伴與邀請"
-          description="查看旅伴、在線狀態、邀請碼與我的顯示名稱。"
           meta={onlineCount ? `${onlineCount} 在線` : `${members?.length || 0} 位旅伴`}
           onClick={() => onTabChange?.('companions')}
         />
         <ModuleButton
           icon={Settings}
           title="設定"
-          description="主題、顯示大小、GPS、匯率與封面。"
           meta="偏好"
           onClick={onOpenSettings}
         />

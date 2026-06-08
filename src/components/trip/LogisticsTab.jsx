@@ -121,7 +121,7 @@ const getMobileSectionStatus = (tripDetails) => {
   };
 };
 
-const SectionHeading = ({ icon: Icon, title, description, aside, compactDescription = false }) => (
+const SectionHeading = ({ icon: Icon, title, aside }) => (
   <div className="mb-4 flex min-w-0 max-w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
     <div className="flex min-w-0 items-start gap-3">
       <div className="tp-icon-chip">
@@ -129,11 +129,6 @@ const SectionHeading = ({ icon: Icon, title, description, aside, compactDescript
       </div>
       <div className="min-w-0">
         <h3 className="tp-section-title">{title}</h3>
-        {description && (
-          <p className={`tp-section-subtitle ${compactDescription ? 'hidden sm:block' : ''}`}>
-            {description}
-          </p>
-        )}
       </div>
     </div>
     {aside}
@@ -291,8 +286,6 @@ const TripInfoCard = ({
       <SectionHeading
         icon={Info}
         title="旅程資訊"
-        description="名稱、日期與預算。"
-        compactDescription={compact}
         aside={tripDetails?.dates && (
           <Badge variant="info" className="self-start">
             {tripDetails.dates}
@@ -431,8 +424,6 @@ const AccommodationCard = ({
     <SectionHeading
       icon={Bed}
       title="住宿資訊"
-      description="住宿名稱與地址。"
-      compactDescription={compact}
     />
     <EditingNotice target={tripDetailEditingTargets.accommodation} members={editingMembers} />
 
@@ -457,7 +448,7 @@ const AccommodationCard = ({
         />
       </Field>
 
-      <Field label="住宿地址" htmlFor={`${idPrefix}hotel-address`} hint="可搜尋 Google 地點，也可直接手動輸入。">
+      <Field label="住宿地址" htmlFor={`${idPrefix}hotel-address`}>
         <GooglePlaceInput
           id={`${idPrefix}hotel-address`}
           placeholder="地址"
@@ -467,7 +458,6 @@ const AccommodationCard = ({
           selectedPlace={tripDetails?.accommodation?.placeId ? tripDetails.accommodation : null}
           onClearPlace={onClearPlace}
           ariaLabel="住宿地址"
-          helperText="可搜尋或手動輸入。"
           emptyMessage="找不到地點，可手動輸入。"
           className="tp-input"
         />
@@ -1037,8 +1027,6 @@ const FlightSection = ({
         <SectionHeading
           icon={Plane}
           title="航班資訊"
-          description="航班號與機場。"
-          compactDescription
         />
 
         <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
@@ -1093,7 +1081,6 @@ const FlightSection = ({
       <SectionHeading
         icon={Plane}
         title="航班資訊"
-        description="航班號與機場。"
       />
 
       <div className="space-y-4">

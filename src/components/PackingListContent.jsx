@@ -654,7 +654,6 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             <EmptyState
               icon={Package}
               title="目前沒有符合條件的物品"
-              description="切換篩選或快速新增。"
               className="py-8"
             />
           ) : (

@@ -1534,7 +1534,7 @@ const TripDetailPage = () => {
   if (isLoading) {
     return (
       <div className="tp-page-shell flex min-h-screen items-center justify-center p-4 font-sans">
-        <LoadingState label="讀取旅程中..." className="w-full max-w-sm" />
+        <LoadingState className="w-full max-w-sm" />
       </div>
     );
   }

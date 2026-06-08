@@ -27,7 +27,7 @@ export const EmptyState = ({
   </div>
 );
 
-export const LoadingState = ({ label = 'Loading...', className = '' }) => (
+export const LoadingState = ({ label = '載入中...', className = '' }) => (
   <div className={cx('tp-loading-state tp-animate-enter', className)} role="status" aria-live="polite">
     <Loader2 className="tp-soft-pulse mx-auto mb-3 animate-spin text-brand-600" size={28} />
     <p className="text-sm font-semibold">{label}</p>

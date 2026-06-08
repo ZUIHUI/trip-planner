@@ -30,7 +30,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 
 const fileSizeLabel = `${Math.round(MAX_COVER_IMAGE_FILE_SIZE_BYTES / 1024)}KB`;
 
-const Section = ({ icon: Icon, title, description, children }) => (
+const Section = ({ icon: Icon, title, children }) => (
   <section className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
     <div className="mb-4 flex items-start gap-3">
       <div className="tp-icon-chip">
@@ -38,7 +38,6 @@ const Section = ({ icon: Icon, title, description, children }) => (
       </div>
       <div>
         <h3 className="tp-section-title">{title}</h3>
-        {description && <p className="tp-section-subtitle mt-1 hidden sm:block">{description}</p>}
       </div>
     </div>
     {children}
@@ -178,7 +177,6 @@ const SettingsPanel = ({
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div>
             <h2 className="text-xl font-black text-slate-950 dark:text-white">設定</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">調整旅程工作台、顯示與旅途中輔助功能。</p>
           </div>
           <button
             type="button"
@@ -194,7 +192,6 @@ const SettingsPanel = ({
           <Section
             icon={Palette}
             title="外觀模式"
-            description="日間或夜間模式。"
           >
             <div className="flex items-center justify-between gap-4 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
               <div className="flex items-center gap-3">
@@ -203,9 +200,6 @@ const SettingsPanel = ({
                 </div>
                 <div>
                   <p className="font-bold text-slate-900 dark:text-white">{currentTheme === 'dark' ? '夜間模式' : '日間模式'}</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {currentTheme === 'dark' ? '降低夜間使用的亮度壓力' : '適合明亮環境與戶外查看'}
-                  </p>
                 </div>
               </div>
               <ToggleSwitch
@@ -219,13 +213,12 @@ const SettingsPanel = ({
           <Section
             icon={Type}
             title="介面大小"
-            description="調整資訊密度。"
           >
             <div className="grid gap-2 sm:grid-cols-3">
               {[
-                { id: 'small', name: '精簡', description: '更多內容', sizeClass: 'text-sm' },
-                { id: 'medium', name: '標準', description: '預設', sizeClass: 'text-base' },
-                { id: 'large', name: '寬鬆', description: '較大字級', sizeClass: 'text-lg' }
+                { id: 'small', name: '精簡', sizeClass: 'text-sm' },
+                { id: 'medium', name: '標準', sizeClass: 'text-base' },
+                { id: 'large', name: '寬鬆', sizeClass: 'text-lg' }
               ].map((size) => (
                 <button
                   key={size.id}
@@ -239,7 +232,6 @@ const SettingsPanel = ({
                 >
                   <span className={`block font-black text-slate-900 dark:text-white ${size.sizeClass}`}>A</span>
                   <span className="mt-2 block text-sm font-bold">{size.name}</span>
-                  <span className="mt-1 block text-xs">{size.description}</span>
                   {interfaceSize === size.id && <Check size={16} className="absolute right-3 top-3 text-brand-600 dark:text-brand-300" />}
                 </button>
               ))}
@@ -249,7 +241,6 @@ const SettingsPanel = ({
           <Section
             icon={RefreshCw}
             title="匯率設定"
-            description="預算與換算。"
           >
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <Field label="1 日圓等於多少台幣" htmlFor="exchange-rate">
@@ -282,7 +273,6 @@ const SettingsPanel = ({
           <Section
             icon={ImageIcon}
             title="背景圖片"
-            description="旅程封面。"
           >
             <div className="space-y-3">
               <input
@@ -335,7 +325,6 @@ const SettingsPanel = ({
           <Section
             icon={Users}
             title="旅伴"
-            description="行李與分帳。"
           >
             <div className="space-y-2">
               {travelers.length === 0 ? (
@@ -389,14 +378,10 @@ const SettingsPanel = ({
           <Section
             icon={MapPin}
             title="位置設定"
-            description="天氣與旅途資訊。"
           >
             <div className="flex items-center justify-between gap-4 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
               <div>
                 <p className="font-bold text-slate-900 dark:text-white">GPS 定位</p>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {enableGPS ? '已啟用，可依目前位置取得更貼近的資訊。' : '目前停用，會優先使用住宿或行程地點。'}
-                </p>
               </div>
               <ToggleSwitch checked={enableGPS} onChange={onGPSToggle} label="切換 GPS 定位" />
             </div>

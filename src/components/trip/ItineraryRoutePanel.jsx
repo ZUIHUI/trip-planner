@@ -121,11 +121,6 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
               </div>
               <div className="min-w-0">
                 <h3 className="tp-section-title">今日路線視圖</h3>
-                <p className="tp-section-subtitle mt-1">
-                  {routeStopCount
-                    ? `${routeStopCount} / ${totalEvents} 個行程可導航`
-                    : '行程尚未設定地點'}
-                </p>
               </div>
             </div>
 

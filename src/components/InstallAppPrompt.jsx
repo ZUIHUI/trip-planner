@@ -6,14 +6,14 @@ import { cx } from './ui/utils';
 
 const getGuideText = (platform) => {
   if (platform === 'ios') {
-    return '在 Safari 點分享按鈕，選「加入主畫面」。之後從主畫面開啟，登入狀態會更穩定。';
+    return 'Safari 分享 > 加入主畫面。';
   }
 
   if (platform === 'android') {
-    return '如果沒有跳出安裝提示，請打開瀏覽器選單，選「安裝應用程式」或「新增至主畫面」。';
+    return '瀏覽器選單 > 安裝應用程式。';
   }
 
-  return '打開瀏覽器選單，選「新增至主畫面」。之後可以像 App 一樣從主畫面開啟。';
+  return '瀏覽器選單 > 新增至主畫面。';
 };
 
 const InstallAppPrompt = ({ className = '' }) => {
@@ -61,10 +61,7 @@ const InstallAppPrompt = ({ className = '' }) => {
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-black text-slate-950 dark:text-white">
-            加入主畫面，之後用起來更像 App
-          </p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">
-            登入更穩，查看更快。
+            加入主畫面
           </p>
         </div>
         <button

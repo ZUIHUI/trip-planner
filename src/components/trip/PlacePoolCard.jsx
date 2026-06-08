@@ -387,9 +387,6 @@ const PlacePoolCard = ({
           </div>
           <div className="min-w-0">
             <h3 className="tp-section-title">大家想去的地方</h3>
-            <p className="tp-section-subtitle mt-1">
-              按「我想去」一起決定要去哪。
-            </p>
           </div>
         </div>
         <Badge variant="muted">{safePlacePool.length} 個</Badge>

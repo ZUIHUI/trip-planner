@@ -391,7 +391,6 @@ const ExpenseList = ({ groupedExpenses, exchangeRate, hasExpenses, hasActiveFilt
       <EmptyState
         icon={DollarSign}
         title={hasExpenses ? '找不到符合條件的支出' : '目前尚無支出'}
-        description={hasExpenses ? '可以切換日期、分類或清除搜尋條件。' : '點擊新增支出，記錄第一筆旅行花費。'}
         actionLabel={hasExpenses && hasActiveFilters ? '清除篩選' : '新增第一筆支出'}
         onAction={hasExpenses && hasActiveFilters ? onClearFilters : onAddExpense}
       />
@@ -708,7 +707,6 @@ const SettlementModal = ({ settlements, onClose }) => {
             <EmptyState
               icon={CheckCircle2}
               title="目前沒有需要結算的金額"
-              description="所有花費可能已結清，或目前沒有可分帳的支出。"
               className="border-0 shadow-none"
             />
           ) : (

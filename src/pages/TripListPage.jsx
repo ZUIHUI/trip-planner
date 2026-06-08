@@ -558,9 +558,6 @@ const TripListPage = () => {
               </div>
               <div className="min-w-0">
                 <h2 className="text-base font-black text-slate-950 dark:text-white">加入旅程</h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  輸入邀請碼加入。
-                </p>
               </div>
             </div>
             <form onSubmit={handleJoinByInviteCode} className="grid gap-2 sm:grid-cols-[1fr_auto]">
@@ -592,9 +589,6 @@ const TripListPage = () => {
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl dark:text-white">
               規劃下一趟旅程
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base dark:text-slate-300">
-              建立旅程、加入邀請碼，然後開始排行程。
-            </p>
 
             <form onSubmit={handleCreateTrip} className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
               <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
@@ -643,12 +637,11 @@ const TripListPage = () => {
 
           <div className="mt-4">
             {isLoading ? (
-              <LoadingState label="讀取旅程中..." />
+              <LoadingState />
             ) : sortedAndFilteredTrips.length === 0 ? (
               <EmptyState
                 icon={Compass}
                 title={hasTrips && hasSearch ? '找不到符合條件的旅程' : '目前尚無旅程'}
-                description={hasTrips && hasSearch ? '換個關鍵字。' : '輸入名稱後建立旅程。'}
                 actionLabel={hasTrips && hasSearch ? '清除搜尋' : '新增第一個旅程'}
                 onAction={() => {
                   if (hasTrips && hasSearch) {

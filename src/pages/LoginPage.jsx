@@ -246,7 +246,7 @@ const LoginPage = () => {
   if (isAuthLoading) {
     return (
       <main className="tp-page-shell flex min-h-screen items-center justify-center p-4">
-        <LoadingState label="正在檢查登入狀態..." />
+        <LoadingState />
       </main>
     );
   }
@@ -260,9 +260,6 @@ const LoginPage = () => {
               <PlaneTakeoff size={22} />
             </div>
             <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              登入後可跨裝置同步旅程。
-            </p>
           </div>
 
           <label className="mb-3 flex items-center gap-3 rounded-lg border border-cyan-100 bg-sky-50/50 px-3 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300">
@@ -280,17 +277,11 @@ const LoginPage = () => {
             使用 Google 登入
           </Button>
 
-          <div className="my-4 flex items-center gap-3 text-xs font-bold text-slate-400">
-            <div className="h-px flex-1 bg-cyan-100 dark:bg-slate-800" />
-            備用
-            <div className="h-px flex-1 bg-cyan-100 dark:bg-slate-800" />
-          </div>
-
           <Button
             type="button"
             variant="secondary"
             onClick={() => setShowEmailBackup((open) => !open)}
-            className="w-full justify-center"
+            className="mt-3 w-full justify-center"
             aria-expanded={emailPanelOpen}
           >
             <Mail size={16} />
@@ -311,7 +302,7 @@ const LoginPage = () => {
                       required
                     />
                   </Field>
-                  <Field label="驗證碼" htmlFor="login-code" hint="6 位數字。">
+                  <Field label="驗證碼" htmlFor="login-code">
                     <Input
                       id="login-code"
                       ref={codeInputRef}

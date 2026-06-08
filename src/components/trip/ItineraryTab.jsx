@@ -189,7 +189,6 @@ const ItineraryTab = () => {
             <EmptyState
               icon={CalendarDays}
               title="目前尚無行程"
-              description="新增第一個行程後，旅途首頁會自動顯示下一個地點、備註、天氣和預估花費。"
               actionLabel="新增第一個行程"
               onAction={openAddModal}
             />

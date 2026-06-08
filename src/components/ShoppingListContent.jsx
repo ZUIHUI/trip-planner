@@ -155,7 +155,6 @@ const ShoppingSummary = ({ stats, sortMode, onToggleSort }) => (
         </div>
         <div>
           <h2 className="tp-section-title">購物清單</h2>
-          <p className="tp-section-subtitle">待買與已買。</p>
         </div>
       </div>
       <Button
@@ -1069,7 +1068,7 @@ const ShoppingListContent = forwardRef(({
   };
 
   if (loading) {
-    return <LoadingState label="載入購物清單中..." className="mx-4 my-8 sm:mx-6 lg:mx-8" />;
+    return <LoadingState className="mx-4 my-8 sm:mx-6 lg:mx-8" />;
   }
 
   if (error) {
@@ -1100,7 +1099,6 @@ const ShoppingListContent = forwardRef(({
         <EmptyState
           icon={ShoppingCart}
           title={safeItems.length ? '沒有符合條件的商品' : '目前沒有購物項目'}
-          description={safeItems.length ? '清除搜尋或切換篩選。' : '新增第一個商品。'}
           actionLabel={safeItems.length ? '清除篩選' : '新增第一個商品'}
           onAction={safeItems.length ? clearFilters : () => openAddForm()}
         />

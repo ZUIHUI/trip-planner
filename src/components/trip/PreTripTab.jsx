@@ -162,7 +162,6 @@ const PreTripTab = () => {
           </div>
           <div>
             <h2 className="tp-section-title">出國前待辦</h2>
-            <p className="tp-section-subtitle">簽證、保險、票券、預約和出發前準備。</p>
           </div>
         </div>
         <Checklist

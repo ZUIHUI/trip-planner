@@ -106,7 +106,6 @@ const Checklist = ({
         <EmptyState
           icon={CheckCircle2}
           title="目前沒有待辦項目"
-          description="輸入項目後按 Enter。"
           className="py-8"
         />
       ) : (

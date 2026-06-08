@@ -375,11 +375,6 @@ const ShareCollaborationCard = ({
           </div>
           <div className="min-w-0">
             <h3 className="tp-section-title">旅伴</h3>
-            <p className="tp-section-subtitle mt-1">
-              {canManageInvite
-                ? '邀請旅伴加入。'
-                : '旅伴與顯示名稱。'}
-            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -393,7 +388,7 @@ const ShareCollaborationCard = ({
 
       {canManageInvite && (
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
-          <Field label="邀請碼" htmlFor="trip-invite-code" hint="在首頁輸入邀請碼加入。">
+          <Field label="邀請碼" htmlFor="trip-invite-code">
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
               <Input
                 id="trip-invite-code"
@@ -436,7 +431,7 @@ const ShareCollaborationCard = ({
       )}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <Field label="我的顯示名稱" htmlFor="member-display-name" hint="旅伴看得到。">
+        <Field label="我的顯示名稱" htmlFor="member-display-name">
           <Input
             id="member-display-name"
             {...plainTextInputProps}

@@ -65,7 +65,7 @@ const getInitialFormState = (event) => ({
   urgent: Boolean(event?.urgent)
 });
 
-const FormSection = ({ title, description, icon: Icon, children }) => (
+const FormSection = ({ title, icon: Icon, children }) => (
   <section className="min-w-0 max-w-full overflow-x-hidden rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
     <div className="mb-3 flex min-w-0 items-start gap-2">
       {Icon && (
@@ -75,7 +75,6 @@ const FormSection = ({ title, description, icon: Icon, children }) => (
       )}
       <div className="min-w-0">
         <h4 className="text-sm font-black text-slate-900 dark:text-white">{title}</h4>
-        {description && <p className="mt-0.5 hidden break-words text-xs leading-5 text-slate-500 dark:text-slate-400 sm:block">{description}</p>}
       </div>
     </div>
     {children}
@@ -173,7 +172,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
           {formError}
         </div>
       )}
-      <FormSection title="基本資訊" description="時間、類型與名稱。">
+      <FormSection title="基本資訊">
         <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)]">
           <Field label="時間" htmlFor="event-time">
             <Input
@@ -230,8 +229,8 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </label>
       </FormSection>
 
-      <FormSection title="地點與備註" description="地點、連結與備註。" icon={MapPin}>
-        <Field label="地點" htmlFor="event-location" hint="搜尋或輸入地點。">
+      <FormSection title="地點與備註" icon={MapPin}>
+        <Field label="地點" htmlFor="event-location">
           <div className="relative min-w-0 max-w-full">
             <MapPin size={16} className="pointer-events-none absolute left-3 top-3.5 text-slate-400 dark:text-slate-500" />
             <GooglePlaceInput
@@ -245,7 +244,6 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
               disabled={readOnly}
               placeholder="輸入 Google Maps 地點名稱"
               ariaLabel="行程地點"
-              helperText="可搜尋或手動輸入。"
               emptyMessage="找不到地點，可手動輸入。"
               className="tp-input pl-10"
             />
@@ -296,7 +294,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </div>
 
         <div className="mt-3">
-          <Field label="相關連結" htmlFor="event-url" hint="例如官方網站、購票連結、預約確認頁。">
+          <Field label="相關連結" htmlFor="event-url">
             <div className="relative min-w-0 max-w-full">
               <LinkIcon size={16} className="pointer-events-none absolute left-3 top-3.5 text-slate-400 dark:text-slate-500" />
               <Input
@@ -314,7 +312,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </div>
       </FormSection>
 
-      <FormSection title="交通資訊" description="下一段路線。" icon={Navigation}>
+      <FormSection title="交通資訊" icon={Navigation}>
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <Field label="預估時間" htmlFor="event-transport-duration">
             <Input
@@ -359,7 +357,7 @@ const EditEventForm = ({ event, onSave, onCancel, readOnly = false, onRequestEdi
         </div>
       </FormSection>
 
-      <FormSection title="預估花費" description="行程預算。" icon={Wallet}>
+      <FormSection title="預估花費" icon={Wallet}>
         <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)]">
           <Field label="幣別" htmlFor="event-currency">
             <Select

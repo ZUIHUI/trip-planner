@@ -199,7 +199,7 @@ const toneClasses = {
   warning: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200'
 };
 
-const SectionHeader = ({ icon: Icon, title, description, iconClass = '', action }) => (
+const SectionHeader = ({ icon: Icon, title, iconClass = '', action }) => (
   <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
     <div className="flex min-w-0 items-center gap-3">
       <div className={`tp-icon-chip ${iconClass}`}>
@@ -207,7 +207,6 @@ const SectionHeader = ({ icon: Icon, title, description, iconClass = '', action 
       </div>
       <div className="min-w-0">
         <h3 className="tp-section-title">{title}</h3>
-        {description && <p className="tp-section-subtitle mt-1 hidden sm:block">{description}</p>}
       </div>
     </div>
     {action}
@@ -332,7 +331,6 @@ const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
       <SectionHeader
         icon={Navigation}
         title="下一步"
-        description={day ? `${day.title || `Day ${day.day}`} · ${day.date || ''}` : '目前沒有可顯示的日期'}
         iconClass="bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
       />
 
@@ -385,7 +383,6 @@ const NextStepCard = ({ nextSummary, onAddEvent, onOpenMaps, onTabChange }) => {
         <EmptyState
           icon={CalendarDays}
           title="目前尚無行程"
-          description="新增第一個行程。"
           actionLabel="新增行程"
           onAction={onAddEvent}
           className="py-6"
@@ -400,7 +397,6 @@ const ReadinessCard = ({ items, onTabChange }) => (
     <SectionHeader
       icon={AlertTriangle}
       title="需要處理"
-      description="先補必要資料。"
       iconClass={items.length ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'}
     />
 
@@ -453,7 +449,6 @@ const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
       <SectionHeader
         icon={Plus}
         title="快速操作"
-        description="常用入口。"
         iconClass="bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300"
       />
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -488,7 +483,6 @@ const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
       <SectionHeader
         icon={UsersRound}
         title="即時動態"
-        description="旅伴在線狀態。"
         iconClass="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
       />
 
@@ -533,7 +527,6 @@ const TripOverviewCard = ({ tripDisplayDates, itinerary, onTabChange }) => (
     <SectionHeader
       icon={CalendarDays}
       title="旅程概要"
-      description="日期與規劃天數。"
       action={(
         <Button variant="ghost" size="sm" onClick={() => onTabChange?.('itinerary')} className="shrink-0">
           查看行程
@@ -556,7 +549,6 @@ const BudgetSummary = ({ budgetInfo, budgetTarget, remainingBudget, budgetProgre
       <SectionHeader
         icon={Wallet}
         title="旅程預算"
-        description="實際記帳與預算使用。"
         iconClass="bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300"
         action={(
           <Button variant="ghost" size="sm" onClick={() => onTabChange?.('expenses')} className="shrink-0">
@@ -615,7 +607,6 @@ const AccommodationCard = ({ accommodation, onTabChange }) => (
     <SectionHeader
       icon={Bed}
       title="住宿"
-      description="住宿地址與入住時間。"
       action={(
         <Button variant="ghost" size="sm" onClick={() => onTabChange?.('flights')} className="shrink-0">
           編輯
@@ -674,7 +665,6 @@ const FlightsCard = ({ flights, onTabChange }) => (
     <SectionHeader
       icon={Plane}
       title="航班"
-      description="去程與回程時間。"
       action={(
         <Button variant="ghost" size="sm" onClick={() => onTabChange?.('flights')} className="shrink-0">
           編輯

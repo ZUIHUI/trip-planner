@@ -164,7 +164,6 @@ const PackingTab = () => {
           </div>
           <div>
             <h2 className="tp-section-title">行李清單</h2>
-            <p className="tp-section-subtitle">出發前確認。</p>
           </div>
         </div>
         <PackingListContent
