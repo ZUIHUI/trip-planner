@@ -124,11 +124,11 @@ export const useTripRealtime = ({
           );
           return;
         } catch {
-          // Fall through to the friendly sync error below.
+          // Background realtime state can safely degrade without alarming the user.
         }
       }
 
-      setRealtimeError(TRIP_REALTIME_SYNC_ERROR);
+      setRealtimeError('');
     };
 
     const start = async () => {
@@ -149,7 +149,7 @@ export const useTripRealtime = ({
         );
       } catch {
         if (!cancelled) {
-          setRealtimeError(TRIP_REALTIME_SYNC_ERROR);
+          setRealtimeError('');
         }
       }
     };
@@ -196,10 +196,10 @@ export const useTripRealtime = ({
           setRealtimeError('');
           return true;
         } catch {
-          // Fall through to the friendly sync error below.
+          // Editing presence is a background affordance.
         }
       }
-      setRealtimeError(TRIP_REALTIME_SYNC_ERROR);
+      setRealtimeError('');
       return false;
     }
   }, [ensureAccess, isEnabled, tripId, uid]);

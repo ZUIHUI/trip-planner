@@ -16,7 +16,6 @@ const PRESENCE_HEARTBEAT_MS = 25000;
 const PRESENCE_STALE_MS = 75000;
 const PRESENCE_RECHECK_MS = 15000;
 const PRESENCE_START_TIMEOUT_MS = 12000;
-const PRESENCE_SYNC_ERROR = '在線狀態暫時無法同步';
 
 const normalizeConnection = (connection = {}) => ({
   state: connection.state || 'offline',
@@ -189,7 +188,7 @@ export const useTripPresence = ({
         )
           .then((result) => {
             if (!result?.ready) {
-              throw new Error(PRESENCE_SYNC_ERROR);
+              throw new Error('presence-access-not-ready');
             }
             return result;
           })
@@ -216,11 +215,11 @@ export const useTripPresence = ({
           }
           return;
         } catch {
-          // Fall through to the friendly sync error below.
+          // Presence is a background affordance; keep trip data usable without surfacing noise.
         }
       }
 
-      setPresenceError(PRESENCE_SYNC_ERROR);
+      setPresenceError('');
     };
 
     const subscribePresence = () => {
@@ -263,11 +262,11 @@ export const useTripPresence = ({
             shouldRetryAfterAccess = true;
           } catch {
             if (!cancelled) {
-              setPresenceError(PRESENCE_SYNC_ERROR);
+              setPresenceError('');
             }
           }
         } else if (!cancelled) {
-          setPresenceError(PRESENCE_SYNC_ERROR);
+          setPresenceError('');
         }
       } finally {
         startInFlight = false;
@@ -308,7 +307,7 @@ export const useTripPresence = ({
         void startConnection();
       } catch (error) {
         if (!cancelled) {
-          setPresenceError(PRESENCE_SYNC_ERROR);
+          setPresenceError('');
         }
       }
     };
@@ -352,10 +351,10 @@ export const useTripPresence = ({
             await pushHeartbeat(false);
             return;
           } catch {
-            // Fall through to the friendly sync error below.
+            // Presence heartbeat is non-critical.
           }
         }
-        setPresenceError(PRESENCE_SYNC_ERROR);
+        setPresenceError('');
       }
     };
 
@@ -402,10 +401,10 @@ export const useTripPresence = ({
             await pushStateUpdate(false);
             return;
           } catch {
-            // Fall through to the friendly sync error below.
+            // Presence state is non-critical.
           }
         }
-        setPresenceError(PRESENCE_SYNC_ERROR);
+        setPresenceError('');
       }
     };
 

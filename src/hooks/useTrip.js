@@ -266,8 +266,12 @@ export const useTrip = (tripId, initialTripDetails, initialItinerary, {
   }, [canEdit]);
 
   const wrapSetter = useCallback((setter) => (nextValue) => {
-    if (!markLocalChange()) return;
-    setter(nextValue);
+    setter((previousValue) => {
+      const resolvedValue = typeof nextValue === 'function' ? nextValue(previousValue) : nextValue;
+      if (Object.is(resolvedValue, previousValue)) return previousValue;
+      if (!markLocalChange()) return previousValue;
+      return resolvedValue;
+    });
   }, [markLocalChange]);
 
   const setTripDetails = useMemo(() => wrapSetter(setTripDetailsState), [wrapSetter]);

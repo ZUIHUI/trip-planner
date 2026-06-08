@@ -151,6 +151,29 @@ test('classifies permission denied persistence errors for safe save handling', (
   });
 });
 
+test('keeps background collaboration sync failures out of visible trip errors', () => {
+  const presenceSource = fs.readFileSync(path.join(__dirname, '..', 'src/hooks/useTripPresence.js'), 'utf8');
+  assert.doesNotMatch(presenceSource, /PRESENCE_SYNC_ERROR/);
+  assert.doesNotMatch(presenceSource, /setPresenceError\(\s*['"`]在線狀態/);
+
+  const realtimeSource = fs.readFileSync(path.join(__dirname, '..', 'src/hooks/useTripRealtime.js'), 'utf8');
+  const publishIndex = realtimeSource.indexOf('const publishChecklistItemStatus');
+  assert.notEqual(publishIndex, -1);
+  const realtimeBackgroundSource = realtimeSource.slice(0, publishIndex);
+  assert.doesNotMatch(realtimeBackgroundSource, /setRealtimeError\(TRIP_REALTIME_SYNC_ERROR\)/);
+  assert.match(realtimeSource, /const publishChecklistItemStatus[\s\S]+setRealtimeError\(TRIP_REALTIME_SYNC_ERROR\)/);
+});
+
+test('does not autosave no-op or date-range maintenance updates', () => {
+  const tripHookSource = fs.readFileSync(path.join(__dirname, '..', 'src/hooks/useTrip.js'), 'utf8');
+  assert.match(tripHookSource, /Object\.is\(resolvedValue,\s*previousValue\)/);
+  assert.match(tripHookSource, /if \(!markLocalChange\(\)\) return previousValue/);
+
+  const detailPageSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  assert.match(detailPageSource, /applyItineraryPatch\(\(prev\) => \{/);
+  assert.doesNotMatch(detailPageSource, /setItinerary\(\(prev\) => \{\s*if \(!Array\.isArray\(prev\)\) return prev;\s*const next = buildAutoItineraryFromDateRange/s);
+});
+
 test('sanitizes trip snapshots for AI recommendations', () => {
   const snapshot = buildTripRecommendationSnapshot({
     trip: {

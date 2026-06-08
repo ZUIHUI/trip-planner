@@ -625,7 +625,7 @@ const TripDetailPage = () => {
 
     if (!computedDays) return;
 
-    setItinerary((prev) => {
+    applyItineraryPatch((prev) => {
       if (!Array.isArray(prev)) return prev;
 
       const next = buildAutoItineraryFromDateRange(prev, startDate, endDate);
@@ -637,7 +637,7 @@ const TripDetailPage = () => {
     });
 
     setSelectedDay((prevSelectedDay) => Math.min(Math.max(prevSelectedDay, 1), computedDays));
-  }, [tripDetails?.dateRange?.start, tripDetails?.dateRange?.end, isLoading, setItinerary]);
+  }, [tripDetails?.dateRange?.start, tripDetails?.dateRange?.end, isLoading, applyItineraryPatch]);
 
 
   useEffect(() => {
