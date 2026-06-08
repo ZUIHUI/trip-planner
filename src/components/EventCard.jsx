@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   AlertCircle,
   ArrowDown,
@@ -80,6 +81,9 @@ const EventCard = ({
   canEdit = true
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const menuButtonRef = useRef(null);
+  const menuRef = useRef(null);
   const meta = getEventMeta(event.type);
   const Icon = meta.icon;
   const readiness = buildEventReadiness(event);
@@ -91,6 +95,32 @@ const EventCard = ({
   const editingText = getEditingMembersText(editingMembers);
   const canReorder = Boolean(onMove) && canEdit && (canMoveUp || canMoveDown);
   const canMoveDay = Boolean(onMoveToDay) && canEdit && (canMoveToPreviousDay || canMoveToNextDay);
+
+  const updateMenuPosition = useCallback(() => {
+    if (!menuButtonRef.current || typeof window === 'undefined') return;
+    const rect = menuButtonRef.current.getBoundingClientRect();
+    const viewportPadding = 12;
+    const menuWidth = 176;
+    const estimatedMenuHeight = 44 * (2 + (canReorder ? 2 : 0) + (canMoveDay ? 2 : 0))
+      + (canReorder ? 1 : 0)
+      + (canMoveDay ? 1 : 0);
+    const maxLeft = Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding);
+    const left = Math.min(Math.max(viewportPadding, rect.right - menuWidth), maxLeft);
+    const belowSpace = window.innerHeight - rect.bottom - viewportPadding;
+    const aboveSpace = rect.top - viewportPadding;
+    const opensAbove = belowSpace < estimatedMenuHeight && aboveSpace > belowSpace;
+    const top = opensAbove
+      ? Math.max(viewportPadding, rect.top - Math.min(estimatedMenuHeight, aboveSpace) - 6)
+      : rect.bottom + 6;
+    const availableSpace = opensAbove
+      ? Math.max(viewportPadding, aboveSpace - 6)
+      : Math.max(viewportPadding, window.innerHeight - top - viewportPadding);
+    setMenuPosition({
+      left,
+      top,
+      maxHeight: Math.max(120, Math.min(estimatedMenuHeight, availableSpace))
+    });
+  }, [canMoveDay, canReorder]);
 
   const handleCardClick = () => {
     onEdit(event, true);
@@ -134,6 +164,121 @@ const EventCard = ({
     onMoveToDay(event.id, direction);
     setShowMenu(false);
   };
+
+  useEffect(() => {
+    if (!showMenu) return undefined;
+
+    updateMenuPosition();
+
+    const handlePointerDown = (eventPointer) => {
+      const target = eventPointer.target;
+      if (menuButtonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setShowMenu(false);
+    };
+    const handleKeyDown = (keyEvent) => {
+      if (keyEvent.key === 'Escape') setShowMenu(false);
+    };
+    const handleViewportChange = () => {
+      updateMenuPosition();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('scroll', handleViewportChange, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('scroll', handleViewportChange, true);
+    };
+  }, [showMenu, updateMenuPosition]);
+
+  const actionMenu = showMenu && menuPosition && typeof document !== 'undefined'
+    ? createPortal(
+      <div
+        ref={menuRef}
+        className="tp-slide-up fixed z-[120] w-44 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        style={{
+          left: `${menuPosition.left}px`,
+          top: `${menuPosition.top}px`,
+          maxHeight: `${menuPosition.maxHeight}px`,
+          overflowY: 'auto'
+        }}
+        onClick={(clickEvent) => clickEvent.stopPropagation()}
+      >
+        {canReorder && (
+          <>
+            <button
+              type="button"
+              onClick={handleMoveClick('up')}
+              disabled={!canMoveUp}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              <ArrowUp size={14} />
+              往前一站
+            </button>
+            <button
+              type="button"
+              onClick={handleMoveClick('down')}
+              disabled={!canMoveDown}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              <ArrowDown size={14} />
+              往後一站
+            </button>
+            <div className="h-px bg-slate-100 dark:bg-slate-800" />
+          </>
+        )}
+        {canMoveDay && (
+          <>
+            <button
+              type="button"
+              onClick={handleMoveDayClick('previous')}
+              disabled={!canMoveToPreviousDay}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              <ArrowLeft size={14} />
+              移到{previousDayLabel || '前一天'}
+            </button>
+            <button
+              type="button"
+              onClick={handleMoveDayClick('next')}
+              disabled={!canMoveToNextDay}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              <ArrowRight size={14} />
+              移到{nextDayLabel || '後一天'}
+            </button>
+            <div className="h-px bg-slate-100 dark:bg-slate-800" />
+          </>
+        )}
+        <button
+          type="button"
+          onClick={handleEditClick}
+          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          <Edit2 size={14} />
+          編輯
+        </button>
+        <button
+          type="button"
+          onClick={(clickEvent) => {
+            clickEvent.preventDefault();
+            clickEvent.stopPropagation();
+            onDelete(event.id);
+            setShowMenu(false);
+          }}
+          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/30"
+        >
+          <Trash2 size={14} />
+          刪除
+        </button>
+      </div>,
+      document.body
+    )
+    : null;
 
   return (
     <div className="tp-animate-enter relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800">
@@ -193,11 +338,17 @@ const EventCard = ({
 
           <div className="relative shrink-0">
             <button
+              ref={menuButtonRef}
               type="button"
               onClick={(clickEvent) => {
                 clickEvent.preventDefault();
                 clickEvent.stopPropagation();
-                setShowMenu((prev) => !prev);
+                if (showMenu) {
+                  setShowMenu(false);
+                  return;
+                }
+                updateMenuPosition();
+                setShowMenu(true);
               }}
               className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               title="更多操作"
@@ -206,78 +357,6 @@ const EventCard = ({
             >
               <MoreVertical size={18} />
             </button>
-
-            {showMenu && (
-              <div className="tp-slide-up absolute right-0 top-11 z-20 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900">
-                {canReorder && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleMoveClick('up')}
-                      disabled={!canMoveUp}
-                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      <ArrowUp size={14} />
-                      往前一站
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleMoveClick('down')}
-                      disabled={!canMoveDown}
-                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      <ArrowDown size={14} />
-                      往後一站
-                    </button>
-                    <div className="h-px bg-slate-100 dark:bg-slate-800" />
-                  </>
-                )}
-                {canMoveDay && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleMoveDayClick('previous')}
-                      disabled={!canMoveToPreviousDay}
-                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      <ArrowLeft size={14} />
-                      移到{previousDayLabel || '前一天'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleMoveDayClick('next')}
-                      disabled={!canMoveToNextDay}
-                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      <ArrowRight size={14} />
-                      移到{nextDayLabel || '後一天'}
-                    </button>
-                    <div className="h-px bg-slate-100 dark:bg-slate-800" />
-                  </>
-                )}
-                <button
-                  type="button"
-                  onClick={handleEditClick}
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  <Edit2 size={14} />
-                  編輯
-                </button>
-                <button
-                  type="button"
-                  onClick={(clickEvent) => {
-                    clickEvent.preventDefault();
-                    clickEvent.stopPropagation();
-                    onDelete(event.id);
-                    setShowMenu(false);
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/30"
-                >
-                  <Trash2 size={14} />
-                  刪除
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -392,6 +471,7 @@ const EventCard = ({
           )}
         </div>
       </Card>
+      {actionMenu}
     </div>
   );
 };

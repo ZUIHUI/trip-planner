@@ -174,6 +174,14 @@ test('does not autosave no-op or date-range maintenance updates', () => {
   assert.doesNotMatch(detailPageSource, /setItinerary\(\(prev\) => \{\s*if \(!Array\.isArray\(prev\)\) return prev;\s*const next = buildAutoItineraryFromDateRange/s);
 });
 
+test('renders event card action menus above the timeline stack', () => {
+  const eventCardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/EventCard.jsx'), 'utf8');
+  assert.match(eventCardSource, /createPortal\(/);
+  assert.match(eventCardSource, /document\.body/);
+  assert.match(eventCardSource, /className="[^"]*fixed[^"]*z-\[120\]/);
+  assert.doesNotMatch(eventCardSource, /absolute right-0 top-11 z-20/);
+});
+
 test('sanitizes trip snapshots for AI recommendations', () => {
   const snapshot = buildTripRecommendationSnapshot({
     trip: {
