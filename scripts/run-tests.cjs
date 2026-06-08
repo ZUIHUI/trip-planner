@@ -679,6 +679,7 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   assert.match(tripDetailSource, /collaboration-update/);
   assert.match(tripDetailSource, /seenCollaborationActivityIdsRef/);
   assert.match(tripDetailSource, /duration:\s*4200/);
+  assert.match(tripDetailSource, /size:\s*'compact'/);
 });
 
 test('passes trip-day dates into travel next-event surfaces', () => {

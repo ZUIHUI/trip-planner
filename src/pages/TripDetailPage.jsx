@@ -371,7 +371,8 @@ const TripDetailPage = () => {
         variant: 'info',
         title: activity.title || '協作更新',
         description: activity.body || '',
-        duration: 4200
+        duration: 4200,
+        size: 'compact'
       });
     });
 

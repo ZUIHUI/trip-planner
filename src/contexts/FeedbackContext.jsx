@@ -46,11 +46,20 @@ const ToastItem = ({ toast, onDismiss }) => {
     variant = 'info',
     actionLabel,
     onAction,
-    duration = 4500
+    duration = 4500,
+    size = 'default'
   } = toast;
   const style = toastStyles[variant] || toastStyles.info;
   const Icon = style.icon;
   const hasCountdown = duration > 0;
+  const isCompact = size === 'compact';
+  const containerClass = isCompact ? 'max-w-[18rem] p-2.5 shadow-lg' : 'max-w-sm p-3 shadow-xl';
+  const gapClass = isCompact ? 'gap-2' : 'gap-3';
+  const titleClass = isCompact ? 'text-xs leading-4' : 'text-sm';
+  const descriptionClass = isCompact ? 'text-[11px] leading-4' : 'text-xs';
+  const actionClass = isCompact ? 'mt-1.5 px-2 py-0.5 text-[11px]' : 'mt-2 px-2.5 py-1 text-xs';
+  const countdownClass = isCompact ? 'mt-2 h-0.5' : 'mt-3 h-1';
+  const closeClass = isCompact ? 'h-7 w-7' : 'h-8 w-8';
 
   useEffect(() => {
     if (duration <= 0) return undefined;
@@ -65,27 +74,31 @@ const ToastItem = ({ toast, onDismiss }) => {
 
   return (
     <div
-      className={`pointer-events-auto w-full max-w-sm rounded-lg border p-3 shadow-xl ${style.className}`}
+      className={`pointer-events-auto w-full rounded-lg border ${containerClass} ${style.className}`}
       role="status"
       aria-live={variant === 'danger' ? 'assertive' : 'polite'}
     >
-      <div className="flex items-start gap-3">
-        <Icon size={18} className="mt-0.5 shrink-0" />
+      <div className={`flex items-start ${gapClass}`}>
+        <Icon size={isCompact ? 16 : 18} className="mt-0.5 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="break-words text-sm font-black">{title}</p>
-          {description && <p className="mt-1 break-words text-xs font-semibold opacity-80">{description}</p>}
+          <p className={`break-words font-black ${titleClass}`}>{title}</p>
+          {description && (
+            <p className={`mt-1 break-words font-semibold opacity-80 ${descriptionClass}`}>
+              {description}
+            </p>
+          )}
           {actionLabel && onAction && (
             <button
               type="button"
               onClick={handleAction}
-              className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/75 px-2.5 py-1 text-xs font-black text-slate-700 transition hover:bg-white dark:bg-slate-950/35 dark:text-slate-100 dark:hover:bg-slate-950/55"
+              className={`inline-flex items-center gap-1 rounded-full bg-white/75 font-black text-slate-700 transition hover:bg-white dark:bg-slate-950/35 dark:text-slate-100 dark:hover:bg-slate-950/55 ${actionClass}`}
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={isCompact ? 12 : 13} />
               {actionLabel}
             </button>
           )}
           {hasCountdown && (
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-current/15">
+            <div className={`${countdownClass} overflow-hidden rounded-full bg-current/15`}>
               <span
                 className="tp-toast-countdown block h-full rounded-full bg-current/45"
                 style={{ animationDuration: `${duration}ms` }}
@@ -96,10 +109,10 @@ const ToastItem = ({ toast, onDismiss }) => {
         <button
           type="button"
           onClick={() => onDismiss(id)}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full opacity-70 transition hover:bg-white/60 hover:opacity-100 dark:hover:bg-slate-950/35"
+          className={`inline-flex shrink-0 items-center justify-center rounded-full opacity-70 transition hover:bg-white/60 hover:opacity-100 dark:hover:bg-slate-950/35 ${closeClass}`}
           aria-label="關閉提示"
         >
-          <X size={15} />
+          <X size={isCompact ? 14 : 15} />
         </button>
       </div>
     </div>
