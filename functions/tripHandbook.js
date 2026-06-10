@@ -619,6 +619,20 @@ const normalizeHandbookFlight = (flight = {}) => {
   };
 };
 
+const normalizeHandbookVisuals = (visuals = {}) => {
+  const source = asObject(visuals);
+  return {
+    coverImageStatus: cleanText(source.coverImageStatus, 40),
+    coverImageUrl: cleanText(source.coverImageUrl, 2000),
+    coverImagePath: cleanText(source.coverImagePath, 260),
+    coverImageContentType: cleanText(source.coverImageContentType, 60),
+    coverImageAlt: cleanText(source.coverImageAlt, 140),
+    coverImageModel: cleanText(source.coverImageModel, 80),
+    coverImageDataUrl: cleanText(source.coverImageDataUrl, 2 * 1024 * 1024),
+    coverImageGeneratedAt: cleanText(source.coverImageGeneratedAt, 48)
+  };
+};
+
 const normalizeHandbookResponse = (payload = {}, snapshot = {}) => {
   const source = asObject(payload);
   const cover = asObject(source.cover);
@@ -695,7 +709,8 @@ const normalizeHandbookResponse = (payload = {}, snapshot = {}) => {
             amount: readPositiveNumber(total.amount, 0)
           })).filter((total) => total.currency && total.amount > 0).slice(0, 6)
     },
-    manualChecks: normalizeTextList(source.manualChecks, MAX_TEXT_ITEMS, 140)
+    manualChecks: normalizeTextList(source.manualChecks, MAX_TEXT_ITEMS, 140),
+    visuals: normalizeHandbookVisuals(source.visuals)
   };
 };
 

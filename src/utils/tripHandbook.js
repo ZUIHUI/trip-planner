@@ -1,7 +1,10 @@
+import { normalizeCoverImageUrl } from './coverImage';
+
 const MAX_DAYS = 30;
 const MAX_DAY_EVENTS = 16;
 const MAX_LIST_ITEMS = 18;
 const MAX_TEXT_ITEMS = 8;
+const MAX_HANDBOOK_IMAGE_DATA_URL_LENGTH = 2 * 1024 * 1024;
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
 const asObject = (value) => (
@@ -68,6 +71,24 @@ const normalizeFlight = (flight = {}) => {
   };
 };
 
+const normalizeHandbookImageUrl = (value) => normalizeCoverImageUrl(value, {
+  maxDataUrlLength: MAX_HANDBOOK_IMAGE_DATA_URL_LENGTH
+});
+
+const normalizeHandbookVisuals = (visuals = {}) => {
+  const source = asObject(visuals);
+  return {
+    coverImageStatus: cleanHandbookText(source.coverImageStatus, 40),
+    coverImageUrl: normalizeHandbookImageUrl(source.coverImageUrl),
+    coverImagePath: cleanHandbookText(source.coverImagePath, 260),
+    coverImageContentType: cleanHandbookText(source.coverImageContentType, 60),
+    coverImageAlt: cleanHandbookText(source.coverImageAlt, 140),
+    coverImageModel: cleanHandbookText(source.coverImageModel, 80),
+    coverImageDataUrl: normalizeHandbookImageUrl(source.coverImageDataUrl),
+    coverImageGeneratedAt: cleanHandbookText(source.coverImageGeneratedAt, 48)
+  };
+};
+
 export const normalizeTripHandbookResponse = (payload = {}) => {
   const source = asObject(payload);
   const cover = asObject(source.cover);
@@ -114,7 +135,8 @@ export const normalizeTripHandbookResponse = (payload = {}) => {
         .filter((total) => total.currency && total.amount > 0)
         .slice(0, 6)
     },
-    manualChecks: normalizeTextList(source.manualChecks, MAX_TEXT_ITEMS, 140)
+    manualChecks: normalizeTextList(source.manualChecks, MAX_TEXT_ITEMS, 140),
+    visuals: normalizeHandbookVisuals(source.visuals)
   };
 };
 

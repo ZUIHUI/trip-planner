@@ -474,7 +474,13 @@ test('normalizes AI handbook responses with predictable fallbacks', () => {
     logistics: { accommodation: {}, flights: [], notes: [] },
     lists: { preTrip: [], packing: [], shopping: [] },
     expenses: { summary: '', totals: [] },
-    manualChecks: ['請自行確認營業時間']
+    manualChecks: ['請自行確認營業時間'],
+    visuals: {
+      coverImageStatus: 'generated',
+      coverImageUrl: 'https://firebasestorage.googleapis.com/v0/b/trip-planner-36455.firebasestorage.app/o/trip-handbooks%2Ftrip%2Flatest-cover.jpg?alt=media&token=test-token',
+      coverImagePath: 'trip-handbooks/trip/latest-cover.jpg',
+      coverImageDataUrl: 'data:image/jpeg;base64,abc123'
+    }
   }, snapshot);
 
   assert.equal(normalized.cover.title, '京都散步');
@@ -483,6 +489,9 @@ test('normalizes AI handbook responses with predictable fallbacks', () => {
   assert.equal(normalized.days[0].schedule[0].title, '入住飯店');
   assert.equal(normalized.expenses.totals[0].currency, 'JPY');
   assert.equal(normalized.manualChecks[0], '請自行確認營業時間');
+  assert.equal(normalized.visuals.coverImageStatus, 'generated');
+  assert.match(normalized.visuals.coverImageUrl, /firebasestorage\.googleapis\.com/);
+  assert.equal(normalized.visuals.coverImageDataUrl, 'data:image/jpeg;base64,abc123');
 });
 
 test('wires AI handbook generation and print-only handbook UI', () => {
@@ -499,9 +508,15 @@ test('wires AI handbook generation and print-only handbook UI', () => {
   assert.equal(handbookResponseSchema.required.includes('cover'), true);
   assert.equal(handbookResponseSchema.properties.days.maxItems, 30);
   assert.match(functionsSource, /exports\.generateTripHandbook = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY\]/);
+  assert.match(functionsSource, /timeoutSeconds: 180/);
+  assert.match(functionsSource, /OPENAI_IMAGES_ENDPOINT/);
+  assert.match(functionsSource, /OPENAI_IMAGE_MODEL/);
+  assert.match(functionsSource, /admin\.storage\(\)\.bucket/);
+  assert.match(functionsSource, /firebaseStorageDownloadTokens/);
+  assert.match(functionsSource, /coverImageDataUrl/);
   assert.match(functionsSource, /exports\.getTripHandbook = onCall/);
   assert.match(functionsSource, /collection\('handbooks'\)\.doc\(TRIP_HANDBOOK_DOC_ID\)/);
-  assert.match(functionsSource, /handbook: result/);
+  assert.match(functionsSource, /handbook: storedResult/);
   assert.match(functionsSource, /aiHandbookRateLimits/);
   assert.match(functionsSource, /role !== 'owner' && role !== 'editor'/);
   assert.match(functionsSource, /buildTripHandbookSnapshot/);
@@ -509,6 +524,7 @@ test('wires AI handbook generation and print-only handbook UI', () => {
   assert.match(serviceSource, /httpsCallable\(functions,\s*'getTripHandbook'\)/);
   assert.match(hookSource, /requestSavedTripHandbook/);
   assert.match(hookSource, /exportTripHandbookPdf/);
+  assert.match(hookSource, /response\.visuals\?\.coverImageDataUrl/);
   assert.doesNotMatch(hookSource, /window\.print\(\)/);
   assert.match(detailPageSource, /useTripHandbook/);
   assert.match(detailPageSource, /TripHandbookModal/);
@@ -517,9 +533,13 @@ test('wires AI handbook generation and print-only handbook UI', () => {
   assert.match(moreTabSource, /旅遊手冊/);
   assert.match(summarySource, /onOpenHandbook/);
   assert.match(modalSource, /normalizeCoverImageUrl/);
+  assert.match(modalSource, /getHandbookCoverImage/);
   assert.match(modalSource, /trip-handbook-cover-visual/);
   assert.match(modalSource, /匯出 PDF/);
   assert.match(pdfSource, /buildPdfFromJpegs/);
+  assert.match(pdfSource, /drawDoodleCluster/);
+  assert.match(pdfSource, /drawSuitcase/);
+  assert.match(pdfSource, /handbook\.visuals\?\.coverImageDataUrl/);
   assert.match(pdfSource, /application\/pdf/);
   assert.match(stylesSource, /@media print/);
   assert.match(stylesSource, /body\.trip-handbook-printing \*/);

@@ -100,8 +100,16 @@ const CoverVisual = ({ imageUrl, title }) => (
   </div>
 );
 
+const getHandbookCoverImage = (handbook, fallbackCoverImage = '') => (
+  handbook?.visuals?.coverImageDataUrl ||
+  handbook?.visuals?.coverImageUrl ||
+  fallbackCoverImage
+);
+
 const HandbookCover = ({ handbook, coverImage }) => {
-  const imageUrl = normalizeCoverImageUrl(coverImage);
+  const imageUrl = normalizeCoverImageUrl(getHandbookCoverImage(handbook, coverImage), {
+    maxDataUrlLength: 2 * 1024 * 1024
+  });
 
   return (
     <section className="trip-handbook-page trip-handbook-cover-page">
@@ -245,10 +253,11 @@ export const TripHandbookDocument = ({
   className = ''
 }) => {
   if (!handbook) return null;
+  const effectiveCoverImage = getHandbookCoverImage(handbook, coverImage);
 
   return (
     <article className={`trip-handbook-document ${className}`}>
-      <HandbookCover handbook={handbook} coverImage={coverImage} />
+      <HandbookCover handbook={handbook} coverImage={effectiveCoverImage} />
       <OverviewPage handbook={handbook} />
       {handbook.days.map((day) => (
         <DayPage key={`${day.day}-${day.title}`} day={day} />
@@ -283,7 +292,7 @@ const TripHandbookModal = ({
               </span>
               <div>
                 <h2 className="text-base font-black text-slate-950 dark:text-white">AI 旅遊手冊</h2>
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">已保存於旅程，可匯出 PDF</p>
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">已保存於旅程，可匯出圖文 PDF</p>
               </div>
             </div>
           </div>
@@ -305,7 +314,7 @@ const TripHandbookModal = ({
         )}
       </Card>
 
-      {isLoading && <LoadingState label="正在整理旅遊手冊..." />}
+      {isLoading && <LoadingState label="正在整理旅遊手冊與圖片..." />}
       {!isLoading && isLoadingSaved && !handbook && <LoadingState label="正在讀取已保存的手冊..." />}
 
       {!isLoading && !isLoadingSaved && error && (
@@ -322,7 +331,7 @@ const TripHandbookModal = ({
           <CalendarDays className="mx-auto text-sky-600 dark:text-sky-300" size={34} />
           <p className="mt-3 text-base font-black text-slate-950 dark:text-white">準備把目前旅程排成小冊</p>
           <p className="mx-auto mt-2 max-w-lg text-sm font-semibold text-slate-500 dark:text-slate-400">
-            會使用現有行程、住宿航班、清單與費用資料，不補外部即時資訊；產生後會留存在這趟旅程中。
+            會使用現有行程、住宿航班、清單與費用資料，不補外部即時資訊；產生後會連同 AI 情境圖留存在這趟旅程中。
           </p>
         </Card>
       )}

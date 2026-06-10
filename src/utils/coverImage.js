@@ -13,9 +13,9 @@ const ALLOWED_DATA_IMAGE_MIME_TYPES = new Set([
 export const MAX_COVER_IMAGE_FILE_SIZE_BYTES = 450 * 1024;
 const MAX_DATA_IMAGE_URL_LENGTH = 700 * 1024;
 
-const normalizeDataImageUrl = (value) => {
+const normalizeDataImageUrl = (value, maxDataUrlLength = MAX_DATA_IMAGE_URL_LENGTH) => {
   if (!value.startsWith('data:image/')) return '';
-  if (value.length > MAX_DATA_IMAGE_URL_LENGTH) return '';
+  if (value.length > maxDataUrlLength) return '';
 
   const dataUrlMatch = value.match(/^data:([^;,]+)(;base64)?,/i);
   if (!dataUrlMatch) return '';
@@ -26,13 +26,15 @@ const normalizeDataImageUrl = (value) => {
   return value;
 };
 
-export const normalizeCoverImageUrl = (value) => {
+export const normalizeCoverImageUrl = (value, {
+  maxDataUrlLength = MAX_DATA_IMAGE_URL_LENGTH
+} = {}) => {
   if (typeof value !== 'string') return '';
   const trimmed = value.trim();
   if (!trimmed) return '';
 
   if (trimmed.startsWith('data:image/')) {
-    return normalizeDataImageUrl(trimmed);
+    return normalizeDataImageUrl(trimmed, maxDataUrlLength);
   }
 
   try {

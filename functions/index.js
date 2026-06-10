@@ -73,11 +73,15 @@ const OPENAI_RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
 const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 const GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 const GOOGLE_PLACE_DETAILS_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/details/json';
+const OPENAI_IMAGES_ENDPOINT = 'https://api.openai.com/v1/images/generations';
 const CANONICAL_APP_ORIGIN = 'https://trip-planner-36455.firebaseapp.com';
 const WEB_PUSH_DEVICE_ENDPOINT_MAX_LENGTH = 2000;
 const WEB_PUSH_KEY_MAX_LENGTH = 512;
 const WEB_PUSH_DELIVERY_LOOK_BEHIND_MINUTES = 20;
 const TRIP_HANDBOOK_DOC_ID = 'latest';
+const TRIP_HANDBOOK_IMAGE_STORAGE_PREFIX = 'trip-handbooks';
+const TRIP_HANDBOOK_IMAGE_MAX_RESPONSE_BYTES = 900 * 1024;
+const TRIP_HANDBOOK_IMAGE_TIMEOUT_MS = 120 * 1000;
 const COLLABORATION_NOTIFICATION_COLLECTIONS = Object.freeze({
   events: {
     label: '行程',
@@ -968,6 +972,75 @@ const loadTripHandbookSource = async (tripRef, trip) => {
 
 const getTripHandbookDocRef = (tripRef) => tripRef.collection('handbooks').doc(TRIP_HANDBOOK_DOC_ID);
 
+const getTimeoutSignal = (timeoutMs) => (
+  typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+    ? AbortSignal.timeout(timeoutMs)
+    : undefined
+);
+
+const makeStorageSafeSegment = (value, fallback = 'trip') => {
+  const cleaned = String(value || '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 120);
+  return cleaned || fallback;
+};
+
+const makeFirebaseStorageDownloadUrl = ({ bucketName, filePath, token }) => (
+  `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(filePath)}?alt=media&token=${encodeURIComponent(token)}`
+);
+
+const imageDataUrlFromBuffer = (buffer, contentType = 'image/jpeg') => {
+  if (!Buffer.isBuffer(buffer) || !buffer.length || buffer.length > TRIP_HANDBOOK_IMAGE_MAX_RESPONSE_BYTES) {
+    return '';
+  }
+  return `data:${contentType};base64,${buffer.toString('base64')}`;
+};
+
+const stripHandbookVisualData = (visuals = {}) => {
+  const copy = { ...visuals };
+  delete copy.coverImageDataUrl;
+  return copy;
+};
+
+const getTripHandbookImagePath = (tripId) => (
+  `${TRIP_HANDBOOK_IMAGE_STORAGE_PREFIX}/${makeStorageSafeSegment(tripId)}/latest-cover.jpg`
+);
+
+const buildTripHandbookImagePrompt = ({ snapshot = {}, handbook = {} }) => {
+  const trip = snapshot.trip || {};
+  const itinerary = Array.isArray(snapshot.itinerary) ? snapshot.itinerary : [];
+  const placeIdeas = Array.isArray(snapshot.placeIdeas) ? snapshot.placeIdeas : [];
+  const highlights = Array.isArray(handbook.overview?.highlights) ? handbook.overview.highlights : [];
+  const eventCues = itinerary.flatMap((day) => (
+    Array.isArray(day.events) ? day.events : []
+  )).flatMap((event) => [event.title, event.location, event.type]).filter(Boolean);
+  const placeCues = placeIdeas.flatMap((place) => [place.name, place.address]).filter(Boolean);
+  const cues = [
+    trip.title,
+    trip.dates,
+    trip.accommodation?.name,
+    trip.accommodation?.address,
+    ...eventCues,
+    ...placeCues,
+    ...highlights
+  ]
+    .map((item) => normalizeGoogleLookupText(item, 80))
+    .filter(Boolean)
+    .slice(0, 18);
+
+  return [
+    'Create one lively illustrated cover image for a personal travel handbook.',
+    'Use only these trip cues; do not add factual claims, readable labels, opening hours, prices, weather, route durations, logos, brand marks, or UI screenshots.',
+    `Trip title: ${normalizeGoogleLookupText(trip.title || handbook.cover?.title || 'Travel handbook', 100)}`,
+    `Trip dates: ${normalizeGoogleLookupText(trip.dates || handbook.cover?.dateText || '', 80) || 'not specified'}`,
+    `Visual cues: ${cues.join(', ') || 'travel map, suitcase, tickets, camera, cheerful city scenery'}`,
+    'Style: bright modern editorial travel illustration, polished and playful, rich but clean colors, no readable text, no watermark, no identifiable people.',
+    'Composition: square cover artwork that still looks good when cropped wide; include travel objects and destination-inspired scenery as a cheerful collage.'
+  ].join('\n');
+};
+
 const getRuntimeValue = (secret, envName, fallback = '') => {
   try {
     const value = String(secret.value() || '').trim();
@@ -1595,6 +1668,168 @@ const callOpenAITripHandbook = async ({ apiKey, snapshot }) => {
   }
 };
 
+const extractOpenAIImageBase64 = (payload) => {
+  const first = Array.isArray(payload?.data) ? payload.data[0] : null;
+  if (typeof first?.b64_json === 'string') return first.b64_json;
+  if (typeof first?.result === 'string') return first.result;
+  if (typeof payload?.result === 'string') return payload.result;
+  return '';
+};
+
+const callOpenAITripHandbookImage = async ({ apiKey, snapshot, handbook }) => {
+  const model = String(process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2').trim() || 'gpt-image-2';
+  const prompt = buildTripHandbookImagePrompt({ snapshot, handbook });
+  let response = null;
+  let payload = null;
+
+  try {
+    response = await fetch(OPENAI_IMAGES_ENDPOINT, {
+      method: 'POST',
+      signal: getTimeoutSignal(TRIP_HANDBOOK_IMAGE_TIMEOUT_MS),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        prompt,
+        size: '1024x1024',
+        quality: 'low',
+        output_format: 'jpeg',
+        output_compression: 68,
+        n: 1
+      })
+    });
+    payload = await response.json().catch(() => ({}));
+  } catch (error) {
+    console.warn('OpenAI handbook image request failed', {
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    return null;
+  }
+
+  if (!response.ok) {
+    console.warn('OpenAI handbook image HTTP error', {
+      status: response.status,
+      code: payload?.error?.code || '',
+      message: payload?.error?.message || ''
+    });
+    return null;
+  }
+
+  const base64 = extractOpenAIImageBase64(payload);
+  if (!base64) {
+    console.warn('OpenAI handbook image response missing image data', {
+      responseId: payload?.id || ''
+    });
+    return null;
+  }
+
+  const buffer = Buffer.from(base64, 'base64');
+  if (!buffer.length) return null;
+
+  return {
+    buffer,
+    contentType: 'image/jpeg',
+    dataUrl: imageDataUrlFromBuffer(buffer, 'image/jpeg'),
+    model
+  };
+};
+
+const storeTripHandbookCoverImage = async ({ tripId, image }) => {
+  if (!image?.buffer?.length) return null;
+
+  try {
+    const bucket = admin.storage().bucket();
+    const filePath = getTripHandbookImagePath(tripId);
+    const downloadToken = crypto.randomUUID();
+
+    await bucket.file(filePath).save(image.buffer, {
+      resumable: false,
+      metadata: {
+        contentType: image.contentType,
+        cacheControl: 'public, max-age=31536000',
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken
+        }
+      }
+    });
+
+    return {
+      coverImageStatus: 'generated',
+      coverImageUrl: makeFirebaseStorageDownloadUrl({
+        bucketName: bucket.name,
+        filePath,
+        token: downloadToken
+      }),
+      coverImagePath: filePath,
+      coverImageContentType: image.contentType,
+      coverImageAlt: 'AI 生成的旅遊手冊封面插圖',
+      coverImageModel: image.model,
+      coverImageDataUrl: image.dataUrl,
+      coverImageGeneratedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    console.warn('Trip handbook image storage failed', {
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    return {
+      coverImageStatus: 'generated-unsaved',
+      coverImageUrl: '',
+      coverImagePath: '',
+      coverImageContentType: image.contentType,
+      coverImageAlt: 'AI 生成的旅遊手冊封面插圖',
+      coverImageModel: image.model,
+      coverImageDataUrl: image.dataUrl,
+      coverImageGeneratedAt: new Date().toISOString()
+    };
+  }
+};
+
+const generateTripHandbookVisuals = async ({ apiKey, tripId, snapshot, handbook }) => {
+  const image = await callOpenAITripHandbookImage({
+    apiKey,
+    snapshot,
+    handbook
+  });
+
+  if (!image) {
+    return {
+      coverImageStatus: 'fallback',
+      coverImageUrl: '',
+      coverImagePath: '',
+      coverImageContentType: '',
+      coverImageAlt: '旅遊手冊封面插圖',
+      coverImageModel: '',
+      coverImageDataUrl: '',
+      coverImageGeneratedAt: ''
+    };
+  }
+
+  return storeTripHandbookCoverImage({ tripId, image });
+};
+
+const readStoredTripHandbookCoverDataUrl = async ({ tripId, visuals = {} }) => {
+  const filePath = normalizeGoogleLookupText(visuals.coverImagePath, 260);
+  const expectedPrefix = `${TRIP_HANDBOOK_IMAGE_STORAGE_PREFIX}/${makeStorageSafeSegment(tripId)}/`;
+  if (!filePath || !filePath.startsWith(expectedPrefix)) return '';
+
+  try {
+    const bucket = admin.storage().bucket();
+    const [buffer] = await bucket.file(filePath).download();
+    const contentType = normalizeGoogleLookupText(visuals.coverImageContentType, 60) || 'image/jpeg';
+    return imageDataUrlFromBuffer(buffer, contentType);
+  } catch (error) {
+    console.warn('Trip handbook image download failed', {
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    return '';
+  }
+};
+
 exports.getWebPushConfig = onCall(
   { secrets: [WEB_PUSH_VAPID_PUBLIC_KEY] },
   async (request) => {
@@ -1938,7 +2173,7 @@ exports.generateTripRecommendations = onCall(
 );
 
 exports.generateTripHandbook = onCall(
-  { secrets: [OPENAI_API_KEY] },
+  { secrets: [OPENAI_API_KEY], timeoutSeconds: 180, memory: '512MiB' },
   async (request) => {
     const uid = requireSignedIn(request);
     const tripId = normalizeGoogleLookupText(request.data?.tripId, 180);
@@ -1962,16 +2197,27 @@ exports.generateTripHandbook = onCall(
       snapshot
     });
     const normalized = normalizeHandbookResponse(aiPayload, snapshot);
+    const visuals = await generateTripHandbookVisuals({
+      apiKey,
+      tripId,
+      snapshot,
+      handbook: normalized
+    });
     const generatedAt = new Date().toISOString();
     const result = {
       generatedAt,
-      ...normalized
+      ...normalized,
+      visuals
+    };
+    const storedResult = {
+      ...result,
+      visuals: stripHandbookVisualData(visuals)
     };
 
     await getTripHandbookDocRef(tripRef).set({
       schemaVersion: 1,
       generatedAt,
-      handbook: result,
+      handbook: storedResult,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
@@ -1996,11 +2242,20 @@ exports.getTripHandbook = onCall(
 
     const data = handbookSnap.data() || {};
     const handbook = data.handbook || {};
+    const normalized = normalizeHandbookResponse(handbook, {});
+    const coverImageDataUrl = await readStoredTripHandbookCoverDataUrl({
+      tripId,
+      visuals: normalized.visuals
+    });
 
     return {
       exists: true,
       generatedAt: String(handbook.generatedAt || data.generatedAt || ''),
-      ...normalizeHandbookResponse(handbook, {})
+      ...normalized,
+      visuals: {
+        ...normalized.visuals,
+        coverImageDataUrl
+      }
     };
   }
 );

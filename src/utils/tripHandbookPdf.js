@@ -7,6 +7,7 @@ const PDF_WIDTH = 595.28;
 const PDF_HEIGHT = 841.89;
 const MARGIN = 86;
 const CARD_RADIUS = 22;
+const MAX_HANDBOOK_IMAGE_DATA_URL_LENGTH = 2 * 1024 * 1024;
 const FONT_FAMILY = '"Microsoft JhengHei", "PingFang TC", "Noto Sans TC", Arial, sans-serif';
 const COLORS = {
   ink: '#0f172a',
@@ -186,7 +187,9 @@ const drawCard = (ctx, x, y, width, height, title, bodyLines = [], color = COLOR
 };
 
 const loadImage = (url) => new Promise((resolve) => {
-  const normalized = normalizeCoverImageUrl(url);
+  const normalized = normalizeCoverImageUrl(url, {
+    maxDataUrlLength: MAX_HANDBOOK_IMAGE_DATA_URL_LENGTH
+  });
   if (!normalized) {
     resolve(null);
     return;
@@ -247,6 +250,163 @@ const drawFallbackVisual = (ctx, x, y, width, height) => {
   ctx.restore();
 };
 
+const drawSparkles = (ctx, x, y, color = COLORS.amber, scale = 1) => {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4 * scale;
+  ctx.lineCap = 'round';
+  [
+    [0, 0, 18],
+    [48, 28, 12],
+    [-30, 42, 10]
+  ].forEach(([dx, dy, size]) => {
+    const sx = x + (dx * scale);
+    const sy = y + (dy * scale);
+    const s = size * scale;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - s);
+    ctx.lineTo(sx, sy + s);
+    ctx.moveTo(sx - s, sy);
+    ctx.lineTo(sx + s, sy);
+    ctx.stroke();
+  });
+  ctx.restore();
+};
+
+const drawMapPin = (ctx, x, y, scale = 1, color = COLORS.rose) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(0, 68);
+  ctx.bezierCurveTo(-38, 18, -36, -34, 0, -34);
+  ctx.bezierCurveTo(36, -34, 38, 18, 0, 68);
+  ctx.fill();
+  ctx.fillStyle = COLORS.white;
+  ctx.beginPath();
+  ctx.arc(0, -6, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+};
+
+const drawCamera = (ctx, x, y, scale = 1) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  fillRoundedRect(ctx, -58, -36, 116, 78, COLORS.skySoft, 18);
+  strokeRoundedRect(ctx, -58, -36, 116, 78, '#7dd3fc', 18);
+  fillRoundedRect(ctx, -30, -54, 46, 24, '#bae6fd', 10);
+  ctx.fillStyle = COLORS.sky;
+  ctx.beginPath();
+  ctx.arc(0, 4, 25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = COLORS.white;
+  ctx.beginPath();
+  ctx.arc(0, 4, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = COLORS.rose;
+  ctx.beginPath();
+  ctx.arc(38, -16, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+};
+
+const drawSuitcase = (ctx, x, y, scale = 1) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.strokeStyle = COLORS.teal;
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.moveTo(-24, -40);
+  ctx.quadraticCurveTo(0, -64, 24, -40);
+  ctx.stroke();
+  fillRoundedRect(ctx, -64, -38, 128, 104, '#ccfbf1', 18);
+  strokeRoundedRect(ctx, -64, -38, 128, 104, '#5eead4', 18);
+  ctx.strokeStyle = COLORS.teal;
+  ctx.lineWidth = 5;
+  [-30, 30].forEach((dx) => {
+    ctx.beginPath();
+    ctx.moveTo(dx, -22);
+    ctx.lineTo(dx, 48);
+    ctx.stroke();
+  });
+  ctx.fillStyle = COLORS.amber;
+  ctx.beginPath();
+  ctx.arc(-34, 74, 7, 0, Math.PI * 2);
+  ctx.arc(34, 74, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+};
+
+const drawTicket = (ctx, x, y, scale = 1) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-0.16);
+  ctx.scale(scale, scale);
+  fillRoundedRect(ctx, -70, -32, 140, 64, '#fef3c7', 16);
+  strokeRoundedRect(ctx, -70, -32, 140, 64, '#fbbf24', 16);
+  ctx.strokeStyle = COLORS.amber;
+  ctx.lineWidth = 4;
+  ctx.setLineDash([8, 9]);
+  ctx.beginPath();
+  ctx.moveTo(18, -24);
+  ctx.lineTo(18, 24);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = COLORS.rose;
+  ctx.beginPath();
+  ctx.arc(-34, 0, 9, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+};
+
+const drawPassport = (ctx, x, y, scale = 1) => {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(0.12);
+  ctx.scale(scale, scale);
+  fillRoundedRect(ctx, -48, -60, 96, 120, '#dbeafe', 14);
+  strokeRoundedRect(ctx, -48, -60, 96, 120, '#93c5fd', 14);
+  ctx.strokeStyle = COLORS.sky;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(0, -4, 22, 0, Math.PI * 2);
+  ctx.moveTo(-22, -4);
+  ctx.lineTo(22, -4);
+  ctx.moveTo(0, -26);
+  ctx.quadraticCurveTo(16, -4, 0, 18);
+  ctx.moveTo(0, -26);
+  ctx.quadraticCurveTo(-16, -4, 0, 18);
+  ctx.stroke();
+  ctx.restore();
+};
+
+const drawDoodleCluster = (ctx, variant, x, y, scale = 1, alpha = 1) => {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  if (variant === 'logistics') {
+    drawSuitcase(ctx, x + (54 * scale), y + (86 * scale), scale * 0.78);
+    drawTicket(ctx, x + (158 * scale), y + (34 * scale), scale * 0.74);
+    drawSparkles(ctx, x + (14 * scale), y + (14 * scale), COLORS.sky, scale * 0.7);
+  } else if (variant === 'lists') {
+    drawPassport(ctx, x + (50 * scale), y + (76 * scale), scale * 0.72);
+    drawSuitcase(ctx, x + (154 * scale), y + (92 * scale), scale * 0.62);
+    drawSparkles(ctx, x + (112 * scale), y + (20 * scale), COLORS.rose, scale * 0.64);
+  } else if (variant === 'camera') {
+    drawCamera(ctx, x + (74 * scale), y + (70 * scale), scale * 0.78);
+    drawMapPin(ctx, x + (166 * scale), y + (72 * scale), scale * 0.64, COLORS.teal);
+    drawSparkles(ctx, x + (18 * scale), y + (18 * scale), COLORS.amber, scale * 0.58);
+  } else {
+    drawMapPin(ctx, x + (58 * scale), y + (82 * scale), scale * 0.72, COLORS.rose);
+    drawTicket(ctx, x + (158 * scale), y + (60 * scale), scale * 0.68);
+    drawCamera(ctx, x + (72 * scale), y + (154 * scale), scale * 0.52);
+    drawSparkles(ctx, x + (120 * scale), y + (10 * scale), COLORS.teal, scale * 0.6);
+  }
+  ctx.restore();
+};
+
 const renderCoverPage = ({ handbook, coverImage }) => {
   const canvas = makeCanvas();
   const ctx = canvas.getContext('2d');
@@ -262,6 +422,7 @@ const renderCoverPage = ({ handbook, coverImage }) => {
   } else {
     drawFallbackVisual(ctx, visualX, visualY, visualW, visualH);
   }
+  drawDoodleCluster(ctx, 'cover', visualX + visualW - 280, visualY + visualH - 230, 0.94, coverImage ? 0.92 : 1);
 
   let y = visualY + visualH + 62;
   drawPill(ctx, handbook.cover.dateText || 'Travel Handbook', MARGIN, y, COLORS.teal);
@@ -292,20 +453,31 @@ const renderCoverPage = ({ handbook, coverImage }) => {
   return canvas;
 };
 
-const renderOverviewPage = (handbook) => {
+const renderOverviewPage = (handbook, coverImage) => {
   const canvas = makeCanvas();
   const ctx = canvas.getContext('2d');
   preparePage(ctx);
 
   let y = 110;
   y = drawSectionTitle(ctx, '旅程摘要', MARGIN, y);
-  fillRoundedRect(ctx, MARGIN, y, PAGE_WIDTH - (MARGIN * 2), 260, '#f0f9ff', 22);
-  y = drawText(ctx, handbook.overview.summary || '目前旅程資料已整理成每日行程、交通住宿、清單與費用摘要。', MARGIN + 34, y + 34, PAGE_WIDTH - (MARGIN * 2) - 68, {
+  const summaryH = 280;
+  const summaryY = y;
+  const visualW = coverImage ? 310 : 0;
+  const summaryW = PAGE_WIDTH - (MARGIN * 2) - (coverImage ? visualW + 24 : 0);
+  fillRoundedRect(ctx, MARGIN, y, summaryW, summaryH, '#f0f9ff', 22);
+  if (coverImage) {
+    drawImageCover(ctx, coverImage, MARGIN + summaryW + 24, y, visualW, summaryH);
+    drawDoodleCluster(ctx, 'camera', MARGIN + summaryW + visualW - 150, y + summaryH - 126, 0.52, 0.95);
+  } else {
+    drawDoodleCluster(ctx, 'cover', PAGE_WIDTH - MARGIN - 250, y + 28, 0.72, 0.4);
+  }
+  y = drawText(ctx, handbook.overview.summary || '目前旅程資料已整理成每日行程、交通住宿、清單與費用摘要。', MARGIN + 34, y + 34, summaryW - 68, {
     size: 32,
     weight: 750,
     lineHeight: 50,
     maxLines: 4
-  }) + 46;
+  });
+  y = summaryY + summaryH + 46;
 
   const cardW = (PAGE_WIDTH - (MARGIN * 2) - 26) / 2;
   drawCard(ctx, MARGIN, y, cardW, 520, '亮點', handbook.overview.highlights, COLORS.sky);
@@ -325,6 +497,7 @@ const renderDayPage = (day) => {
   const canvas = makeCanvas();
   const ctx = canvas.getContext('2d');
   preparePage(ctx);
+  drawDoodleCluster(ctx, day.day % 2 ? 'camera' : 'cover', PAGE_WIDTH - MARGIN - 250, PAGE_HEIGHT - 300, 0.7, 0.16);
 
   let y = 110;
   drawPill(ctx, `Day ${day.day}${day.date ? ` · ${day.date}` : ''}`, MARGIN, y, COLORS.sky);
@@ -404,6 +577,7 @@ const renderLogisticsPage = (handbook) => {
   const canvas = makeCanvas();
   const ctx = canvas.getContext('2d');
   preparePage(ctx);
+  drawDoodleCluster(ctx, 'logistics', PAGE_WIDTH - MARGIN - 250, 78, 0.72, 0.2);
 
   let y = 110;
   y = drawSectionTitle(ctx, '交通與住宿', MARGIN, y);
@@ -429,6 +603,7 @@ const renderListsPage = (handbook) => {
   const canvas = makeCanvas();
   const ctx = canvas.getContext('2d');
   preparePage(ctx);
+  drawDoodleCluster(ctx, 'lists', PAGE_WIDTH - MARGIN - 260, 78, 0.72, 0.2);
 
   let y = 110;
   y = drawSectionTitle(ctx, '清單與花費', MARGIN, y);
@@ -543,7 +718,7 @@ const sanitizeFilename = (value) => cleanHandbookText(value, 80)
 
 const renderCanvases = (handbook, coverImage) => [
   renderCoverPage({ handbook, coverImage }),
-  renderOverviewPage(handbook),
+  renderOverviewPage(handbook, coverImage),
   ...asArray(handbook.days).map(renderDayPage),
   renderLogisticsPage(handbook),
   renderListsPage(handbook)
@@ -564,7 +739,11 @@ export const exportTripHandbookPdf = async ({
     throw new Error('缺少旅遊手冊內容。');
   }
 
-  const cover = await loadImage(coverImage);
+  const handbookCoverImage =
+    handbook.visuals?.coverImageDataUrl ||
+    handbook.visuals?.coverImageUrl ||
+    coverImage;
+  const cover = await loadImage(handbookCoverImage);
   let images = [];
 
   try {

@@ -84,9 +84,13 @@ export const useTripHandbook = ({
 
     setIsExporting(true);
     try {
+      const handbookCoverImage =
+        response.visuals?.coverImageDataUrl ||
+        response.visuals?.coverImageUrl ||
+        coverImage;
       const result = await exportTripHandbookPdf({
         handbook: response,
-        coverImage,
+        coverImage: handbookCoverImage,
         filename: `${tripTitle || response.cover?.title || '旅遊手冊'}-旅遊手冊`
       });
       toast?.({ variant: 'success', title: 'PDF 已匯出', description: result.filename });
