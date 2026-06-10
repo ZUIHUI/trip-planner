@@ -56,10 +56,14 @@ export const useTripHandbook = ({
 
     document.body.classList.add(PRINTING_BODY_CLASS);
     window.addEventListener('afterprint', cleanup);
-    window.setTimeout(() => {
+
+    try {
+      // Keep window.print() in the direct click stack; some browsers ignore delayed print calls.
+      document.body.offsetHeight;
       window.print();
-      window.setTimeout(cleanup, 1200);
-    }, 60);
+    } finally {
+      window.setTimeout(cleanup, 1800);
+    }
   }, [response]);
 
   return {

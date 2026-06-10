@@ -504,6 +504,7 @@ test('wires AI handbook generation and print-only handbook UI', () => {
   assert.match(serviceSource, /httpsCallable\(functions,\s*'generateTripHandbook'\)/);
   assert.match(hookSource, /trip-handbook-printing/);
   assert.match(hookSource, /window\.print\(\)/);
+  assert.doesNotMatch(hookSource, /setTimeout\(\(\)\s*=>\s*\{[\s\S]*window\.print\(\)/);
   assert.match(detailPageSource, /useTripHandbook/);
   assert.match(detailPageSource, /TripHandbookModal/);
   assert.match(detailPageSource, /trip-handbook-print-root/);
