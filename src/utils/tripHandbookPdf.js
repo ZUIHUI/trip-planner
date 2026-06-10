@@ -486,7 +486,7 @@ const renderOverviewPage = (handbook, coverImage) => {
 
   drawCard(ctx, MARGIN, y, PAGE_WIDTH - (MARGIN * 2), 330, '手冊說明', [
     '這份 PDF 由目前旅程資料產生，已留存在旅程中。',
-    'AI 只整理既有內容，不查詢即時營業時間、票價、天氣或交通時間。',
+    '手冊只整理既有內容，不查詢即時營業時間、票價、天氣或交通時間。',
     '出發前請再確認訂位、票券、交通與店家公告。'
   ], COLORS.teal);
 

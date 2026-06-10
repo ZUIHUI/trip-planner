@@ -115,7 +115,7 @@ const HandbookCover = ({ handbook, coverImage }) => {
     <section className="trip-handbook-page trip-handbook-cover-page">
       <CoverVisual imageUrl={imageUrl} title={handbook.cover.title} />
       <div className="trip-handbook-cover-copy">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-700 print:text-slate-500 dark:text-sky-300">AI Travel Handbook</p>
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-700 print:text-slate-500 dark:text-sky-300">Travel Handbook</p>
         <h2 className="mt-3 break-words text-4xl font-black leading-tight text-slate-950 print:text-slate-950 dark:text-white">
           {handbook.cover.title}
         </h2>
@@ -291,7 +291,7 @@ const TripHandbookModal = ({
                 <BookOpen size={19} />
               </span>
               <div>
-                <h2 className="text-base font-black text-slate-950 dark:text-white">AI 旅遊手冊</h2>
+                <h2 className="text-base font-black text-slate-950 dark:text-white">旅遊手冊</h2>
                 <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">已保存於旅程，可匯出圖文 PDF</p>
               </div>
             </div>
@@ -309,7 +309,7 @@ const TripHandbookModal = ({
         </div>
         {!canEdit && (
           <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
-            你目前只能查看這趟旅程；請主辦人開放可編輯權限後再產生 AI 旅遊手冊。
+            你目前只能查看這趟旅程；請主辦人開放可編輯權限後再產生旅遊手冊。
           </div>
         )}
       </Card>
@@ -331,7 +331,7 @@ const TripHandbookModal = ({
           <CalendarDays className="mx-auto text-sky-600 dark:text-sky-300" size={34} />
           <p className="mt-3 text-base font-black text-slate-950 dark:text-white">準備把目前旅程排成小冊</p>
           <p className="mx-auto mt-2 max-w-lg text-sm font-semibold text-slate-500 dark:text-slate-400">
-            會使用現有行程、住宿航班、清單與費用資料，不補外部即時資訊；產生後會連同 AI 情境圖留存在這趟旅程中。
+            會使用現有行程、住宿航班、清單與費用資料，不補外部即時資訊；產生後會連同情境圖留存在這趟旅程中。
           </p>
         </Card>
       )}

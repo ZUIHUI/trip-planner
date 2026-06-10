@@ -51,7 +51,7 @@ export const useTripHandbook = ({
 
   const generate = useCallback(async () => {
     if (!canEdit) {
-      const message = '只有可編輯旅程的成員可以產生 AI 旅遊手冊。';
+      const message = '只有可編輯旅程的成員可以產生旅遊手冊。';
       setError(message);
       toast?.({ variant: 'warning', title: '無法產生旅遊手冊', description: message });
       return null;
@@ -67,7 +67,7 @@ export const useTripHandbook = ({
       toast?.({ variant: 'success', title: '旅遊手冊已保存', description: '已更新這趟旅程的最新版手冊。' });
       return nextResponse;
     } catch (requestError) {
-      const message = requestError?.message || 'AI 旅遊手冊暫時無法產生，請稍後再試。';
+      const message = requestError?.message || '旅遊手冊暫時無法產生，請稍後再試。';
       setError(message);
       toast?.({ variant: 'warning', title: '旅遊手冊失敗', description: message });
       return null;

@@ -918,7 +918,7 @@ const TodayTab = ({ onTabChange }) => {
         className="w-full justify-center"
       >
         <Sparkles size={16} />
-        AI 旅伴幫我排 Day {selectedDay}
+        智慧旅伴幫我排 Day {selectedDay}
       </Button>
 
       <DayReadinessStrip

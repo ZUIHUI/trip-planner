@@ -407,8 +407,8 @@ const TripAiRecommendationPanel = ({
           type="button"
           onClick={() => onSummon?.(mode)}
           className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-full text-brand-700 transition hover:bg-sky-50/70 hover:text-brand-900 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-200 dark:hover:bg-slate-800/60 dark:hover:text-white"
-          aria-label="召喚 AI 旅伴"
-          title="召喚 AI 旅伴"
+          aria-label="召喚智慧旅伴"
+          title="召喚智慧旅伴"
         >
           <Compass size={20} />
         </button>
@@ -428,8 +428,8 @@ const TripAiRecommendationPanel = ({
           onPointerCancel={handleCompanionPointerEnd}
           data-drag-state={companionDragState}
           className="touch-target tp-ai-companion-button inline-flex items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
-          aria-label="開啟 AI 旅伴"
-          title="AI 旅伴"
+          aria-label="開啟智慧旅伴"
+          title="智慧旅伴"
         >
           <AiTravelPet mood={floatingPetMood} size="button" />
         </button>
@@ -442,7 +442,7 @@ const TripAiRecommendationPanel = ({
               <AiTravelPet mood={petMood} />
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">
-                  AI 旅伴
+                  智慧旅伴
                 </p>
                 <h3 className="mt-0.5 text-lg font-black text-slate-950 dark:text-white">
                   {response?.headline || '幫你找下一個好點子'}
@@ -454,7 +454,7 @@ const TripAiRecommendationPanel = ({
               type="button"
               onClick={onHideCompanion}
               className="touch-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-              aria-label="隱藏 AI 旅伴"
+              aria-label="隱藏智慧旅伴"
               title="隱藏旅伴"
             >
                 <EyeOff size={17} />
@@ -463,7 +463,7 @@ const TripAiRecommendationPanel = ({
               type="button"
               onClick={onClose}
               className="touch-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-              aria-label="關閉 AI 旅伴"
+              aria-label="關閉智慧旅伴"
               title="關閉"
             >
                 <X size={18} />
@@ -501,7 +501,7 @@ const TripAiRecommendationPanel = ({
 
           {!canEdit && (
             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-              目前是唯讀權限，不能產生或套用 AI 推薦。
+              目前是唯讀權限，不能產生或套用智慧推薦。
             </p>
           )}
 

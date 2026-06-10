@@ -536,10 +536,12 @@ test('wires AI handbook generation and print-only handbook UI', () => {
   assert.match(modalSource, /getHandbookCoverImage/);
   assert.match(modalSource, /trip-handbook-cover-visual/);
   assert.match(modalSource, /匯出 PDF/);
+  assert.doesNotMatch(modalSource, /AI Travel Handbook|AI 旅遊手冊|AI 情境圖/);
   assert.match(pdfSource, /buildPdfFromJpegs/);
   assert.match(pdfSource, /drawDoodleCluster/);
   assert.match(pdfSource, /drawSuitcase/);
   assert.match(pdfSource, /handbook\.visuals\?\.coverImageDataUrl/);
+  assert.doesNotMatch(pdfSource, /AI 只整理/);
   assert.match(pdfSource, /application\/pdf/);
   assert.match(stylesSource, /@media print/);
   assert.match(stylesSource, /body\.trip-handbook-printing \*/);
@@ -571,10 +573,11 @@ test('builds app objects from AI recommendation cards', () => {
   const place = createPlaceFromAiRecommendation(recommendation);
   const event = createEventFromAiRecommendation(recommendation);
 
+  assert.equal(response.headline, '智慧建議');
   assert.equal(response.recommendations.length, 1);
   assert.equal(place.status, 'idea');
   assert.equal(place.plannedDay, null);
-  assert.match(place.note, /AI 建議/);
+  assert.match(place.note, /智慧建議/);
   assert.equal(event.title, '上野公園散步');
   assert.equal(event.time, '09:05');
   assert.equal(event.type, 'sightseeing');
@@ -647,8 +650,10 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /floatingPetMood/);
   assert.match(panelSource, /AI_INITIAL_IDEA_MAX_LENGTH = 600/);
   assert.match(panelSource, /id="trip-ai-initial-idea"/);
+  assert.match(panelSource, /智慧旅伴/);
   assert.match(panelSource, /onGenerate\?\.\('dayPlan', \{ userIdea: initialIdeaText \}\)/);
   assert.doesNotMatch(panelSource, /modeOptions\.map|id: 'placeIdeas'/);
+  assert.doesNotMatch(panelSource, /召喚 AI 旅伴|開啟 AI 旅伴|隱藏 AI 旅伴|關閉 AI 旅伴|AI 推薦/);
   assert.doesNotMatch(panelSource, /Google 地點資料|AI 推測|我只會讀這趟旅程目前的內容/);
   assert.doesNotMatch(panelSource, /petMoodClasses|petMoodDotClasses/);
   assert.match(hookSource, /COMPANION_HIDDEN_STORAGE_KEY = 'tripPlanner\.aiCompanionHidden'/);
@@ -662,6 +667,8 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
   assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
   assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
+  assert.match(todaySource, /智慧旅伴幫我排/);
+  assert.doesNotMatch(todaySource, /AI 旅伴幫我排/);
   assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);
   assert.match(stylesSource, /@keyframes tp-ai-pet-sprite/);

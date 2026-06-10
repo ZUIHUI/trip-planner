@@ -571,7 +571,7 @@ const assertAiRecommendationRateLimit = async (uid) => {
   });
 
   if (waitSeconds > 0) {
-    throw new HttpsError('resource-exhausted', `AI 推薦產生太頻繁，請 ${waitSeconds} 秒後再試。`);
+    throw new HttpsError('resource-exhausted', `智慧推薦產生太頻繁，請 ${waitSeconds} 秒後再試。`);
   }
 };
 
@@ -600,7 +600,7 @@ const assertAiHandbookRateLimit = async (uid) => {
   });
 
   if (waitSeconds > 0) {
-    throw new HttpsError('resource-exhausted', `AI 手冊產生太頻繁，請 ${waitSeconds} 秒後再試。`);
+    throw new HttpsError('resource-exhausted', `旅遊手冊產生太頻繁，請 ${waitSeconds} 秒後再試。`);
   }
 };
 
@@ -898,7 +898,7 @@ const getConfiguredGoogleApiKey = () => {
 const getConfiguredOpenAIKey = () => {
   const apiKey = String(OPENAI_API_KEY.value() || '').trim();
   if (!apiKey) {
-    throw new HttpsError('failed-precondition', 'AI 推薦服務尚未設定 OpenAI API key。');
+    throw new HttpsError('failed-precondition', '智慧推薦服務尚未設定服務金鑰。');
   }
   return apiKey;
 };
@@ -1569,7 +1569,7 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
       code: error?.code || '',
       message: error?.message || ''
     });
-    throw new HttpsError('unavailable', 'AI 推薦暫時無法連線，請稍後再試。');
+    throw new HttpsError('unavailable', '智慧推薦暫時無法連線，請稍後再試。');
   }
 
   if (!response.ok) {
@@ -1580,14 +1580,14 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
     throw new HttpsError(
       openAIProviderErrorCode(response.status),
       response.status === 429
-        ? 'AI 推薦額度暫時受限，請稍後再試。'
-        : 'AI 推薦服務暫時無法完成請求。'
+        ? '智慧推薦額度暫時受限，請稍後再試。'
+        : '智慧推薦服務暫時無法完成請求。'
     );
   }
 
   const text = extractOpenAIResponseText(payload);
   if (!text) {
-    throw new HttpsError('data-loss', 'AI 推薦回傳格式不完整，請稍後再試。');
+    throw new HttpsError('data-loss', '智慧推薦回傳格式不完整，請稍後再試。');
   }
 
   try {
@@ -1597,7 +1597,7 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
       message: error?.message || '',
       responseId: payload?.id || ''
     });
-    throw new HttpsError('data-loss', 'AI 推薦回傳格式不正確，請稍後再試。');
+    throw new HttpsError('data-loss', '智慧推薦回傳格式不正確，請稍後再試。');
   }
 };
 
@@ -1636,7 +1636,7 @@ const callOpenAITripHandbook = async ({ apiKey, snapshot }) => {
       code: error?.code || '',
       message: error?.message || ''
     });
-    throw new HttpsError('unavailable', 'AI 手冊暫時無法連線，請稍後再試。');
+    throw new HttpsError('unavailable', '旅遊手冊暫時無法連線，請稍後再試。');
   }
 
   if (!response.ok) {
@@ -1647,14 +1647,14 @@ const callOpenAITripHandbook = async ({ apiKey, snapshot }) => {
     throw new HttpsError(
       openAIProviderErrorCode(response.status),
       response.status === 429
-        ? 'AI 手冊額度暫時受限，請稍後再試。'
-        : 'AI 手冊服務暫時無法完成請求。'
+        ? '旅遊手冊額度暫時受限，請稍後再試。'
+        : '旅遊手冊服務暫時無法完成請求。'
     );
   }
 
   const text = extractOpenAIResponseText(payload);
   if (!text) {
-    throw new HttpsError('data-loss', 'AI 手冊回傳格式不完整，請稍後再試。');
+    throw new HttpsError('data-loss', '旅遊手冊回傳格式不完整，請稍後再試。');
   }
 
   try {
@@ -1664,7 +1664,7 @@ const callOpenAITripHandbook = async ({ apiKey, snapshot }) => {
       message: error?.message || '',
       responseId: payload?.id || ''
     });
-    throw new HttpsError('data-loss', 'AI 手冊回傳格式不正確，請稍後再試。');
+    throw new HttpsError('data-loss', '旅遊手冊回傳格式不正確，請稍後再試。');
   }
 };
 
@@ -1765,7 +1765,7 @@ const storeTripHandbookCoverImage = async ({ tripId, image }) => {
       }),
       coverImagePath: filePath,
       coverImageContentType: image.contentType,
-      coverImageAlt: 'AI 生成的旅遊手冊封面插圖',
+      coverImageAlt: '自動生成的旅遊手冊封面插圖',
       coverImageModel: image.model,
       coverImageDataUrl: image.dataUrl,
       coverImageGeneratedAt: new Date().toISOString()
@@ -1780,7 +1780,7 @@ const storeTripHandbookCoverImage = async ({ tripId, image }) => {
       coverImageUrl: '',
       coverImagePath: '',
       coverImageContentType: image.contentType,
-      coverImageAlt: 'AI 生成的旅遊手冊封面插圖',
+      coverImageAlt: '自動生成的旅遊手冊封面插圖',
       coverImageModel: image.model,
       coverImageDataUrl: image.dataUrl,
       coverImageGeneratedAt: new Date().toISOString()
@@ -2124,12 +2124,12 @@ exports.generateTripRecommendations = onCall(
     }
 
     if (!mode) {
-      throw new HttpsError('invalid-argument', 'AI 推薦模式不正確。');
+      throw new HttpsError('invalid-argument', '智慧推薦模式不正確。');
     }
 
     const { tripRef, trip, role } = await getTripRoleForUid({ tripId, uid });
     if (role !== 'owner' && role !== 'editor') {
-      throw new HttpsError('permission-denied', '只有可編輯旅程的成員可以產生 AI 推薦。');
+      throw new HttpsError('permission-denied', '只有可編輯旅程的成員可以產生智慧推薦。');
     }
 
     await assertAiRecommendationRateLimit(uid);
@@ -2184,7 +2184,7 @@ exports.generateTripHandbook = onCall(
 
     const { tripRef, trip, role } = await getTripRoleForUid({ tripId, uid });
     if (role !== 'owner' && role !== 'editor') {
-      throw new HttpsError('permission-denied', '只有可編輯旅程的成員可以產生 AI 旅遊手冊。');
+      throw new HttpsError('permission-denied', '只有可編輯旅程的成員可以產生旅遊手冊。');
     }
 
     await assertAiHandbookRateLimit(uid);

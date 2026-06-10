@@ -677,7 +677,7 @@ const normalizeRecommendationResponse = (payload, context = {}) => {
     .slice(0, MAX_RECOMMENDATIONS);
 
   return {
-    headline: cleanText(source.headline, 120) || 'AI 旅伴建議',
+    headline: cleanText(source.headline, 120) || '智慧旅伴建議',
     companionLine: cleanText(source.companionLine, 180) || '我先把想法整理成可加入旅程的候選卡。',
     recommendations
   };
