@@ -16,6 +16,12 @@ const {
   recommendationResponseSchema
 } = require('./tripRecommendations');
 const {
+  buildTripHandbookSnapshot,
+  handbookPrompt,
+  handbookResponseSchema,
+  normalizeHandbookResponse
+} = require('./tripHandbook');
+const {
   DEFAULT_NOTIFICATION_LEAD_TIMES,
   DEFAULT_TIME_ZONE,
   buildTripNotificationCandidates,
@@ -58,6 +64,8 @@ const GOOGLE_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
 const GOOGLE_LOOKUP_MAX_ATTEMPTS = 120;
 const AI_RECOMMENDATION_RATE_WINDOW_MS = 10 * 60 * 1000;
 const AI_RECOMMENDATION_MAX_ATTEMPTS = 10;
+const AI_HANDBOOK_RATE_WINDOW_MS = 10 * 60 * 1000;
+const AI_HANDBOOK_MAX_ATTEMPTS = 5;
 const INVITE_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const DEFAULT_EMAIL_FROM_NAME = 'Trip Planner';
 const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
@@ -562,6 +570,35 @@ const assertAiRecommendationRateLimit = async (uid) => {
   }
 };
 
+const assertAiHandbookRateLimit = async (uid) => {
+  const now = Date.now();
+  const rateRef = firestore.collection('aiHandbookRateLimits').doc(uid);
+  let waitSeconds = 0;
+
+  await firestore.runTransaction(async (transaction) => {
+    const snap = await transaction.get(rateRef);
+    const data = snap.exists ? snap.data() : {};
+    const windowStartedAtMs = Number(data.windowStartedAtMs || 0);
+    const attempts = Number(data.attempts || 0);
+    const isSameWindow = windowStartedAtMs && now - windowStartedAtMs < AI_HANDBOOK_RATE_WINDOW_MS;
+
+    if (isSameWindow && attempts >= AI_HANDBOOK_MAX_ATTEMPTS) {
+      waitSeconds = Math.ceil((AI_HANDBOOK_RATE_WINDOW_MS - (now - windowStartedAtMs)) / 1000);
+      return;
+    }
+
+    transaction.set(rateRef, {
+      attempts: isSameWindow ? attempts + 1 : 1,
+      windowStartedAtMs: isSameWindow ? windowStartedAtMs : now,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+
+  if (waitSeconds > 0) {
+    throw new HttpsError('resource-exhausted', `AI 手冊產生太頻繁，請 ${waitSeconds} 秒後再試。`);
+  }
+};
+
 const getOrCreateEmailUser = async (email) => {
   try {
     const existingUser = await admin.auth().getUserByEmail(email);
@@ -893,6 +930,37 @@ const loadTripRecommendationSource = async (tripRef, trip) => {
     events,
     placeIdeas,
     checklistItems,
+    expenses
+  };
+};
+
+const loadTripHandbookSource = async (tripRef, trip) => {
+  const [
+    details,
+    days,
+    events,
+    placeIdeas,
+    checklistItems,
+    shoppingItems,
+    expenses
+  ] = await Promise.all([
+    readCollectionDocuments(tripRef.collection('details')),
+    readCollectionDocuments(tripRef.collection('days')),
+    readCollectionDocuments(tripRef.collection('events')),
+    readCollectionDocuments(tripRef.collection('placeIdeas')),
+    readCollectionDocuments(tripRef.collection('checklistItems')),
+    readCollectionDocuments(tripRef.collection('shoppingItems')),
+    readCollectionDocuments(tripRef.collection('expenses'))
+  ]);
+
+  return {
+    trip,
+    details,
+    days,
+    events,
+    placeIdeas,
+    checklistItems,
+    shoppingItems,
     expenses
   };
 };
@@ -1457,6 +1525,73 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
   }
 };
 
+const callOpenAITripHandbook = async ({ apiKey, snapshot }) => {
+  const model = String(process.env.OPENAI_MODEL || 'gpt-5.5').trim() || 'gpt-5.5';
+  let response = null;
+  let payload = null;
+
+  try {
+    response = await fetch(OPENAI_RESPONSES_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        instructions: 'You are a practical Traditional Chinese travel handbook editor inside a collaborative trip planner app.',
+        input: handbookPrompt({ snapshot }),
+        reasoning: { effort: 'low' },
+        max_output_tokens: 4200,
+        text: {
+          verbosity: 'low',
+          format: {
+            type: 'json_schema',
+            name: 'trip_handbook',
+            strict: true,
+            schema: handbookResponseSchema
+          }
+        }
+      })
+    });
+    payload = await response.json().catch(() => ({}));
+  } catch (error) {
+    console.error('OpenAI handbook request failed', {
+      code: error?.code || '',
+      message: error?.message || ''
+    });
+    throw new HttpsError('unavailable', 'AI 手冊暫時無法連線，請稍後再試。');
+  }
+
+  if (!response.ok) {
+    console.error('OpenAI handbook HTTP error', {
+      status: response.status,
+      message: payload?.error?.message || ''
+    });
+    throw new HttpsError(
+      openAIProviderErrorCode(response.status),
+      response.status === 429
+        ? 'AI 手冊額度暫時受限，請稍後再試。'
+        : 'AI 手冊服務暫時無法完成請求。'
+    );
+  }
+
+  const text = extractOpenAIResponseText(payload);
+  if (!text) {
+    throw new HttpsError('data-loss', 'AI 手冊回傳格式不完整，請稍後再試。');
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('OpenAI handbook JSON parse failed', {
+      message: error?.message || '',
+      responseId: payload?.id || ''
+    });
+    throw new HttpsError('data-loss', 'AI 手冊回傳格式不正確，請稍後再試。');
+  }
+};
+
 exports.getWebPushConfig = onCall(
   { secrets: [WEB_PUSH_VAPID_PUBLIC_KEY] },
   async (request) => {
@@ -1791,6 +1926,39 @@ exports.generateTripRecommendations = onCall(
       selectedDay: snapshot.selectedDay,
       validDayNumbers: snapshot.validDayNumbers
     });
+
+    return {
+      generatedAt: new Date().toISOString(),
+      ...normalized
+    };
+  }
+);
+
+exports.generateTripHandbook = onCall(
+  { secrets: [OPENAI_API_KEY] },
+  async (request) => {
+    const uid = requireSignedIn(request);
+    const tripId = normalizeGoogleLookupText(request.data?.tripId, 180);
+
+    if (!tripId) {
+      throw new HttpsError('invalid-argument', '請提供旅程資訊。');
+    }
+
+    const { tripRef, trip, role } = await getTripRoleForUid({ tripId, uid });
+    if (role !== 'owner' && role !== 'editor') {
+      throw new HttpsError('permission-denied', '只有可編輯旅程的成員可以產生 AI 旅遊手冊。');
+    }
+
+    await assertAiHandbookRateLimit(uid);
+
+    const apiKey = getConfiguredOpenAIKey();
+    const source = await loadTripHandbookSource(tripRef, trip);
+    const snapshot = buildTripHandbookSnapshot(source);
+    const aiPayload = await callOpenAITripHandbook({
+      apiKey,
+      snapshot
+    });
+    const normalized = normalizeHandbookResponse(aiPayload, snapshot);
 
     return {
       generatedAt: new Date().toISOString(),

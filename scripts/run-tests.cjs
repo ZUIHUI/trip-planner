@@ -115,6 +115,11 @@ const {
   recommendationResponseSchema
 } = require('../functions/tripRecommendations.js');
 const {
+  buildTripHandbookSnapshot,
+  handbookResponseSchema,
+  normalizeHandbookResponse
+} = require('../functions/tripHandbook.js');
+const {
   buildTripNotificationCandidates,
   buildWebPushPayload,
   normalizeCategories,
@@ -371,6 +376,145 @@ test('wires AI recommendations through server-only OpenAI configuration', () => 
   assert.match(functionsSource, /mode !== 'placeIdeas'/);
   assert.match(functionsSource, /userIdea: request\.data\?\.userIdea/);
   assert.match(functionsSource, /AI place recommendation Google fallback/);
+  assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
+});
+
+test('builds sanitized AI handbook snapshots with trip-only data', () => {
+  const snapshot = buildTripHandbookSnapshot({
+    trip: {
+      access: { ownerEmail: 'owner@example.com', shareToken: 'secret-token', ownerUid: 'owner-uid' },
+      meta: {
+        title: '京都散步',
+        dateRange: { start: '2026-07-01', end: '2026-07-03' },
+        coverImage: 'data:image/png;base64,private-cover'
+      },
+      tripDetails: {
+        accommodation: { name: 'Kyoto Stay', address: 'Kyoto Station' },
+        budget: { total: '60000', currency: 'JPY' }
+      },
+      itinerary: [
+        {
+          day: 1,
+          title: '抵達',
+          date: '7/1',
+          events: [
+            {
+              title: '入住飯店',
+              time: '16:00',
+              location: 'Kyoto Station',
+              updatedByUid: 'uid-private'
+            }
+          ]
+        }
+      ],
+      checklists: {
+        preTrip: [{ id: 'check-root', text: '確認護照', done: false, assignedTo: 'private person' }],
+        packing: [{ id: 'pack-root', text: '雨傘', done: false }]
+      },
+      shoppingList: [{ id: 'shop-root', name: '抹茶伴手禮', category: '伴手禮', purchased: false }]
+    },
+    events: [
+      {
+        id: 'event-doc',
+        dayNumber: 1,
+        title: '晚餐',
+        time: '19:00',
+        location: { address: 'Gion' },
+        cost: { amount: 5000, currency: 'JPY' },
+        updatedByUid: 'uid-event'
+      }
+    ],
+    checklistItems: [
+      { id: 'check-doc', listId: 'preTrip', text: '列印訂房資料', done: false, assignedTo: 'private person' }
+    ],
+    shoppingItems: [
+      { id: 'shop-doc', name: '交通卡', category: '交通', purchased: false, updatedByUid: 'uid-shop' }
+    ],
+    expenses: [
+      { id: 'expense-doc', title: '晚餐', amount: 5000, currency: 'JPY', payer: 'private payer' }
+    ],
+    placeIdeas: [
+      { id: 'place-doc', name: '伏見稻荷', address: 'Kyoto', votes: [{ voterId: 'uid-1', name: 'Private Name', value: 1 }] }
+    ]
+  });
+
+  assert.equal(snapshot.trip.title, '京都散步');
+  assert.equal(snapshot.trip.dayCount, 1);
+  assert.equal(snapshot.trip.eventCount, 1);
+  assert.equal(snapshot.trip.accommodation.name, 'Kyoto Stay');
+  assert.equal(snapshot.itinerary[0].events[0].title, '晚餐');
+  assert.equal(snapshot.checklists.preTrip.some((item) => item.text === '列印訂房資料'), true);
+  assert.equal(snapshot.shopping.some((item) => item.name === '交通卡'), true);
+  assert.equal(snapshot.expenses.totalByCurrency[0].amount, 5000);
+  assert.equal(Object.prototype.hasOwnProperty.call(snapshot.trip, 'coverImage'), false);
+
+  const serialized = JSON.stringify(snapshot);
+  assert.doesNotMatch(serialized, /owner@example\.com|secret-token|owner-uid|uid-private|uid-event|uid-shop|private person|private payer|Private Name|private-cover/);
+});
+
+test('normalizes AI handbook responses with predictable fallbacks', () => {
+  const snapshot = buildTripHandbookSnapshot({
+    trip: {
+      meta: { title: '京都散步', dateRange: { start: '2026-07-01', end: '2026-07-03' } },
+      itinerary: [
+        {
+          day: 1,
+          title: '抵達',
+          date: '7/1',
+          events: [{ title: '入住飯店', time: '16:00', location: 'Kyoto Station' }]
+        }
+      ]
+    },
+    expenses: [{ id: 'expense-doc', title: '晚餐', amount: 5000, currency: 'JPY' }]
+  });
+  const normalized = normalizeHandbookResponse({
+    cover: { title: '', subtitle: '  小旅行  ', dateText: '', intro: '' },
+    overview: { summary: '', highlights: ['第一站', '', '第二站'] },
+    days: [],
+    logistics: { accommodation: {}, flights: [], notes: [] },
+    lists: { preTrip: [], packing: [], shopping: [] },
+    expenses: { summary: '', totals: [] },
+    manualChecks: ['請自行確認營業時間']
+  }, snapshot);
+
+  assert.equal(normalized.cover.title, '京都散步');
+  assert.equal(normalized.cover.subtitle, '小旅行');
+  assert.equal(normalized.days.length, 1);
+  assert.equal(normalized.days[0].schedule[0].title, '入住飯店');
+  assert.equal(normalized.expenses.totals[0].currency, 'JPY');
+  assert.equal(normalized.manualChecks[0], '請自行確認營業時間');
+});
+
+test('wires AI handbook generation and print-only handbook UI', () => {
+  const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
+  const detailPageSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', 'TripDetailPage.jsx'), 'utf8');
+  const moreTabSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'MoreTab.jsx'), 'utf8');
+  const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'SummaryTab.jsx'), 'utf8');
+  const modalSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripHandbookModal.jsx'), 'utf8');
+  const hookSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'hooks', 'useTripHandbook.js'), 'utf8');
+  const serviceSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'services', 'tripHandbookService.js'), 'utf8');
+  const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'styles', 'index.css'), 'utf8');
+
+  assert.equal(handbookResponseSchema.required.includes('cover'), true);
+  assert.equal(handbookResponseSchema.properties.days.maxItems, 30);
+  assert.match(functionsSource, /exports\.generateTripHandbook = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY\]/);
+  assert.match(functionsSource, /aiHandbookRateLimits/);
+  assert.match(functionsSource, /role !== 'owner' && role !== 'editor'/);
+  assert.match(functionsSource, /buildTripHandbookSnapshot/);
+  assert.match(serviceSource, /httpsCallable\(functions,\s*'generateTripHandbook'\)/);
+  assert.match(hookSource, /trip-handbook-printing/);
+  assert.match(hookSource, /window\.print\(\)/);
+  assert.match(detailPageSource, /useTripHandbook/);
+  assert.match(detailPageSource, /TripHandbookModal/);
+  assert.match(detailPageSource, /trip-handbook-print-root/);
+  assert.match(detailPageSource, /tripHandbook\.isOpen/);
+  assert.match(moreTabSource, /旅遊手冊/);
+  assert.match(summarySource, /onOpenHandbook/);
+  assert.match(modalSource, /normalizeCoverImageUrl/);
+  assert.match(modalSource, /trip-handbook-cover-visual/);
+  assert.match(stylesSource, /@media print/);
+  assert.match(stylesSource, /body\.trip-handbook-printing \*/);
+  assert.match(stylesSource, /print-color-adjust: exact/);
   assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
 });
 

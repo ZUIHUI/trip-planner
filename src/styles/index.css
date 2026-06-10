@@ -708,6 +708,150 @@ body {
   .touch-row > * + * {
     margin-left: 8px;
   }
+
+  .trip-handbook-document {
+    @apply mx-auto max-w-4xl space-y-4 text-slate-900 dark:text-slate-100;
+  }
+
+  .trip-handbook-page {
+    @apply overflow-hidden rounded-lg border border-cyan-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900;
+    break-inside: avoid;
+  }
+
+  .trip-handbook-cover-page {
+    @apply grid gap-0 p-0 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)];
+    min-height: 520px;
+  }
+
+  .trip-handbook-cover-visual {
+    @apply min-h-[260px] overflow-hidden bg-sky-100 dark:bg-slate-800;
+  }
+
+  .trip-handbook-cover-copy {
+    @apply flex min-w-0 flex-col justify-center p-6 sm:p-8;
+  }
+
+  .trip-handbook-card,
+  .trip-handbook-feature-card,
+  .trip-handbook-mini-card {
+    @apply min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/35;
+  }
+
+  .trip-handbook-feature-card {
+    @apply border-sky-200 bg-sky-50 dark:border-sky-900/60 dark:bg-sky-950/25;
+  }
+
+  .trip-handbook-icon {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300;
+  }
+
+  .trip-handbook-schedule-row {
+    @apply flex gap-3 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950/30;
+  }
+
+  .trip-handbook-time {
+    @apply flex h-10 w-20 shrink-0 items-center justify-center rounded-lg bg-slate-100 px-2 text-center text-xs font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200;
+  }
+
+  .trip-handbook-print-root {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body.trip-handbook-printing * {
+    visibility: hidden !important;
+  }
+
+  body.trip-handbook-printing .trip-handbook-print-root,
+  body.trip-handbook-printing .trip-handbook-print-root * {
+    visibility: visible !important;
+  }
+
+  body.trip-handbook-printing .trip-handbook-print-root {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    display: block !important;
+    left: 0 !important;
+    position: absolute !important;
+    top: 0 !important;
+    width: 100% !important;
+    z-index: 99999 !important;
+  }
+
+  body.trip-handbook-printing .no-print,
+  body.trip-handbook-printing .trip-handbook-screen-document {
+    display: none !important;
+  }
+
+  .trip-handbook-document {
+    max-width: none !important;
+    width: 100% !important;
+    color: #0f172a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .trip-handbook-page {
+    background: #ffffff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    break-after: page;
+    break-inside: auto;
+    min-height: 250mm;
+    overflow: visible !important;
+    padding: 0 !important;
+    page-break-after: always;
+  }
+
+  .trip-handbook-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .trip-handbook-cover-page {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10mm !important;
+  }
+
+  .trip-handbook-cover-visual {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    height: 118mm !important;
+    min-height: 0 !important;
+  }
+
+  .trip-handbook-cover-copy {
+    padding: 0 !important;
+  }
+
+  .trip-handbook-card,
+  .trip-handbook-feature-card,
+  .trip-handbook-mini-card,
+  .trip-handbook-schedule-row {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .trip-handbook-icon,
+  .trip-handbook-time {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+  }
 }
 
 @media (max-width: 640px) {

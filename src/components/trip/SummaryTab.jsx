@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Bed,
+  BookOpen,
   CalendarDays,
   CheckCircle2,
   CheckSquare,
@@ -433,9 +434,10 @@ const ReadinessCard = ({ items, onTabChange }) => (
   </Card>
 );
 
-const QuickActionsCard = ({ onTabChange, onAddEvent }) => {
+const QuickActionsCard = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
   const actions = [
     { label: '新增行程', icon: Plus, onClick: onAddEvent, primary: true },
+    { label: '旅遊手冊', icon: BookOpen, onClick: onOpenHandbook },
     { label: '大家想去', icon: MapPin, tabId: 'ideas' },
     { label: '補旅程資訊', icon: Info, tabId: 'flights' },
     { label: '行前待辦', icon: CheckSquare, tabId: 'preTrip' },
@@ -704,7 +706,7 @@ const CollapsibleOverviewSection = ({ open, onToggle, children }) => (
   </section>
 );
 
-const SummaryTab = ({ onTabChange, onAddEvent }) => {
+const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
   const {
     tripDetails,
     itinerary,
@@ -758,7 +760,11 @@ const SummaryTab = ({ onTabChange, onAddEvent }) => {
         open={showMoreOverview}
         onToggle={() => setShowMoreOverview((open) => !open)}
       >
-        <QuickActionsCard onTabChange={onTabChange} onAddEvent={onAddEvent} />
+        <QuickActionsCard
+          onTabChange={onTabChange}
+          onAddEvent={onAddEvent}
+          onOpenHandbook={onOpenHandbook}
+        />
 
         <RealtimeActivityCard presenceUi={presenceUi} presenceError={presenceError} />
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  BookOpen,
   CheckSquare,
   LayoutDashboard,
   Luggage,
@@ -75,7 +76,7 @@ const ModuleSection = ({ title, children }) => (
   </Card>
 );
 
-const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
+const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home' }) => {
   const {
     tripId,
     tripDetails,
@@ -149,6 +150,12 @@ const MoreTab = ({ onTabChange, onOpenSettings, section = 'home' }) => {
           title="住宿航班"
           meta={getLogisticsStatus(tripDetails)}
           onClick={() => onTabChange?.('flights')}
+        />
+        <ModuleButton
+          icon={BookOpen}
+          title="旅遊手冊"
+          meta="PDF"
+          onClick={onOpenHandbook}
         />
         <ModuleButton
           icon={CheckSquare}

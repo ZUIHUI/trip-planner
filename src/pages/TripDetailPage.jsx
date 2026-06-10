@@ -18,6 +18,7 @@ import PackingTab from '../components/trip/PackingTab';
 import ShoppingTab from '../components/trip/ShoppingTab';
 import ExpensesTab from '../components/trip/ExpensesTab';
 import TripAiRecommendationPanel from '../components/trip/TripAiRecommendationPanel';
+import TripHandbookModal, { TripHandbookDocument } from '../components/trip/TripHandbookModal';
 import { TripWorkspaceProvider } from '../contexts/TripWorkspaceContext';
 import { useTrip } from '../hooks/useTrip';
 import { useTripPresence } from '../hooks/useTripPresence';
@@ -26,6 +27,7 @@ import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
 import { useFlightLookup } from '../hooks/useFlightLookup';
 import { useTripAiRecommendations } from '../hooks/useTripAiRecommendations';
+import { useTripHandbook } from '../hooks/useTripHandbook';
 import { fetchJPYRate } from '../services/currencyService';
 import { buildGoogleMapsDirectionsUrl, buildGoogleMapsSearchUrl } from '../services/googleMapsService';
 import {
@@ -591,6 +593,11 @@ const TripDetailPage = () => {
   const tripAi = useTripAiRecommendations({
     tripId,
     selectedDay,
+    canEdit,
+    toast
+  });
+  const tripHandbook = useTripHandbook({
+    tripId,
     canEdit,
     toast
   });
@@ -1622,7 +1629,7 @@ const TripDetailPage = () => {
     );
   }
 
-  const isAnyModalOpen = isEditModalOpen || isSettingsOpen || isExpenseModalOpen || isShoppingModalOpen;
+  const isAnyModalOpen = isEditModalOpen || isSettingsOpen || isExpenseModalOpen || isShoppingModalOpen || tripHandbook.isOpen;
   const showMoreBackButton = MORE_CHILD_TABS.has(activeTab);
 
   return (
@@ -1681,7 +1688,11 @@ const TripDetailPage = () => {
           )}
 
           {activeTab === 'summary' && (
-            <SummaryTab onTabChange={setActiveTab} onAddEvent={openAddModal} />
+            <SummaryTab
+              onTabChange={setActiveTab}
+              onAddEvent={openAddModal}
+              onOpenHandbook={tripHandbook.openPanel}
+            />
           )}
 
           {activeTab === 'itinerary' && (
@@ -1697,6 +1708,7 @@ const TripDetailPage = () => {
               section={activeTab === 'companions' ? 'companions' : 'home'}
               onTabChange={setActiveTab}
               onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenHandbook={tripHandbook.openPanel}
             />
           )}
 
@@ -1786,6 +1798,26 @@ const TripDetailPage = () => {
           }))
         }
       />
+
+      <TripHandbookModal
+        isOpen={tripHandbook.isOpen}
+        onClose={tripHandbook.closePanel}
+        canEdit={canEdit}
+        handbook={tripHandbook.response}
+        coverImage={tripDetails?.coverImage || ''}
+        isLoading={tripHandbook.isLoading}
+        error={tripHandbook.error}
+        onGenerate={tripHandbook.generate}
+        onPrint={tripHandbook.print}
+      />
+
+      {tripHandbook.response && (
+        <TripHandbookDocument
+          handbook={tripHandbook.response}
+          coverImage={tripDetails?.coverImage || ''}
+          className="trip-handbook-print-root"
+        />
+      )}
 
       {activeTab === 'itinerary' && (
         <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
