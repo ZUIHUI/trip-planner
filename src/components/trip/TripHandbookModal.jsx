@@ -266,9 +266,11 @@ const TripHandbookModal = ({
   handbook,
   coverImage = '',
   isLoading,
+  isLoadingSaved,
+  isExporting,
   error,
   onGenerate,
-  onPrint
+  onExportPdf
 }) => (
   <Modal isOpen={isOpen} onClose={onClose} title="旅遊手冊" size="xl">
     <div className="space-y-4">
@@ -281,7 +283,7 @@ const TripHandbookModal = ({
               </span>
               <div>
                 <h2 className="text-base font-black text-slate-950 dark:text-white">AI 旅遊手冊</h2>
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">圖文預覽與列印 PDF</p>
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">已保存於旅程，可匯出 PDF</p>
               </div>
             </div>
           </div>
@@ -290,9 +292,9 @@ const TripHandbookModal = ({
               {isLoading ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
               {handbook ? '重新產生' : '產生手冊'}
             </Button>
-            <Button onClick={onPrint} disabled={!handbook || isLoading}>
-              <Printer size={16} />
-              列印 PDF
+            <Button onClick={onExportPdf} disabled={!handbook || isLoading || isExporting}>
+              {isExporting ? <Loader2 className="animate-spin" size={16} /> : <Printer size={16} />}
+              匯出 PDF
             </Button>
           </div>
         </div>
@@ -304,8 +306,9 @@ const TripHandbookModal = ({
       </Card>
 
       {isLoading && <LoadingState label="正在整理旅遊手冊..." />}
+      {!isLoading && isLoadingSaved && !handbook && <LoadingState label="正在讀取已保存的手冊..." />}
 
-      {!isLoading && error && (
+      {!isLoading && !isLoadingSaved && error && (
         <ErrorState
           title="旅遊手冊產生失敗"
           description={error}
@@ -314,12 +317,12 @@ const TripHandbookModal = ({
         />
       )}
 
-      {!isLoading && !handbook && !error && (
+      {!isLoading && !isLoadingSaved && !handbook && !error && (
         <Card className="p-5 text-center">
           <CalendarDays className="mx-auto text-sky-600 dark:text-sky-300" size={34} />
           <p className="mt-3 text-base font-black text-slate-950 dark:text-white">準備把目前旅程排成小冊</p>
           <p className="mx-auto mt-2 max-w-lg text-sm font-semibold text-slate-500 dark:text-slate-400">
-            會使用現有行程、住宿航班、清單與費用資料，不補外部即時資訊。
+            會使用現有行程、住宿航班、清單與費用資料，不補外部即時資訊；產生後會留存在這趟旅程中。
           </p>
         </Card>
       )}

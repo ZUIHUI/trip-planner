@@ -18,7 +18,7 @@ import PackingTab from '../components/trip/PackingTab';
 import ShoppingTab from '../components/trip/ShoppingTab';
 import ExpensesTab from '../components/trip/ExpensesTab';
 import TripAiRecommendationPanel from '../components/trip/TripAiRecommendationPanel';
-import TripHandbookModal, { TripHandbookDocument } from '../components/trip/TripHandbookModal';
+import TripHandbookModal from '../components/trip/TripHandbookModal';
 import { TripWorkspaceProvider } from '../contexts/TripWorkspaceContext';
 import { useTrip } from '../hooks/useTrip';
 import { useTripPresence } from '../hooks/useTripPresence';
@@ -1806,18 +1806,15 @@ const TripDetailPage = () => {
         handbook={tripHandbook.response}
         coverImage={tripDetails?.coverImage || ''}
         isLoading={tripHandbook.isLoading}
+        isLoadingSaved={tripHandbook.isLoadingSaved}
+        isExporting={tripHandbook.isExporting}
         error={tripHandbook.error}
         onGenerate={tripHandbook.generate}
-        onPrint={tripHandbook.print}
+        onExportPdf={() => tripHandbook.exportPdf({
+          coverImage: tripDetails?.coverImage || '',
+          tripTitle: tripDetails?.title || ''
+        })}
       />
-
-      {tripHandbook.response && (
-        <TripHandbookDocument
-          handbook={tripHandbook.response}
-          coverImage={tripDetails?.coverImage || ''}
-          className="trip-handbook-print-root"
-        />
-      )}
 
       {activeTab === 'itinerary' && (
         <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>

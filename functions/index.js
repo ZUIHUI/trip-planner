@@ -77,6 +77,7 @@ const CANONICAL_APP_ORIGIN = 'https://trip-planner-36455.firebaseapp.com';
 const WEB_PUSH_DEVICE_ENDPOINT_MAX_LENGTH = 2000;
 const WEB_PUSH_KEY_MAX_LENGTH = 512;
 const WEB_PUSH_DELIVERY_LOOK_BEHIND_MINUTES = 20;
+const TRIP_HANDBOOK_DOC_ID = 'latest';
 const COLLABORATION_NOTIFICATION_COLLECTIONS = Object.freeze({
   events: {
     label: '行程',
@@ -964,6 +965,8 @@ const loadTripHandbookSource = async (tripRef, trip) => {
     expenses
   };
 };
+
+const getTripHandbookDocRef = (tripRef) => tripRef.collection('handbooks').doc(TRIP_HANDBOOK_DOC_ID);
 
 const getRuntimeValue = (secret, envName, fallback = '') => {
   try {
@@ -1959,10 +1962,45 @@ exports.generateTripHandbook = onCall(
       snapshot
     });
     const normalized = normalizeHandbookResponse(aiPayload, snapshot);
+    const generatedAt = new Date().toISOString();
+    const result = {
+      generatedAt,
+      ...normalized
+    };
+
+    await getTripHandbookDocRef(tripRef).set({
+      schemaVersion: 1,
+      generatedAt,
+      handbook: result,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return result;
+  }
+);
+
+exports.getTripHandbook = onCall(
+  async (request) => {
+    const uid = requireSignedIn(request);
+    const tripId = normalizeGoogleLookupText(request.data?.tripId, 180);
+
+    if (!tripId) {
+      throw new HttpsError('invalid-argument', '請提供旅程資訊。');
+    }
+
+    const { tripRef } = await getTripRoleForUid({ tripId, uid });
+    const handbookSnap = await getTripHandbookDocRef(tripRef).get();
+    if (!handbookSnap.exists) {
+      return { exists: false };
+    }
+
+    const data = handbookSnap.data() || {};
+    const handbook = data.handbook || {};
 
     return {
-      generatedAt: new Date().toISOString(),
-      ...normalized
+      exists: true,
+      generatedAt: String(handbook.generatedAt || data.generatedAt || ''),
+      ...normalizeHandbookResponse(handbook, {})
     };
   }
 );

@@ -1,7 +1,6 @@
-import { useCallback, useState } from 'react';
-import { requestTripHandbook } from '../services/tripHandbookService';
-
-const PRINTING_BODY_CLASS = 'trip-handbook-printing';
+import { useCallback, useEffect, useState } from 'react';
+import { requestSavedTripHandbook, requestTripHandbook } from '../services/tripHandbookService';
+import { exportTripHandbookPdf } from '../utils/tripHandbookPdf';
 
 export const useTripHandbook = ({
   tripId,
@@ -11,11 +10,40 @@ export const useTripHandbook = ({
   const [isOpen, setIsOpen] = useState(false);
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState('');
+  const [hasLoadedSaved, setHasLoadedSaved] = useState(false);
+
+  useEffect(() => {
+    setResponse(null);
+    setError('');
+    setHasLoadedSaved(false);
+  }, [tripId]);
+
+  const loadSaved = useCallback(async () => {
+    if (!tripId || hasLoadedSaved || isLoadingSaved) return response;
+
+    setIsLoadingSaved(true);
+    try {
+      const savedResponse = await requestSavedTripHandbook({ tripId });
+      setHasLoadedSaved(true);
+      if (savedResponse) {
+        setResponse(savedResponse);
+      }
+      return savedResponse;
+    } catch {
+      setHasLoadedSaved(true);
+      return null;
+    } finally {
+      setIsLoadingSaved(false);
+    }
+  }, [hasLoadedSaved, isLoadingSaved, response, tripId]);
 
   const openPanel = useCallback(() => {
     setIsOpen(true);
-  }, []);
+    loadSaved();
+  }, [loadSaved]);
 
   const closePanel = useCallback(() => {
     setIsOpen(false);
@@ -35,6 +63,8 @@ export const useTripHandbook = ({
     try {
       const nextResponse = await requestTripHandbook({ tripId });
       setResponse(nextResponse);
+      setHasLoadedSaved(true);
+      toast?.({ variant: 'success', title: '旅遊手冊已保存', description: '已更新這趟旅程的最新版手冊。' });
       return nextResponse;
     } catch (requestError) {
       const message = requestError?.message || 'AI 旅遊手冊暫時無法產生，請稍後再試。';
@@ -46,34 +76,41 @@ export const useTripHandbook = ({
     }
   }, [canEdit, toast, tripId]);
 
-  const print = useCallback(() => {
-    if (!response || typeof window === 'undefined' || typeof document === 'undefined') return;
+  const exportPdf = useCallback(async ({
+    coverImage = '',
+    tripTitle = ''
+  } = {}) => {
+    if (!response) return null;
 
-    const cleanup = () => {
-      document.body.classList.remove(PRINTING_BODY_CLASS);
-      window.removeEventListener('afterprint', cleanup);
-    };
-
-    document.body.classList.add(PRINTING_BODY_CLASS);
-    window.addEventListener('afterprint', cleanup);
-
+    setIsExporting(true);
     try {
-      // Keep window.print() in the direct click stack; some browsers ignore delayed print calls.
-      document.body.offsetHeight;
-      window.print();
+      const result = await exportTripHandbookPdf({
+        handbook: response,
+        coverImage,
+        filename: `${tripTitle || response.cover?.title || '旅遊手冊'}-旅遊手冊`
+      });
+      toast?.({ variant: 'success', title: 'PDF 已匯出', description: result.filename });
+      return result;
+    } catch (exportError) {
+      const message = exportError?.message || 'PDF 匯出失敗，請稍後再試。';
+      toast?.({ variant: 'warning', title: 'PDF 匯出失敗', description: message });
+      return null;
     } finally {
-      window.setTimeout(cleanup, 1800);
+      setIsExporting(false);
     }
-  }, [response]);
+  }, [response, toast]);
 
   return {
     isOpen,
     response,
     isLoading,
+    isLoadingSaved,
+    isExporting,
     error,
     openPanel,
     closePanel,
+    loadSaved,
     generate,
-    print
+    exportPdf
   };
 };
