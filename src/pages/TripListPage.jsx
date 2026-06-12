@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -749,40 +750,58 @@ const TripListPage = () => {
               />
             </div>
 
-            {actionMode === 'create' ? (
-              <form onSubmit={handleCreateTrip} className="tp-animate-enter grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70">
-                <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
-                <Input
-                  id="new-trip-title"
-                  ref={newTripInputRef}
-                  {...plainTextInputProps}
-                  value={newTripTitle}
-                  onChange={(event) => setNewTripTitle(event.target.value)}
-                  placeholder="例如：2026 東京賞櫻"
-                  enterKeyHint="go"
-                />
-                <Button type="submit" className="justify-center">
-                  <Plus size={18} />
-                  建立旅程
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleJoinByInviteCode} className="tp-animate-enter grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70">
-                <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
-                <Input
-                  id="trip-invite-code"
-                  {...inviteCodeInputProps}
-                  value={inviteCode}
-                  onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
-                  placeholder="YK82-P7Q9"
-                  className="font-mono uppercase"
-                />
-                <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
-                  <KeyRound size={16} />
-                  {isJoiningInvite ? '加入中...' : '加入旅程'}
-                </Button>
-              </form>
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              {actionMode === 'create' ? (
+                <motion.form
+                  key="create-trip"
+                  onSubmit={handleCreateTrip}
+                  className="grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 12 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
+                  <Input
+                    id="new-trip-title"
+                    ref={newTripInputRef}
+                    {...plainTextInputProps}
+                    value={newTripTitle}
+                    onChange={(event) => setNewTripTitle(event.target.value)}
+                    placeholder="例如：2026 東京賞櫻"
+                    enterKeyHint="go"
+                  />
+                  <Button type="submit" className="justify-center">
+                    <Plus size={18} />
+                    建立旅程
+                  </Button>
+                </motion.form>
+              ) : (
+                <motion.form
+                  key="join-trip"
+                  onSubmit={handleJoinByInviteCode}
+                  className="grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
+                  <Input
+                    id="trip-invite-code"
+                    {...inviteCodeInputProps}
+                    value={inviteCode}
+                    onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
+                    placeholder="YK82-P7Q9"
+                    className="font-mono uppercase"
+                  />
+                  <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
+                    <KeyRound size={16} />
+                    {isJoiningInvite ? '加入中...' : '加入旅程'}
+                  </Button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
         </section>
 

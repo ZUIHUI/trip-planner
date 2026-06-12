@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import {
   CheckSquare,
   Compass,
@@ -90,10 +91,14 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
             const Icon = tab.icon;
             const isActive = isMobileTabActive(tab.id);
             return (
-              <button
+              <motion.button
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
+                layout
+                animate={{ y: isActive ? -2 : 0, scale: isActive ? 1.02 : 1 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
                 className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'tp-nav-active bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_14px_28px_-22px_rgba(14,116,144,0.65)] ring-1 ring-brand-100 dark:bg-brand-200 dark:from-brand-200 dark:via-brand-200 dark:to-sky-200 dark:text-slate-950 dark:ring-brand-300/30'
@@ -106,7 +111,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 <PresenceTabMarker count={getMobilePresenceCount(tab.id)} />
                 <Icon size={22} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                 <span className="truncate">{tab.label}</span>
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -116,10 +121,14 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <motion.button
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
+                layout
+                animate={{ y: isActive ? -2 : 0, scale: isActive ? 1.015 : 1 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
                 className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'tp-nav-active bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_14px_28px_-22px_rgba(14,116,144,0.65)] ring-1 ring-brand-100 dark:bg-brand-200 dark:from-brand-200 dark:via-brand-200 dark:to-sky-200 dark:text-slate-950 dark:ring-brand-300/30'
@@ -132,7 +141,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
                 <Icon size={21} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
                 <span className="max-w-full truncate">{tab.label}</span>
-              </button>
+              </motion.button>
             );
           })}
         </div>

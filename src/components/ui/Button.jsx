@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { motion } from 'motion/react';
 import { cx } from './utils';
 
 const variants = {
@@ -23,16 +24,30 @@ const Button = forwardRef(({
   className = '',
   children,
   ...props
-}, ref) => (
-  <Component
-    ref={ref}
-    type={Component === 'button' ? (type || 'button') : type}
-    className={cx('tp-press-feedback tp-hover-icon tp-tap-ripple', variants[variant] || variants.primary, sizes[size], className)}
-    {...props}
-  >
-    {children}
-  </Component>
-));
+}, ref) => {
+  const isNativeButton = Component === 'button';
+  const MotionComponent = isNativeButton ? motion.button : Component;
+  const isDisabled = Boolean(props.disabled || props['aria-disabled']);
+  const motionProps = isNativeButton
+    ? {
+        whileHover: isDisabled ? undefined : { y: -1, scale: 1.015 },
+        whileTap: isDisabled ? undefined : { y: 0, scale: 0.97 },
+        transition: { type: 'spring', stiffness: 520, damping: 34, mass: 0.55 }
+      }
+    : {};
+
+  return (
+    <MotionComponent
+      ref={ref}
+      type={isNativeButton ? (type || 'button') : type}
+      className={cx('tp-press-feedback tp-hover-icon tp-tap-ripple', variants[variant] || variants.primary, sizes[size], className)}
+      {...motionProps}
+      {...props}
+    >
+      {children}
+    </MotionComponent>
+  );
+});
 
 Button.displayName = 'Button';
 
