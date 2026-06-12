@@ -144,8 +144,9 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
   if (!trip) return null;
 
   return (
-    <div className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 shadow-[0_18px_38px_-32px_rgba(14,116,144,0.55)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25">
+    <div className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 pb-6 shadow-[0_18px_38px_-32px_rgba(14,116,144,0.55)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25">
       <span aria-hidden="true" className="tp-ambient-stars" />
+      <span aria-hidden="true" className="tp-route-trail" />
       <div className="flex min-w-0 items-center gap-3">
         <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm ring-1 ring-brand-100 dark:bg-slate-950/60 dark:text-brand-200 dark:ring-brand-900/70">
           <ArrowRight size={18} />
@@ -706,8 +707,9 @@ const TripListPage = () => {
           )}
         </div>
 
-        <section className="tp-panel tp-animate-enter tp-sheen tp-ambient-glow relative mb-4 overflow-hidden p-4 pt-5">
+        <section className="tp-panel tp-animate-enter tp-sheen tp-ambient-glow relative mb-4 overflow-hidden p-4 pb-7 pt-5">
           <span aria-hidden="true" className="tp-ambient-stars" />
+          <span aria-hidden="true" className="tp-route-trail" />
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
           <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(320px,1fr)] lg:items-start">
             <div className="min-w-0">

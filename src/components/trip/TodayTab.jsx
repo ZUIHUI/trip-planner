@@ -325,8 +325,9 @@ const TodayHero = ({
 
   if (!nextEvent) {
     return (
-      <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
+      <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
         <span aria-hidden="true" className="tp-ambient-stars" />
+        <span aria-hidden="true" className="tp-route-trail" />
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-black text-brand-100">今日小隊</p>
@@ -359,8 +360,9 @@ const TodayHero = ({
   }
 
   return (
-    <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
+    <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
       <span aria-hidden="true" className="tp-ambient-stars" />
+      <span aria-hidden="true" className="tp-route-trail" />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-black text-brand-100">下一站在等你</p>
