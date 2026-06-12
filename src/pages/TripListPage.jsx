@@ -30,7 +30,6 @@ import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } f
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
 import InstallAppPrompt from '../components/InstallAppPrompt';
-import AmbientMotionLayer from '../components/AmbientMotionLayer';
 import { inviteCodeInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
 import {
   LAST_OPENED_TRIP_KEY,
@@ -648,7 +647,6 @@ const TripListPage = () => {
 
   return (
     <main className="tp-page-shell">
-      <AmbientMotionLayer variant="trips" />
       <PageContainer className="py-6 sm:py-8">
         <div className="tp-panel mb-4 p-3">
           <div className="flex min-w-0 items-center justify-between gap-3">

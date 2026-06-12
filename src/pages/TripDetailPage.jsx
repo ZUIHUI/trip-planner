@@ -6,7 +6,6 @@ import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
 import EventDetailView from '../components/EventDetailView';
 import SettingsPanel from '../components/SettingsPanel';
-import AmbientMotionLayer from '../components/AmbientMotionLayer';
 import BottomNavigation from '../components/BottomNavigation';
 import TodayTab from '../components/trip/TodayTab';
 import SummaryTab from '../components/trip/SummaryTab';
@@ -1636,7 +1635,6 @@ const TripDetailPage = () => {
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
     <div className={`tp-page-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "calc(72px + env(safe-area-inset-bottom))" }}>
-      <AmbientMotionLayer variant="detail" />
       <Header 
         details={tripDetails}
         onGoToTrips={handleBackToTrips}

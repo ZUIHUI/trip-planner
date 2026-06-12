@@ -4,7 +4,6 @@ import { Link2, Mail, PlaneTakeoff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
 import InstallAppPrompt from '../components/InstallAppPrompt';
-import AmbientMotionLayer from '../components/AmbientMotionLayer';
 import { codeInputProps, emailInputProps } from '../utils/mobileInputProps';
 
 const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
@@ -254,7 +253,6 @@ const LoginPage = () => {
 
   return (
     <main className="tp-page-shell min-h-screen">
-      <AmbientMotionLayer variant="login" />
       <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
         <Card className="tp-animate-enter tp-ambient-glow relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
           <span aria-hidden="true" className="tp-ambient-stars" />
