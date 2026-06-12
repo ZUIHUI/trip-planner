@@ -121,7 +121,15 @@
     background:
       linear-gradient(145deg, rgba(255, 255, 255, 0.96) 0%, rgba(var(--accent-sun), 0.48) 22%, rgba(var(--accent-sky), 0.58) 52%, rgba(var(--accent-petal), 0.5) 78%, rgb(var(--surface-page)) 100%);
     background-size: 240% 240%;
+    isolation: isolate;
+    overflow-x: clip;
+    position: relative;
     animation: tp-gradient-drift 12s ease-in-out infinite;
+  }
+
+  .tp-page-shell .tp-page-container {
+    position: relative;
+    z-index: 1;
   }
 
   .dark .tp-page-shell {
@@ -164,7 +172,9 @@
   .tp-button-primary {
     @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-200 dark:text-slate-950;
     background-image: linear-gradient(135deg, rgb(var(--color-brand-600)), rgb(var(--accent-sky-strong)) 58%, rgb(var(--accent-petal-strong)));
+    background-size: 220% 220%;
     box-shadow: 0 18px 38px -24px rgba(14, 116, 144, 0.78), 0 10px 26px -24px rgba(236, 72, 153, 0.72), 0 1px 0 rgba(255, 255, 255, 0.24) inset;
+    animation: tp-primary-flow 4.8s ease-in-out infinite;
   }
 
   .tp-button-primary:hover:not(:disabled) {
@@ -455,6 +465,16 @@ body {
   }
 }
 
+@keyframes tp-primary-flow {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 @keyframes tp-gentle-float {
   0%, 100% {
     transform: translateY(0);
@@ -569,6 +589,79 @@ body {
   72% {
     opacity: 0.58;
     transform: scale(1.28) rotate(44deg);
+  }
+}
+
+@keyframes tp-motion-plane-cross {
+  0% {
+    opacity: 0;
+    transform: translate3d(-18vw, 0, 0) rotate(-7deg) scale(0.92);
+  }
+  10%,
+  86% {
+    opacity: 0.82;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(118vw, -42px, 0) rotate(-7deg) scale(1.02);
+  }
+}
+
+@keyframes tp-motion-route-glide {
+  0% {
+    background-position: 0 50%, 0 50%;
+  }
+  100% {
+    background-position: 170px 50%, 42px 50%;
+  }
+}
+
+@keyframes tp-motion-route-sway {
+  0%,
+  100% {
+    transform: rotate(-6deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-4deg) translateY(-9px);
+  }
+}
+
+@keyframes tp-motion-dot-run {
+  0% {
+    left: 4%;
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    left: 94%;
+    opacity: 0;
+  }
+}
+
+@keyframes tp-motion-ticket-hop {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: translateY(0) rotate(-8deg);
+  }
+  48% {
+    opacity: 0.86;
+    transform: translateY(-16px) rotate(7deg);
+  }
+}
+
+@keyframes tp-motion-spark-float {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: translateY(0) scale(0.72) rotate(0deg);
+  }
+  45% {
+    opacity: 0.92;
+    transform: translateY(-18px) scale(1.24) rotate(38deg);
   }
 }
 
@@ -1023,6 +1116,129 @@ body {
   animation: tp-gradient-drift 4.2s ease-in-out infinite;
 }
 
+.tp-motion-layer {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.tp-motion-route {
+  background:
+    linear-gradient(90deg, transparent, rgba(var(--color-brand-500), 0.72), rgba(var(--accent-petal-strong), 0.68), transparent),
+    repeating-linear-gradient(90deg, rgba(14, 116, 144, 0.38) 0 14px, transparent 14px 26px);
+  background-size: 170px 3px, 42px 3px;
+  background-repeat: repeat-x;
+  background-position: 0 50%;
+  border-radius: 999px;
+  height: 44px;
+  opacity: 0.48;
+  position: absolute;
+  width: min(680px, 82vw);
+  animation: tp-motion-route-glide 2.8s linear infinite, tp-motion-route-sway 5.2s ease-in-out infinite;
+}
+
+.tp-motion-route > span {
+  background: linear-gradient(135deg, #ffffff, rgb(var(--accent-sun-strong)));
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(var(--accent-sky-strong), 0.58), 0 6px 18px -10px rgba(14, 116, 144, 0.76);
+  height: 13px;
+  left: 4%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  animation: tp-motion-dot-run 3.4s linear infinite;
+}
+
+.tp-motion-route-main {
+  left: -70px;
+  top: 18%;
+}
+
+.tp-motion-route-soft {
+  animation-delay: 1.1s;
+  opacity: 0.34;
+  right: -120px;
+  top: 58%;
+  transform: rotate(8deg);
+}
+
+.tp-motion-plane {
+  background: linear-gradient(135deg, rgb(var(--color-brand-500)), rgb(var(--accent-sky-strong)) 56%, rgb(var(--accent-petal-strong)));
+  border-radius: 14px 999px 999px 14px;
+  box-shadow: 0 16px 34px -22px rgba(14, 116, 144, 0.92);
+  clip-path: polygon(0 40%, 66% 40%, 66% 11%, 100% 50%, 66% 89%, 66% 60%, 0 60%);
+  height: 34px;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  top: 13%;
+  width: 72px;
+  animation: tp-motion-plane-cross 9s ease-in-out infinite;
+}
+
+.tp-motion-ticket {
+  background:
+    radial-gradient(circle at 0 50%, transparent 0 7px, rgba(255, 255, 255, 0.78) 7.5px),
+    radial-gradient(circle at 100% 50%, transparent 0 7px, rgba(255, 255, 255, 0.78) 7.5px),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(var(--accent-sun), 0.82), rgba(var(--accent-petal), 0.72));
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 8px;
+  box-shadow: 0 18px 32px -28px rgba(14, 116, 144, 0.6);
+  height: 34px;
+  position: absolute;
+  width: 58px;
+  animation: tp-motion-ticket-hop 4.2s ease-in-out infinite;
+}
+
+.tp-motion-ticket::after {
+  background: repeating-linear-gradient(90deg, rgba(14, 116, 144, 0.24) 0 4px, transparent 4px 8px);
+  content: "";
+  height: 2px;
+  left: 12px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+}
+
+.tp-motion-ticket-a {
+  left: clamp(18px, 7vw, 82px);
+  top: 70%;
+}
+
+.tp-motion-ticket-b {
+  animation-delay: 1.4s;
+  right: clamp(18px, 8vw, 110px);
+  top: 30%;
+}
+
+.tp-motion-spark {
+  background: linear-gradient(135deg, #ffffff, rgb(var(--accent-sun-strong)));
+  clip-path: polygon(50% 0%, 62% 36%, 100% 50%, 62% 64%, 50% 100%, 38% 64%, 0% 50%, 38% 36%);
+  height: 18px;
+  position: absolute;
+  width: 18px;
+  animation: tp-motion-spark-float 2.4s ease-in-out infinite;
+}
+
+.tp-motion-spark-a {
+  right: clamp(34px, 12vw, 180px);
+  top: 18%;
+}
+
+.tp-motion-spark-b {
+  animation-delay: 0.8s;
+  left: clamp(28px, 10vw, 150px);
+  top: 42%;
+}
+
+.tp-motion-layer-login .tp-motion-route-main {
+  top: 24%;
+}
+
 .tp-status-dot {
   transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, opacity 180ms ease;
 }
@@ -1061,6 +1277,7 @@ body {
   .animate-fade-in-up,
   .animate-spin,
   .tp-page-shell,
+  .tp-button-primary,
   .tp-fade-in,
   .tp-icon-chip,
   .tp-icon-chip::after,
@@ -1095,6 +1312,11 @@ body {
   .tp-nav-active svg,
   .tp-stagger-list > *,
   .tp-ai-pet-sprite,
+  .tp-motion-route,
+  .tp-motion-route > span,
+  .tp-motion-plane,
+  .tp-motion-ticket,
+  .tp-motion-spark,
   .tp-ai-companion-button {
     animation: none !important;
   }
