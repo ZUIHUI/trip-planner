@@ -16,6 +16,11 @@ const sizes = {
   icon: '!h-11 !w-11 !px-0 !py-0'
 };
 
+const motionElements = {
+  a: motion.a,
+  button: motion.button
+};
+
 const Button = forwardRef(({
   as: Component = 'button',
   type,
@@ -26,13 +31,14 @@ const Button = forwardRef(({
   ...props
 }, ref) => {
   const isNativeButton = Component === 'button';
-  const MotionComponent = isNativeButton ? motion.button : Component;
+  const MotionComponent = motionElements[Component] || Component;
+  const isMotionElement = Boolean(motionElements[Component]);
   const isDisabled = Boolean(props.disabled || props['aria-disabled']);
-  const motionProps = isNativeButton
+  const motionProps = isMotionElement
     ? {
-        whileHover: isDisabled ? undefined : { y: -1, scale: 1.015 },
-        whileTap: isDisabled ? undefined : { y: 0, scale: 0.97 },
-        transition: { type: 'spring', stiffness: 520, damping: 34, mass: 0.55 }
+        whileHover: isDisabled ? undefined : { y: -2, scale: 1.025 },
+        whileTap: isDisabled ? undefined : { y: 0, scale: 0.94 },
+        transition: { type: 'spring', stiffness: 650, damping: 28, mass: 0.42 }
       }
     : {};
 
@@ -40,7 +46,7 @@ const Button = forwardRef(({
     <MotionComponent
       ref={ref}
       type={isNativeButton ? (type || 'button') : type}
-      className={cx('tp-press-feedback tp-hover-icon tp-tap-ripple', variants[variant] || variants.primary, sizes[size], className)}
+      className={cx('tp-button-motion tp-press-feedback tp-hover-icon tp-tap-ripple', variants[variant] || variants.primary, sizes[size], className)}
       {...motionProps}
       {...props}
     >
