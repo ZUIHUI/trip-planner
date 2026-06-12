@@ -345,7 +345,7 @@ const TodayHero = ({
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-        className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+        className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
       >
         <span aria-hidden="true" className="tp-ambient-stars" />
         <span aria-hidden="true" className="tp-route-trail" />
@@ -386,7 +386,7 @@ const TodayHero = ({
       initial={{ opacity: 0, y: 14, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
     >
       <span aria-hidden="true" className="tp-ambient-stars" />
       <span aria-hidden="true" className="tp-route-trail" />

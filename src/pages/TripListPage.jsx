@@ -141,7 +141,7 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     aria-pressed={active}
     className={`touch-target tp-press-feedback tp-hover-icon tp-icon-wiggle tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
       active
-        ? 'border-brand-200 bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_16px_34px_-26px_rgba(14,116,144,0.55)] dark:border-brand-800 dark:from-slate-900 dark:via-brand-950/35 dark:to-rose-950/20 dark:text-brand-100'
+        ? 'border-brand-200 bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_16px_34px_-26px_rgba(37,99,235,0.52)] dark:border-brand-800 dark:from-slate-900 dark:via-brand-950/35 dark:to-rose-950/20 dark:text-brand-100'
         : 'border-brand-100 bg-white/72 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
     }`}
   >
@@ -160,7 +160,7 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
 
   return (
     <motion.div
-      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 pb-6 shadow-[0_18px_38px_-32px_rgba(14,116,144,0.55)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25"
+      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 pb-6 shadow-[0_18px_38px_-32px_rgba(37,99,235,0.52)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25"
       initial={{ opacity: 0, y: 10, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -200,7 +200,7 @@ const TripFilterChip = ({ active, label, count, onClick }) => (
     transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
     className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
       active
-        ? 'border-brand-200 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 text-white shadow-[0_14px_28px_-22px_rgba(14,116,144,0.65)] dark:border-brand-500 dark:from-brand-200 dark:via-sky-200 dark:to-rose-200 dark:text-slate-950'
+        ? 'border-brand-200 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 text-white shadow-[0_14px_28px_-22px_rgba(37,99,235,0.62)] dark:border-brand-500 dark:from-brand-200 dark:via-sky-200 dark:to-rose-200 dark:text-slate-950'
         : 'border-brand-100 bg-white/80 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/65 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
     }`}
   >

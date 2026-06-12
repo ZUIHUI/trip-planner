@@ -21,7 +21,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
     : nextSummaryText;
   const nextBaseClass = cover
     ? 'border-white/25 bg-white/15 text-white'
-    : 'border-brand-100 bg-white/85 text-slate-700 shadow-[0_14px_30px_-26px_rgba(14,116,144,0.5)] dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
+    : 'border-brand-100 bg-white/85 text-slate-700 shadow-[0_14px_30px_-26px_rgba(37,99,235,0.46)] dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
 
   return (
     <motion.div
@@ -76,7 +76,7 @@ const Header = forwardRef(({
   return (
     <motion.header
       ref={ref}
-      className="sticky top-0 z-30 border-b border-brand-100/80 bg-white/[0.9] shadow-[0_18px_38px_-32px_rgba(14,116,144,0.42)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90"
+      className="sticky top-0 z-30 border-b border-brand-100/80 bg-white/[0.9] shadow-[0_18px_38px_-32px_rgba(37,99,235,0.38)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90"
       layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
