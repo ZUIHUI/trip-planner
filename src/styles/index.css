@@ -4,29 +4,29 @@
 
 @layer base {
   :root {
-    /* Default Light Mode (Playful Travel) */
+    /* Light Mode: Travel Mint x Island Postcard */
     --color-brand-50: 240 253 250;
     --color-brand-100: 204 251 241;
     --color-brand-200: 153 246 228;
-    --color-brand-300: 103 232 249;
+    --color-brand-300: 94 234 212;
     --color-brand-400: 45 212 191;
     --color-brand-500: 20 184 166;
-    --color-brand-600: 14 165 170;
-    --color-brand-700: 14 116 144;
-    --color-brand-800: 21 94 117;
-    --color-brand-900: 22 78 99;
-    --color-brand-950: 8 47 73;
+    --color-brand-600: 13 148 136;
+    --color-brand-700: 15 118 110;
+    --color-brand-800: 17 94 89;
+    --color-brand-900: 19 78 74;
+    --color-brand-950: 4 47 46;
 
-    --accent-petal: 253 242 248;
-    --accent-petal-strong: 236 72 153;
+    --accent-petal: 255 228 230;
+    --accent-petal-strong: 225 29 72;
     --accent-sun: 254 243 199;
     --accent-sun-strong: 245 158 11;
     --accent-coral: 255 237 213;
     --accent-coral-strong: 249 115 22;
-    --accent-lilac: 245 243 255;
-    --accent-lilac-strong: 139 92 246;
+    --accent-lilac: 238 242 255;
+    --accent-lilac-strong: 124 58 237;
     --accent-sky: 224 242 254;
-    --accent-sky-strong: 14 165 233;
+    --accent-sky-strong: 2 132 199;
 
     /* Mobile typography & spacing tokens */
     --font-size-body-mobile: 16px;
@@ -38,13 +38,13 @@
     --space-form-control-mobile: 12px;
 
     /* Surface tokens */
-    --surface-page: 252 252 255;
+    --surface-page: 247 254 252;
     --surface-card: 255 255 255;
-    --surface-muted: 248 250 252;
-    --border-soft: 219 230 238;
+    --surface-muted: 240 253 250;
+    --border-soft: 190 225 229;
     --radius-card: 8px;
-    --shadow-card: 0 22px 56px -44px rgba(14, 116, 144, 0.42), 0 12px 30px -30px rgba(236, 72, 153, 0.28), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
-    --shadow-card-hover: 0 26px 64px -42px rgba(14, 116, 144, 0.48), 0 18px 38px -30px rgba(249, 115, 22, 0.26), 0 1px 0 rgba(255, 255, 255, 0.94) inset;
+    --shadow-card: 0 22px 56px -44px rgba(15, 118, 110, 0.42), 0 12px 30px -30px rgba(2, 132, 199, 0.24), 0 1px 0 rgba(255, 255, 255, 0.88) inset;
+    --shadow-card-hover: 0 28px 70px -44px rgba(15, 118, 110, 0.52), 0 18px 40px -30px rgba(249, 115, 22, 0.3), 0 1px 0 rgba(255, 255, 255, 0.94) inset;
 
     /* Semantic z-index tokens */
     --z-bottom-nav: 40;
@@ -52,35 +52,35 @@
     --z-modal: 50;
   }
 
-  /* Dark Mode Overrides - soft colorful surfaces */
+  /* Dark Mode: Aurora Night */
   .dark {
-    --color-brand-50: 8 47 73;
-    --color-brand-100: 22 78 99;
-    --color-brand-200: 21 94 117;
-    --color-brand-300: 14 116 144;
-    --color-brand-400: 14 165 170;
-    --color-brand-500: 45 212 191;
-    --color-brand-600: 103 232 249;
-    --color-brand-700: 153 246 228;
-    --color-brand-800: 204 251 241;
-    --color-brand-900: 229 255 247;
-    --color-brand-950: 240 253 250;
-    --accent-petal: 80 33 70;
+    --color-brand-50: 8 23 52;
+    --color-brand-100: 207 250 254;
+    --color-brand-200: 165 243 252;
+    --color-brand-300: 103 232 249;
+    --color-brand-400: 34 211 238;
+    --color-brand-500: 34 211 238;
+    --color-brand-600: 14 165 233;
+    --color-brand-700: 125 211 252;
+    --color-brand-800: 56 189 248;
+    --color-brand-900: 15 23 42;
+    --color-brand-950: 8 13 33;
+    --accent-petal: 76 29 80;
     --accent-petal-strong: 244 114 182;
     --accent-sun: 69 45 14;
     --accent-sun-strong: 251 191 36;
     --accent-coral: 67 34 23;
     --accent-coral-strong: 251 146 60;
-    --accent-lilac: 46 32 86;
+    --accent-lilac: 35 25 80;
     --accent-lilac-strong: 167 139 250;
-    --accent-sky: 12 48 74;
+    --accent-sky: 8 47 73;
     --accent-sky-strong: 56 189 248;
-    --surface-page: 2 6 23;
+    --surface-page: 3 7 18;
     --surface-card: 15 23 42;
-    --surface-muted: 24 36 54;
-    --border-soft: 44 69 88;
-    --shadow-card: 0 24px 60px -42px rgba(0, 0, 0, 0.64), 0 12px 30px -28px rgba(56, 189, 248, 0.38), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
-    --shadow-card-hover: 0 30px 76px -46px rgba(0, 0, 0, 0.72), 0 18px 42px -34px rgba(45, 212, 191, 0.34), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    --surface-muted: 21 31 51;
+    --border-soft: 51 65 85;
+    --shadow-card: 0 24px 60px -42px rgba(0, 0, 0, 0.72), 0 12px 32px -28px rgba(34, 211, 238, 0.42), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    --shadow-card-hover: 0 32px 82px -48px rgba(0, 0, 0, 0.78), 0 18px 44px -34px rgba(167, 139, 250, 0.4), 0 12px 32px -30px rgba(244, 114, 182, 0.36), 0 1px 0 rgba(255, 255, 255, 0.09) inset;
   }
 }
 
