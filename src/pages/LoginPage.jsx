@@ -254,15 +254,18 @@ const LoginPage = () => {
   return (
     <main className="tp-page-shell min-h-screen">
       <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
-        <Card className="w-full max-w-md p-5 sm:p-6">
+        <Card className="tp-animate-enter tp-ambient-glow relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
+          <span aria-hidden="true" className="tp-ambient-stars" />
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
           <div className="mb-6">
-            <div className="tp-icon-chip mb-4">
+            <div className="tp-icon-chip tp-gentle-float mb-4">
               <PlaneTakeoff size={22} />
             </div>
-            <h1 className="text-2xl font-black text-slate-950 dark:text-white">登入 Trip Planner</h1>
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">歡迎回到 Trip Planner</h1>
+            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">你的旅程都在這裡等你</p>
           </div>
 
-          <label className="mb-3 flex items-center gap-3 rounded-lg border border-cyan-100 bg-sky-50/50 px-3 py-2 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300">
+          <label className="mb-3 flex items-center gap-3 rounded-lg border border-brand-100 bg-white/75 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
             <input
               type="checkbox"
               checked={rememberDevice}
@@ -289,7 +292,7 @@ const LoginPage = () => {
           </Button>
 
           {emailPanelOpen && (
-            <div className="mt-3 rounded-lg border border-cyan-100 bg-sky-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+            <div className="mt-3 rounded-lg border border-brand-100 bg-white/75 p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
               {loginStep === 'code' ? (
                 <form onSubmit={handleVerifyCode} className="grid gap-3">
                   <Field label="Email" htmlFor="login-email-confirm">

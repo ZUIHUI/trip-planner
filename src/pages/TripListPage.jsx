@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
+  ArrowRight,
   CalendarDays,
   ChevronDown,
   Check,
@@ -13,6 +14,7 @@ import {
   Search,
   X,
   UserRound,
+  ShieldCheck,
   Trash2
 } from 'lucide-react';
 import {
@@ -57,6 +59,14 @@ const setLastOpenedTripId = (tripId) => {
   localStorage.setItem(LAST_OPENED_TRIP_KEY, tripId);
 };
 
+const getLastOpenedTripId = () => {
+  try {
+    return localStorage.getItem(LAST_OPENED_TRIP_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
 const normalizeInviteCodeInput = (value) => String(value || '')
   .toUpperCase()
   .replace(/[^A-Z0-9]/g, '')
@@ -97,6 +107,83 @@ const TripStatusBadge = ({ status }) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
+const accessRoleConfig = {
+  owner: { label: '擁有者', variant: 'info' },
+  editor: { label: '可編輯', variant: 'success' },
+  edit: { label: '可編輯', variant: 'success' },
+  view: { label: '唯讀', variant: 'muted' }
+};
+
+const TripAccessBadge = ({ role }) => {
+  const config = accessRoleConfig[role] || accessRoleConfig.view;
+  return <Badge variant={config.variant}>{config.label}</Badge>;
+};
+
+const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={`touch-target tp-press-feedback tp-hover-icon tp-icon-wiggle tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+      active
+        ? 'border-brand-200 bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_16px_34px_-26px_rgba(14,116,144,0.55)] dark:border-brand-800 dark:from-slate-900 dark:via-brand-950/35 dark:to-rose-950/20 dark:text-brand-100'
+        : 'border-brand-100 bg-white/72 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
+    }`}
+  >
+    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${active ? 'tp-soft-pulse bg-white/90 text-brand-700 shadow-sm dark:bg-slate-900/75 dark:text-brand-200' : 'bg-slate-50 text-slate-500 group-hover:text-brand-700 dark:bg-slate-800 dark:text-slate-300 dark:group-hover:text-brand-200'}`}>
+      <Icon size={18} />
+    </span>
+    <span className="min-w-0">
+      <span className="block truncate text-sm font-black">{title}</span>
+      {meta && <span className="block truncate text-xs font-semibold opacity-75">{meta}</span>}
+    </span>
+  </button>
+);
+
+const ContinueTripShortcut = ({ trip, label, onOpen }) => {
+  if (!trip) return null;
+
+  return (
+    <div className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 shadow-[0_18px_38px_-32px_rgba(14,116,144,0.55)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25">
+      <span aria-hidden="true" className="tp-ambient-stars" />
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm ring-1 ring-brand-100 dark:bg-slate-950/60 dark:text-brand-200 dark:ring-brand-900/70">
+          <ArrowRight size={18} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-black text-brand-700 dark:text-brand-300">{label}</p>
+          <p className="truncate text-sm font-black text-slate-950 dark:text-white">
+            {trip.title || '未命名旅程'}
+          </p>
+          <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {formatDateRange(trip)}
+          </p>
+        </div>
+      </div>
+      <Button type="button" size="sm" onClick={onOpen} className="shrink-0 justify-center shadow-sm">
+        繼續
+        <ArrowRight size={15} />
+      </Button>
+    </div>
+  );
+};
+
+const TripFilterChip = ({ active, label, count, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
+      active
+        ? 'tp-pop border-brand-200 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 text-white shadow-[0_14px_28px_-22px_rgba(14,116,144,0.65)] dark:border-brand-500 dark:from-brand-200 dark:via-sky-200 dark:to-rose-200 dark:text-slate-950'
+        : 'border-brand-100 bg-white/80 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/65 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
+    }`}
+  >
+    <span>{label}</span>
+    <span className="ml-1 text-xs opacity-70">{count}</span>
+  </button>
+);
+
 const TripCard = ({
   trip,
   expanded,
@@ -111,23 +198,23 @@ const TripCard = ({
   const showCover = coverImageUrl && !coverFailed;
 
   return (
-    <Card as="article" interactive className="overflow-hidden">
+    <Card as="article" interactive className="tp-sheen overflow-hidden">
       <button
         type="button"
         onClick={onOpen}
-        className="block w-full text-left"
+        className="group/trip-card block w-full text-left"
         aria-label={`開啟 ${trip.title || '未命名旅程'}`}
       >
         {showCover ? (
           <img
             src={coverImageUrl}
             alt={`${trip.title || '旅程'} 封面`}
-            className="h-36 w-full object-cover sm:h-40"
+            className="h-36 w-full object-cover transition-transform duration-500 group-hover/trip-card:scale-[1.04] sm:h-40"
             onError={onCoverError}
           />
         ) : (
-          <div className="flex h-36 w-full items-center justify-center bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-700 sm:h-40 dark:from-brand-900/40 dark:via-slate-900 dark:to-violet-950/30">
-            <div className="rounded-lg bg-white/90 p-3 shadow-sm ring-1 ring-white/70 dark:bg-slate-900/80 dark:ring-slate-700/60">
+          <div className="tp-gradient-breathe flex h-36 w-full items-center justify-center bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-700 sm:h-40 dark:from-brand-900/40 dark:via-slate-900 dark:to-rose-950/25">
+            <div className="tp-gentle-float rounded-lg bg-white/90 p-3 shadow-sm ring-1 ring-white/70 dark:bg-slate-900/80 dark:ring-slate-700/60">
               <Compass size={28} />
             </div>
           </div>
@@ -144,7 +231,10 @@ const TripCard = ({
                 <span className="truncate">{formatDateRange(trip)}</span>
               </div>
             </div>
-            <TripStatusBadge status={trip.status} />
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <TripStatusBadge status={trip.status} />
+              <TripAccessBadge role={trip.accessRole} />
+            </div>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -157,16 +247,23 @@ const TripCard = ({
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
           </div>
+
+          {trip.accessRole === 'view' && (
+            <div className="mt-3 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+              <ShieldCheck size={14} className="shrink-0" />
+              <span className="truncate">只能查看</span>
+            </div>
+          )}
         </div>
       </button>
 
-      <div className="border-t border-cyan-100 px-4 py-3 dark:border-slate-800">
+      <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800">
         <div className={`flex items-center gap-2 ${canDelete ? 'justify-between' : 'justify-end'}`}>
           {canDelete && (
             <button
               type="button"
               onClick={onToggleExpanded}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-sky-50 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               aria-expanded={expanded}
             >
               {expanded ? '收合管理' : '管理'}
@@ -179,7 +276,7 @@ const TripCard = ({
         </div>
 
         {expanded && canDelete && (
-          <div className="mt-3 flex justify-end border-t border-cyan-100 pt-3 dark:border-slate-800">
+          <div className="mt-3 flex justify-end border-t border-slate-200 pt-3 dark:border-slate-800">
             <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
               <Trash2 size={14} />
               刪除旅程
@@ -208,6 +305,8 @@ const TripListPage = () => {
   const [nicknameDraft, setNicknameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [isSavingNickname, setIsSavingNickname] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [actionMode, setActionMode] = useState('create');
+  const [tripFilter, setTripFilter] = useState('all');
   const [inviteCode, setInviteCode] = useState('');
   const [isJoiningInvite, setIsJoiningInvite] = useState(false);
 
@@ -260,21 +359,78 @@ const TripListPage = () => {
     return undefined;
   }, [currentUser, uid]);
 
-  const sortedAndFilteredTrips = useMemo(() => {
-    return trips
-      .filter((trip) => {
-        const statusText = getStatus(trip.status).label;
-        const searchTarget = `${trip.title || ''} ${statusText} ${formatDateRange(trip)}`.toLowerCase();
-        return searchTarget.includes(keyword.toLowerCase());
-      })
+  const sortedTrips = useMemo(() => {
+    return [...trips]
       .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
-  }, [trips, keyword]);
+  }, [trips]);
+
+  const tripFilterOptions = useMemo(() => {
+    const counts = sortedTrips.reduce((acc, trip) => {
+      acc.all += 1;
+      if (trip.status === 'ongoing') acc.ongoing += 1;
+      if (trip.status === 'planning' || !trip.status) acc.planning += 1;
+      if (trip.accessRole === 'owner') acc.owner += 1;
+      if (trip.accessRole === 'editor' || trip.accessRole === 'edit') acc.editable += 1;
+      if (trip.accessRole === 'view') acc.readonly += 1;
+      return acc;
+    }, {
+      all: 0,
+      ongoing: 0,
+      planning: 0,
+      owner: 0,
+      editable: 0,
+      readonly: 0
+    });
+
+    return [
+      { id: 'all', label: '全部', count: counts.all },
+      { id: 'ongoing', label: '旅途中', count: counts.ongoing },
+      { id: 'planning', label: '規劃中', count: counts.planning },
+      { id: 'owner', label: '我管理', count: counts.owner },
+      { id: 'editable', label: '可編輯', count: counts.editable },
+      { id: 'readonly', label: '唯讀', count: counts.readonly }
+    ];
+  }, [sortedTrips]);
+
+  const filteredTrips = useMemo(() => {
+    if (tripFilter === 'ongoing') return sortedTrips.filter((trip) => trip.status === 'ongoing');
+    if (tripFilter === 'planning') return sortedTrips.filter((trip) => trip.status === 'planning' || !trip.status);
+    if (tripFilter === 'owner') return sortedTrips.filter((trip) => trip.accessRole === 'owner');
+    if (tripFilter === 'editable') return sortedTrips.filter((trip) => trip.accessRole === 'editor' || trip.accessRole === 'edit');
+    if (tripFilter === 'readonly') return sortedTrips.filter((trip) => trip.accessRole === 'view');
+    return sortedTrips;
+  }, [sortedTrips, tripFilter]);
+
+  const sortedAndFilteredTrips = useMemo(() => {
+    return filteredTrips.filter((trip) => {
+      const statusText = getStatus(trip.status).label;
+      const roleText = accessRoleConfig[trip.accessRole]?.label || '';
+      const searchTarget = `${trip.title || ''} ${statusText} ${roleText} ${formatDateRange(trip)}`.toLowerCase();
+      return searchTarget.includes(keyword.toLowerCase());
+    });
+  }, [filteredTrips, keyword]);
 
   const visibleTrips = showAllTrips ? sortedAndFilteredTrips : sortedAndFilteredTrips.slice(0, 6);
   const hiddenTripCount = Math.max(sortedAndFilteredTrips.length - visibleTrips.length, 0);
   const hasTrips = trips.length > 0;
   const hasSearch = keyword.trim().length > 0;
+  const hasActiveFilter = tripFilter !== 'all';
   const accountDisplayName = userProfile?.displayName || currentUser?.displayName || currentUser?.email || '已登入';
+  const totalTripCount = trips.length;
+  const ownedTripCount = trips.filter((trip) => trip.accessRole === 'owner').length;
+  const lastOpenedTripId = getLastOpenedTripId();
+  const lastOpenedTrip = lastOpenedTripId
+    ? trips.find((trip) => trip.id === lastOpenedTripId)
+    : null;
+  const continueTrip = lastOpenedTrip || sortedTrips[0] || null;
+  const continueTripLabel = lastOpenedTrip ? '接著上次規劃' : '最近有動靜';
+
+  const focusNewTripTitle = () => {
+    setActionMode('create');
+    if (typeof window !== 'undefined') {
+      window.setTimeout(() => newTripInputRef.current?.focus(), 0);
+    }
+  };
 
   const handleCreateTrip = async (event) => {
     event?.preventDefault();
@@ -520,7 +676,7 @@ const TripListPage = () => {
           </div>
 
           {isEditingNickname && (
-            <form onSubmit={handleSaveNickname} className="mt-3 border-t border-cyan-100 pt-3 dark:border-slate-800">
+            <form onSubmit={handleSaveNickname} className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <label className="min-w-0 flex-1">
                   <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
@@ -550,69 +706,95 @@ const TripListPage = () => {
           )}
         </div>
 
-        <section className="tp-panel mb-4 p-4">
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(280px,1fr)] lg:items-center">
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="tp-icon-chip">
-                <KeyRound size={18} />
+        <section className="tp-panel tp-animate-enter tp-sheen tp-ambient-glow relative mb-4 overflow-hidden p-4 pt-5">
+          <span aria-hidden="true" className="tp-ambient-stars" />
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(320px,1fr)] lg:items-start">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="tp-icon-chip tp-gentle-float">
+                  <PlaneTakeoff size={19} />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-2xl font-black text-slate-950 dark:text-white">旅程小基地</h1>
+                  <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    {totalTripCount ? `已收好 ${totalTripCount} 趟旅程，${ownedTripCount} 趟由你管理` : '先把想去的地方收進來'}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h2 className="text-base font-black text-slate-950 dark:text-white">加入旅程</h2>
+
+              <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="選擇旅程操作">
+                <ActionModeButton
+                  active={actionMode === 'create'}
+                  icon={Plus}
+                  title="建立"
+                  meta="把想去收好"
+                  onClick={() => setActionMode('create')}
+                />
+                <ActionModeButton
+                  active={actionMode === 'join'}
+                  icon={KeyRound}
+                  title="加入"
+                  meta="和旅伴一起"
+                  onClick={() => setActionMode('join')}
+                />
               </div>
-            </div>
-            <form onSubmit={handleJoinByInviteCode} className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
-              <Input
-                id="trip-invite-code"
-                {...inviteCodeInputProps}
-                value={inviteCode}
-                onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
-                placeholder="YK82-P7Q9"
-                className="font-mono uppercase tracking-wider"
+
+              <ContinueTripShortcut
+                trip={continueTrip}
+                label={continueTripLabel}
+                onOpen={() => openTripDetail(continueTrip.id)}
               />
-              <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
-                <KeyRound size={16} />
-                {isJoiningInvite ? '加入中...' : '加入旅程'}
-              </Button>
-            </form>
+            </div>
+
+            {actionMode === 'create' ? (
+              <form onSubmit={handleCreateTrip} className="tp-animate-enter grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70">
+                <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
+                <Input
+                  id="new-trip-title"
+                  ref={newTripInputRef}
+                  {...plainTextInputProps}
+                  value={newTripTitle}
+                  onChange={(event) => setNewTripTitle(event.target.value)}
+                  placeholder="例如：2026 東京賞櫻"
+                  enterKeyHint="go"
+                />
+                <Button type="submit" className="justify-center">
+                  <Plus size={18} />
+                  建立旅程
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleJoinByInviteCode} className="tp-animate-enter grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70">
+                <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
+                <Input
+                  id="trip-invite-code"
+                  {...inviteCodeInputProps}
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
+                  placeholder="YK82-P7Q9"
+                  className="font-mono uppercase"
+                />
+                <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
+                  <KeyRound size={16} />
+                  {isJoiningInvite ? '加入中...' : '加入旅程'}
+                </Button>
+              </form>
+            )}
           </div>
         </section>
 
         <InstallAppPrompt className="mb-4" />
 
-        <section className="tp-card p-5 sm:p-7">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-800 dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-200">
-              <PlaneTakeoff size={14} />
-              Trip Planner
-            </div>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl dark:text-white">
-              規劃下一趟旅程
-            </h1>
-
-            <form onSubmit={handleCreateTrip} className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
-              <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
-              <Input
-                id="new-trip-title"
-                ref={newTripInputRef}
-                {...plainTextInputProps}
-                value={newTripTitle}
-                onChange={(event) => setNewTripTitle(event.target.value)}
-                placeholder="例如：2026 東京賞櫻"
-                enterKeyHint="go"
-              />
-              <Button type="submit" size="lg">
-                <Plus size={18} />
-                建立旅程
-              </Button>
-            </form>
-          </div>
-        </section>
-
         <section className="mt-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="tp-section-title">我的旅程</h2>
+              {hasTrips && (
+                <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+                  顯示 {sortedAndFilteredTrips.length} / {totalTripCount}
+                </p>
+              )}
             </div>
             <div className="relative w-full sm:max-w-sm">
               <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -628,6 +810,20 @@ const TripListPage = () => {
             </div>
           </div>
 
+          {hasTrips && (
+            <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 no-scrollbar" aria-label="旅程篩選">
+              {tripFilterOptions.map((option) => (
+                <TripFilterChip
+                  key={option.id}
+                  active={tripFilter === option.id}
+                  label={option.label}
+                  count={option.count}
+                  onClick={() => setTripFilter(option.id)}
+                />
+              ))}
+            </div>
+          )}
+
           {cloudSyncWarning && (
             <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100" role="status" aria-live="polite">
               <AlertTriangle size={17} className="mt-0.5 shrink-0" />
@@ -641,18 +837,20 @@ const TripListPage = () => {
             ) : sortedAndFilteredTrips.length === 0 ? (
               <EmptyState
                 icon={Compass}
-                title={hasTrips && hasSearch ? '找不到符合條件的旅程' : '目前尚無旅程'}
-                actionLabel={hasTrips && hasSearch ? '清除搜尋' : '新增第一個旅程'}
+                title={hasTrips && (hasSearch || hasActiveFilter) ? '找不到符合條件的旅程' : '目前尚無旅程'}
+                actionLabel={hasTrips && hasSearch ? '清除搜尋' : hasTrips && hasActiveFilter ? '查看全部' : '新增第一個旅程'}
                 onAction={() => {
                   if (hasTrips && hasSearch) {
                     setKeyword('');
+                  } else if (hasTrips && hasActiveFilter) {
+                    setTripFilter('all');
                   } else {
-                    newTripInputRef.current?.focus();
+                    focusNewTripTitle();
                   }
                 }}
               />
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="tp-stagger-list grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {visibleTrips.map((trip) => (
                   <TripCard
                     key={trip.id}

@@ -170,7 +170,7 @@ const buildReminders = ({
 
 const reminderClasses = {
   danger: 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200',
-  info: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-200',
+  info: 'border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900/70 dark:bg-brand-950/30 dark:text-brand-100',
   warning: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100'
 };
 
@@ -198,7 +198,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
       </button>
 
       <div className="min-w-0 text-center">
-        <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">
+        <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
           Day {selectedDay}
         </p>
         <h2 className="truncate text-base font-black text-slate-950 dark:text-white">{currentDayTitle}</h2>
@@ -239,10 +239,10 @@ const AirportDayFlightRow = ({ flight }) => {
   ].filter(Boolean).join(' / ');
 
   return (
-    <div className="min-w-0 rounded-lg border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/60 dark:bg-sky-950/25">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-800/55">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-wide text-sky-700 dark:text-sky-300">
+          <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
             {flight.label}航班
           </p>
           {flight.hasFlightCode ? (
@@ -284,10 +284,10 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
   const hasAnyFlightCode = flights.some((flight) => flight.hasFlightCode);
 
   return (
-    <Card className="border-sky-200 bg-white/95 p-4 shadow-sm dark:border-sky-900/70 dark:bg-slate-900/95">
+    <Card className="border-slate-200 bg-white/95 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/95">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="tp-icon-chip bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300">
+          <div className="tp-icon-chip">
             <Plane size={20} />
           </div>
           <div className="min-w-0">
@@ -325,11 +325,12 @@ const TodayHero = ({
 
   if (!nextEvent) {
     return (
-      <section className="overflow-hidden rounded-lg border border-cyan-200/70 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-violet-950/70">
+      <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
+        <span aria-hidden="true" className="tp-ambient-stars" />
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wide text-brand-100">旅途中</p>
-            <h3 className="mt-1 text-2xl font-black leading-tight">今天還沒有行程</h3>
+            <p className="text-xs font-black text-brand-100">今日小隊</p>
+            <h3 className="mt-1 text-2xl font-black leading-tight">今天還空著</h3>
             <p className="mt-1 text-sm font-semibold text-brand-50">{currentDayDate || currentDayData?.date || '未設定日期'}</p>
           </div>
           <CalendarDays size={26} className="shrink-0 text-white/80" />
@@ -348,20 +349,21 @@ const TodayHero = ({
           type="button"
           onClick={onAddEvent}
           disabled={!canEdit}
-          className="touch-target mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
+          className="touch-target tp-press-feedback tp-hover-icon mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
         >
           <Plus size={18} />
-          新增第一個行程
+          放進今日行程
         </button>
       </section>
     );
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-cyan-200/70 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-lg dark:border-brand-700/60 dark:from-brand-900/80 dark:via-brand-800/80 dark:to-violet-950/70">
+    <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
+      <span aria-hidden="true" className="tp-ambient-stars" />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-black uppercase tracking-wide text-brand-100">下一站</p>
+          <p className="text-xs font-black text-brand-100">下一站在等你</p>
           <h3 className="mt-1 break-words text-2xl font-black leading-tight">
             {nextEvent.title || '未命名行程'}
           </h3>
@@ -382,7 +384,7 @@ const TodayHero = ({
           <button
             type="button"
             onClick={onNavigateNext}
-            className="touch-target inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white transition hover:bg-white/30 active:scale-95"
+            className="touch-target tp-press-feedback tp-hover-icon tp-tap-ripple tp-hero-next-pulse inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white transition hover:bg-white/30 active:scale-95"
             aria-label="導航到下一站"
             title="導航"
           >
@@ -429,16 +431,24 @@ const TodayHero = ({
   );
 };
 
-const QuickActions = ({ canEdit, nextEvent, routeUrl, onAddEvent, onNavigateNext }) => {
+const QuickActions = ({
+  canEdit,
+  nextEvent,
+  routeUrl,
+  selectedDay,
+  onAddEvent,
+  onNavigateNext,
+  onOpenAiRecommendations
+}) => {
   const hasNextDestination = Boolean(getEventLocationText(nextEvent));
 
   return (
-    <div className="grid grid-cols-3 gap-2" aria-label="旅途中快速操作">
+    <div className="tp-stagger-list grid grid-cols-4 gap-2" aria-label="旅途中快速操作">
       <Button
         variant="secondary"
         onClick={onNavigateNext}
         disabled={!hasNextDestination}
-        className="min-w-0 !px-2 text-xs"
+        className="min-w-0 !px-1 text-xs"
       >
         <Navigation size={16} />
         導航
@@ -450,20 +460,31 @@ const QuickActions = ({ canEdit, nextEvent, routeUrl, onAddEvent, onNavigateNext
           target="_blank"
           rel="noopener noreferrer"
           variant="secondary"
-          className="min-w-0 !px-2 text-xs"
+          className="min-w-0 !px-1 text-xs"
         >
           <Map size={16} />
           路線
         </Button>
       ) : (
-        <Button variant="secondary" disabled className="min-w-0 !px-2 text-xs">
+        <Button variant="secondary" disabled className="min-w-0 !px-1 text-xs">
           <Map size={16} />
           路線
         </Button>
       )}
-      <Button onClick={onAddEvent} disabled={!canEdit} className="min-w-0 !px-2 text-xs">
+      <Button onClick={onAddEvent} disabled={!canEdit} className="min-w-0 !px-1 text-xs">
         <Plus size={16} />
         新增
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={onOpenAiRecommendations}
+        disabled={!canEdit}
+        className="min-w-0 !px-1 text-xs"
+        aria-label={`智慧旅伴幫我排 Day ${selectedDay}`}
+        title={`智慧旅伴幫我排 Day ${selectedDay}`}
+      >
+        <Sparkles size={16} />
+        智慧
       </Button>
     </div>
   );
@@ -529,7 +550,7 @@ const TravelStatusPanel = ({ status }) => {
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-emerald-500 transition-all duration-300"
+          className="tp-progress-glow h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-rose-400 transition-all duration-300"
           style={{ width: `${status.progressPercent}%` }}
         />
       </div>
@@ -636,7 +657,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
     <Card className="p-4">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="tp-icon-chip bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300">
+          <div className="tp-icon-chip">
             <Clock size={20} />
           </div>
           <div className="min-w-0">
@@ -871,13 +892,12 @@ const TodayTab = ({ onTabChange }) => {
     handleOpenGoogleMaps(origin, destination);
   };
 
+  const handleOpenDayPlanAi = () => {
+    openAiRecommendations?.('dayPlan');
+  };
+
   return (
     <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
-      <div className="flex items-center gap-2 text-sm font-black text-brand-700 dark:text-brand-300">
-        <Info size={16} />
-        旅途
-      </div>
-
       <DaySwitcher
         itinerary={itinerary}
         selectedDay={selectedDay}
@@ -907,19 +927,13 @@ const TodayTab = ({ onTabChange }) => {
         canEdit={canEdit}
         nextEvent={nextEvent}
         routeUrl={routeUrl}
+        selectedDay={selectedDay}
         onAddEvent={openAddModal}
         onNavigateNext={handleNavigateNext}
+        onOpenAiRecommendations={handleOpenDayPlanAi}
       />
 
-      <Button
-        variant="secondary"
-        onClick={() => openAiRecommendations?.('dayPlan')}
-        disabled={!canEdit}
-        className="w-full justify-center"
-      >
-        <Sparkles size={16} />
-        智慧旅伴幫我排 Day {selectedDay}
-      </Button>
+      <ReminderStrip reminders={reminders} />
 
       <DayReadinessStrip
         events={dayEvents}
@@ -928,8 +942,6 @@ const TodayTab = ({ onTabChange }) => {
       />
 
       <TravelStatusPanel status={dayStatus} />
-
-      <ReminderStrip reminders={reminders} />
 
       <TodayTimeline
         events={events}

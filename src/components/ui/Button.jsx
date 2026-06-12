@@ -27,7 +27,7 @@ const Button = forwardRef(({
   <Component
     ref={ref}
     type={Component === 'button' ? (type || 'button') : type}
-    className={cx(variants[variant] || variants.primary, sizes[size], className)}
+    className={cx('tp-press-feedback tp-hover-icon tp-tap-ripple', variants[variant] || variants.primary, sizes[size], className)}
     {...props}
   >
     {children}

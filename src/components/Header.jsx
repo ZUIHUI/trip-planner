@@ -20,7 +20,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
     : nextSummaryText;
   const nextBaseClass = cover
     ? 'border-white/25 bg-white/15 text-white'
-    : 'border-cyan-100 bg-white/90 text-slate-700 shadow-[0_10px_24px_-22px_rgba(14,165,233,0.85)] dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-200';
+    : 'border-brand-100 bg-white/85 text-slate-700 shadow-[0_14px_30px_-26px_rgba(14,116,144,0.5)] dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
 
   return (
     <div
@@ -69,13 +69,16 @@ const Header = forwardRef(({
     : undefined;
 
   return (
-    <header ref={ref} className="sticky top-0 z-30 border-b border-cyan-100 bg-white/90 shadow-[0_16px_34px_-30px_rgba(14,165,233,0.9)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+    <header ref={ref} className="sticky top-0 z-30 border-b border-brand-100/80 bg-white/[0.9] shadow-[0_18px_38px_-32px_rgba(14,116,144,0.42)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
       <div
         style={headerStyle}
         className={shouldShowCoverBackground
           ? 'text-white'
-          : 'bg-gradient-to-br from-white via-sky-50 to-rose-50 text-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-brand-950/30 dark:text-white'}
+          : 'relative overflow-hidden bg-white/78 text-slate-950 dark:bg-slate-950/82 dark:text-white'}
       >
+        {!shouldShowCoverBackground && (
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-brand-400 via-sky-400 to-rose-400" />
+        )}
         <PageContainer className="py-3 sm:py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3">
@@ -120,7 +123,7 @@ const Header = forwardRef(({
 
             <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
               {isSaving && (
-                <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-cyan-100 bg-sky-50 text-brand-700 dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}>
+                <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-brand-100 bg-white/85 text-brand-700 shadow-sm dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}>
                   <RefreshCw size={13} className="animate-spin" />
                   儲存中
                 </span>
@@ -142,7 +145,7 @@ const Header = forwardRef(({
       </div>
 
       {children && (
-        <div className="border-t border-cyan-100 bg-white/95 dark:border-slate-800 dark:bg-slate-950">
+        <div className="border-t border-brand-100/80 bg-white/90 dark:border-slate-800 dark:bg-slate-950/[0.92]">
           <PageContainer>{children}</PageContainer>
         </div>
       )}
