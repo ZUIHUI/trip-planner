@@ -4,29 +4,29 @@
 
 @layer base {
   :root {
-    /* Light Mode: Travel Mint x Island Postcard */
-    --color-brand-50: 240 253 250;
-    --color-brand-100: 204 251 241;
-    --color-brand-200: 153 246 228;
-    --color-brand-300: 94 234 212;
-    --color-brand-400: 45 212 191;
-    --color-brand-500: 20 184 166;
-    --color-brand-600: 13 148 136;
-    --color-brand-700: 15 118 110;
-    --color-brand-800: 17 94 89;
-    --color-brand-900: 19 78 74;
-    --color-brand-950: 4 47 46;
+    /* Light Mode: Jelly Soda x Cream Retro Travel */
+    --color-brand-50: 236 254 255;
+    --color-brand-100: 207 250 254;
+    --color-brand-200: 165 243 252;
+    --color-brand-300: 103 232 249;
+    --color-brand-400: 34 211 238;
+    --color-brand-500: 6 182 212;
+    --color-brand-600: 8 145 178;
+    --color-brand-700: 14 116 144;
+    --color-brand-800: 21 94 117;
+    --color-brand-900: 22 78 99;
+    --color-brand-950: 8 47 73;
 
-    --accent-petal: 255 228 230;
-    --accent-petal-strong: 225 29 72;
-    --accent-sun: 254 243 199;
-    --accent-sun-strong: 245 158 11;
-    --accent-coral: 255 237 213;
-    --accent-coral-strong: 249 115 22;
-    --accent-lilac: 238 242 255;
-    --accent-lilac-strong: 124 58 237;
-    --accent-sky: 224 242 254;
-    --accent-sky-strong: 2 132 199;
+    --accent-petal: 255 218 228;
+    --accent-petal-strong: 219 39 119;
+    --accent-sun: 255 247 214;
+    --accent-sun-strong: 217 119 6;
+    --accent-coral: 255 226 199;
+    --accent-coral-strong: 234 88 12;
+    --accent-lilac: 243 232 255;
+    --accent-lilac-strong: 147 51 234;
+    --accent-sky: 219 245 255;
+    --accent-sky-strong: 14 165 233;
 
     /* Mobile typography & spacing tokens */
     --font-size-body-mobile: 16px;
@@ -38,13 +38,13 @@
     --space-form-control-mobile: 12px;
 
     /* Surface tokens */
-    --surface-page: 247 254 252;
-    --surface-card: 255 255 255;
-    --surface-muted: 240 253 250;
-    --border-soft: 190 225 229;
+    --surface-page: 255 252 241;
+    --surface-card: 255 255 252;
+    --surface-muted: 255 247 226;
+    --border-soft: 225 214 190;
     --radius-card: 8px;
-    --shadow-card: 0 22px 56px -44px rgba(15, 118, 110, 0.42), 0 12px 30px -30px rgba(2, 132, 199, 0.24), 0 1px 0 rgba(255, 255, 255, 0.88) inset;
-    --shadow-card-hover: 0 28px 70px -44px rgba(15, 118, 110, 0.52), 0 18px 40px -30px rgba(249, 115, 22, 0.3), 0 1px 0 rgba(255, 255, 255, 0.94) inset;
+    --shadow-card: 0 22px 56px -44px rgba(14, 116, 144, 0.38), 0 12px 30px -30px rgba(219, 39, 119, 0.24), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    --shadow-card-hover: 0 28px 70px -44px rgba(8, 145, 178, 0.48), 0 18px 40px -30px rgba(234, 88, 12, 0.3), 0 10px 26px -28px rgba(147, 51, 234, 0.22), 0 1px 0 rgba(255, 255, 255, 0.96) inset;
 
     /* Semantic z-index tokens */
     --z-bottom-nav: 40;
@@ -167,26 +167,26 @@
     @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-200 dark:text-slate-950;
     background-image: linear-gradient(135deg, rgb(var(--color-brand-600)), rgb(var(--accent-sky-strong)) 58%, rgb(var(--accent-petal-strong)));
     background-size: 220% 220%;
-    box-shadow: 0 18px 38px -24px rgba(14, 116, 144, 0.78), 0 10px 26px -24px rgba(236, 72, 153, 0.72), 0 1px 0 rgba(255, 255, 255, 0.24) inset;
+    box-shadow: 0 18px 38px -24px rgba(var(--color-brand-700), 0.78), 0 10px 26px -24px rgba(var(--accent-petal-strong), 0.64), 0 1px 0 rgba(255, 255, 255, 0.24) inset;
     animation: tp-primary-flow 4.8s ease-in-out infinite;
   }
 
   .tp-button-primary:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 22px 44px -24px rgba(14, 116, 144, 0.86), 0 14px 30px -24px rgba(var(--accent-petal-strong), 0.62);
+    box-shadow: 0 22px 44px -24px rgba(var(--color-brand-700), 0.86), 0 14px 30px -24px rgba(var(--accent-petal-strong), 0.62);
   }
 
   .tp-button-secondary {
     @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition duration-200 hover:text-slate-950 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:text-white;
     border-color: rgba(var(--border-soft), 0.9);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(var(--accent-sky), 0.26), rgba(var(--accent-petal), 0.2));
-    box-shadow: 0 10px 24px -22px rgba(14, 116, 144, 0.36), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+    box-shadow: 0 10px 24px -22px rgba(var(--color-brand-700), 0.36), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   }
 
   .tp-button-secondary:hover:not(:disabled) {
     border-color: rgba(var(--accent-petal-strong), 0.32);
     background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(var(--accent-sun), 0.28), rgba(var(--accent-sky), 0.34));
-    box-shadow: 0 16px 32px -24px rgba(14, 116, 144, 0.42), 0 10px 24px -22px rgba(var(--accent-petal-strong), 0.38);
+    box-shadow: 0 16px 32px -24px rgba(var(--color-brand-700), 0.42), 0 10px 24px -22px rgba(var(--accent-petal-strong), 0.38);
   }
 
   .tp-button-ghost {
@@ -290,7 +290,7 @@
     @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-brand-700 dark:text-brand-300;
     position: relative;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(var(--accent-sun), 0.58), rgba(var(--accent-petal), 0.58));
-    box-shadow: 0 14px 28px -24px rgba(14, 116, 144, 0.42), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
+    box-shadow: 0 14px 28px -24px rgba(var(--color-brand-700), 0.42), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
     animation: tp-icon-breathe 3.4s ease-in-out infinite;
   }
 
@@ -515,16 +515,16 @@ body {
     box-shadow: var(--shadow-card);
   }
   50% {
-    box-shadow: 0 26px 66px -42px rgba(14, 116, 144, 0.56), 0 18px 38px -32px rgba(236, 72, 153, 0.34), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
+    box-shadow: 0 26px 66px -42px rgba(var(--color-brand-700), 0.56), 0 18px 38px -32px rgba(var(--accent-petal-strong), 0.34), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
   }
 }
 
 @keyframes tp-dock-breathe {
   0%, 100% {
-    box-shadow: 0 -24px 48px -38px rgba(14, 116, 144, 0.5);
+    box-shadow: 0 -24px 48px -38px rgba(var(--color-brand-700), 0.5);
   }
   50% {
-    box-shadow: 0 -28px 56px -40px rgba(236, 72, 153, 0.42), 0 -10px 30px -28px rgba(14, 165, 233, 0.55);
+    box-shadow: 0 -28px 56px -40px rgba(var(--accent-petal-strong), 0.42), 0 -10px 30px -28px rgba(var(--accent-sky-strong), 0.55);
   }
 }
 
@@ -556,13 +556,13 @@ body {
 
 @keyframes tp-ring-ping {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.38), 0 12px 28px -22px rgba(14, 116, 144, 0.78);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.38), 0 12px 28px -22px rgba(var(--color-brand-700), 0.78);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0), 0 12px 28px -22px rgba(14, 116, 144, 0.78);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0), 0 12px 28px -22px rgba(var(--color-brand-700), 0.78);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 12px 28px -22px rgba(14, 116, 144, 0.78);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 12px 28px -22px rgba(var(--color-brand-700), 0.78);
   }
 }
 
