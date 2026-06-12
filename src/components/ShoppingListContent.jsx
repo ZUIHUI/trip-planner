@@ -7,6 +7,7 @@ import React, {
   useState
 } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import {
   CheckCircle2,
   Circle,
@@ -296,13 +297,21 @@ const ConfirmDialog = ({ target, onCancel, onConfirm }) => {
   if (!target) return null;
 
   return renderToBody(
-    <div
-      className="tp-fade-in fixed inset-0 z-[140] flex items-end justify-center bg-slate-950/55 p-4 sm:items-center"
+    <motion.div
+      className="fixed inset-0 z-[140] flex items-end justify-center bg-slate-950/55 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="shopping-confirm-title"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18 }}
     >
-      <div className="tp-slide-up w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <motion.div
+        className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+      >
         <h3 id="shopping-confirm-title" className="text-lg font-black text-slate-900 dark:text-white">
           {target.title}
         </h3>
@@ -313,8 +322,8 @@ const ConfirmDialog = ({ target, onCancel, onConfirm }) => {
           <Button variant="secondary" onClick={onCancel}>取消</Button>
           <Button variant="danger" onClick={onConfirm}>{target.confirmLabel || '刪除'}</Button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -326,13 +335,21 @@ const ManageCategoriesModal = ({
   onDeleteCategory,
   onClose
 }) => renderToBody(
-  <div
-    className="tp-fade-in fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
+  <motion.div
+    className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
     role="dialog"
     aria-modal="true"
     aria-label="管理分類"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.18 }}
   >
-    <div className="tp-slide-up max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-sm sm:rounded-lg dark:border-slate-800 dark:bg-slate-900">
+    <motion.div
+      className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-sm sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
+      initial={{ opacity: 0, y: 24, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+    >
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-black text-slate-900 dark:text-white">管理分類</h3>
@@ -371,7 +388,14 @@ const ManageCategoriesModal = ({
 
       <div className="mt-4 max-h-64 space-y-2 overflow-y-auto">
         {categories.map((category) => (
-          <div key={category} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+          <motion.div
+            key={category}
+            layout
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+            className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70"
+          >
             <span className="min-w-0 break-words font-semibold text-slate-700 dark:text-slate-200">{category}</span>
             {!DEFAULT_CATEGORIES.includes(category) && (
               <button
@@ -384,22 +408,30 @@ const ManageCategoriesModal = ({
                 <Trash2 size={16} />
               </button>
             )}
-          </div>
+          </motion.div>
         ))}
       </div>
-    </div>
-  </div>
+    </motion.div>
+  </motion.div>
 );
 
 const ImageZoomModal = ({ image, onClose }) => renderToBody(
-  <div
-    className="tp-fade-in fixed inset-0 z-[130] flex cursor-pointer items-center justify-center bg-black/90 p-4"
+  <motion.div
+    className="fixed inset-0 z-[130] flex cursor-pointer items-center justify-center bg-black/90 p-4"
     onClick={onClose}
     role="dialog"
     aria-modal="true"
     aria-label="商品圖片預覽"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.18 }}
   >
-    <div className="relative max-h-[90vh] max-w-4xl">
+    <motion.div
+      className="relative max-h-[90vh] max-w-4xl"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 360, damping: 32, mass: 0.6 }}
+    >
       <img src={image} alt="商品圖片預覽" className="max-h-[90vh] max-w-full rounded-lg object-contain" />
       <button
         type="button"
@@ -409,8 +441,8 @@ const ImageZoomModal = ({ image, onClose }) => renderToBody(
       >
         <X size={22} />
       </button>
-    </div>
-  </div>
+    </motion.div>
+  </motion.div>
 );
 
 const ShoppingItemFormModal = ({
@@ -427,18 +459,24 @@ const ShoppingItemFormModal = ({
   onSave,
   onClose
 }) => renderToBody(
-  <div
-    className="tp-fade-in fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
+  <motion.div
+    className="fixed inset-0 z-[120] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4"
     role="dialog"
     aria-modal="true"
     aria-label={editingId ? '編輯購物項目' : '新增購物項目'}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.18 }}
   >
-    <form
+    <motion.form
       onSubmit={(event) => {
         event.preventDefault();
         onSave();
       }}
-      className="tp-slide-up max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
+      className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-lg dark:border-slate-800 dark:bg-slate-900"
+      initial={{ opacity: 0, y: 24, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
@@ -594,8 +632,8 @@ const ShoppingItemFormModal = ({
           </Button>
         </div>
       </div>
-    </form>
-  </div>
+    </motion.form>
+  </motion.div>
 );
 
 const ShoppingItemCard = ({
@@ -621,7 +659,8 @@ const ShoppingItemCard = ({
     <Card
       as="article"
       interactive
-      className={`tp-animate-enter tp-motion-panel overflow-hidden p-0 ${
+      layout
+      className={`tp-motion-panel overflow-hidden p-0 ${
         purchased ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/70 dark:bg-emerald-950/20' : ''
       } ${isDragging ? 'opacity-60 ring-2 ring-orange-200 dark:ring-orange-900/70' : ''}`}
       draggable

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { AlertTriangle, CheckCircle2, Info, RotateCcw, X } from 'lucide-react';
 import { Button } from '../components/ui';
 
@@ -73,10 +74,15 @@ const ToastItem = ({ toast, onDismiss }) => {
   };
 
   return (
-    <div
+    <motion.div
       className={`pointer-events-auto w-full rounded-lg border ${containerClass} ${style.className}`}
       role="status"
       aria-live={variant === 'danger' ? 'assertive' : 'polite'}
+      layout
+      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 460, damping: 34, mass: 0.65 }}
     >
       <div className={`flex items-start ${gapClass}`}>
         <Icon size={isCompact ? 16 : 18} className="mt-0.5 shrink-0" />
@@ -88,14 +94,15 @@ const ToastItem = ({ toast, onDismiss }) => {
             </p>
           )}
           {actionLabel && onAction && (
-            <button
+            <motion.button
               type="button"
               onClick={handleAction}
               className={`inline-flex items-center gap-1 rounded-full bg-white/75 font-black text-slate-700 transition hover:bg-white dark:bg-slate-950/35 dark:text-slate-100 dark:hover:bg-slate-950/55 ${actionClass}`}
+              whileTap={{ scale: 0.96 }}
             >
               <RotateCcw size={isCompact ? 12 : 13} />
               {actionLabel}
-            </button>
+            </motion.button>
           )}
           {hasCountdown && (
             <div className={`${countdownClass} overflow-hidden rounded-full bg-current/15`}>
@@ -106,16 +113,18 @@ const ToastItem = ({ toast, onDismiss }) => {
             </div>
           )}
         </div>
-        <button
+        <motion.button
           type="button"
           onClick={() => onDismiss(id)}
           className={`inline-flex shrink-0 items-center justify-center rounded-full opacity-70 transition hover:bg-white/60 hover:opacity-100 dark:hover:bg-slate-950/35 ${closeClass}`}
           aria-label="關閉提示"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
         >
           <X size={isCompact ? 14 : 15} />
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -132,13 +141,23 @@ const ConfirmDialog = ({ state, onCancel, onConfirm }) => {
   const style = confirmStyles[variant] || confirmStyles.danger;
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-[190] flex items-end justify-center bg-slate-950/55 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="global-confirm-title"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <motion.div
+        className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        initial={{ opacity: 0, y: 22, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.985 }}
+        transition={{ type: 'spring', stiffness: 460, damping: 38, mass: 0.7 }}
+      >
         <div className="flex items-start gap-3">
           <div className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${style.iconClass}`}>
             <AlertTriangle size={20} />
@@ -158,8 +177,8 @@ const ConfirmDialog = ({ state, onCancel, onConfirm }) => {
           <Button variant="secondary" onClick={onCancel}>{cancelLabel}</Button>
           <Button variant={style.confirmVariant} onClick={onConfirm}>{confirmLabel}</Button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -214,11 +233,22 @@ export const FeedbackProvider = ({ children }) => {
     <FeedbackContext.Provider value={value}>
       {children}
       <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[200] flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-4 sm:top-4 sm:bottom-auto sm:items-end">
-        {toasts.map((item) => (
-          <ToastItem key={item.id} toast={item} onDismiss={dismissToast} />
-        ))}
+        <AnimatePresence initial={false}>
+          {toasts.map((item) => (
+            <ToastItem key={item.id} toast={item} onDismiss={dismissToast} />
+          ))}
+        </AnimatePresence>
       </div>
-      <ConfirmDialog state={confirmState} onCancel={cancelConfirm} onConfirm={acceptConfirm} />
+      <AnimatePresence>
+        {confirmState && (
+          <ConfirmDialog
+            key="global-confirm"
+            state={confirmState}
+            onCancel={cancelConfirm}
+            onConfirm={acceptConfirm}
+          />
+        )}
+      </AnimatePresence>
     </FeedbackContext.Provider>
   );
 };

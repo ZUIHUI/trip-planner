@@ -254,7 +254,7 @@ const LoginPage = () => {
   return (
     <main className="tp-page-shell min-h-screen">
       <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
-        <Card className="tp-animate-enter tp-ambient-glow relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
+        <Card className="tp-ambient-glow relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
           <span aria-hidden="true" className="tp-ambient-stars" />
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
           <div className="mb-6">

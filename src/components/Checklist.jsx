@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import { CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { Button, EmptyState, Input } from './ui';
 import { useFeedback } from '../contexts/FeedbackContext';
@@ -111,9 +112,13 @@ const Checklist = ({
       ) : (
         <div className="space-y-2">
           {safeItems.map((item) => (
-            <div
+            <motion.div
               key={item.id}
-              className="tp-animate-enter tp-motion-panel group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-900/20"
+              layout
+              initial={{ opacity: 0, y: 8, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+              className="tp-motion-panel group flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-brand-200 hover:bg-brand-50/40 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-900/20"
             >
               <input
                 type="checkbox"
@@ -136,7 +141,7 @@ const Checklist = ({
               >
                 <Trash2 size={16} />
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

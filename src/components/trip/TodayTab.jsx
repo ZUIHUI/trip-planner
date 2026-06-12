@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import {
   AlertTriangle,
   CalendarDays,
@@ -41,6 +42,20 @@ import {
 import { getAirportDayFlights } from '../../utils/airportDayFlights';
 
 const emptyFlightText = '未設定';
+
+const quickActionMotion = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.055
+    }
+  }
+};
+
+const quickActionItemMotion = {
+  hidden: { opacity: 0, y: 10, scale: 0.985 },
+  visible: { opacity: 1, y: 0, scale: 1 }
+};
 
 const getRouteStop = (event) => {
   const destination = getEventDestination(event);
@@ -325,7 +340,13 @@ const TodayHero = ({
 
   if (!nextEvent) {
     return (
-      <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
+      <motion.section
+        layout
+        initial={{ opacity: 0, y: 14, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
+        className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+      >
         <span aria-hidden="true" className="tp-ambient-stars" />
         <span aria-hidden="true" className="tp-route-trail" />
         <div className="flex items-start justify-between gap-3">
@@ -355,12 +376,18 @@ const TodayHero = ({
           <Plus size={18} />
           放進今日行程
         </button>
-      </section>
+      </motion.section>
     );
   }
 
   return (
-    <section className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950">
+    <motion.section
+      layout
+      initial={{ opacity: 0, y: 14, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
+      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(14,116,144,0.78)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+    >
       <span aria-hidden="true" className="tp-ambient-stars" />
       <span aria-hidden="true" className="tp-route-trail" />
       <div className="flex items-start justify-between gap-3">
@@ -429,7 +456,7 @@ const TodayHero = ({
           <p className="line-clamp-2 whitespace-pre-wrap">{memoText}</p>
         </div>
       )}
-    </section>
+    </motion.section>
   );
 };
 
@@ -445,50 +472,64 @@ const QuickActions = ({
   const hasNextDestination = Boolean(getEventLocationText(nextEvent));
 
   return (
-    <div className="tp-stagger-list grid grid-cols-4 gap-2" aria-label="旅途中快速操作">
-      <Button
-        variant="secondary"
-        onClick={onNavigateNext}
-        disabled={!hasNextDestination}
-        className="min-w-0 !px-1 text-xs"
-      >
-        <Navigation size={16} />
-        導航
-      </Button>
-      {routeUrl ? (
+    <motion.div
+      className="grid grid-cols-4 gap-2"
+      aria-label="旅途中快速操作"
+      variants={quickActionMotion}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
         <Button
-          as="a"
-          href={routeUrl}
-          target="_blank"
-          rel="noopener noreferrer"
           variant="secondary"
-          className="min-w-0 !px-1 text-xs"
+          onClick={onNavigateNext}
+          disabled={!hasNextDestination}
+          className="w-full min-w-0 !px-1 text-xs"
         >
-          <Map size={16} />
-          路線
+          <Navigation size={16} />
+          導航
         </Button>
-      ) : (
-        <Button variant="secondary" disabled className="min-w-0 !px-1 text-xs">
-          <Map size={16} />
-          路線
+      </motion.div>
+      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
+        {routeUrl ? (
+          <Button
+            as="a"
+            href={routeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="secondary"
+            className="w-full min-w-0 !px-1 text-xs"
+          >
+            <Map size={16} />
+            路線
+          </Button>
+        ) : (
+          <Button variant="secondary" disabled className="w-full min-w-0 !px-1 text-xs">
+            <Map size={16} />
+            路線
+          </Button>
+        )}
+      </motion.div>
+      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
+        <Button onClick={onAddEvent} disabled={!canEdit} className="w-full min-w-0 !px-1 text-xs">
+          <Plus size={16} />
+          新增
         </Button>
-      )}
-      <Button onClick={onAddEvent} disabled={!canEdit} className="min-w-0 !px-1 text-xs">
-        <Plus size={16} />
-        新增
-      </Button>
-      <Button
-        variant="secondary"
-        onClick={onOpenAiRecommendations}
-        disabled={!canEdit}
-        className="min-w-0 !px-1 text-xs"
-        aria-label={`智慧旅伴幫我排 Day ${selectedDay}`}
-        title={`智慧旅伴幫我排 Day ${selectedDay}`}
-      >
-        <Sparkles size={16} />
-        智慧
-      </Button>
-    </div>
+      </motion.div>
+      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
+        <Button
+          variant="secondary"
+          onClick={onOpenAiRecommendations}
+          disabled={!canEdit}
+          className="w-full min-w-0 !px-1 text-xs"
+          aria-label={`智慧旅伴幫我排 Day ${selectedDay}`}
+          title={`智慧旅伴幫我排 Day ${selectedDay}`}
+        >
+          <Sparkles size={16} />
+          智慧
+        </Button>
+      </motion.div>
+    </motion.div>
   );
 };
 

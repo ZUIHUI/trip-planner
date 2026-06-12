@@ -80,6 +80,20 @@ const statusConfig = {
   done: { label: '已完成', variant: 'muted' }
 };
 
+const tripGridMotion = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.045
+    }
+  }
+};
+
+const tripGridItemMotion = {
+  hidden: { opacity: 0, y: 10, scale: 0.985 },
+  visible: { opacity: 1, y: 0, scale: 1 }
+};
+
 const formatDateTime = (value) => {
   if (!value) return '尚未更新';
   const date = new Date(value);
@@ -145,7 +159,12 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
   if (!trip) return null;
 
   return (
-    <div className="tp-animate-enter tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 pb-6 shadow-[0_18px_38px_-32px_rgba(14,116,144,0.55)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25">
+    <motion.div
+      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 pb-6 shadow-[0_18px_38px_-32px_rgba(14,116,144,0.55)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25"
+      initial={{ opacity: 0, y: 10, scale: 0.99 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
+    >
       <span aria-hidden="true" className="tp-ambient-stars" />
       <span aria-hidden="true" className="tp-route-trail" />
       <div className="flex min-w-0 items-center gap-3">
@@ -166,24 +185,28 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
         繼續
         <ArrowRight size={15} />
       </Button>
-    </div>
+    </motion.div>
   );
 };
 
 const TripFilterChip = ({ active, label, count, onClick }) => (
-  <button
+  <motion.button
     type="button"
     onClick={onClick}
     aria-pressed={active}
+    layout
+    animate={{ scale: active ? 1.025 : 1 }}
+    whileTap={{ scale: 0.96 }}
+    transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
     className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
       active
-        ? 'tp-pop border-brand-200 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 text-white shadow-[0_14px_28px_-22px_rgba(14,116,144,0.65)] dark:border-brand-500 dark:from-brand-200 dark:via-sky-200 dark:to-rose-200 dark:text-slate-950'
+        ? 'border-brand-200 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 text-white shadow-[0_14px_28px_-22px_rgba(14,116,144,0.65)] dark:border-brand-500 dark:from-brand-200 dark:via-sky-200 dark:to-rose-200 dark:text-slate-950'
         : 'border-brand-100 bg-white/80 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/65 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
     }`}
   >
     <span>{label}</span>
     <span className="ml-1 text-xs opacity-70">{count}</span>
-  </button>
+  </motion.button>
 );
 
 const TripCard = ({
@@ -708,7 +731,12 @@ const TripListPage = () => {
           )}
         </div>
 
-        <section className="tp-panel tp-animate-enter tp-sheen tp-ambient-glow relative mb-4 overflow-hidden p-4 pb-7 pt-5">
+        <motion.section
+          className="tp-panel tp-sheen tp-ambient-glow relative mb-4 overflow-hidden p-4 pb-7 pt-5"
+          initial={{ opacity: 0, y: 12, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
+        >
           <span aria-hidden="true" className="tp-ambient-stars" />
           <span aria-hidden="true" className="tp-route-trail" />
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
@@ -803,7 +831,7 @@ const TripListPage = () => {
               )}
             </AnimatePresence>
           </div>
-        </section>
+        </motion.section>
 
         <InstallAppPrompt className="mb-4" />
 
@@ -871,26 +899,37 @@ const TripListPage = () => {
                 }}
               />
             ) : (
-              <div className="tp-stagger-list grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <motion.div
+                className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                variants={tripGridMotion}
+                initial="hidden"
+                animate="visible"
+              >
                 {visibleTrips.map((trip) => (
-                  <TripCard
+                  <motion.div
                     key={trip.id}
-                    trip={trip}
-                    expanded={Boolean(expandedCards[trip.id])}
-                    coverFailed={Boolean(failedCoverImages[trip.id])}
-                    onCoverError={() =>
-                      setFailedCoverImages((prev) => ({
-                        ...prev,
-                        [trip.id]: true
-                      }))
-                    }
-                    onOpen={() => openTripDetail(trip.id)}
-                    onToggleExpanded={() => toggleExpandedCard(trip.id)}
-                    onDelete={() => handleDeleteTrip(trip.id)}
-                    canDelete={trip.accessRole === 'owner'}
-                  />
+                    layout
+                    variants={tripGridItemMotion}
+                    transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.55 }}
+                  >
+                    <TripCard
+                      trip={trip}
+                      expanded={Boolean(expandedCards[trip.id])}
+                      coverFailed={Boolean(failedCoverImages[trip.id])}
+                      onCoverError={() =>
+                        setFailedCoverImages((prev) => ({
+                          ...prev,
+                          [trip.id]: true
+                        }))
+                      }
+                      onOpen={() => openTripDetail(trip.id)}
+                      onToggleExpanded={() => toggleExpandedCard(trip.id)}
+                      onDelete={() => handleDeleteTrip(trip.id)}
+                      canDelete={trip.accessRole === 'owner'}
+                    />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import {
   AlertCircle,
   ArrowDown,
@@ -197,15 +198,18 @@ const EventCard = ({
 
   const actionMenu = showMenu && menuPosition && typeof document !== 'undefined'
     ? createPortal(
-      <div
+      <motion.div
         ref={menuRef}
-        className="tp-slide-up fixed z-[120] w-44 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        className="fixed z-[120] w-44 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         style={{
           left: `${menuPosition.left}px`,
           top: `${menuPosition.top}px`,
           maxHeight: `${menuPosition.maxHeight}px`,
           overflowY: 'auto'
         }}
+        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 480, damping: 34, mass: 0.6 }}
         onClick={(clickEvent) => clickEvent.stopPropagation()}
       >
         {canReorder && (
@@ -275,16 +279,22 @@ const EventCard = ({
           <Trash2 size={14} />
           刪除
         </button>
-      </div>,
+      </motion.div>,
       document.body
     )
     : null;
 
   return (
-    <div className="tp-animate-enter relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800">
-      <span className={`tp-soft-pulse absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
+    <motion.div
+      className="relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800"
+      layout
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
+    >
+      <motion.span className={`tp-soft-pulse absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
         event.urgent ? 'border-red-500' : 'border-brand-400'
-      }`} />
+      }`} layout />
 
       <Card interactive className="relative cursor-pointer p-3 sm:p-4" onClick={handleCardClick}>
         <div className="flex items-start justify-between gap-3">
@@ -472,7 +482,7 @@ const EventCard = ({
         </div>
       </Card>
       {actionMenu}
-    </div>
+    </motion.div>
   );
 };
 

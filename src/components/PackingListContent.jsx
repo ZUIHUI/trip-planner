@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   Briefcase,
   Check,
@@ -322,14 +323,18 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
     const isDragging = draggedItemId === item.id;
 
     return (
-      <div
+      <motion.div
         key={item.id}
+        layout
+        initial={{ opacity: 0, y: 8, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
         data-item-id={item.id}
         draggable={!isEditing}
         onDragStart={(event) => handleDragStart(event, item.id)}
         onDragOver={handleDragOver}
         onDrop={(event) => handleDrop(event, item.id)}
-        className={`tp-animate-enter tp-motion-panel group flex items-center gap-2 rounded-lg border p-2.5 transition sm:gap-3 ${
+        className={`tp-motion-panel group flex items-center gap-2 rounded-lg border p-2.5 transition sm:gap-3 ${
           item.done
             ? 'border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/50'
             : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/30 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/20'
@@ -439,7 +444,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             </div>
           </>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -740,31 +745,43 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
         </div>
       </section>
 
-      {itemToDelete && (
-        <div
-          className="tp-fade-in fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-slate-950/45 p-4 sm:items-center"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="packing-delete-title"
-        >
-          <div className="tp-slide-up w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-            <h3 id="packing-delete-title" className="text-lg font-black text-slate-900 dark:text-white">
-              刪除這個物品？
-            </h3>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              「{itemToDelete.text}」會從行李清單移除，這個動作無法復原。
-            </p>
-            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button variant="secondary" onClick={() => setItemToDelete(null)}>
-                取消
-              </Button>
-              <Button variant="danger" onClick={handleConfirmDelete}>
-                刪除
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {itemToDelete && (
+          <motion.div
+            className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center bg-slate-950/45 p-4 sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="packing-delete-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            <motion.div
+              className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-900"
+              initial={{ opacity: 0, y: 18, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+            >
+              <h3 id="packing-delete-title" className="text-lg font-black text-slate-900 dark:text-white">
+                刪除這個物品？
+              </h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                「{itemToDelete.text}」會從行李清單移除，這個動作無法復原。
+              </p>
+              <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button variant="secondary" onClick={() => setItemToDelete(null)}>
+                  取消
+                </Button>
+                <Button variant="danger" onClick={handleConfirmDelete}>
+                  刪除
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

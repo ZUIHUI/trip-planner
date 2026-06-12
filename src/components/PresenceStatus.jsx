@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { CircleX, PencilLine } from 'lucide-react';
 import { Badge, cx } from './ui';
 
@@ -122,9 +123,13 @@ export const PresenceRosterRow = ({
   const roleLabel = roleLabels[role] || '';
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
       className={cx(
-        'tp-motion-panel tp-animate-enter flex min-w-0 items-center justify-between gap-3 rounded-lg border border-transparent bg-slate-50 px-3 py-2 dark:bg-slate-800/70',
+        'tp-motion-panel flex min-w-0 items-center justify-between gap-3 rounded-lg border border-transparent bg-slate-50 px-3 py-2 dark:bg-slate-800/70',
         status === 'editing' && 'border-sky-100 bg-sky-50/70 dark:border-sky-900/60 dark:bg-sky-950/25',
         status === 'online' && 'border-emerald-100 bg-emerald-50/55 dark:border-emerald-900/60 dark:bg-emerald-950/20',
         compact && 'px-2.5 py-2',
@@ -160,7 +165,7 @@ export const PresenceRosterRow = ({
         </span>
         {showRole && roleLabel && <Badge variant={role === 'owner' ? 'success' : role === 'viewer' || role === 'view' ? 'muted' : 'info'}>{roleLabel}</Badge>}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

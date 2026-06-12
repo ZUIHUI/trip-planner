@@ -1,10 +1,11 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { cx } from './utils';
 
 const PageContainer = ({ className = '', children }) => (
-  <div className={cx('tp-page-container min-w-0 max-w-full', className)}>
+  <motion.div className={cx('tp-page-container min-w-0 max-w-full', className)} layout>
     {children}
-  </div>
+  </motion.div>
 );
 
 export default PageContainer;

@@ -49,13 +49,16 @@ const PresenceTabMarker = ({ count = 0 }) => {
   if (!count) return null;
 
   return (
-    <span
-      className="tp-status-pulse tp-pop absolute right-1.5 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900"
+    <motion.span
+      className="tp-status-pulse absolute right-1.5 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900"
       title={`${count} 位旅伴在這裡`}
       aria-label={`${count} 位旅伴在這裡`}
+      initial={{ opacity: 0, scale: 0.7 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 560, damping: 32, mass: 0.5 }}
     >
       {count > 1 ? count : ''}
-    </span>
+    </motion.span>
   );
 };
 

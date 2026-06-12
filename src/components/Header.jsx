@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { motion } from 'motion/react';
 import { ArrowLeft, Calendar, Home, MapPin, RefreshCw, Settings } from 'lucide-react';
 import { getTripDisplayDates } from '../utils/tripDates';
 import { Badge, Button, PageContainer } from './ui';
@@ -23,10 +24,14 @@ const PresencePill = ({ presenceUi, cover = false }) => {
     : 'border-brand-100 bg-white/85 text-slate-700 shadow-[0_14px_30px_-26px_rgba(14,116,144,0.5)] dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
 
   return (
-    <div
-      className={`tp-motion-panel tp-pop inline-flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold shadow-sm ${nextBaseClass}`}
+    <motion.div
+      className={`tp-motion-panel inline-flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-bold shadow-sm ${nextBaseClass}`}
       title={nextTitle}
       aria-label={nextSummaryText}
+      layout
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 460, damping: 34, mass: 0.6 }}
     >
       <PresenceStatusDot status={selfState} size="sm" label={selfStatus.statusLabel || nextSummaryText} />
       {activePeople.length > 0 && (
@@ -42,7 +47,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
         </div>
       )}
       <span className="max-w-[8.5rem] truncate sm:max-w-[11rem]">{nextSummaryText}</span>
-    </div>
+    </motion.div>
   );
 };
 
@@ -69,9 +74,17 @@ const Header = forwardRef(({
     : undefined;
 
   return (
-    <header ref={ref} className="sticky top-0 z-30 border-b border-brand-100/80 bg-white/[0.9] shadow-[0_18px_38px_-32px_rgba(14,116,144,0.42)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
-      <div
+    <motion.header
+      ref={ref}
+      className="sticky top-0 z-30 border-b border-brand-100/80 bg-white/[0.9] shadow-[0_18px_38px_-32px_rgba(14,116,144,0.42)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90"
+      layout
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <motion.div
         style={headerStyle}
+        layout
         className={shouldShowCoverBackground
           ? 'text-white'
           : 'relative overflow-hidden bg-white/78 text-slate-950 dark:bg-slate-950/82 dark:text-white'}
@@ -123,10 +136,15 @@ const Header = forwardRef(({
 
             <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
               {isSaving && (
-                <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-brand-100 bg-white/85 text-brand-700 shadow-sm dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}>
+                <motion.span
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-brand-100 bg-white/85 text-brand-700 shadow-sm dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <RefreshCw size={13} className="animate-spin" />
                   儲存中
-                </span>
+                </motion.span>
               )}
               <PresencePill presenceUi={presenceUi} cover={shouldShowCoverBackground} />
               <Button
@@ -142,14 +160,19 @@ const Header = forwardRef(({
             </div>
           </div>
         </PageContainer>
-      </div>
+      </motion.div>
 
       {children && (
-        <div className="border-t border-brand-100/80 bg-white/90 dark:border-slate-800 dark:bg-slate-950/[0.92]">
+        <motion.div
+          className="border-t border-brand-100/80 bg-white/90 dark:border-slate-800 dark:bg-slate-950/[0.92]"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        >
           <PageContainer>{children}</PageContainer>
-        </div>
+        </motion.div>
       )}
-    </header>
+    </motion.header>
   );
 });
 

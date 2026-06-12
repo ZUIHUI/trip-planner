@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import { CheckCircle2, Copy, KeyRound, RefreshCw, Send, Share2, UsersRound, Vote, XCircle } from 'lucide-react';
 import {
   createTripInviteCode,
@@ -509,7 +510,14 @@ const ShareCollaborationCard = ({
             const online = Boolean(presence?.online);
             const editingText = formatEditingTarget(presence?.editingTarget);
             return (
-              <div key={member.uid || member.id || member.email} className="tp-animate-enter flex min-w-0 items-center justify-between gap-3 px-3 py-2">
+              <motion.div
+                key={member.uid || member.id || member.email}
+                layout
+                initial={{ opacity: 0, y: 8, scale: 0.985 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+                className="flex min-w-0 items-center justify-between gap-3 px-3 py-2"
+              >
                 <div className="min-w-0">
                   <p className="flex min-w-0 items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
                     <PresenceStatusDot status={editingText ? 'editing' : online ? 'online' : 'offline'} size="sm" label={editingText || (online ? '在線' : '離線')} />
@@ -524,7 +532,7 @@ const ShareCollaborationCard = ({
                 <Badge variant={member.role === 'owner' ? 'success' : (member.role === 'editor' || member.role === 'edit') ? 'info' : 'muted'}>
                   {getRoleLabel(member.role)}
                 </Badge>
-              </div>
+              </motion.div>
             );
           }) : (
             <p className="px-3 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400">

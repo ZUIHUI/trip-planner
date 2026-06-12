@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'motion/react';
 import { CalendarPlus, CheckCircle2, MapPin, Plus, Star, ThumbsDown, ThumbsUp, Trash2, UsersRound } from 'lucide-react';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
@@ -138,7 +139,13 @@ const PlacePoolItem = ({
   const isTopPlace = voteScore > 0 && voteScore === topVoteScore;
 
   return (
-    <div className="tp-animate-enter tp-motion-panel rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.55 }}
+      className="tp-motion-panel rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900"
+    >
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -250,7 +257,7 @@ const PlacePoolItem = ({
           </Button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
