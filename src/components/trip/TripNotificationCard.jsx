@@ -18,7 +18,7 @@ const stateCopy = {
     badge: '可開啟',
     badgeVariant: 'info',
     title: '開啟旅程提醒',
-    description: '用智慧預設提醒今天行程、航班時間和出發前待辦。',
+    description: '幫你提醒今天行程、航班時間和出發前待辦。',
     action: '開啟提醒',
     actionVariant: 'primary'
   },

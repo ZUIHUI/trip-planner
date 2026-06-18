@@ -518,11 +518,11 @@ const QuickActions = ({
           onClick={onOpenAiRecommendations}
           disabled={!canEdit}
           className="w-full min-w-0 !px-1 text-xs"
-          aria-label={`智慧旅伴幫我排 Day ${selectedDay}`}
-          title={`智慧旅伴幫我排 Day ${selectedDay}`}
+          aria-label={`幫我排 Day ${selectedDay}`}
+          title={`幫我排 Day ${selectedDay}`}
         >
           <Sparkles size={16} />
-          智慧
+          幫排
         </Button>
       </motion.div>
     </motion.div>

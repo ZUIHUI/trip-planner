@@ -74,9 +74,9 @@ export const useTripAiRecommendations = ({
     setMode(safeMode);
 
     if (!canEdit) {
-      const message = '只有可編輯旅程的成員可以產生智慧推薦。';
+      const message = '只有可編輯旅程的成員可以整理推薦。';
       setError(message);
-      toast?.({ variant: 'warning', title: '無法產生智慧推薦', description: message });
+      toast?.({ variant: 'warning', title: '無法整理推薦', description: message });
       return null;
     }
 
@@ -93,9 +93,9 @@ export const useTripAiRecommendations = ({
       setResponse(nextResponse);
       return nextResponse;
     } catch (requestError) {
-      const message = requestError?.message || '智慧推薦暫時無法產生，請稍後再試。';
+      const message = requestError?.message || '暫時整理不出推薦，請稍後再試。';
       setError(message);
-      toast?.({ variant: 'warning', title: '智慧推薦失敗', description: message });
+      toast?.({ variant: 'warning', title: '推薦產生失敗', description: message });
       return null;
     } finally {
       setIsLoading(false);

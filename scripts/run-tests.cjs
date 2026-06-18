@@ -573,11 +573,11 @@ test('builds app objects from AI recommendation cards', () => {
   const place = createPlaceFromAiRecommendation(recommendation);
   const event = createEventFromAiRecommendation(recommendation);
 
-  assert.equal(response.headline, '智慧建議');
+  assert.equal(response.headline, '旅伴建議');
   assert.equal(response.recommendations.length, 1);
   assert.equal(place.status, 'idea');
   assert.equal(place.plannedDay, null);
-  assert.match(place.note, /智慧建議/);
+  assert.match(place.note, /可以這樣排/);
   assert.equal(event.title, '上野公園散步');
   assert.equal(event.time, '09:05');
   assert.equal(event.type, 'sightseeing');
@@ -650,7 +650,7 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /floatingPetMood/);
   assert.match(panelSource, /AI_INITIAL_IDEA_MAX_LENGTH = 600/);
   assert.match(panelSource, /id="trip-ai-initial-idea"/);
-  assert.match(panelSource, /智慧旅伴/);
+  assert.match(panelSource, /title="旅伴"/);
   assert.match(panelSource, /onGenerate\?\.\('dayPlan', \{ userIdea: initialIdeaText \}\)/);
   assert.doesNotMatch(panelSource, /modeOptions\.map|id: 'placeIdeas'/);
   assert.doesNotMatch(panelSource, /召喚 AI 旅伴|開啟 AI 旅伴|隱藏 AI 旅伴|關閉 AI 旅伴|AI 推薦/);
@@ -667,7 +667,7 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
   assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
   assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
-  assert.match(todaySource, /智慧旅伴幫我排/);
+  assert.match(todaySource, /幫我排 Day/);
   assert.doesNotMatch(todaySource, /AI 旅伴幫我排/);
   assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);

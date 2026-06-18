@@ -1328,7 +1328,7 @@ const TripDetailPage = () => {
 
   const handleApplyAiPlaceRecommendation = useCallback((recommendation) => {
     if (!canEdit) {
-      toast({ variant: 'warning', title: '無法套用智慧推薦', description: '目前是唯讀權限，不能加入想去清單。' });
+      toast({ variant: 'warning', title: '無法套用推薦', description: '目前是唯讀權限，不能加入想去清單。' });
       return null;
     }
 
@@ -1355,7 +1355,7 @@ const TripDetailPage = () => {
       }).catch((error) => {
         if (handleDocumentPersistenceError) {
           handleDocumentPersistenceError(error, {
-            label: '智慧想去推薦',
+            label: '想去推薦',
             fallback: fallbackToTripSave,
             deniedLogMessage: 'AI place recommendation write denied; skipping root trip autosave fallback.',
             fallbackLogMessage: 'AI place recommendation write failed; falling back to full trip autosave.'
@@ -1389,7 +1389,7 @@ const TripDetailPage = () => {
 
   const handleApplyAiEventRecommendation = useCallback((recommendation) => {
     if (!canEdit) {
-      toast({ variant: 'warning', title: '無法套用智慧推薦', description: '目前是唯讀權限，不能加入行程。' });
+      toast({ variant: 'warning', title: '無法套用推薦', description: '目前是唯讀權限，不能加入行程。' });
       return null;
     }
 
@@ -1404,7 +1404,7 @@ const TripDetailPage = () => {
       toast({
         variant: 'success',
         title: `已排入 Day ${targetDay}`,
-        description: nextEvent.title || '智慧推薦行程'
+        description: nextEvent.title || '推薦行程'
       });
     }
 

@@ -19,7 +19,7 @@ export const cleanAiText = (value, maxLength = 160) => String(value || '')
   .replace(/[\u0000-\u001f\u007f]/g, ' ')
   .replace(/\s+/g, ' ')
   .trim()
-  .replace(/\bAI\b\s*/gi, '智慧')
+  .replace(/\bAI\b\s*/gi, '旅伴')
   .slice(0, maxLength);
 
 const normalizeTime = (value) => {
@@ -111,7 +111,7 @@ export const normalizeAiRecommendationResponse = (payload = {}) => {
 
   return {
     generatedAt: cleanAiText(source.generatedAt, 48),
-    headline: cleanAiText(source.headline, 120) || '智慧旅伴建議',
+    headline: cleanAiText(source.headline, 120) || '旅伴小提案',
     companionLine: cleanAiText(source.companionLine, 180) || '我先整理成候選卡，你再決定要不要加入旅程。',
     recommendations
   };
@@ -121,7 +121,7 @@ export const makeAiPlaceId = () => `ai-place-${Date.now()}-${Math.random().toStr
 export const makeAiEventId = () => `ai-event-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const buildNoteText = (recommendation) => [
-  recommendation.reason ? `智慧建議：${recommendation.reason}` : '',
+  recommendation.reason ? `可以這樣排：${recommendation.reason}` : '',
   recommendation.caution ? `提醒：${recommendation.caution}` : '',
   recommendation.suggestedDay ? `建議 Day ${recommendation.suggestedDay}` : '',
   recommendation.tags?.length ? `標籤：${recommendation.tags.join('、')}` : ''
