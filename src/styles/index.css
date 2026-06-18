@@ -150,6 +150,7 @@
   .tp-card-hover:hover {
     border-color: rgba(var(--accent-petal-strong), 0.28);
     box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
   }
 
   .tp-panel {
@@ -167,12 +168,13 @@
     @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-200 dark:text-slate-950;
     background-image: linear-gradient(135deg, rgb(var(--color-brand-600)), rgb(var(--accent-sky-strong)) 58%, rgb(var(--accent-petal-strong)));
     background-size: 220% 220%;
+    background-position: 0% 50%;
     box-shadow: 0 18px 38px -24px rgba(var(--color-brand-700), 0.78), 0 10px 26px -24px rgba(var(--accent-petal-strong), 0.64), 0 1px 0 rgba(255, 255, 255, 0.24) inset;
-    animation: tp-primary-flow 4.8s ease-in-out infinite;
   }
 
   .tp-button-primary:hover:not(:disabled) {
-    transform: translateY(-1px);
+    background-position: 100% 50%;
+    transform: translateY(-3px);
     box-shadow: 0 22px 44px -24px rgba(var(--color-brand-700), 0.86), 0 14px 30px -24px rgba(var(--accent-petal-strong), 0.62);
   }
 
@@ -187,6 +189,7 @@
     border-color: rgba(var(--accent-petal-strong), 0.32);
     background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(var(--accent-sun), 0.28), rgba(var(--accent-sky), 0.34));
     box-shadow: 0 16px 32px -24px rgba(var(--color-brand-700), 0.42), 0 10px 24px -22px rgba(var(--accent-petal-strong), 0.38);
+    transform: translateY(-3px);
   }
 
   .tp-button-ghost {
@@ -291,7 +294,7 @@
     position: relative;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(var(--accent-sun), 0.58), rgba(var(--accent-petal), 0.58));
     box-shadow: 0 14px 28px -24px rgba(var(--color-brand-700), 0.42), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
-    animation: tp-icon-breathe 3.4s ease-in-out infinite;
+    transition: transform 120ms ease-in-out, box-shadow 160ms ease-in-out;
   }
 
   .tp-icon-chip::after {
@@ -299,12 +302,17 @@
     clip-path: polygon(50% 0%, 61% 36%, 100% 50%, 61% 64%, 50% 100%, 39% 64%, 0% 50%, 39% 36%);
     content: "";
     height: 8px;
-    opacity: 0;
+    opacity: 0.66;
     position: absolute;
     right: -2px;
     top: -3px;
+    transform: rotate(16deg) scale(0.92);
     width: 8px;
-    animation: tp-sparkle-pop 2.8s ease-in-out infinite;
+  }
+
+  .tp-icon-chip:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 34px -24px rgba(var(--color-brand-700), 0.5), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
   }
 
   .dark .tp-card {
@@ -407,51 +415,12 @@ body {
   animation: fade-in-up 0.3s ease-out;
 }
 
-@keyframes tp-soft-pulse {
-  0%, 100% {
-    opacity: 0.78;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.04);
-  }
-}
-
-@keyframes tp-gradient-drift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes tp-primary-flow {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
 @keyframes tp-gentle-float {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-7px);
-  }
-}
-
-@keyframes tp-icon-breathe {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-2px) scale(1.045);
+    transform: translateY(-3px);
   }
 }
 
@@ -464,67 +433,6 @@ body {
   }
   70% {
     transform: rotate(5deg) scale(1.05);
-  }
-}
-
-@keyframes tp-route-drift {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 64px 0;
-  }
-}
-
-@keyframes tp-route-float {
-  0%, 100% {
-    opacity: 0.52;
-    transform: translateY(0);
-  }
-  50% {
-    opacity: 0.92;
-    transform: translateY(-1px);
-  }
-}
-
-@keyframes tp-tab-bob {
-  0% {
-    transform: translateY(0) scale(1);
-  }
-  52% {
-    transform: translateY(-3px) scale(1.08);
-  }
-  100% {
-    transform: translateY(0) scale(1.04);
-  }
-}
-
-@keyframes tp-nav-underline-breathe {
-  0%, 100% {
-    opacity: 0.62;
-    width: 18px;
-  }
-  50% {
-    opacity: 1;
-    width: 26px;
-  }
-}
-
-@keyframes tp-ambient-glow {
-  0%, 100% {
-    box-shadow: var(--shadow-card);
-  }
-  50% {
-    box-shadow: 0 26px 66px -42px rgba(var(--color-brand-700), 0.56), 0 18px 38px -32px rgba(var(--accent-petal-strong), 0.34), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
-  }
-}
-
-@keyframes tp-dock-breathe {
-  0%, 100% {
-    box-shadow: 0 -24px 48px -38px rgba(var(--color-brand-700), 0.5);
-  }
-  50% {
-    box-shadow: 0 -28px 56px -40px rgba(var(--accent-petal-strong), 0.42), 0 -10px 30px -28px rgba(var(--accent-sky-strong), 0.55);
   }
 }
 
@@ -554,18 +462,6 @@ body {
   }
 }
 
-@keyframes tp-status-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.38);
-  }
-  70% {
-    box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-  }
-}
-
 @keyframes tp-toast-countdown {
   from {
     transform: scaleX(1);
@@ -580,27 +476,6 @@ body {
   animation-timing-function: linear;
   animation-fill-mode: forwards;
   transform-origin: left center;
-}
-
-@keyframes tp-editing-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(var(--accent-sky-strong), 0.38);
-  }
-  70% {
-    box-shadow: 0 0 0 7px rgba(var(--accent-sky-strong), 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(var(--accent-sky-strong), 0);
-  }
-}
-
-@keyframes tp-shimmer {
-  0% {
-    background-position: 180% 0;
-  }
-  100% {
-    background-position: -180% 0;
-  }
 }
 
 @keyframes tp-sheen-sweep {
@@ -666,39 +541,54 @@ body {
 }
 
 .tp-soft-pulse {
-  animation: tp-soft-pulse 2.2s ease-in-out infinite;
+  opacity: 0.96;
+  transition: opacity 120ms ease-in-out, transform 120ms ease-in-out, box-shadow 160ms ease-in-out;
 }
 
 .tp-gradient-breathe {
   background-size: 220% 220%;
-  animation: tp-gradient-drift 5.8s ease-in-out infinite;
+  background-position: 0% 50%;
+  transition: background-position 160ms ease-in-out, transform 160ms ease-in-out, box-shadow 160ms ease-in-out;
+}
+
+.tp-gradient-breathe:hover,
+.tp-gradient-breathe:focus-within {
+  background-position: 100% 50%;
 }
 
 .tp-ambient-glow {
-  animation: tp-ambient-glow 4.8s ease-in-out infinite;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 160ms ease-in-out, transform 160ms ease-in-out;
+}
+
+.tp-ambient-glow:hover,
+.tp-ambient-glow:focus-within {
+  box-shadow: 0 26px 66px -42px rgba(var(--color-brand-700), 0.56), 0 18px 38px -32px rgba(var(--accent-petal-strong), 0.34), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
 }
 
 .tp-ambient-dock {
-  animation: tp-dock-breathe 6.2s ease-in-out infinite;
+  box-shadow: 0 -24px 48px -38px rgba(var(--color-brand-700), 0.5);
+  transition: box-shadow 160ms ease-in-out, transform 160ms ease-in-out;
 }
 
 .tp-gentle-float {
-  animation: tp-gentle-float 3.2s ease-in-out infinite;
+  animation: tp-gentle-float 4.8s ease-in-out infinite;
 }
 
 .tp-status-pulse {
-  animation: tp-status-pulse 2s ease-out infinite;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
 }
 
-.tp-shimmer {
+.tp-static-loading-line {
   background-image: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.58) 45%, transparent 72%);
   background-size: 220% 100%;
-  animation: tp-shimmer 1.45s ease-in-out infinite;
+  background-position: center;
 }
 
 .tp-ai-pet-sprite {
   animation-name: tp-ai-pet-sprite;
-  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
   background-repeat: no-repeat;
   image-rendering: pixelated;
 }
@@ -706,8 +596,14 @@ body {
 .tp-ai-companion-button {
   cursor: grab;
   position: relative;
+  transition: filter 140ms ease-in-out, transform 140ms ease-in-out;
   touch-action: none;
   user-select: none;
+}
+
+.tp-ai-companion-button:hover {
+  filter: drop-shadow(0 12px 16px rgba(var(--accent-sky-strong), 0.18));
+  transform: translateY(-3px);
 }
 
 .tp-ai-companion-button::before {
@@ -884,7 +780,7 @@ body {
 }
 
 .tp-nav-active svg {
-  animation: tp-tab-bob 1.55s ease-in-out infinite;
+  transform: translateY(-2px) scale(1.06);
 }
 
 .tp-nav-active::after {
@@ -897,8 +793,7 @@ body {
   opacity: 0.82;
   position: absolute;
   transform: translateX(-50%);
-  width: 18px;
-  animation: tp-nav-underline-breathe 2.7s ease-in-out infinite;
+  width: 22px;
 }
 
 .tp-sheen {
@@ -937,7 +832,7 @@ body {
   position: absolute;
   right: 1rem;
   z-index: 2;
-  animation: tp-route-drift 1.2s linear infinite, tp-route-float 2.4s ease-in-out infinite;
+  transition: opacity 140ms ease-in-out, transform 140ms ease-in-out;
 }
 
 .tp-route-trail::after {
@@ -951,6 +846,12 @@ body {
   top: 50%;
   transform: translateY(-50%);
   width: 7px;
+}
+
+.tp-sheen:hover .tp-route-trail,
+.tp-sheen:focus-within .tp-route-trail {
+  opacity: 0.92;
+  transform: translateY(-2px);
 }
 
 .tp-sparkle-field {
@@ -1013,23 +914,25 @@ body {
 }
 
 .tp-ambient-stars::before {
-  animation: tp-sparkle-pop 2.6s ease-in-out infinite;
+  opacity: 0.72;
   right: 18px;
   top: 16px;
+  transform: rotate(18deg) scale(0.94);
 }
 
 .tp-ambient-stars::after {
-  animation: tp-sparkle-pop 3.4s 0.8s ease-in-out infinite;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(var(--accent-petal-strong), 0.58));
   bottom: 18px;
   height: 10px;
   left: 22px;
+  opacity: 0.58;
+  transform: rotate(-14deg) scale(0.88);
   width: 10px;
 }
 
 .tp-progress-glow {
   background-size: 180% 100%;
-  animation: tp-gradient-drift 4.2s ease-in-out infinite;
+  background-position: 65% 50%;
 }
 
 .tp-status-dot {
@@ -1042,10 +945,8 @@ body {
 
 .tp-status-dot-editing {
   background: rgb(var(--accent-sky-strong));
-  animation-name: tp-editing-pulse;
-  animation-duration: 1.8s;
-  animation-timing-function: ease-out;
-  animation-iteration-count: infinite;
+  box-shadow: 0 0 0 3px rgba(var(--accent-sky-strong), 0.16);
+  transform: scale(1.04);
 }
 
 .tp-status-dot-offline {
@@ -1086,7 +987,7 @@ body {
   .tp-status-pulse,
   .tp-toast-countdown,
   .tp-status-dot-editing,
-  .tp-shimmer,
+  .tp-static-loading-line,
   .tp-nav-active::after,
   .tp-sheen:hover::after,
   .tp-sheen:focus-within::after,

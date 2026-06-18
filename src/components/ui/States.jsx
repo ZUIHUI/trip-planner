@@ -45,7 +45,7 @@ export const LoadingState = ({ label = '載入中...', className = '' }) => (
   >
     <Loader2 className="tp-soft-pulse mx-auto mb-3 animate-spin text-brand-600" size={28} />
     <p className="text-sm font-semibold">{label}</p>
-    <div className="tp-shimmer mx-auto mt-3 h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
+    <div className="tp-static-loading-line mx-auto mt-3 h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
   </motion.div>
 );
 

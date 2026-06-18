@@ -93,7 +93,7 @@ const WeatherWidget = ({
       return (
         <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/90">
           <div className="flex items-center gap-2">
-            <span className="text-lg animate-pulse">☁️</span>
+            <span className="tp-gentle-float inline-block text-lg">☁️</span>
             <span>天氣載入中</span>
           </div>
         </div>
@@ -103,7 +103,7 @@ const WeatherWidget = ({
     return (
       <div className="mb-4 rounded-lg border border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50 p-4 dark:border-brand-800 dark:from-brand-900/20 dark:to-cyan-900/20">
         <div className="flex items-center gap-3">
-          <div className="text-3xl animate-pulse">⏳</div>
+          <div className="tp-gentle-float text-3xl">⏳</div>
           <p className="text-sm text-gray-600 dark:text-gray-400">正在載入 {displayLocation} 的天氣...</p>
         </div>
       </div>

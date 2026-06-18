@@ -1923,7 +1923,7 @@ const TripDetailPage = () => {
         <div className="tp-panel fixed bottom-4 right-4 z-30 max-w-xs p-3 text-sm shadow-lg">
           {isLocating ? (
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-brand-500"></div>
+              <div className="h-2 w-2 rounded-full bg-brand-500 shadow-[0_0_0_3px_rgba(59,130,246,0.14)]"></div>
               <span className="text-slate-600 dark:text-slate-300">定位中...</span>
             </div>
           ) : locationError ? (
