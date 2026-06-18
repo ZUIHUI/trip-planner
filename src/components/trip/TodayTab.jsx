@@ -345,10 +345,8 @@ const TodayHero = ({
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-        className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+        className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
       >
-        <span aria-hidden="true" className="tp-ambient-stars" />
-        <span aria-hidden="true" className="tp-route-trail" />
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-black text-brand-100">今日小隊</p>
@@ -386,10 +384,8 @@ const TodayHero = ({
       initial={{ opacity: 0, y: 14, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 pb-7 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+      className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
     >
-      <span aria-hidden="true" className="tp-ambient-stars" />
-      <span aria-hidden="true" className="tp-route-trail" />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-black text-brand-100">下一站在等你</p>
@@ -413,7 +409,7 @@ const TodayHero = ({
           <button
             type="button"
             onClick={onNavigateNext}
-            className="touch-target tp-press-feedback tp-hover-icon tp-tap-ripple tp-hero-next-pulse inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white transition hover:bg-white/30 active:scale-95"
+            className="touch-target tp-press-feedback tp-hover-icon tp-tap-ripple inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white transition hover:bg-white/30 active:scale-95"
             aria-label="導航到下一站"
             title="導航"
           >

@@ -554,18 +554,6 @@ body {
   }
 }
 
-@keyframes tp-ring-ping {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.38), 0 12px 28px -22px rgba(var(--color-brand-700), 0.78);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0), 0 12px 28px -22px rgba(var(--color-brand-700), 0.78);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 12px 28px -22px rgba(var(--color-brand-700), 0.78);
-  }
-}
-
 @keyframes tp-status-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.38);
@@ -1039,10 +1027,6 @@ body {
   width: 10px;
 }
 
-.tp-hero-next-pulse {
-  animation: tp-ring-ping 2.8s ease-out infinite;
-}
-
 .tp-progress-glow {
   background-size: 180% 100%;
   animation: tp-gradient-drift 4.2s ease-in-out infinite;
@@ -1098,7 +1082,6 @@ body {
   .tp-route-trail,
   .tp-route-trail::after,
   .tp-gentle-float,
-  .tp-hero-next-pulse,
   .tp-progress-glow,
   .tp-status-pulse,
   .tp-toast-countdown,
