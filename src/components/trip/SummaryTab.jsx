@@ -743,7 +743,7 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-4 px-4 pb-10 sm:px-6 lg:px-8">
+    <div className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 pb-12 sm:gap-6 sm:px-7 lg:px-10">
       <CommandCenterCard
         tripDetails={tripDetails}
         itinerary={itinerary}
@@ -790,7 +790,7 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
           onTabChange={onTabChange}
         />
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2 xl:gap-6">
           <AccommodationCard
             accommodation={tripDetails?.accommodation}
             onTabChange={onTabChange}

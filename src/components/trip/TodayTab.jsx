@@ -200,7 +200,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
     : null;
 
   return (
-    <div className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white/90 p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4 dark:border-slate-800 dark:bg-slate-900/90">
       <button
         type="button"
         onClick={() => previousDay && onSelectDay(previousDay.day)}
@@ -212,12 +212,12 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
         <ChevronLeft size={19} />
       </button>
 
-      <div className="min-w-0 text-center">
+      <div className="min-w-0 px-2 text-center">
         <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
           Day {selectedDay}
         </p>
-        <h2 className="truncate text-base font-black text-slate-950 dark:text-white">{currentDayTitle}</h2>
-        <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{currentDayDate}</p>
+        <h2 className="truncate text-lg font-black text-slate-950 dark:text-white">{currentDayTitle}</h2>
+        <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{currentDayDate}</p>
       </div>
 
       <button
@@ -235,7 +235,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
 };
 
 const FlightDetailTile = ({ label, value }) => (
-  <div className="min-w-0 rounded-lg bg-white/75 px-3 py-2 dark:bg-slate-950/35">
+  <div className="min-w-0 rounded-lg bg-white/75 px-4 py-3 dark:bg-slate-950/35">
     <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{label}</p>
     <p className="mt-0.5 truncate text-sm font-black text-slate-950 dark:text-white" title={value || emptyFlightText}>
       {value || emptyFlightText}
@@ -254,8 +254,8 @@ const AirportDayFlightRow = ({ flight }) => {
   ].filter(Boolean).join(' / ');
 
   return (
-    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-800/55">
-      <div className="flex min-w-0 items-start justify-between gap-3">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-800/55">
+      <div className="flex min-w-0 items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
             {flight.label}航班
@@ -277,7 +277,7 @@ const AirportDayFlightRow = ({ flight }) => {
         {flight.airline || emptyFlightText}
       </p>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <FlightDetailTile label="出發機場" value={flight.dep} />
         <FlightDetailTile label="抵達機場" value={flight.arr} />
         <FlightDetailTile label="時間" value={timeText} />
@@ -299,9 +299,9 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
   const hasAnyFlightCode = flights.some((flight) => flight.hasFlightCode);
 
   return (
-    <Card className="border-slate-200 bg-white/95 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/95">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
+    <Card className="border-slate-200 bg-white/95 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/95">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-4">
           <div className="tp-icon-chip">
             <Plane size={20} />
           </div>
@@ -314,7 +314,7 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
         </Button>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {flights.map((flight) => (
           <AirportDayFlightRow key={flight.id} flight={flight} />
         ))}
@@ -345,7 +345,7 @@ const TodayHero = ({
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-        className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+        className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-5 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] sm:p-6 dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -356,7 +356,7 @@ const TodayHero = ({
           <CalendarDays size={26} className="shrink-0 text-white/80" />
         </div>
 
-        <div className="mt-4 border-t border-white/20 pt-4">
+        <div className="mt-5 border-t border-white/20 pt-5">
           <WeatherWidget
             variant="compact"
             date={currentDayDate || currentDayData?.date}
@@ -369,7 +369,7 @@ const TodayHero = ({
           type="button"
           onClick={onAddEvent}
           disabled={!canEdit}
-          className="touch-target tp-press-feedback tp-hover-icon mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
+          className="touch-target tp-press-feedback tp-hover-icon mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
         >
           <Plus size={18} />
           放進今日行程
@@ -384,9 +384,9 @@ const TodayHero = ({
       initial={{ opacity: 0, y: 14, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-      className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-4 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+      className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-5 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] sm:p-6 dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-black text-brand-100">下一站在等你</p>
           <h3 className="mt-1 break-words text-2xl font-black leading-tight">
@@ -418,7 +418,7 @@ const TodayHero = ({
         )}
       </div>
 
-      <div className="mt-4 border-t border-white/20 pt-4">
+      <div className="mt-5 border-t border-white/20 pt-5">
         <WeatherWidget
           variant="compact"
           date={currentDayDate || currentDayData?.date}
@@ -429,7 +429,7 @@ const TodayHero = ({
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3">
+      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
         <div>
           <div className="flex items-center gap-1.5 text-xs font-bold text-brand-100">
             <Wallet size={13} />
@@ -447,7 +447,7 @@ const TodayHero = ({
       </div>
 
       {memoText && (
-        <div className="mt-4 flex items-start gap-2 border-t border-white/20 pt-3 text-sm font-semibold text-brand-50">
+        <div className="mt-5 flex items-start gap-3 border-t border-white/20 pt-4 text-sm font-semibold text-brand-50">
           <StickyNote size={16} className="mt-0.5 shrink-0 text-white/80" />
           <p className="line-clamp-2 whitespace-pre-wrap">{memoText}</p>
         </div>
@@ -469,7 +469,7 @@ const QuickActions = ({
 
   return (
     <motion.div
-      className="grid grid-cols-4 gap-2"
+      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
       aria-label="旅途中快速操作"
       variants={quickActionMotion}
       initial="hidden"
@@ -480,7 +480,7 @@ const QuickActions = ({
           variant="secondary"
           onClick={onNavigateNext}
           disabled={!hasNextDestination}
-          className="w-full min-w-0 !px-1 text-xs"
+          className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
         >
           <Navigation size={16} />
           導航
@@ -494,20 +494,20 @@ const QuickActions = ({
             target="_blank"
             rel="noopener noreferrer"
             variant="secondary"
-            className="w-full min-w-0 !px-1 text-xs"
+            className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
           >
             <Map size={16} />
             路線
           </Button>
         ) : (
-          <Button variant="secondary" disabled className="w-full min-w-0 !px-1 text-xs">
+          <Button variant="secondary" disabled className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs">
             <Map size={16} />
             路線
           </Button>
         )}
       </motion.div>
       <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
-        <Button onClick={onAddEvent} disabled={!canEdit} className="w-full min-w-0 !px-1 text-xs">
+        <Button onClick={onAddEvent} disabled={!canEdit} className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs">
           <Plus size={16} />
           新增
         </Button>
@@ -517,7 +517,7 @@ const QuickActions = ({
           variant="secondary"
           onClick={onOpenAiRecommendations}
           disabled={!canEdit}
-          className="w-full min-w-0 !px-1 text-xs"
+          className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
           aria-label={`幫我排 Day ${selectedDay}`}
           title={`幫我排 Day ${selectedDay}`}
         >
@@ -539,7 +539,7 @@ const StatusMetric = ({ icon: Icon, label, value, tone = 'slate' }) => {
   };
 
   return (
-    <div className={`rounded-lg px-3 py-2 ${toneClasses[tone] || toneClasses.slate}`}>
+    <div className={`rounded-lg px-4 py-3 ${toneClasses[tone] || toneClasses.slate}`}>
       <div className="flex items-center gap-1.5 text-xs font-black opacity-75">
         <Icon size={13} />
         {label}
@@ -559,7 +559,7 @@ const StatusSummaryPill = ({ icon: Icon, label, value, tone = 'slate' }) => {
   };
 
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black ${toneClasses[tone] || toneClasses.slate}`}>
+    <span className={`inline-flex min-w-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${toneClasses[tone] || toneClasses.slate}`}>
       <Icon size={13} className="shrink-0" />
       <span className="shrink-0 opacity-75">{label}</span>
       <span className="min-w-0 truncate">{value}</span>
@@ -576,8 +576,8 @@ const TravelStatusPanel = ({ status }) => {
     : '未排程';
 
   return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between gap-3">
+    <Card className="p-5">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{summaryText}</p>
@@ -587,14 +587,14 @@ const TravelStatusPanel = ({ status }) => {
         </Badge>
       </div>
 
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
           className="tp-progress-glow h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-rose-400 transition-all duration-300"
           style={{ width: `${status.progressPercent}%` }}
         />
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-3">
         <StatusSummaryPill
           icon={Navigation}
           label="導航"
@@ -614,15 +614,15 @@ const TravelStatusPanel = ({ status }) => {
         size="sm"
         onClick={() => setShowDetails((open) => !open)}
         aria-expanded={showDetails}
-        className="mt-3 w-full justify-center"
+        className="mt-4 w-full justify-center"
       >
         {showDetails ? '收起細節' : '查看細節'}
         {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
       </Button>
 
       {showDetails && (
-        <div className="mt-3 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="mt-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <StatusMetric
               icon={CheckCircle2}
               label="已過行程"
@@ -650,7 +650,7 @@ const TravelStatusPanel = ({ status }) => {
           </div>
 
           {hasRouteWarning && (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
               缺地點：{status.missingLocationCount} 個
             </p>
           )}
@@ -663,7 +663,7 @@ const TravelStatusPanel = ({ status }) => {
 const ReminderStrip = ({ reminders }) => {
   if (!reminders.length) {
     return (
-      <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100">
+      <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100">
         <CheckCircle2 size={19} className="mt-0.5 shrink-0" />
         <div className="min-w-0">
           <p className="text-sm font-black">今天看起來準備好了</p>
@@ -673,7 +673,7 @@ const ReminderStrip = ({ reminders }) => {
   }
 
   return (
-    <section className="space-y-2" aria-label="重要提醒">
+    <section className="space-y-3" aria-label="重要提醒">
       <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
         <AlertTriangle size={17} className="text-amber-600 dark:text-amber-300" />
         重要提醒
@@ -681,7 +681,7 @@ const ReminderStrip = ({ reminders }) => {
       {reminders.map((reminder) => (
         <div
           key={reminder.id}
-          className={`rounded-lg border px-3 py-2 ${reminderClasses[reminder.tone] || reminderClasses.info}`}
+          className={`rounded-lg border px-4 py-3 ${reminderClasses[reminder.tone] || reminderClasses.info}`}
         >
           <p className="text-sm font-black">{reminder.title}</p>
           <p className="mt-0.5 text-xs font-semibold opacity-85">{reminder.description}</p>
@@ -693,9 +693,9 @@ const ReminderStrip = ({ reminders }) => {
 
 const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
   return (
-    <Card className="p-4">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
+    <Card className="p-5">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-4">
           <div className="tp-icon-chip">
             <Clock size={20} />
           </div>
@@ -711,7 +711,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
           目前尚無行程
         </div>
       ) : (
-        <ol className="space-y-3">
+        <ol className="space-y-4">
           {events.map((event, index) => {
             const locationText = getEventLocationText(event);
             const previousEvent = index > 0 ? events[index - 1] : null;
@@ -720,8 +720,8 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
               : tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
 
             return (
-              <li key={event.id || `${event.time}-${event.title}-${index}`} className="flex min-w-0 gap-3">
-                <div className="w-12 shrink-0 pt-1 text-right font-mono text-sm font-black text-slate-700 dark:text-slate-200">
+              <li key={event.id || `${event.time}-${event.title}-${index}`} className="flex min-w-0 gap-4">
+                <div className="w-14 shrink-0 pt-1 text-right font-mono text-sm font-black text-slate-700 dark:text-slate-200">
                   {formatEventTime(event)}
                 </div>
                 <div className="flex flex-col items-center">
@@ -731,7 +731,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
                 <button
                   type="button"
                   onClick={() => onOpenEvent(event, true)}
-                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left transition hover:border-brand-200 hover:bg-brand-50 dark:border-slate-800 dark:bg-slate-950/50 dark:hover:border-brand-800 dark:hover:bg-brand-950/20"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50 dark:border-slate-800 dark:bg-slate-950/50 dark:hover:border-brand-800 dark:hover:bg-brand-950/20"
                 >
                   <span className="block break-words text-sm font-black text-slate-950 dark:text-white">
                     {event.title || '未命名行程'}
@@ -778,9 +778,9 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
 
   return (
     <Card className="overflow-hidden">
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-4">
             <div className="tp-icon-chip bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
               <Map size={20} />
             </div>
@@ -815,9 +815,9 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
         </button>
 
         {showDetails && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-5 space-y-3">
             {routeStops.length ? routeStops.map((stop, index) => (
-              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-slate-50 p-4 dark:bg-slate-800/70">
                 <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-black text-white">
                   {index + 1}
                 </span>
@@ -840,7 +840,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
       </div>
 
       {showDetails && mapPreviewUrl && (
-        <div className="h-56 border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+        <div className="h-64 border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
           <iframe
             title="today-route-map-preview"
             src={mapPreviewUrl}
@@ -936,7 +936,7 @@ const TodayTab = ({ onTabChange }) => {
   };
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
+    <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10">
       <DaySwitcher
         itinerary={itinerary}
         selectedDay={selectedDay}

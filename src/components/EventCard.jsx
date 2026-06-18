@@ -286,7 +286,7 @@ const EventCard = ({
 
   return (
     <motion.div
-      className="relative ml-3 border-l-2 border-slate-200 pb-6 pl-6 last:pb-0 dark:border-slate-800"
+      className="relative ml-4 border-l-2 border-slate-200 pb-8 pl-7 last:pb-0 dark:border-slate-800"
       layout
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
@@ -296,9 +296,9 @@ const EventCard = ({
         event.urgent ? 'border-red-500' : 'border-brand-400'
       }`} layout />
 
-      <Card interactive className="relative cursor-pointer p-3 sm:p-4" onClick={handleCardClick}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
+      <Card interactive className="relative cursor-pointer p-4 sm:p-5" onClick={handleCardClick}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-4">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11 ${meta.className}`}>
               <Icon size={20} />
             </div>
@@ -376,7 +376,7 @@ const EventCard = ({
           </p>
         )}
 
-        <div className="mt-3 grid gap-2 sm:mt-4">
+        <div className="mt-4 grid gap-3 sm:mt-5">
           {locationText && (
             <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
               <MapPin size={16} className="mt-0.5 shrink-0 text-brand-600 dark:text-brand-300" />
@@ -420,7 +420,7 @@ const EventCard = ({
         </div>
 
         {(canReorder || locationText || externalUrl) && (
-          <div className="mt-3 flex items-center justify-end gap-2 sm:hidden">
+          <div className="mt-4 flex items-center justify-end gap-3 sm:hidden">
             {canReorder && (
               <>
                 <button

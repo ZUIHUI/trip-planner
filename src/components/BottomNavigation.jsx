@@ -84,12 +84,12 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-brand-100/80 bg-white/[0.94] pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-24px_48px_-38px_rgba(37,99,235,0.46)] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(960px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-brand-100/80 lg:pb-0 dark:border-slate-800 dark:bg-slate-950/[0.94] ${
+        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-brand-100/80 bg-white/[0.94] pb-[calc(0.625rem+env(safe-area-inset-bottom))] shadow-[0_-24px_48px_-38px_rgba(37,99,235,0.46)] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-brand-100/80 lg:pb-0 dark:border-slate-800 dark:bg-slate-950/[0.94] ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
       >
-        <div className="mx-auto flex h-16 max-w-3xl items-center gap-1 px-2 lg:hidden">
+        <div className="mx-auto flex h-[4.5rem] max-w-4xl items-center gap-2 px-3 lg:hidden">
           {mobileTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = isMobileTabActive(tab.id);
@@ -102,7 +102,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 animate={{ y: isActive ? -2 : 0, scale: isActive ? 1.02 : 1 }}
                 whileTap={{ scale: 0.96 }}
                 transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
-                className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
+                className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'tp-nav-active bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_14px_28px_-22px_rgba(37,99,235,0.6)] ring-1 ring-brand-100 dark:bg-brand-200 dark:from-brand-200 dark:via-brand-200 dark:to-sky-200 dark:text-slate-950 dark:ring-brand-300/30'
                     : 'text-slate-500 hover:bg-brand-50/60 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white'
@@ -119,7 +119,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
           })}
         </div>
 
-        <div className="mx-auto hidden h-16 max-w-6xl items-center gap-1 px-2 lg:flex">
+        <div className="mx-auto hidden h-[4.5rem] max-w-7xl items-center gap-2 px-3 lg:flex">
           {desktopTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -132,7 +132,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 animate={{ y: isActive ? -2 : 0, scale: isActive ? 1.015 : 1 }}
                 whileTap={{ scale: 0.96 }}
                 transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
-                className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
+                className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'tp-nav-active bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_14px_28px_-22px_rgba(37,99,235,0.6)] ring-1 ring-brand-100 dark:bg-brand-200 dark:from-brand-200 dark:via-brand-200 dark:to-sky-200 dark:text-slate-950 dark:ring-brand-300/30'
                     : 'text-slate-500 hover:bg-brand-50/60 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white'
@@ -150,7 +150,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
         </div>
       </nav>
 
-      <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:h-24" />
+      <div className="h-[calc(5.75rem+env(safe-area-inset-bottom))] lg:h-28" />
     </>
   );
 };

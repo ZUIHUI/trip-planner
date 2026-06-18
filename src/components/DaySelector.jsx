@@ -17,7 +17,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
 
   return (
     <motion.section
-      className="px-4 sm:px-6 lg:px-8"
+      className="px-5 sm:px-7 lg:px-10"
       aria-label="選擇行程日期"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -25,7 +25,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     >
       <motion.div
         ref={scrollContainerRef}
-        className="tp-panel no-scrollbar flex gap-2 overflow-x-auto scroll-smooth p-2"
+        className="tp-panel no-scrollbar flex gap-3 overflow-x-auto scroll-smooth p-3"
         layout
       >
         {itinerary.map((item) => {
@@ -45,15 +45,15 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               animate={{ y: isSelected ? -2 : 0, scale: isSelected ? 1.025 : 1 }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
-              className={`touch-target min-w-[5.75rem] rounded-lg px-3 py-2 text-left transition active:scale-[0.98] ${
+              className={`touch-target min-w-[6.5rem] rounded-lg px-4 py-3 text-left transition active:scale-[0.98] ${
                 isSelected
                   ? 'bg-gradient-to-br from-brand-500 to-sky-500 text-white shadow-sm dark:from-brand-500 dark:to-sky-400 dark:text-slate-950'
                   : 'bg-white/75 text-slate-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >
               <span className="block text-xs font-bold opacity-80">Day {item.day}</span>
-              <span className="mt-0.5 block text-sm font-black leading-tight">{dateText}</span>
-              <span className="mt-1 block truncate text-[11px] font-semibold opacity-75">
+              <span className="mt-1 block text-sm font-black leading-tight">{dateText}</span>
+              <span className="mt-1.5 block truncate text-[11px] font-semibold opacity-75">
                 {weekdayText || `${eventCount} 個行程`}
               </span>
               {weekdayText && (

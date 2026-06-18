@@ -139,7 +139,7 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`touch-target tp-press-feedback tp-hover-icon tp-icon-wiggle tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2 text-left transition ${
+    className={`touch-target tp-press-feedback tp-hover-icon tp-icon-wiggle tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
       active
         ? 'border-brand-200 bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_16px_34px_-26px_rgba(37,99,235,0.52)] dark:border-brand-800 dark:from-slate-900 dark:via-brand-950/35 dark:to-rose-950/20 dark:text-brand-100'
         : 'border-brand-100 bg-white/72 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
@@ -160,7 +160,7 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
 
   return (
     <motion.div
-      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-3 flex min-w-0 flex-col gap-3 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-3 pb-6 shadow-[0_18px_38px_-32px_rgba(37,99,235,0.52)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25"
+      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-4 pb-7 shadow-[0_18px_38px_-32px_rgba(37,99,235,0.52)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25"
       initial={{ opacity: 0, y: 10, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -245,8 +245,8 @@ const TripCard = ({
           </div>
         )}
 
-        <div className="p-4">
-          <div className="flex items-start justify-between gap-3">
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="truncate text-lg font-bold text-slate-900 dark:text-white">
                 {trip.title || '未命名旅程'}
@@ -262,19 +262,19 @@ const TripCard = ({
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <div className="rounded-lg bg-sky-50/80 px-3 py-2 dark:bg-slate-800/70">
+          <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-lg bg-sky-50/80 px-4 py-3 dark:bg-slate-800/70">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
             </div>
-            <div className="rounded-lg bg-rose-50/70 px-3 py-2 dark:bg-slate-800/70">
+            <div className="rounded-lg bg-rose-50/70 px-4 py-3 dark:bg-slate-800/70">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
           </div>
 
           {trip.accessRole === 'view' && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-3 text-xs font-bold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
               <ShieldCheck size={14} className="shrink-0" />
               <span className="truncate">只能查看</span>
             </div>
@@ -282,7 +282,7 @@ const TripCard = ({
         </div>
       </button>
 
-      <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800">
+      <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">
         <div className={`flex items-center gap-2 ${canDelete ? 'justify-between' : 'justify-end'}`}>
           {canDelete && (
             <button
@@ -301,7 +301,7 @@ const TripCard = ({
         </div>
 
         {expanded && canDelete && (
-          <div className="mt-3 flex justify-end border-t border-slate-200 pt-3 dark:border-slate-800">
+            <div className="mt-4 flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
             <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
               <Trash2 size={14} />
               刪除旅程
@@ -671,9 +671,9 @@ const TripListPage = () => {
 
   return (
     <main className="tp-page-shell">
-      <PageContainer className="py-6 sm:py-8">
-        <div className="tp-panel mb-4 p-3">
-          <div className="flex min-w-0 items-center justify-between gap-3">
+      <PageContainer className="py-7 sm:py-10">
+        <div className="tp-panel mb-6 p-4 sm:p-5">
+          <div className="flex min-w-0 items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <div className="tp-icon-chip">
                 <UserRound size={18} />
@@ -701,8 +701,8 @@ const TripListPage = () => {
           </div>
 
           {isEditingNickname && (
-            <form onSubmit={handleSaveNickname} className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-800">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <form onSubmit={handleSaveNickname} className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <label className="min-w-0 flex-1">
                   <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
                   <Input
@@ -716,7 +716,7 @@ const TripListPage = () => {
                     autoFocus
                   />
                 </label>
-                <div className="grid grid-cols-1 gap-2 sm:flex sm:shrink-0">
+                <div className="grid grid-cols-1 gap-3 sm:flex sm:shrink-0">
                   <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
                     <Check size={15} />
                     {isSavingNickname ? '儲存中...' : '儲存'}
@@ -732,7 +732,7 @@ const TripListPage = () => {
         </div>
 
         <motion.section
-          className="tp-panel tp-sheen tp-ambient-glow relative mb-4 overflow-hidden p-4 pb-7 pt-5"
+          className="tp-panel tp-sheen tp-ambient-glow relative mb-7 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
           initial={{ opacity: 0, y: 12, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -740,7 +740,7 @@ const TripListPage = () => {
           <span aria-hidden="true" className="tp-ambient-stars" />
           <span aria-hidden="true" className="tp-route-trail" />
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(320px,1fr)] lg:items-start">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
             <div className="min-w-0">
               <div className="flex min-w-0 items-start gap-3">
                 <div className="tp-icon-chip tp-gentle-float">
@@ -754,7 +754,7 @@ const TripListPage = () => {
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="選擇旅程操作">
+              <div className="mt-5 grid grid-cols-2 gap-3" role="group" aria-label="選擇旅程操作">
                 <ActionModeButton
                   active={actionMode === 'create'}
                   icon={Plus}
@@ -783,7 +783,7 @@ const TripListPage = () => {
                 <motion.form
                   key="create-trip"
                   onSubmit={handleCreateTrip}
-                  className="grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
+                  className="grid gap-4 rounded-lg border border-brand-100 bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 12 }}
@@ -808,7 +808,7 @@ const TripListPage = () => {
                 <motion.form
                   key="join-trip"
                   onSubmit={handleJoinByInviteCode}
-                  className="grid gap-3 rounded-lg border border-brand-100 bg-white/85 p-3 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
+                  className="grid gap-4 rounded-lg border border-brand-100 bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}
@@ -835,8 +835,8 @@ const TripListPage = () => {
 
         <InstallAppPrompt className="mb-4" />
 
-        <section className="mt-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <section className="mt-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="tp-section-title">我的旅程</h2>
               {hasTrips && (
@@ -860,7 +860,7 @@ const TripListPage = () => {
           </div>
 
           {hasTrips && (
-            <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1 no-scrollbar" aria-label="旅程篩選">
+            <div className="-mx-1 mt-4 flex gap-3 overflow-x-auto px-1 pb-2 no-scrollbar" aria-label="旅程篩選">
               {tripFilterOptions.map((option) => (
                 <TripFilterChip
                   key={option.id}
@@ -880,7 +880,7 @@ const TripListPage = () => {
             </div>
           )}
 
-          <div className="mt-4">
+            <div className="mt-5">
             {isLoading ? (
               <LoadingState />
             ) : sortedAndFilteredTrips.length === 0 ? (
@@ -900,7 +900,7 @@ const TripListPage = () => {
               />
             ) : (
               <motion.div
-                className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+                className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6"
                 variants={tripGridMotion}
                 initial="hidden"
                 animate="visible"
@@ -932,7 +932,7 @@ const TripListPage = () => {
               </motion.div>
             )}
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {hiddenTripCount > 0 && (
                 <Button variant="secondary" onClick={() => setShowAllTrips(true)}>
                   查看更多旅程（+{hiddenTripCount}）

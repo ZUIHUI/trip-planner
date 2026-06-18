@@ -119,7 +119,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
 
   if (section === 'companions') {
     return (
-      <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
+      <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10">
         <Card className="p-4">
           <div className="flex min-w-0 items-start gap-3">
             <span className="tp-icon-chip h-11 w-11">
@@ -137,7 +137,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
   }
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-3xl flex-col gap-4 px-4 pb-20 sm:px-6 lg:max-w-5xl lg:px-8">
+    <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10">
       <ModuleSection title="旅行準備">
         <ModuleButton
           icon={LayoutDashboard}

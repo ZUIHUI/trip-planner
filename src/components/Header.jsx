@@ -92,9 +92,9 @@ const Header = forwardRef(({
         {!shouldShowCoverBackground && (
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-brand-400 via-sky-400 to-rose-400" />
         )}
-        <PageContainer className="py-3 sm:py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
+        <PageContainer className="py-4 sm:py-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
               <Button
                 variant={shouldShowCoverBackground ? 'ghost' : 'secondary'}
                 size="icon"
@@ -107,7 +107,7 @@ const Header = forwardRef(({
               </Button>
 
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <Badge variant={status.variant} className={shouldShowCoverBackground ? 'border-white/30 bg-white/15 text-white' : ''}>
                     {status.label}
                   </Badge>
@@ -121,7 +121,7 @@ const Header = forwardRef(({
                   {details?.title || '我的旅程'}
                 </h1>
 
-                <div className={`mt-2 hidden gap-1 text-sm sm:flex sm:items-center sm:gap-4 ${shouldShowCoverBackground ? 'text-white/85' : 'text-slate-600 dark:text-slate-300'}`}>
+                <div className={`mt-3 hidden gap-2 text-sm sm:flex sm:items-center sm:gap-5 ${shouldShowCoverBackground ? 'text-white/85' : 'text-slate-600 dark:text-slate-300'}`}>
                   <span className="inline-flex min-w-0 items-center gap-1.5">
                     <Home size={15} className="shrink-0" />
                     <span className="truncate">{details?.accommodation?.name || '尚未設定住宿'}</span>
@@ -134,7 +134,7 @@ const Header = forwardRef(({
               </div>
             </div>
 
-            <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
+            <div className="flex w-full shrink-0 items-center justify-end gap-3 sm:w-auto">
               {isSaving && (
                 <motion.span
                   className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-brand-100 bg-white/85 text-brand-700 shadow-sm dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}

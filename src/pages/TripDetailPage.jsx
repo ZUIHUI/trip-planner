@@ -1645,8 +1645,8 @@ const TripDetailPage = () => {
         presenceUi={presenceUi}
       />
 
-      <PageContainer className="pb-36 lg:pb-36">
-        <div className="pt-4">
+      <PageContainer className="pb-40 lg:pb-44">
+        <div className="pt-5 sm:pt-7">
           {isReadOnly && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
               你目前只能查看這趟旅程；若要一起編輯，請主辦人重新產生可以一起編輯的邀請碼。
@@ -1670,7 +1670,7 @@ const TripDetailPage = () => {
           )}
 
           {showMoreBackButton && (
-            <div className="mx-auto mb-3 flex max-w-3xl px-4 sm:px-6 lg:hidden">
+            <div className="mx-auto mb-4 flex max-w-4xl px-5 sm:px-7 lg:hidden">
               <button
                 type="button"
                 onClick={() => setActiveTab('more')}
@@ -1818,7 +1818,7 @@ const TripDetailPage = () => {
 
       {activeTab === 'itinerary' && (
         <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-          <div className="tp-panel mx-auto max-w-3xl p-2 shadow-lg sm:max-w-none">
+          <div className="tp-panel mx-auto max-w-4xl p-3 shadow-lg sm:max-w-none">
             <div className="sm:hidden">
               <Button
                 onClick={openAddModal}
@@ -1864,7 +1864,7 @@ const TripDetailPage = () => {
 
       {activeTab === 'shopping' && (
         <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-          <div className="tp-panel mx-auto max-w-3xl p-2 shadow-lg sm:max-w-none">
+          <div className="tp-panel mx-auto max-w-4xl p-3 shadow-lg sm:max-w-none">
             <Button
               onClick={() => shoppingListRef.current?.openAddForm?.()}
               disabled={!canEdit}
@@ -1879,7 +1879,7 @@ const TripDetailPage = () => {
 
       {activeTab === 'expenses' && (
         <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-          <div className="tp-panel mx-auto max-w-3xl p-2 shadow-lg sm:max-w-none">
+          <div className="tp-panel mx-auto max-w-4xl p-3 shadow-lg sm:max-w-none">
             <Button
               onClick={() => expenseTrackerRef.current?.openAddForm?.()}
               disabled={!canEdit}

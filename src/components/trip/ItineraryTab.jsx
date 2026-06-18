@@ -84,7 +84,7 @@ const ItineraryTab = () => {
     <>
       <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
       {nextDayItem && (
-        <div className="mt-2 px-4 sm:hidden">
+        <div className="mt-3 px-5 sm:hidden">
           <Button
             variant="secondary"
             size="sm"
@@ -99,7 +99,7 @@ const ItineraryTab = () => {
         </div>
       )}
 
-      <div className="mt-4 px-4 pb-40 sm:px-6 sm:pb-28 lg:px-8">
+      <div className="mx-auto mt-5 max-w-6xl px-5 pb-40 sm:px-7 sm:pb-28 lg:px-10">
         {shouldShowCostToggle && (
           <div className="flex justify-stretch sm:justify-end">
             <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={toggleSecondaryModules} aria-expanded={showSecondaryModules}>
@@ -109,11 +109,11 @@ const ItineraryTab = () => {
           </div>
         )}
 
-        <section className={`${shouldShowCostToggle ? 'mt-4' : 'mt-2'} flex flex-col gap-3 border-b border-slate-200 pb-4 sm:mt-4 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}>
+        <section className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} flex flex-col gap-4 border-b border-slate-200 pb-5 sm:mt-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}>
           <div className="min-w-0 flex-1">
             {currentDayData ? (
               isEditingDayMeta ? (
-                <div className="grid gap-2 sm:grid-cols-[1fr_0.7fr_auto] sm:items-end">
+                <div className="grid gap-3 sm:grid-cols-[1fr_0.7fr_auto] sm:items-end">
                   <div>
                     <label className="tp-label" htmlFor="day-title">Day 標題</label>
                     <Input
@@ -184,7 +184,7 @@ const ItineraryTab = () => {
           currentLocation={currentLocation}
         />
 
-        <div className="mt-5">
+        <div className="mt-6 space-y-4">
           {currentDayData && currentDayData.events.length === 0 ? (
             <EmptyState
               icon={CalendarDays}
@@ -224,8 +224,8 @@ const ItineraryTab = () => {
         </div>
 
         {showSecondaryModules && currentDayData && shouldShowCostToggle && (
-          <Card className="mt-6 p-4">
-            <div className="flex items-start gap-3">
+          <Card className="mt-7 p-5">
+            <div className="flex items-start gap-4">
               <div className="tp-icon-chip bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
                 <Wallet size={20} />
               </div>
