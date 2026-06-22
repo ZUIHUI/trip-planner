@@ -5,26 +5,26 @@
 @layer base {
   :root {
     /* Light Mode: Japanese Magazine x Fresh Travel */
-    --color-brand-50: 246 249 245;
-    --color-brand-100: 232 240 233;
-    --color-brand-200: 209 224 213;
-    --color-brand-300: 176 199 183;
-    --color-brand-400: 140 168 149;
-    --color-brand-500: 124 152 133;
-    --color-brand-600: 96 124 105;
-    --color-brand-700: 70 95 80;
-    --color-brand-800: 50 71 59;
-    --color-brand-900: 37 55 45;
-    --color-brand-950: 21 32 27;
+    --color-brand-50: 250 251 248;
+    --color-brand-100: 240 243 236;
+    --color-brand-200: 221 230 216;
+    --color-brand-300: 201 213 195;
+    --color-brand-400: 180 194 173;
+    --color-brand-500: 160 174 153;
+    --color-brand-600: 135 148 127;
+    --color-brand-700: 115 127 108;
+    --color-brand-800: 94 105 89;
+    --color-brand-900: 68 77 65;
+    --color-brand-950: 45 52 43;
 
     --accent-petal: 250 247 240;
-    --accent-petal-strong: 124 152 133;
+    --accent-petal-strong: 160 174 153;
     --accent-sun: 254 246 220;
     --accent-sun-strong: 217 119 6;
     --accent-coral: 254 242 242;
     --accent-coral-strong: 185 28 28;
     --accent-lilac: 239 246 241;
-    --accent-lilac-strong: 96 124 105;
+    --accent-lilac-strong: 135 148 127;
     --accent-sky: 224 242 251;
     --accent-sky-strong: 14 165 233;
 
@@ -44,7 +44,7 @@
     --border-soft: 234 223 210;
     --radius-card: 16px;
     --shadow-card: 0 18px 42px -36px rgba(63, 63, 70, 0.18), 0 1px 0 rgba(255, 255, 255, 0.88) inset;
-    --shadow-card-hover: 0 24px 54px -38px rgba(70, 95, 80, 0.22), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
+    --shadow-card-hover: 0 24px 54px -38px rgba(115, 127, 108, 0.2), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
 
     /* Semantic z-index tokens */
     --z-bottom-nav: 40;
@@ -54,31 +54,31 @@
 
   /* Dark Mode: Deep Sage Travel Night */
   .dark {
-    --color-brand-50: 18 28 23;
-    --color-brand-100: 25 40 33;
-    --color-brand-200: 39 62 51;
-    --color-brand-300: 60 91 75;
-    --color-brand-400: 96 124 105;
-    --color-brand-500: 124 152 133;
-    --color-brand-600: 156 181 164;
-    --color-brand-700: 190 209 196;
-    --color-brand-800: 221 232 224;
-    --color-brand-900: 245 250 246;
-    --color-brand-950: 250 252 250;
-    --accent-petal: 24 36 30;
-    --accent-petal-strong: 156 181 164;
+    --color-brand-50: 16 20 15;
+    --color-brand-100: 25 31 24;
+    --color-brand-200: 39 47 37;
+    --color-brand-300: 61 70 58;
+    --color-brand-400: 94 105 89;
+    --color-brand-500: 135 148 127;
+    --color-brand-600: 160 174 153;
+    --color-brand-700: 190 202 184;
+    --color-brand-800: 221 230 216;
+    --color-brand-900: 250 251 248;
+    --color-brand-950: 252 253 250;
+    --accent-petal: 24 31 27;
+    --accent-petal-strong: 160 174 153;
     --accent-sun: 48 39 26;
     --accent-sun-strong: 245 158 11;
     --accent-coral: 69 26 33;
     --accent-coral-strong: 248 113 113;
-    --accent-lilac: 20 33 28;
-    --accent-lilac-strong: 156 181 164;
+    --accent-lilac: 22 29 25;
+    --accent-lilac-strong: 160 174 153;
     --accent-sky: 15 50 67;
     --accent-sky-strong: 125 211 252;
-    --surface-page: 9 15 13;
-    --surface-card: 16 25 21;
-    --surface-muted: 23 35 30;
-    --border-soft: 58 76 65;
+    --surface-page: 13 17 16;
+    --surface-card: 20 27 24;
+    --surface-muted: 29 38 33;
+    --border-soft: 70 80 68;
     --shadow-card: 0 24px 56px -44px rgba(0, 0, 0, 0.78), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
     --shadow-card-hover: 0 30px 64px -46px rgba(0, 0, 0, 0.82), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
   }
@@ -206,15 +206,19 @@
   }
 
   .tp-button-primary {
-    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
-    background: rgb(var(--color-brand-700));
-    box-shadow: 0 18px 36px -28px rgba(70, 95, 80, 0.56);
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    background: rgb(var(--color-brand-300));
+    border: 1px solid rgba(var(--color-brand-400), 0.72);
+    color: rgb(var(--color-brand-950));
+    box-shadow: 0 16px 34px -28px rgba(115, 127, 108, 0.34), 0 1px 0 rgba(255, 255, 255, 0.72) inset;
   }
 
   .tp-button-primary:hover:not(:disabled) {
-    background: rgb(var(--color-brand-800));
+    background: rgb(var(--color-brand-400));
+    border-color: rgba(var(--color-brand-500), 0.78);
+    color: rgb(var(--color-brand-950));
     transform: translateY(-3px);
-    box-shadow: 0 20px 42px -28px rgba(70, 95, 80, 0.64);
+    box-shadow: 0 20px 42px -30px rgba(115, 127, 108, 0.42), 0 1px 0 rgba(255, 255, 255, 0.66) inset;
   }
 
   .tp-button-secondary {
@@ -228,7 +232,7 @@
   .tp-button-secondary:hover:not(:disabled) {
     border-color: rgba(var(--accent-sky-strong), 0.34);
     background: rgba(var(--surface-card), 1);
-    box-shadow: 0 16px 34px -26px rgba(70, 95, 80, 0.26);
+    box-shadow: 0 16px 34px -26px rgba(95, 108, 89, 0.22);
     transform: translateY(-3px);
   }
 
@@ -350,7 +354,7 @@
 
   .tp-icon-chip:hover {
     transform: translateY(-3px);
-    box-shadow: inset 0 0 0 1px rgba(var(--accent-sky-strong), 0.28), 0 14px 28px -26px rgba(70, 95, 80, 0.24);
+    box-shadow: inset 0 0 0 1px rgba(var(--accent-sky-strong), 0.28), 0 14px 28px -26px rgba(95, 108, 89, 0.2);
   }
 
   .dark .tp-card {
@@ -374,12 +378,14 @@
   }
 
   .dark .tp-button-primary {
-    background: rgb(var(--color-brand-800));
+    background: rgb(var(--color-brand-700));
+    border-color: rgba(var(--color-brand-600), 0.72);
     color: rgb(var(--color-brand-50));
   }
 
   .dark .tp-button-primary:hover:not(:disabled) {
-    background: rgb(var(--color-brand-900));
+    background: rgb(var(--color-brand-800));
+    color: rgb(var(--color-brand-50));
   }
 
   .dark .tp-button-secondary:hover:not(:disabled) {
