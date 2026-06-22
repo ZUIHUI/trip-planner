@@ -30,6 +30,11 @@ module.exports = {
           950: 'rgb(var(--color-brand-950) / <alpha-value>)',
         },
       },
+      borderRadius: {
+        lg: 'var(--radius-card)',
+        xl: 'calc(var(--radius-card) + 4px)',
+        '2xl': 'calc(var(--radius-card) + 8px)',
+      },
     },
   },
   plugins: [],

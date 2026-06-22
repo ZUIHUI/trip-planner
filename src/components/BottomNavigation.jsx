@@ -84,7 +84,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-slate-200 bg-white/[0.94] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-slate-200 lg:pb-0 dark:border-slate-800 dark:bg-slate-950/[0.94] ${
+        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-[#eadfd2] bg-[#fffdf8]/[0.94] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-[#eadfd2] lg:pb-0 dark:border-brand-200/20 dark:bg-[#09100d]/[0.94] ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
@@ -104,8 +104,8 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
                 className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
-                    ? 'tp-nav-active bg-white text-brand-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-brand-900 dark:ring-slate-700'
-                    : 'text-slate-500 hover:bg-brand-50/60 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white'
+                    ? 'tp-nav-active bg-white text-brand-800 shadow-sm ring-1 ring-brand-100 dark:bg-brand-100/70 dark:text-brand-900 dark:ring-brand-300/20'
+                    : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
@@ -134,8 +134,8 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
                 className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
-                    ? 'tp-nav-active bg-white text-brand-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-brand-900 dark:ring-slate-700'
-                    : 'text-slate-500 hover:bg-brand-50/60 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white'
+                    ? 'tp-nav-active bg-white text-brand-800 shadow-sm ring-1 ring-brand-100 dark:bg-brand-100/70 dark:text-brand-900 dark:ring-brand-300/20'
+                    : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}

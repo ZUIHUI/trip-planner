@@ -47,8 +47,8 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
               className={`touch-target min-w-[6.5rem] rounded-lg px-4 py-3 text-left transition active:scale-[0.98] ${
                 isSelected
-                  ? 'bg-brand-900 text-white shadow-sm dark:bg-brand-800 dark:text-slate-950'
-                  : 'bg-white/75 text-slate-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  ? 'bg-brand-700 text-white shadow-sm dark:bg-brand-800 dark:text-brand-50'
+                  : 'bg-white/75 text-stone-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/65'
               }`}
             >
               <span className="block text-xs font-bold opacity-80">Day {item.day}</span>

@@ -200,7 +200,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
     : null;
 
   return (
-    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white/90 p-3 shadow-sm sm:p-4 dark:border-slate-800 dark:bg-slate-900/90">
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[#eadfd2] bg-white/90 p-3 shadow-sm sm:p-4 dark:border-brand-200/20 dark:bg-brand-50/80">
       <button
         type="button"
         onClick={() => previousDay && onSelectDay(previousDay.day)}
@@ -216,7 +216,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
         <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
           Day {selectedDay}
         </p>
-        <h2 className="truncate text-lg font-black text-slate-950 dark:text-white">{currentDayTitle}</h2>
+        <h2 className="truncate text-lg font-black text-stone-800 dark:text-brand-900">{currentDayTitle}</h2>
         <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{currentDayDate}</p>
       </div>
 
@@ -235,9 +235,9 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
 };
 
 const FlightDetailTile = ({ label, value }) => (
-  <div className="min-w-0 rounded-lg bg-white/75 px-4 py-3 dark:bg-slate-950/35">
+  <div className="min-w-0 rounded-lg bg-white/75 px-4 py-3 dark:bg-brand-100/35">
     <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{label}</p>
-    <p className="mt-0.5 truncate text-sm font-black text-slate-950 dark:text-white" title={value || emptyFlightText}>
+    <p className="mt-0.5 truncate text-sm font-black text-stone-800 dark:text-brand-900" title={value || emptyFlightText}>
       {value || emptyFlightText}
     </p>
   </div>
@@ -254,18 +254,18 @@ const AirportDayFlightRow = ({ flight }) => {
   ].filter(Boolean).join(' / ');
 
   return (
-    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-800/55">
+    <div className="min-w-0 rounded-lg border border-[#eadfd2] bg-[#faf7f0]/80 p-4 dark:border-brand-200/20 dark:bg-brand-100/45">
       <div className="flex min-w-0 items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
             {flight.label}航班
           </p>
           {flight.hasFlightCode ? (
-            <p className="mt-1 truncate font-mono text-lg font-black text-slate-950 dark:text-white" title={flight.code}>
+            <p className="mt-1 truncate font-mono text-lg font-black text-stone-800 dark:text-brand-900" title={flight.code}>
               {flight.code}
             </p>
           ) : (
-            <p className="mt-1 text-base font-black text-slate-950 dark:text-white">
+            <p className="mt-1 text-base font-black text-stone-800 dark:text-brand-900">
               尚未設定{flight.label}航班
             </p>
           )}
@@ -299,7 +299,7 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
   const hasAnyFlightCode = flights.some((flight) => flight.hasFlightCode);
 
   return (
-    <Card className="border-slate-200 bg-white/95 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/95">
+    <Card className="border-[#eadfd2] bg-white/95 p-5 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/85">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           <div className="tp-icon-chip">
@@ -345,7 +345,7 @@ const TodayHero = ({
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-        className="relative overflow-hidden rounded-lg border border-brand-900 bg-brand-900 p-5 text-white shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900"
+        className="relative overflow-hidden rounded-lg border border-brand-700 bg-brand-700 p-5 text-white shadow-sm sm:p-6 dark:border-brand-300/20 dark:bg-brand-100/80 dark:text-brand-900"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -369,7 +369,7 @@ const TodayHero = ({
           type="button"
           onClick={onAddEvent}
           disabled={!canEdit}
-          className="touch-target tp-press-feedback tp-hover-icon mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-900 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
+          className="touch-target tp-press-feedback tp-hover-icon mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-800 shadow-sm transition hover:bg-brand-50 disabled:opacity-70 dark:bg-brand-900 dark:text-brand-50"
         >
           <Plus size={18} />
           放進今日行程
@@ -384,7 +384,7 @@ const TodayHero = ({
       initial={{ opacity: 0, y: 14, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-      className="relative overflow-hidden rounded-lg border border-brand-900 bg-brand-900 p-5 text-white shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900"
+      className="relative overflow-hidden rounded-lg border border-brand-700 bg-brand-700 p-5 text-white shadow-sm sm:p-6 dark:border-brand-300/20 dark:bg-brand-100/80 dark:text-brand-900"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
@@ -534,7 +534,7 @@ const StatusMetric = ({ icon: Icon, label, value, tone = 'slate' }) => {
     amber: 'bg-amber-50 text-amber-800 dark:bg-amber-950/35 dark:text-amber-100',
     brand: 'bg-brand-50 text-brand-800 dark:bg-brand-950/35 dark:text-brand-100',
     emerald: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/35 dark:text-emerald-100',
-    slate: 'bg-slate-50 text-slate-800 dark:bg-slate-800/70 dark:text-slate-100',
+    slate: 'bg-[#faf7f0] text-stone-700 dark:bg-brand-100/45 dark:text-brand-900',
     sky: 'bg-sky-50 text-sky-800 dark:bg-sky-950/35 dark:text-sky-100'
   };
 
@@ -554,7 +554,7 @@ const StatusSummaryPill = ({ icon: Icon, label, value, tone = 'slate' }) => {
     amber: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100',
     brand: 'border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900/70 dark:bg-brand-950/35 dark:text-brand-100',
     emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100',
-    slate: 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-800/70 dark:text-slate-200',
+    slate: 'border-[#eadfd2] bg-[#faf7f0] text-stone-700 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800',
     sky: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-100'
   };
 
@@ -579,7 +579,7 @@ const TravelStatusPanel = ({ status }) => {
     <Card className="p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="text-lg font-black text-slate-950 dark:text-white">今日狀態</h3>
+          <h3 className="text-lg font-black text-stone-800 dark:text-brand-900">今日狀態</h3>
           <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{summaryText}</p>
         </div>
         <Badge variant={status.totalEvents ? 'info' : 'muted'}>
@@ -731,9 +731,9 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
                 <button
                   type="button"
                   onClick={() => onOpenEvent(event, true)}
-                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50 dark:border-slate-800 dark:bg-slate-950/50 dark:hover:border-brand-800 dark:hover:bg-brand-950/20"
+                  className="min-w-0 flex-1 rounded-lg border border-[#eadfd2] bg-white px-4 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-50/60 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/50"
                 >
-                  <span className="block break-words text-sm font-black text-slate-950 dark:text-white">
+                  <span className="block break-words text-sm font-black text-stone-800 dark:text-brand-900">
                     {event.title || '未命名行程'}
                   </span>
                   {locationText && (
@@ -807,7 +807,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
         <button
           type="button"
           onClick={() => setShowDetails((open) => !open)}
-          className="touch-target mt-4 inline-flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          className="touch-target mt-4 inline-flex w-full items-center justify-between rounded-lg border border-[#eadfd2] bg-[#faf7f0] px-3 py-2 text-sm font-black text-stone-700 transition hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/60"
           aria-expanded={showDetails}
         >
           路線細節
@@ -817,7 +817,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
         {showDetails && (
           <div className="mt-5 space-y-3">
             {routeStops.length ? routeStops.map((stop, index) => (
-              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-slate-50 p-4 dark:bg-slate-800/70">
+              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-[#faf7f0] p-4 dark:bg-brand-100/45">
                 <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-black text-white">
                   {index + 1}
                 </span>
@@ -840,7 +840,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
       </div>
 
       {showDetails && mapPreviewUrl && (
-        <div className="h-64 border-t border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+        <div className="h-64 border-t border-[#eadfd2] bg-[#f6f0e6] dark:border-brand-200/20 dark:bg-brand-50">
           <iframe
             title="today-route-map-preview"
             src={mapPreviewUrl}

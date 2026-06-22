@@ -166,10 +166,10 @@ const RecommendationCard = ({
   };
 
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-950/70">
+    <article className="rounded-lg border border-[#eadfd2] bg-white p-3 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/75">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
-          <h4 className="break-words text-sm font-black text-slate-950 dark:text-white">
+          <h4 className="break-words text-sm font-black text-stone-800 dark:text-brand-900">
             {recommendation.title}
           </h4>
           {recommendation.locationText && (
@@ -405,7 +405,7 @@ const TripAiRecommendationPanel = ({
         <button
           type="button"
           onClick={() => onSummon?.(mode)}
-          className="touch-target tp-press-feedback inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-slate-900/90 dark:text-brand-200 dark:ring-slate-700 dark:hover:bg-slate-900 dark:hover:text-white"
+          className="touch-target tp-press-feedback inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-sm ring-1 ring-[#eadfd2] transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-50/90 dark:text-brand-900 dark:ring-brand-300/20 dark:hover:bg-brand-100"
           aria-label="叫回旅伴"
           title="叫回旅伴"
         >
@@ -443,7 +443,7 @@ const TripAiRecommendationPanel = ({
                 <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">
                   旅伴
                 </p>
-                <h3 className="mt-0.5 text-lg font-black text-slate-950 dark:text-white">
+                <h3 className="mt-0.5 text-lg font-black text-stone-800 dark:text-brand-900">
                   {response?.headline || '幫你找下一個好點子'}
                 </h3>
               </div>
@@ -485,7 +485,7 @@ const TripAiRecommendationPanel = ({
               placeholder="例如：想晚點出門、安排室內備案、晚上想吃燒肉"
               rows={3}
               maxLength={AI_INITIAL_IDEA_MAX_LENGTH}
-              className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 dark:border-slate-800 dark:bg-slate-950/70 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-brand-500 dark:focus:ring-brand-950"
+              className="w-full resize-none rounded-lg border border-[#eadfd2] bg-white px-3 py-2 text-sm font-semibold text-stone-800 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-brand-400 focus:ring-2 focus:ring-sky-100 dark:border-brand-200/20 dark:bg-brand-50/70 dark:text-brand-900 dark:placeholder:text-brand-600 dark:focus:border-brand-500 dark:focus:ring-brand-200/20"
             />
           </div>
 
@@ -523,7 +523,7 @@ const TripAiRecommendationPanel = ({
                 />
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              <div className="rounded-lg border border-dashed border-[#eadfd2] p-4 text-sm font-semibold text-stone-500 dark:border-brand-200/20 dark:text-brand-700">
                 還沒有小提案。按「幫我排」開始整理。
               </div>
             )}

@@ -141,11 +141,11 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     aria-pressed={active}
     className={`touch-target tp-press-feedback tp-hover-icon tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
       active
-        ? 'border-brand-300 bg-white text-brand-900 shadow-sm ring-1 ring-brand-100 dark:border-brand-700 dark:bg-slate-900 dark:text-brand-900 dark:ring-brand-800/40'
-        : 'border-slate-200 bg-white/72 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
+        ? 'border-brand-300 bg-white text-brand-800 shadow-sm ring-1 ring-brand-100 dark:border-brand-300/30 dark:bg-brand-100/65 dark:text-brand-900 dark:ring-brand-300/20'
+        : 'border-[#eadfd2] bg-white/72 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/40 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/55'
     }`}
   >
-    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${active ? 'tp-soft-pulse bg-white/90 text-brand-700 shadow-sm dark:bg-slate-900/75 dark:text-brand-200' : 'bg-slate-50 text-slate-500 group-hover:text-brand-700 dark:bg-slate-800 dark:text-slate-300 dark:group-hover:text-brand-200'}`}>
+    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${active ? 'tp-soft-pulse bg-white/90 text-brand-700 shadow-sm dark:bg-brand-50/75 dark:text-brand-900' : 'bg-brand-50 text-stone-500 group-hover:text-brand-700 dark:bg-brand-100/50 dark:text-brand-700 dark:group-hover:text-brand-900'}`}>
       <Icon size={18} />
     </span>
     <span className="min-w-0">
@@ -160,18 +160,18 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
 
   return (
     <motion.div
-      className="relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900/90"
+      className="relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-[#eadfd2] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-brand-200/20 dark:bg-brand-50/80"
       initial={{ opacity: 0, y: 10, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-slate-950/60 dark:text-brand-800 dark:ring-slate-800">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-100/70 dark:text-brand-900 dark:ring-brand-300/20">
           <ArrowRight size={18} />
         </span>
         <div className="min-w-0">
           <p className="text-xs font-black text-brand-700 dark:text-brand-300">{label}</p>
-          <p className="truncate text-sm font-black text-slate-950 dark:text-white">
+          <p className="truncate text-sm font-black text-stone-800 dark:text-brand-900">
             {trip.title || '未命名旅程'}
           </p>
           <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -198,8 +198,8 @@ const TripFilterChip = ({ active, label, count, onClick }) => (
     transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
     className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
       active
-        ? 'border-brand-900 bg-brand-900 text-white shadow-sm dark:border-brand-800 dark:bg-brand-800 dark:text-slate-950'
-        : 'border-slate-200 bg-white/80 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/65 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
+        ? 'border-brand-700 bg-brand-700 text-white shadow-sm dark:border-brand-800 dark:bg-brand-800 dark:text-brand-50'
+        : 'border-[#eadfd2] bg-white/80 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/60'
     }`}
   >
     <span>{label}</span>
@@ -236,8 +236,8 @@ const TripCard = ({
             onError={onCoverError}
           />
         ) : (
-          <div className="flex h-36 w-full items-center justify-center border-b border-slate-200 bg-brand-50 text-brand-700 sm:h-40 dark:border-slate-800 dark:bg-slate-950/50 dark:text-brand-800">
-            <div className="rounded-lg bg-white/90 p-3 ring-1 ring-slate-200 dark:bg-slate-900/80 dark:ring-slate-700/60">
+          <div className="flex h-36 w-full items-center justify-center border-b border-[#eadfd2] bg-[#faf7f0] text-brand-700 sm:h-40 dark:border-brand-200/20 dark:bg-brand-50/50 dark:text-brand-900">
+            <div className="rounded-lg bg-white/90 p-3 ring-1 ring-[#eadfd2] dark:bg-brand-100/70 dark:ring-brand-300/20">
               <Compass size={28} />
             </div>
           </div>
@@ -261,18 +261,18 @@ const TripCard = ({
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-lg bg-sky-50/80 px-4 py-3 dark:bg-slate-800/70">
+            <div className="rounded-lg bg-sky-50/80 px-4 py-3 dark:bg-sky-950/30">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
             </div>
-            <div className="rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/70">
+            <div className="rounded-lg bg-[#faf7f0] px-4 py-3 dark:bg-brand-100/45">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
           </div>
 
           {trip.accessRole === 'view' && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-slate-50 px-4 py-3 text-xs font-bold text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#faf7f0] px-4 py-3 text-xs font-bold text-stone-600 dark:bg-brand-100/45 dark:text-brand-800">
               <ShieldCheck size={14} className="shrink-0" />
               <span className="truncate">只能查看</span>
             </div>
@@ -280,13 +280,13 @@ const TripCard = ({
         </div>
       </button>
 
-      <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">
+      <div className="border-t border-[#eadfd2] px-5 py-4 dark:border-brand-200/20">
         <div className={`flex items-center gap-2 ${canDelete ? 'justify-between' : 'justify-end'}`}>
           {canDelete && (
             <button
               type="button"
               onClick={onToggleExpanded}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-stone-500 hover:bg-brand-50 hover:text-stone-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900"
               aria-expanded={expanded}
             >
               {expanded ? '收合管理' : '管理'}
@@ -299,7 +299,7 @@ const TripCard = ({
         </div>
 
         {expanded && canDelete && (
-            <div className="mt-4 flex justify-end border-t border-slate-200 pt-4 dark:border-slate-800">
+            <div className="mt-4 flex justify-end border-t border-[#eadfd2] pt-4 dark:border-brand-200/20">
             <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
               <Trash2 size={14} />
               刪除旅程
@@ -699,7 +699,7 @@ const TripListPage = () => {
           </div>
 
           {isEditingNickname && (
-            <form onSubmit={handleSaveNickname} className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+            <form onSubmit={handleSaveNickname} className="mt-4 border-t border-[#eadfd2] pt-4 dark:border-brand-200/20">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <label className="min-w-0 flex-1">
                   <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
@@ -735,7 +735,7 @@ const TripListPage = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
         >
-          <div className="absolute inset-x-0 top-0 h-px bg-brand-200 dark:bg-slate-700" />
+          <div className="absolute inset-x-0 top-0 h-px bg-[#eadfd2] dark:bg-brand-300/25" />
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
             <div className="min-w-0">
               <div className="flex min-w-0 items-start gap-3">
@@ -743,7 +743,7 @@ const TripListPage = () => {
                   <PlaneTakeoff size={19} />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-slate-950 dark:text-white">旅程小基地</h1>
+                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">旅程小基地</h1>
                   <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
                     {totalTripCount ? `已收好 ${totalTripCount} 趟旅程，${ownedTripCount} 趟由你管理` : '先把想去的地方收進來'}
                   </p>
@@ -779,7 +779,7 @@ const TripListPage = () => {
                 <motion.form
                   key="create-trip"
                   onSubmit={handleCreateTrip}
-                  className="grid gap-4 rounded-lg border border-brand-100 bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
+                  className="grid gap-4 rounded-lg border border-[#eadfd2] bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 12 }}
@@ -804,7 +804,7 @@ const TripListPage = () => {
                 <motion.form
                   key="join-trip"
                   onSubmit={handleJoinByInviteCode}
-                  className="grid gap-4 rounded-lg border border-brand-100 bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-slate-800 dark:bg-slate-900/70"
+                  className="grid gap-4 rounded-lg border border-[#eadfd2] bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}

@@ -4,29 +4,29 @@
 
 @layer base {
   :root {
-    /* Light Mode: Clean Travel Modern Minimal */
-    --color-brand-50: 246 249 252;
-    --color-brand-100: 232 241 248;
-    --color-brand-200: 205 221 234;
-    --color-brand-300: 157 183 204;
-    --color-brand-400: 103 132 158;
-    --color-brand-500: 71 99 125;
-    --color-brand-600: 44 72 97;
-    --color-brand-700: 31 52 72;
-    --color-brand-800: 23 37 52;
-    --color-brand-900: 17 24 39;
-    --color-brand-950: 8 13 24;
+    /* Light Mode: Japanese Magazine x Fresh Travel */
+    --color-brand-50: 246 249 245;
+    --color-brand-100: 232 240 233;
+    --color-brand-200: 209 224 213;
+    --color-brand-300: 176 199 183;
+    --color-brand-400: 140 168 149;
+    --color-brand-500: 124 152 133;
+    --color-brand-600: 96 124 105;
+    --color-brand-700: 70 95 80;
+    --color-brand-800: 50 71 59;
+    --color-brand-900: 37 55 45;
+    --color-brand-950: 21 32 27;
 
-    --accent-petal: 241 245 249;
-    --accent-petal-strong: 71 85 105;
-    --accent-sun: 250 249 246;
-    --accent-sun-strong: 132 116 88;
+    --accent-petal: 250 247 240;
+    --accent-petal-strong: 124 152 133;
+    --accent-sun: 254 246 220;
+    --accent-sun-strong: 217 119 6;
     --accent-coral: 254 242 242;
     --accent-coral-strong: 185 28 28;
-    --accent-lilac: 238 242 247;
-    --accent-lilac-strong: 71 85 105;
-    --accent-sky: 226 238 247;
-    --accent-sky-strong: 51 94 132;
+    --accent-lilac: 239 246 241;
+    --accent-lilac-strong: 96 124 105;
+    --accent-sky: 224 242 251;
+    --accent-sky-strong: 14 165 233;
 
     /* Mobile typography & spacing tokens */
     --font-size-body-mobile: 16px;
@@ -38,13 +38,13 @@
     --space-form-control-mobile: 14px;
 
     /* Surface tokens */
-    --surface-page: 248 250 252;
+    --surface-page: 250 247 240;
     --surface-card: 255 255 255;
-    --surface-muted: 242 246 249;
-    --border-soft: 214 222 232;
-    --radius-card: 8px;
-    --shadow-card: 0 18px 42px -36px rgba(15, 23, 42, 0.18), 0 1px 0 rgba(255, 255, 255, 0.88) inset;
-    --shadow-card-hover: 0 24px 54px -38px rgba(15, 23, 42, 0.24), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
+    --surface-muted: 246 240 230;
+    --border-soft: 234 223 210;
+    --radius-card: 16px;
+    --shadow-card: 0 18px 42px -36px rgba(63, 63, 70, 0.18), 0 1px 0 rgba(255, 255, 255, 0.88) inset;
+    --shadow-card-hover: 0 24px 54px -38px rgba(70, 95, 80, 0.22), 0 1px 0 rgba(255, 255, 255, 0.92) inset;
 
     /* Semantic z-index tokens */
     --z-bottom-nav: 40;
@@ -52,35 +52,35 @@
     --z-modal: 50;
   }
 
-  /* Dark Mode: Clean Travel Modern Minimal */
+  /* Dark Mode: Deep Sage Travel Night */
   .dark {
-    --color-brand-50: 12 18 29;
-    --color-brand-100: 22 31 45;
-    --color-brand-200: 42 56 75;
-    --color-brand-300: 80 101 124;
-    --color-brand-400: 122 149 171;
-    --color-brand-500: 157 183 204;
-    --color-brand-600: 190 209 224;
-    --color-brand-700: 218 231 241;
-    --color-brand-800: 232 241 248;
-    --color-brand-900: 246 249 252;
-    --color-brand-950: 248 250 252;
-    --accent-petal: 30 41 59;
-    --accent-petal-strong: 148 163 184;
-    --accent-sun: 30 34 44;
-    --accent-sun-strong: 180 164 130;
+    --color-brand-50: 18 28 23;
+    --color-brand-100: 25 40 33;
+    --color-brand-200: 39 62 51;
+    --color-brand-300: 60 91 75;
+    --color-brand-400: 96 124 105;
+    --color-brand-500: 124 152 133;
+    --color-brand-600: 156 181 164;
+    --color-brand-700: 190 209 196;
+    --color-brand-800: 221 232 224;
+    --color-brand-900: 245 250 246;
+    --color-brand-950: 250 252 250;
+    --accent-petal: 24 36 30;
+    --accent-petal-strong: 156 181 164;
+    --accent-sun: 48 39 26;
+    --accent-sun-strong: 245 158 11;
     --accent-coral: 69 26 33;
     --accent-coral-strong: 248 113 113;
-    --accent-lilac: 25 34 48;
-    --accent-lilac-strong: 148 163 184;
-    --accent-sky: 18 42 60;
-    --accent-sky-strong: 125 165 196;
-    --surface-page: 6 10 18;
-    --surface-card: 12 18 28;
-    --surface-muted: 18 27 40;
-    --border-soft: 51 65 85;
-    --shadow-card: 0 24px 56px -44px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
-    --shadow-card-hover: 0 30px 64px -46px rgba(0, 0, 0, 0.86), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    --accent-lilac: 20 33 28;
+    --accent-lilac-strong: 156 181 164;
+    --accent-sky: 15 50 67;
+    --accent-sky-strong: 125 211 252;
+    --surface-page: 9 15 13;
+    --surface-card: 16 25 21;
+    --surface-muted: 23 35 30;
+    --border-soft: 58 76 65;
+    --shadow-card: 0 24px 56px -44px rgba(0, 0, 0, 0.78), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    --shadow-card-hover: 0 30px 64px -46px rgba(0, 0, 0, 0.82), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
   }
 
   @media (min-width: 640px) {
@@ -110,8 +110,13 @@
   }
 
   body {
-    @apply text-slate-900 antialiased dark:text-slate-100;
+    @apply antialiased;
     background-color: rgb(var(--surface-page));
+    color: #3f3f46;
+  }
+
+  .dark body {
+    color: #e7ece7;
   }
 
   button,
@@ -127,7 +132,7 @@
   select:focus-visible,
   textarea:focus-visible {
     @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-brand-500 dark:ring-offset-slate-950;
-    box-shadow: 0 0 0 5px rgba(var(--accent-sky-strong), 0.12);
+    box-shadow: 0 0 0 5px rgba(var(--accent-sky-strong), 0.16);
   }
 }
 
@@ -135,7 +140,7 @@
   .tp-page-shell {
     @apply min-h-screen;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(var(--surface-page), 1) 48%, rgba(var(--surface-muted), 0.72) 100%);
+      linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(var(--surface-page), 1) 46%, rgba(var(--accent-lilac), 0.58) 100%);
   }
 
   .dark .tp-page-shell {
@@ -170,9 +175,9 @@
   }
 
   .tp-card {
-    @apply rounded-lg border bg-white transition dark:bg-slate-900;
-    border-color: rgba(var(--border-soft), 0.82);
-    background: rgba(var(--surface-card), 0.96);
+    @apply rounded-lg border transition;
+    border-color: rgba(var(--border-soft), 0.86);
+    background: rgba(var(--surface-card), 0.97);
     box-shadow: var(--shadow-card);
     isolation: isolate;
     position: relative;
@@ -184,15 +189,15 @@
   }
 
   .tp-card-hover:hover {
-    border-color: rgba(var(--accent-sky-strong), 0.32);
+    border-color: rgba(var(--accent-sky-strong), 0.34);
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-3px);
   }
 
   .tp-panel {
-    @apply rounded-lg border supports-[backdrop-filter]:backdrop-blur dark:bg-slate-900/[0.9];
-    border-color: rgba(var(--border-soft), 0.82);
-    background: rgba(var(--surface-card), 0.9);
+    @apply rounded-lg border supports-[backdrop-filter]:backdrop-blur;
+    border-color: rgba(var(--border-soft), 0.88);
+    background: rgba(var(--surface-card), 0.92);
     box-shadow: var(--shadow-card);
   }
 
@@ -201,33 +206,35 @@
   }
 
   .tp-button-primary {
-    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-800 dark:text-slate-950;
-    background: rgb(var(--color-brand-900));
-    box-shadow: 0 18px 36px -28px rgba(15, 23, 42, 0.55);
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    background: rgb(var(--color-brand-700));
+    box-shadow: 0 18px 36px -28px rgba(70, 95, 80, 0.56);
   }
 
   .tp-button-primary:hover:not(:disabled) {
     background: rgb(var(--color-brand-800));
     transform: translateY(-3px);
-    box-shadow: 0 20px 42px -28px rgba(15, 23, 42, 0.62);
+    box-shadow: 0 20px 42px -28px rgba(70, 95, 80, 0.64);
   }
 
   .tp-button-secondary {
-    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition duration-200 hover:text-slate-950 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:text-white;
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-200 dark:hover:border-brand-700 dark:hover:text-white;
     border-color: rgba(var(--border-soft), 0.9);
     background: rgba(var(--surface-card), 0.92);
-    box-shadow: 0 12px 26px -24px rgba(15, 23, 42, 0.24), 0 1px 0 rgba(255, 255, 255, 0.72) inset;
+    color: #3f3f46;
+    box-shadow: 0 12px 26px -24px rgba(63, 63, 70, 0.22), 0 1px 0 rgba(255, 255, 255, 0.72) inset;
   }
 
   .tp-button-secondary:hover:not(:disabled) {
     border-color: rgba(var(--accent-sky-strong), 0.34);
     background: rgba(var(--surface-card), 1);
-    box-shadow: 0 16px 34px -26px rgba(15, 23, 42, 0.28);
+    box-shadow: 0 16px 34px -26px rgba(70, 95, 80, 0.26);
     transform: translateY(-3px);
   }
 
   .tp-button-ghost {
-    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-600 transition duration-200 hover:text-slate-900 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:hover:text-white;
+    @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:hover:text-white;
+    color: #6f6a62;
   }
 
   .tp-button-ghost:hover:not(:disabled) {
@@ -239,8 +246,10 @@
   }
 
   .tp-input {
-    @apply w-full min-w-0 max-w-full rounded-lg border bg-white px-3 py-2.5 text-slate-900 placeholder:text-slate-400 transition focus:border-brand-500 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
+    @apply w-full min-w-0 max-w-full rounded-lg border px-3 py-2.5 placeholder:text-slate-400 transition focus:border-brand-500 dark:text-slate-100 dark:placeholder:text-slate-500;
     border-color: rgba(var(--border-soft), 0.92);
+    background: rgba(var(--surface-card), 0.96);
+    color: #3f3f46;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset;
     min-height: 44px;
   }
@@ -263,8 +272,10 @@
   }
 
   .tp-select {
-    @apply w-full min-w-0 max-w-full rounded-lg border bg-white px-3 py-2.5 pr-8 text-slate-900 placeholder:text-slate-400 transition focus:border-brand-500 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500;
+    @apply w-full min-w-0 max-w-full rounded-lg border px-3 py-2.5 pr-8 placeholder:text-slate-400 transition focus:border-brand-500 dark:text-slate-100 dark:placeholder:text-slate-500;
     border-color: rgba(var(--border-soft), 0.92);
+    background: rgba(var(--surface-card), 0.96);
+    color: #3f3f46;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset;
     min-height: 44px;
   }
@@ -295,7 +306,9 @@
   }
 
   .tp-badge-muted {
-    @apply border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-800/70 dark:text-slate-300;
+    border-color: rgba(var(--border-soft), 0.92);
+    background: rgba(var(--surface-muted), 0.78);
+    color: #6f6a62;
   }
 
   .tp-badge-info {
@@ -337,7 +350,7 @@
 
   .tp-icon-chip:hover {
     transform: translateY(-3px);
-    box-shadow: inset 0 0 0 1px rgba(var(--accent-sky-strong), 0.28), 0 14px 28px -26px rgba(15, 23, 42, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(var(--accent-sky-strong), 0.28), 0 14px 28px -26px rgba(70, 95, 80, 0.24);
   }
 
   .dark .tp-card {
@@ -353,6 +366,20 @@
   .dark .tp-button-secondary {
     border-color: rgba(var(--border-soft), 0.9);
     background: rgba(var(--surface-card), 0.92);
+    color: #e7ece7;
+  }
+
+  .dark .tp-button-ghost {
+    color: #cbd8cd;
+  }
+
+  .dark .tp-button-primary {
+    background: rgb(var(--color-brand-800));
+    color: rgb(var(--color-brand-50));
+  }
+
+  .dark .tp-button-primary:hover:not(:disabled) {
+    background: rgb(var(--color-brand-900));
   }
 
   .dark .tp-button-secondary:hover:not(:disabled) {
@@ -360,13 +387,20 @@
   }
 
   .dark .tp-button-ghost:hover:not(:disabled) {
-    background: rgba(30, 41, 59, 0.82);
+    background: rgba(var(--surface-muted), 0.82);
+  }
+
+  .dark .tp-badge-muted {
+    border-color: rgba(var(--border-soft), 0.9);
+    background: rgba(var(--surface-muted), 0.82);
+    color: #cbd8cd;
   }
 
   .dark .tp-input,
   .dark .tp-select {
     border-color: rgba(var(--border-soft), 0.92);
-    background: rgba(15, 23, 42, 0.92);
+    background: rgba(var(--surface-card), 0.92);
+    color: #e7ece7;
   }
 
   .dark .tp-empty-state,
@@ -847,11 +881,11 @@ body {
   }
 
   .trip-handbook-document {
-    @apply mx-auto max-w-4xl space-y-4 text-slate-900 dark:text-slate-100;
+    @apply mx-auto max-w-4xl space-y-4 text-stone-800 dark:text-brand-900;
   }
 
   .trip-handbook-page {
-    @apply overflow-hidden rounded-lg border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900;
+    @apply overflow-hidden rounded-lg border border-[#eadfd2] bg-white p-5 shadow-sm dark:border-brand-200/20 dark:bg-brand-50;
     break-inside: avoid;
   }
 
@@ -861,7 +895,7 @@ body {
   }
 
   .trip-handbook-cover-visual {
-    @apply min-h-[260px] overflow-hidden bg-slate-100 dark:bg-slate-800;
+    @apply min-h-[260px] overflow-hidden bg-[#f6f0e6] dark:bg-brand-100/45;
   }
 
   .trip-handbook-cover-copy {
@@ -871,23 +905,23 @@ body {
   .trip-handbook-card,
   .trip-handbook-feature-card,
   .trip-handbook-mini-card {
-    @apply min-w-0 rounded-lg border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/35;
+    @apply min-w-0 rounded-lg border border-[#eadfd2] bg-[#faf7f0]/80 p-4 dark:border-brand-200/20 dark:bg-brand-100/45;
   }
 
   .trip-handbook-feature-card {
-    @apply border-brand-200 bg-brand-50 dark:border-brand-900/60 dark:bg-brand-950/25;
+    @apply border-brand-200 bg-brand-50 dark:border-brand-300/25 dark:bg-brand-100/55;
   }
 
   .trip-handbook-icon {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-brand-300 dark:ring-slate-700;
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm ring-1 ring-[#eadfd2] dark:bg-brand-50 dark:text-brand-900 dark:ring-brand-300/20;
   }
 
   .trip-handbook-schedule-row {
-    @apply flex gap-3 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950/30;
+    @apply flex gap-3 rounded-lg border border-[#eadfd2] bg-white p-3 dark:border-brand-200/20 dark:bg-brand-50/60;
   }
 
   .trip-handbook-time {
-    @apply flex h-10 w-20 shrink-0 items-center justify-center rounded-lg bg-slate-100 px-2 text-center text-xs font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200;
+    @apply flex h-10 w-20 shrink-0 items-center justify-center rounded-lg bg-brand-50 px-2 text-center text-xs font-black text-brand-800 dark:bg-brand-100/55 dark:text-brand-900;
   }
 
   .trip-handbook-print-root {

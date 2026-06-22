@@ -21,7 +21,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
     : nextSummaryText;
   const nextBaseClass = cover
     ? 'border-white/25 bg-white/15 text-white'
-    : 'border-slate-200 bg-white/85 text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
+    : 'border-brand-100 bg-white/85 text-stone-700 shadow-sm dark:border-brand-300/20 dark:bg-brand-100/70 dark:text-brand-900';
 
   return (
     <motion.div
@@ -41,7 +41,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
               key={person.uid}
               person={person}
               size="sm"
-              className={cover ? 'border-white/50 bg-black/25 text-white' : ''}
+              className={cover ? 'border-white/50 bg-brand-950/35 text-white' : ''}
             />
           ))}
         </div>
@@ -66,7 +66,7 @@ const Header = forwardRef(({
 
   const headerStyle = shouldShowCoverBackground
     ? {
-        backgroundImage: `linear-gradient(120deg, rgba(8, 13, 24, 0.68), rgba(51, 94, 132, 0.26)), url(${coverImageUrl})`,
+        backgroundImage: `linear-gradient(120deg, rgba(37, 55, 45, 0.72), rgba(14, 165, 233, 0.24)), url(${coverImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
@@ -76,7 +76,7 @@ const Header = forwardRef(({
   return (
     <motion.header
       ref={ref}
-      className="sticky top-0 z-30 border-b border-slate-200 bg-white/[0.92] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90"
+      className="sticky top-0 z-30 border-b border-[#eadfd2] bg-[#fffdf8]/[0.92] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-[#09100d]/90"
       layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -87,10 +87,10 @@ const Header = forwardRef(({
         layout
         className={shouldShowCoverBackground
           ? 'text-white'
-          : 'relative overflow-hidden bg-white/78 text-slate-950 dark:bg-slate-950/82 dark:text-white'}
+          : 'relative overflow-hidden bg-white/78 text-stone-800 dark:bg-brand-50/82 dark:text-brand-900'}
       >
         {!shouldShowCoverBackground && (
-          <div className="absolute inset-x-0 top-0 h-px bg-brand-200 dark:bg-slate-700" />
+          <div className="absolute inset-x-0 top-0 h-px bg-[#eadfd2] dark:bg-brand-300/25" />
         )}
         <PageContainer className="py-4 sm:py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -137,7 +137,7 @@ const Header = forwardRef(({
             <div className="flex w-full shrink-0 items-center justify-end gap-3 sm:w-auto">
               {isSaving && (
                 <motion.span
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-black/30 text-white' : 'border border-brand-100 bg-white/85 text-brand-700 shadow-sm dark:border-brand-900/60 dark:bg-brand-900/30 dark:text-brand-200'}`}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${shouldShowCoverBackground ? 'bg-brand-950/35 text-white' : 'border border-brand-100 bg-white/85 text-brand-700 shadow-sm dark:border-brand-300/20 dark:bg-brand-100/70 dark:text-brand-900'}`}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
@@ -164,7 +164,7 @@ const Header = forwardRef(({
 
       {children && (
         <motion.div
-          className="border-t border-brand-100/80 bg-white/90 dark:border-slate-800 dark:bg-slate-950/[0.92]"
+          className="border-t border-[#eadfd2]/80 bg-white/90 dark:border-brand-200/20 dark:bg-[#09100d]/[0.92]"
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
