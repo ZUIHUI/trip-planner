@@ -637,7 +637,7 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /pixel-navibun-atlas\.png/);
   assert.match(panelSource, /petAnimationStates/);
   assert.match(panelSource, /petMood/);
-  assert.match(panelSource, /Compass/);
+  assert.match(panelSource, /叫回旅伴/);
   assert.match(panelSource, /EyeOff/);
   assert.match(panelSource, /isCompanionHidden/);
   assert.match(panelSource, /onHideCompanion/);

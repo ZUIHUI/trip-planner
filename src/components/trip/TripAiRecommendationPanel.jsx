@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarPlus,
   CheckCircle2,
-  Compass,
   EyeOff,
   Lightbulb,
   MapPin,
@@ -406,11 +405,11 @@ const TripAiRecommendationPanel = ({
         <button
           type="button"
           onClick={() => onSummon?.(mode)}
-          className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-full text-brand-700 transition hover:bg-sky-50/70 hover:text-brand-900 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-200 dark:hover:bg-slate-800/60 dark:hover:text-white"
-          aria-label="叫出旅伴"
-          title="叫出旅伴"
+          className="touch-target tp-press-feedback inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-slate-900/90 dark:text-brand-200 dark:ring-slate-700 dark:hover:bg-slate-900 dark:hover:text-white"
+          aria-label="叫回旅伴"
+          title="叫回旅伴"
         >
-          <Compass size={20} />
+          <AiTravelPet mood="idle" size="button" />
         </button>
       </div>
     );
