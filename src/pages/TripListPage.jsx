@@ -139,10 +139,10 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`touch-target tp-press-feedback tp-hover-icon tp-icon-wiggle tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
+    className={`touch-target tp-press-feedback tp-hover-icon tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
       active
-        ? 'border-brand-200 bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_16px_34px_-26px_rgba(37,99,235,0.52)] dark:border-brand-800 dark:from-slate-900 dark:via-brand-950/35 dark:to-rose-950/20 dark:text-brand-100'
-        : 'border-brand-100 bg-white/72 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
+        ? 'border-brand-300 bg-white text-brand-900 shadow-sm ring-1 ring-brand-100 dark:border-brand-700 dark:bg-slate-900 dark:text-brand-900 dark:ring-brand-800/40'
+        : 'border-slate-200 bg-white/72 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
     }`}
   >
     <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${active ? 'tp-soft-pulse bg-white/90 text-brand-700 shadow-sm dark:bg-slate-900/75 dark:text-brand-200' : 'bg-slate-50 text-slate-500 group-hover:text-brand-700 dark:bg-slate-800 dark:text-slate-300 dark:group-hover:text-brand-200'}`}>
@@ -160,15 +160,13 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
 
   return (
     <motion.div
-      className="tp-gradient-breathe tp-sheen tp-ambient-glow relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-brand-100 bg-gradient-to-br from-white via-sky-50/80 to-rose-50/70 p-4 pb-7 shadow-[0_18px_38px_-32px_rgba(37,99,235,0.52)] sm:flex-row sm:items-center sm:justify-between dark:border-brand-900/60 dark:from-slate-900 dark:via-slate-900/90 dark:to-brand-950/25"
+      className="relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900/90"
       initial={{ opacity: 0, y: 10, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
     >
-      <span aria-hidden="true" className="tp-ambient-stars" />
-      <span aria-hidden="true" className="tp-route-trail" />
       <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-brand-700 shadow-sm ring-1 ring-brand-100 dark:bg-slate-950/60 dark:text-brand-200 dark:ring-brand-900/70">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-slate-950/60 dark:text-brand-800 dark:ring-slate-800">
           <ArrowRight size={18} />
         </span>
         <div className="min-w-0">
@@ -200,8 +198,8 @@ const TripFilterChip = ({ active, label, count, onClick }) => (
     transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
     className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
       active
-        ? 'border-brand-200 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 text-white shadow-[0_14px_28px_-22px_rgba(37,99,235,0.62)] dark:border-brand-500 dark:from-brand-200 dark:via-sky-200 dark:to-rose-200 dark:text-slate-950'
-        : 'border-brand-100 bg-white/80 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/65 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
+        ? 'border-brand-900 bg-brand-900 text-white shadow-sm dark:border-brand-800 dark:bg-brand-800 dark:text-slate-950'
+        : 'border-slate-200 bg-white/80 text-slate-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/65 dark:text-slate-300 dark:hover:border-brand-800 dark:hover:bg-slate-900'
     }`}
   >
     <span>{label}</span>
@@ -223,7 +221,7 @@ const TripCard = ({
   const showCover = coverImageUrl && !coverFailed;
 
   return (
-    <Card as="article" interactive className="tp-sheen overflow-hidden">
+    <Card as="article" interactive className="overflow-hidden">
       <button
         type="button"
         onClick={onOpen}
@@ -238,8 +236,8 @@ const TripCard = ({
             onError={onCoverError}
           />
         ) : (
-          <div className="tp-gradient-breathe flex h-36 w-full items-center justify-center bg-gradient-to-br from-sky-50 via-brand-50 to-rose-50 text-brand-700 sm:h-40 dark:from-brand-900/40 dark:via-slate-900 dark:to-rose-950/25">
-            <div className="tp-gentle-float rounded-lg bg-white/90 p-3 shadow-sm ring-1 ring-white/70 dark:bg-slate-900/80 dark:ring-slate-700/60">
+          <div className="flex h-36 w-full items-center justify-center border-b border-slate-200 bg-brand-50 text-brand-700 sm:h-40 dark:border-slate-800 dark:bg-slate-950/50 dark:text-brand-800">
+            <div className="rounded-lg bg-white/90 p-3 ring-1 ring-slate-200 dark:bg-slate-900/80 dark:ring-slate-700/60">
               <Compass size={28} />
             </div>
           </div>
@@ -267,7 +265,7 @@ const TripCard = ({
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
             </div>
-            <div className="rounded-lg bg-rose-50/70 px-4 py-3 dark:bg-slate-800/70">
+            <div className="rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/70">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
@@ -732,18 +730,16 @@ const TripListPage = () => {
         </div>
 
         <motion.section
-          className="tp-panel tp-sheen tp-ambient-glow relative mb-7 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
+          className="tp-panel relative mb-7 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
           initial={{ opacity: 0, y: 12, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
         >
-          <span aria-hidden="true" className="tp-ambient-stars" />
-          <span aria-hidden="true" className="tp-route-trail" />
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-sky-400 to-rose-400" />
+          <div className="absolute inset-x-0 top-0 h-px bg-brand-200 dark:bg-slate-700" />
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
             <div className="min-w-0">
               <div className="flex min-w-0 items-start gap-3">
-                <div className="tp-icon-chip tp-gentle-float">
+                <div className="tp-icon-chip">
                   <PlaneTakeoff size={19} />
                 </div>
                 <div className="min-w-0">

@@ -16,10 +16,10 @@ const Card = ({ as: Component = 'div', interactive = false, className = '', chil
         initial: { opacity: 0, y: 12, scale: 0.982 },
         animate: { opacity: 1, y: 0, scale: 1 },
         whileHover: interactive
-          ? { y: -7, scale: 1.018, rotate: -0.25 }
-          : { y: -2, scale: 1.004 },
-        whileTap: interactive ? { y: -1, scale: 0.988 } : undefined,
-        transition: { type: 'spring', stiffness: 430, damping: 30, mass: 0.55 }
+          ? { y: -3, scale: 1.004 }
+          : { y: -1, scale: 1.001 },
+        whileTap: interactive ? { y: 0, scale: 0.992 } : undefined,
+        transition: { type: 'spring', stiffness: 420, damping: 34, mass: 0.6 }
       }
     : {};
 

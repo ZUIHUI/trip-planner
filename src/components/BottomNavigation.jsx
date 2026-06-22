@@ -84,7 +84,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-brand-100/80 bg-white/[0.94] pb-[calc(0.625rem+env(safe-area-inset-bottom))] shadow-[0_-24px_48px_-38px_rgba(37,99,235,0.46)] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-brand-100/80 lg:pb-0 dark:border-slate-800 dark:bg-slate-950/[0.94] ${
+        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-slate-200 bg-white/[0.94] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-slate-200 lg:pb-0 dark:border-slate-800 dark:bg-slate-950/[0.94] ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
@@ -104,7 +104,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
                 className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
-                    ? 'tp-nav-active bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_14px_28px_-22px_rgba(37,99,235,0.6)] ring-1 ring-brand-100 dark:bg-brand-200 dark:from-brand-200 dark:via-brand-200 dark:to-sky-200 dark:text-slate-950 dark:ring-brand-300/30'
+                    ? 'tp-nav-active bg-white text-brand-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-brand-900 dark:ring-slate-700'
                     : 'text-slate-500 hover:bg-brand-50/60 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
@@ -134,7 +134,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
                 className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
-                    ? 'tp-nav-active bg-gradient-to-br from-white via-brand-50 to-rose-50 text-brand-800 shadow-[0_14px_28px_-22px_rgba(37,99,235,0.6)] ring-1 ring-brand-100 dark:bg-brand-200 dark:from-brand-200 dark:via-brand-200 dark:to-sky-200 dark:text-slate-950 dark:ring-brand-300/30'
+                    ? 'tp-nav-active bg-white text-brand-900 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:text-brand-900 dark:ring-slate-700'
                     : 'text-slate-500 hover:bg-brand-50/60 hover:text-brand-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white'
                 }`}
                 aria-current={isActive ? 'page' : undefined}

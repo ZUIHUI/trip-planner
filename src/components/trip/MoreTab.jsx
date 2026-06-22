@@ -51,7 +51,7 @@ const ModuleButton = ({ icon: Icon, title, meta, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="touch-target flex w-full min-w-0 items-center gap-3 rounded-lg border border-cyan-100 bg-white/90 p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-rose-200 hover:bg-sky-50/75 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/25"
+    className="touch-target flex w-full min-w-0 items-center gap-3 rounded-lg border border-slate-200 bg-white/90 p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:bg-brand-50/70 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-slate-800/80"
   >
     <span className="tp-icon-chip h-11 w-11">
       <Icon size={20} />

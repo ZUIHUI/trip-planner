@@ -21,7 +21,7 @@ const PresencePill = ({ presenceUi, cover = false }) => {
     : nextSummaryText;
   const nextBaseClass = cover
     ? 'border-white/25 bg-white/15 text-white'
-    : 'border-brand-100 bg-white/85 text-slate-700 shadow-[0_14px_30px_-26px_rgba(37,99,235,0.46)] dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
+    : 'border-slate-200 bg-white/85 text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200';
 
   return (
     <motion.div
@@ -66,7 +66,7 @@ const Header = forwardRef(({
 
   const headerStyle = shouldShowCoverBackground
     ? {
-        backgroundImage: `linear-gradient(120deg, rgba(12, 74, 110, 0.68), rgba(14, 165, 170, 0.36), rgba(236, 72, 153, 0.28)), url(${coverImageUrl})`,
+        backgroundImage: `linear-gradient(120deg, rgba(8, 13, 24, 0.68), rgba(51, 94, 132, 0.26)), url(${coverImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
@@ -76,7 +76,7 @@ const Header = forwardRef(({
   return (
     <motion.header
       ref={ref}
-      className="sticky top-0 z-30 border-b border-brand-100/80 bg-white/[0.9] shadow-[0_18px_38px_-32px_rgba(37,99,235,0.38)] supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90"
+      className="sticky top-0 z-30 border-b border-slate-200 bg-white/[0.92] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-slate-800 dark:bg-slate-950/90"
       layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ const Header = forwardRef(({
           : 'relative overflow-hidden bg-white/78 text-slate-950 dark:bg-slate-950/82 dark:text-white'}
       >
         {!shouldShowCoverBackground && (
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-brand-400 via-sky-400 to-rose-400" />
+          <div className="absolute inset-x-0 top-0 h-px bg-brand-200 dark:bg-slate-700" />
         )}
         <PageContainer className="py-4 sm:py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

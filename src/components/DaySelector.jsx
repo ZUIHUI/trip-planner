@@ -47,7 +47,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
               className={`touch-target min-w-[6.5rem] rounded-lg px-4 py-3 text-left transition active:scale-[0.98] ${
                 isSelected
-                  ? 'bg-gradient-to-br from-brand-500 to-sky-500 text-white shadow-sm dark:from-brand-500 dark:to-sky-400 dark:text-slate-950'
+                  ? 'bg-brand-900 text-white shadow-sm dark:bg-brand-800 dark:text-slate-950'
                   : 'bg-white/75 text-slate-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >

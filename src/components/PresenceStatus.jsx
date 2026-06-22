@@ -86,7 +86,7 @@ export const PresenceAvatar = ({
   return (
     <span
       className={cx(
-        'relative inline-flex shrink-0 items-center justify-center rounded-full border border-white bg-gradient-to-br from-sky-50 to-rose-50 font-black text-brand-700 shadow-sm dark:border-slate-900 dark:from-brand-950/60 dark:to-violet-950/40 dark:text-brand-200',
+        'relative inline-flex shrink-0 items-center justify-center rounded-full border border-white bg-brand-50 font-black text-brand-700 shadow-sm dark:border-slate-900 dark:bg-slate-800 dark:text-brand-800',
         avatarSizes[size] || avatarSizes.md,
         className
       )}

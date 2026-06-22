@@ -33,7 +33,7 @@ import { formatEventTime, getEventDestination } from '../utils/tripEvents';
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
   transport: { label: '交通', icon: Train, className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
-  sightseeing: { label: '景點', icon: Camera, className: 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300' },
+  sightseeing: { label: '景點', icon: Camera, className: 'bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-800' },
   food: { label: '餐廳', icon: Coffee, className: 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300' },
   shopping: { label: '購物', icon: ShoppingBag, className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300' },
   hotel: { label: '住宿', icon: Home, className: 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300' }

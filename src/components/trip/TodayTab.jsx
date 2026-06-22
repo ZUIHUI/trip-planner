@@ -345,7 +345,7 @@ const TodayHero = ({
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-        className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-5 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] sm:p-6 dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+        className="relative overflow-hidden rounded-lg border border-brand-900 bg-brand-900 p-5 text-white shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -369,7 +369,7 @@ const TodayHero = ({
           type="button"
           onClick={onAddEvent}
           disabled={!canEdit}
-          className="touch-target tp-press-feedback tp-hover-icon mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-700 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
+          className="touch-target tp-press-feedback tp-hover-icon mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-black text-brand-900 shadow-sm transition hover:bg-brand-50 disabled:opacity-70"
         >
           <Plus size={18} />
           放進今日行程
@@ -384,7 +384,7 @@ const TodayHero = ({
       initial={{ opacity: 0, y: 14, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-      className="relative overflow-hidden rounded-lg border border-white/60 bg-gradient-to-br from-brand-500 via-sky-500 to-rose-400 p-5 text-white shadow-[0_28px_64px_-42px_rgba(37,99,235,0.72)] sm:p-6 dark:border-brand-800/60 dark:from-slate-950 dark:via-brand-900 dark:to-rose-950"
+      className="relative overflow-hidden rounded-lg border border-brand-900 bg-brand-900 p-5 text-white shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-900"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
@@ -589,7 +589,7 @@ const TravelStatusPanel = ({ status }) => {
 
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="tp-progress-glow h-full rounded-full bg-gradient-to-r from-brand-500 via-sky-500 to-rose-400 transition-all duration-300"
+          className="tp-progress-glow h-full rounded-full bg-brand-700 transition-all duration-300 dark:bg-brand-500"
           style={{ width: `${status.progressPercent}%` }}
         />
       </div>

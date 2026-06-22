@@ -23,8 +23,8 @@ const EXPENSE_CATEGORIES = [
   { id: 'food', label: '餐飲', className: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-900/70' },
   { id: 'transport', label: '交通', className: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:border-sky-900/70' },
   { id: 'shopping', label: '購物', className: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/70' },
-  { id: 'ticket', label: '票券/門票', className: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/30 dark:text-violet-300 dark:border-violet-900/70' },
-  { id: 'accommodation', label: '住宿', className: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/30 dark:text-indigo-300 dark:border-indigo-900/70' },
+  { id: 'ticket', label: '票券/門票', className: 'bg-brand-50 text-brand-700 border-brand-200 dark:bg-slate-800 dark:text-brand-800 dark:border-slate-700' },
+  { id: 'accommodation', label: '住宿', className: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' },
   { id: 'other', label: '其他', className: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' }
 ];
 

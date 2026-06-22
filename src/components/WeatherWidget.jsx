@@ -93,7 +93,7 @@ const WeatherWidget = ({
       return (
         <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/90">
           <div className="flex items-center gap-2">
-            <span className="tp-gentle-float inline-block text-lg">☁️</span>
+            <span className="inline-block text-lg">☁️</span>
             <span>天氣載入中</span>
           </div>
         </div>
@@ -101,9 +101,9 @@ const WeatherWidget = ({
     }
 
     return (
-      <div className="mb-4 rounded-lg border border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50 p-4 dark:border-brand-800 dark:from-brand-900/20 dark:to-cyan-900/20">
+      <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70">
         <div className="flex items-center gap-3">
-          <div className="tp-gentle-float text-3xl">⏳</div>
+          <div className="text-3xl">⏳</div>
           <p className="text-sm text-gray-600 dark:text-gray-400">正在載入 {displayLocation} 的天氣...</p>
         </div>
       </div>
@@ -166,7 +166,7 @@ const WeatherWidget = ({
   }
 
   return (
-    <div className="mb-4 rounded-lg border border-brand-100 bg-gradient-to-r from-brand-50 to-cyan-50 p-4 dark:border-slate-800 dark:from-slate-900/50 dark:to-cyan-900/20">
+    <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />

@@ -204,7 +204,7 @@ const PlacePoolItem = ({
               const activeClass = option.value > 0
                 ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100'
                 : option.value < 0
-                  ? 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100'
+                  ? 'border-slate-300 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-900 dark:bg-sky-950/40 dark:text-sky-100';
 
               return (
@@ -389,7 +389,7 @@ const PlacePoolCard = ({
     <Card id="trip-place-ideas" className="order-4 p-4 scroll-mt-24">
       <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="tp-icon-chip bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
+          <div className="tp-icon-chip bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-800">
             <Star size={20} />
           </div>
           <div className="min-w-0">

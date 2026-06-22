@@ -35,9 +35,9 @@ const CUTE_WEATHER_ICONS = {
   86: { symbol: '❄️', name: '大陣雪', color: 'text-cyan-600 dark:text-cyan-500' },
   
   // 雷暴系列
-  95: { symbol: '⛈️', name: '雷暴', color: 'text-purple-700 dark:text-purple-400' },
-  96: { symbol: '⛈️', name: '雷暴', color: 'text-purple-700 dark:text-purple-400' },
-  99: { symbol: '⛈️', name: '雷暴', color: 'text-purple-700 dark:text-purple-400' },
+  95: { symbol: '⛈️', name: '雷暴', color: 'text-slate-700 dark:text-slate-300' },
+  96: { symbol: '⛈️', name: '雷暴', color: 'text-slate-700 dark:text-slate-300' },
+  99: { symbol: '⛈️', name: '雷暴', color: 'text-slate-700 dark:text-slate-300' },
 };
 
 export const CuteWeatherIcon = ({ code, size = 'text-5xl' }) => {
