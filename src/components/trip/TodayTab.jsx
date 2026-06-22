@@ -200,7 +200,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
     : null;
 
   return (
-    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[#eadfd2] bg-white/90 p-3 shadow-sm sm:p-4 dark:border-brand-200/20 dark:bg-brand-50/80">
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[#e0e9e0] bg-white/80 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:p-4 dark:border-brand-200/20 dark:bg-brand-50/80">
       <button
         type="button"
         onClick={() => previousDay && onSelectDay(previousDay.day)}
@@ -254,7 +254,7 @@ const AirportDayFlightRow = ({ flight }) => {
   ].filter(Boolean).join(' / ');
 
   return (
-    <div className="min-w-0 rounded-lg border border-[#eadfd2] bg-[#faf7f0]/80 p-4 dark:border-brand-200/20 dark:bg-brand-100/45">
+    <div className="min-w-0 rounded-lg border border-[#e0e9e0] bg-[#f4f8f5]/70 p-4 dark:border-brand-200/20 dark:bg-brand-100/45">
       <div className="flex min-w-0 items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
@@ -299,7 +299,7 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
   const hasAnyFlightCode = flights.some((flight) => flight.hasFlightCode);
 
   return (
-    <Card className="border-[#eadfd2] bg-white/95 p-5 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/85">
+    <Card className="border-[#e0e9e0] bg-white/80 p-5 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/85">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           <div className="tp-icon-chip">
@@ -534,7 +534,7 @@ const StatusMetric = ({ icon: Icon, label, value, tone = 'slate' }) => {
     amber: 'bg-amber-50 text-amber-800 dark:bg-amber-950/35 dark:text-amber-100',
     brand: 'bg-brand-50 text-brand-800 dark:bg-brand-950/35 dark:text-brand-100',
     emerald: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/35 dark:text-emerald-100',
-    slate: 'bg-[#faf7f0] text-stone-700 dark:bg-brand-100/45 dark:text-brand-900',
+    slate: 'bg-[#f4f8f5]/80 text-stone-700 dark:bg-brand-100/45 dark:text-brand-900',
     sky: 'bg-sky-50 text-sky-800 dark:bg-sky-950/35 dark:text-sky-100'
   };
 
@@ -554,7 +554,7 @@ const StatusSummaryPill = ({ icon: Icon, label, value, tone = 'slate' }) => {
     amber: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100',
     brand: 'border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900/70 dark:bg-brand-950/35 dark:text-brand-100',
     emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100',
-    slate: 'border-[#eadfd2] bg-[#faf7f0] text-stone-700 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800',
+    slate: 'border-[#e0e9e0] bg-[#f4f8f5]/80 text-stone-700 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800',
     sky: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-100'
   };
 
@@ -731,7 +731,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
                 <button
                   type="button"
                   onClick={() => onOpenEvent(event, true)}
-                  className="min-w-0 flex-1 rounded-lg border border-[#eadfd2] bg-white px-4 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-50/60 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/50"
+                  className="min-w-0 flex-1 rounded-lg border border-[#e0e9e0] bg-white/80 px-4 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50 supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/50"
                 >
                   <span className="block break-words text-sm font-black text-stone-800 dark:text-brand-900">
                     {event.title || '未命名行程'}
@@ -807,7 +807,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
         <button
           type="button"
           onClick={() => setShowDetails((open) => !open)}
-          className="touch-target mt-4 inline-flex w-full items-center justify-between rounded-lg border border-[#eadfd2] bg-[#faf7f0] px-3 py-2 text-sm font-black text-stone-700 transition hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/60"
+          className="touch-target mt-4 inline-flex w-full items-center justify-between rounded-lg border border-[#e0e9e0] bg-[#f4f8f5]/80 px-3 py-2 text-sm font-black text-stone-700 transition hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/60"
           aria-expanded={showDetails}
         >
           路線細節
@@ -817,7 +817,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
         {showDetails && (
           <div className="mt-5 space-y-3">
             {routeStops.length ? routeStops.map((stop, index) => (
-              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-[#faf7f0] p-4 dark:bg-brand-100/45">
+              <div key={stop.id || `${stop.text}-${index}`} className="flex min-w-0 items-start gap-3 rounded-lg bg-[#f4f8f5]/80 p-4 dark:bg-brand-100/45">
                 <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-black text-white">
                   {index + 1}
                 </span>
@@ -840,7 +840,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
       </div>
 
       {showDetails && mapPreviewUrl && (
-        <div className="h-64 border-t border-[#eadfd2] bg-[#f6f0e6] dark:border-brand-200/20 dark:bg-brand-50">
+        <div className="h-64 border-t border-[#e0e9e0] bg-[#f4f8f5] dark:border-brand-200/20 dark:bg-brand-50">
           <iframe
             title="today-route-map-preview"
             src={mapPreviewUrl}

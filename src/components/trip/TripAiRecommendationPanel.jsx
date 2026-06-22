@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   CalendarPlus,
   CheckCircle2,
@@ -166,7 +167,7 @@ const RecommendationCard = ({
   };
 
   return (
-    <article className="rounded-lg border border-[#eadfd2] bg-white p-3 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/75">
+    <article className="rounded-lg border border-[#e0e9e0] bg-white/80 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/75">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <h4 className="break-words text-sm font-black text-stone-800 dark:text-brand-900">
@@ -255,6 +256,7 @@ const TripAiRecommendationPanel = ({
   const [initialIdeaText, setInitialIdeaText] = useState('');
   const [companionPosition, setCompanionPosition] = useState(readCompanionPosition);
   const [companionDragState, setCompanionDragState] = useState('idle');
+  const [portalTarget, setPortalTarget] = useState(null);
   const companionDragRef = useRef(null);
   const suppressCompanionClickRef = useRef(false);
   const landingTimerRef = useRef(null);
@@ -276,6 +278,13 @@ const TripAiRecommendationPanel = ({
   const companionContainerStyle = isOpen
     ? undefined
     : { left: `${companionPosition.x}px`, top: `${companionPosition.y}px` };
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    setPortalTarget(document.body);
+    return () => setPortalTarget(null);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -400,12 +409,12 @@ const TripAiRecommendationPanel = ({
   if (isHidden) return null;
 
   if (isCompanionHidden) {
-    return (
+    const hiddenCompanion = (
       <div className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28">
         <button
           type="button"
           onClick={() => onSummon?.(mode)}
-          className="touch-target tp-press-feedback inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/90 text-brand-700 shadow-sm ring-1 ring-[#eadfd2] transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-50/90 dark:text-brand-900 dark:ring-brand-300/20 dark:hover:bg-brand-100"
+          className="touch-target tp-press-feedback inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-brand-700 shadow-sm ring-1 ring-[#e0e9e0] transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 supports-[backdrop-filter]:backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-50/90 dark:text-brand-900 dark:ring-brand-300/20 dark:hover:bg-brand-100"
           aria-label="叫回旅伴"
           title="叫回旅伴"
         >
@@ -413,9 +422,11 @@ const TripAiRecommendationPanel = ({
         </button>
       </div>
     );
+
+    return portalTarget ? createPortal(hiddenCompanion, portalTarget) : hiddenCompanion;
   }
 
-  return (
+  const companionPanel = (
     <div className={companionContainerClassName} style={companionContainerStyle}>
       {!isOpen && (
         <button
@@ -485,7 +496,7 @@ const TripAiRecommendationPanel = ({
               placeholder="例如：想晚點出門、安排室內備案、晚上想吃燒肉"
               rows={3}
               maxLength={AI_INITIAL_IDEA_MAX_LENGTH}
-              className="w-full resize-none rounded-lg border border-[#eadfd2] bg-white px-3 py-2 text-sm font-semibold text-stone-800 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-brand-400 focus:ring-2 focus:ring-sky-100 dark:border-brand-200/20 dark:bg-brand-50/70 dark:text-brand-900 dark:placeholder:text-brand-600 dark:focus:border-brand-500 dark:focus:ring-brand-200/20"
+              className="w-full resize-none rounded-lg border border-[#e0e9e0] bg-white/80 px-3 py-2 text-sm font-semibold text-stone-800 shadow-sm outline-none transition placeholder:text-stone-400 supports-[backdrop-filter]:backdrop-blur focus:border-brand-400 focus:ring-2 focus:ring-sky-100 dark:border-brand-200/20 dark:bg-brand-50/70 dark:text-brand-900 dark:placeholder:text-brand-600 dark:focus:border-brand-500 dark:focus:ring-brand-200/20"
             />
           </div>
 
@@ -523,7 +534,7 @@ const TripAiRecommendationPanel = ({
                 />
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-[#eadfd2] p-4 text-sm font-semibold text-stone-500 dark:border-brand-200/20 dark:text-brand-700">
+              <div className="rounded-lg border border-dashed border-[#e0e9e0] p-4 text-sm font-semibold text-stone-500 dark:border-brand-200/20 dark:text-brand-700">
                 還沒有小提案。按「幫我排」開始整理。
               </div>
             )}
@@ -532,6 +543,8 @@ const TripAiRecommendationPanel = ({
       )}
     </div>
   );
+
+  return portalTarget ? createPortal(companionPanel, portalTarget) : companionPanel;
 };
 
 export default TripAiRecommendationPanel;

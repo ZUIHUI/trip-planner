@@ -142,7 +142,7 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     className={`touch-target tp-press-feedback tp-hover-icon tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
       active
         ? 'border-brand-300 bg-white text-brand-800 shadow-sm ring-1 ring-brand-100 dark:border-brand-300/30 dark:bg-brand-100/65 dark:text-brand-900 dark:ring-brand-300/20'
-        : 'border-[#eadfd2] bg-white/72 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/40 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/55'
+        : 'border-[#e0e9e0] bg-white/70 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/40 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/55'
     }`}
   >
     <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${active ? 'tp-soft-pulse bg-white/90 text-brand-700 shadow-sm dark:bg-brand-50/75 dark:text-brand-900' : 'bg-brand-50 text-stone-500 group-hover:text-brand-700 dark:bg-brand-100/50 dark:text-brand-700 dark:group-hover:text-brand-900'}`}>
@@ -160,7 +160,7 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
 
   return (
     <motion.div
-      className="relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-[#eadfd2] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-brand-200/20 dark:bg-brand-50/80"
+      className="relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-brand-200/20 dark:bg-brand-50/80"
       initial={{ opacity: 0, y: 10, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -199,7 +199,7 @@ const TripFilterChip = ({ active, label, count, onClick }) => (
     className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
       active
         ? 'border-brand-700 bg-brand-700 text-white shadow-sm dark:border-brand-800 dark:bg-brand-800 dark:text-brand-50'
-        : 'border-[#eadfd2] bg-white/80 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/60'
+        : 'border-[#e0e9e0] bg-white/80 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/60'
     }`}
   >
     <span>{label}</span>
@@ -236,8 +236,8 @@ const TripCard = ({
             onError={onCoverError}
           />
         ) : (
-          <div className="flex h-36 w-full items-center justify-center border-b border-[#eadfd2] bg-[#faf7f0] text-brand-700 sm:h-40 dark:border-brand-200/20 dark:bg-brand-50/50 dark:text-brand-900">
-            <div className="rounded-lg bg-white/90 p-3 ring-1 ring-[#eadfd2] dark:bg-brand-100/70 dark:ring-brand-300/20">
+          <div className="flex h-36 w-full items-center justify-center border-b border-[#e0e9e0] bg-[#f4f8f5] text-brand-700 sm:h-40 dark:border-brand-200/20 dark:bg-brand-50/50 dark:text-brand-900">
+            <div className="rounded-lg bg-white/80 p-3 ring-1 ring-[#e0e9e0] supports-[backdrop-filter]:backdrop-blur dark:bg-brand-100/70 dark:ring-brand-300/20">
               <Compass size={28} />
             </div>
           </div>
@@ -265,14 +265,14 @@ const TripCard = ({
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
             </div>
-            <div className="rounded-lg bg-[#faf7f0] px-4 py-3 dark:bg-brand-100/45">
+            <div className="rounded-lg bg-[#f4f8f5]/80 px-4 py-3 dark:bg-brand-100/45">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
           </div>
 
           {trip.accessRole === 'view' && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#faf7f0] px-4 py-3 text-xs font-bold text-stone-600 dark:bg-brand-100/45 dark:text-brand-800">
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#f4f8f5]/80 px-4 py-3 text-xs font-bold text-stone-600 dark:bg-brand-100/45 dark:text-brand-800">
               <ShieldCheck size={14} className="shrink-0" />
               <span className="truncate">只能查看</span>
             </div>
@@ -280,7 +280,7 @@ const TripCard = ({
         </div>
       </button>
 
-      <div className="border-t border-[#eadfd2] px-5 py-4 dark:border-brand-200/20">
+      <div className="border-t border-[#e0e9e0] px-5 py-4 dark:border-brand-200/20">
         <div className={`flex items-center gap-2 ${canDelete ? 'justify-between' : 'justify-end'}`}>
           {canDelete && (
             <button
@@ -299,7 +299,7 @@ const TripCard = ({
         </div>
 
         {expanded && canDelete && (
-            <div className="mt-4 flex justify-end border-t border-[#eadfd2] pt-4 dark:border-brand-200/20">
+            <div className="mt-4 flex justify-end border-t border-[#e0e9e0] pt-4 dark:border-brand-200/20">
             <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
               <Trash2 size={14} />
               刪除旅程
@@ -699,7 +699,7 @@ const TripListPage = () => {
           </div>
 
           {isEditingNickname && (
-            <form onSubmit={handleSaveNickname} className="mt-4 border-t border-[#eadfd2] pt-4 dark:border-brand-200/20">
+            <form onSubmit={handleSaveNickname} className="mt-4 border-t border-[#e0e9e0] pt-4 dark:border-brand-200/20">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                 <label className="min-w-0 flex-1">
                   <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
@@ -735,7 +735,7 @@ const TripListPage = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
         >
-          <div className="absolute inset-x-0 top-0 h-px bg-[#eadfd2] dark:bg-brand-300/25" />
+          <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
             <div className="min-w-0">
               <div className="flex min-w-0 items-start gap-3">
@@ -779,7 +779,7 @@ const TripListPage = () => {
                 <motion.form
                   key="create-trip"
                   onSubmit={handleCreateTrip}
-                  className="grid gap-4 rounded-lg border border-[#eadfd2] bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
+                  className="grid gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 12 }}
@@ -804,7 +804,7 @@ const TripListPage = () => {
                 <motion.form
                   key="join-trip"
                   onSubmit={handleJoinByInviteCode}
-                  className="grid gap-4 rounded-lg border border-[#eadfd2] bg-white/85 p-4 shadow-sm sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
+                  className="grid gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}

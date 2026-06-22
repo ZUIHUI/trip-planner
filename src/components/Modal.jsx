@@ -26,7 +26,7 @@ const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
         >
           <motion.div
             className={cx(
-              'flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-[#eadfd2] bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-[calc(100vw-1.5rem)] sm:rounded-lg dark:border-brand-200/20 dark:bg-brand-50',
+              'flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-[#e0e9e0] bg-white/[0.88] shadow-2xl supports-[backdrop-filter]:backdrop-blur sm:max-h-[90vh] sm:max-w-[calc(100vw-1.5rem)] sm:rounded-lg dark:border-brand-200/20 dark:bg-brand-50',
               sizeClasses[size] || sizeClasses.md
             )}
             initial={{ opacity: 0, y: 24, scale: 0.985 }}
@@ -34,7 +34,7 @@ const Modal = ({ isOpen, onClose, children, title, size = 'md' }) => {
             exit={{ opacity: 0, y: 18, scale: 0.985 }}
             transition={{ type: 'spring', stiffness: 460, damping: 38, mass: 0.7 }}
           >
-            <div className="flex min-w-0 shrink-0 items-center justify-between gap-3 border-b border-[#eadfd2] bg-[#faf7f0]/70 p-4 dark:border-brand-200/20 dark:bg-brand-100/45">
+            <div className="flex min-w-0 shrink-0 items-center justify-between gap-3 border-b border-[#e0e9e0] bg-[#f4f8f5]/70 p-4 dark:border-brand-200/20 dark:bg-brand-100/45">
               <h3 className="min-w-0 break-words text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h3>
               <motion.button
                 type="button"

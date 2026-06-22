@@ -255,7 +255,7 @@ const LoginPage = () => {
     <main className="tp-page-shell min-h-screen">
       <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
         <Card className="relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
-          <div className="absolute inset-x-0 top-0 h-px bg-[#eadfd2] dark:bg-brand-300/25" />
+          <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
           <div className="mb-6">
             <div className="tp-icon-chip mb-4">
               <PlaneTakeoff size={22} />
@@ -264,7 +264,7 @@ const LoginPage = () => {
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">你的旅程都在這裡等你</p>
           </div>
 
-          <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#eadfd2] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">
+          <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#e0e9e0] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">
             <input
               type="checkbox"
               checked={rememberDevice}
@@ -291,7 +291,7 @@ const LoginPage = () => {
           </Button>
 
           {emailPanelOpen && (
-            <div className="mt-3 rounded-lg border border-[#eadfd2] bg-white/75 p-3 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/60">
+            <div className="mt-3 rounded-lg border border-[#e0e9e0] bg-white/75 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60">
               {loginStep === 'code' ? (
                 <form onSubmit={handleVerifyCode} className="grid gap-3">
                   <Field label="Email" htmlFor="login-email-confirm">
