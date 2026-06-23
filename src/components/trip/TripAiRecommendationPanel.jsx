@@ -24,7 +24,28 @@ const PET_ATLAS_COLUMNS = 8;
 const PET_ATLAS_ROWS = 9;
 const PET_BUTTON_SIZE = 64;
 const PET_DRAG_MARGIN = 8;
+const PET_MOBILE_BOTTOM_OFFSET = 84;
+const PET_DESKTOP_BOTTOM_OFFSET = 112;
+const PORTAL_FOOTER_NAV_HEIGHT = 'calc(72px + env(safe-area-inset-bottom))';
 const PET_POSITION_STORAGE_KEY = 'tripPlanner.aiCompanionPosition';
+
+const getCompanionViewport = () => {
+  if (typeof window === 'undefined') {
+    return { width: 390, height: 720, offsetLeft: 0, offsetTop: 0 };
+  }
+
+  const visualViewport = window.visualViewport;
+  return {
+    width: visualViewport?.width || window.innerWidth,
+    height: visualViewport?.height || window.innerHeight,
+    offsetLeft: visualViewport?.offsetLeft || 0,
+    offsetTop: visualViewport?.offsetTop || 0
+  };
+};
+
+const getCompanionBottomOffset = (viewportWidth) => (
+  viewportWidth >= 1024 ? PET_DESKTOP_BOTTOM_OFFSET : PET_MOBILE_BOTTOM_OFFSET
+);
 
 const clampCompanionPosition = (position) => {
   const rawX = Number.isFinite(position?.x) ? position.x : 12;
@@ -34,12 +55,21 @@ const clampCompanionPosition = (position) => {
     return { x: rawX, y: rawY };
   }
 
-  const maxX = Math.max(PET_DRAG_MARGIN, window.innerWidth - PET_BUTTON_SIZE - PET_DRAG_MARGIN);
-  const maxY = Math.max(PET_DRAG_MARGIN, window.innerHeight - PET_BUTTON_SIZE - PET_DRAG_MARGIN);
+  const viewport = getCompanionViewport();
+  const minX = viewport.offsetLeft + PET_DRAG_MARGIN;
+  const minY = viewport.offsetTop + PET_DRAG_MARGIN;
+  const maxX = Math.max(
+    minX,
+    viewport.offsetLeft + viewport.width - PET_BUTTON_SIZE - PET_DRAG_MARGIN
+  );
+  const maxY = Math.max(
+    minY,
+    viewport.offsetTop + viewport.height - PET_BUTTON_SIZE - getCompanionBottomOffset(viewport.width)
+  );
 
   return {
-    x: Math.min(Math.max(rawX, PET_DRAG_MARGIN), maxX),
-    y: Math.min(Math.max(rawY, PET_DRAG_MARGIN), maxY)
+    x: Math.min(Math.max(rawX, minX), maxX),
+    y: Math.min(Math.max(rawY, minY), maxY)
   };
 };
 
@@ -48,11 +78,14 @@ const getDefaultCompanionPosition = () => {
     return { x: 12, y: 360 };
   }
 
-  const sideOffset = window.innerWidth >= 640 ? 20 : 12;
-  const bottomOffset = window.innerWidth >= 1024 ? 112 : 76;
+  const viewport = getCompanionViewport();
+  const sideOffset = viewport.width >= 640 ? 20 : 12;
+  const bottomOffset = getCompanionBottomOffset(viewport.width);
   return clampCompanionPosition({
-    x: window.innerWidth >= 640 ? window.innerWidth - PET_BUTTON_SIZE - sideOffset : sideOffset,
-    y: window.innerHeight - PET_BUTTON_SIZE - bottomOffset
+    x: viewport.width >= 640
+      ? viewport.offsetLeft + viewport.width - PET_BUTTON_SIZE - sideOffset
+      : viewport.offsetLeft + sideOffset,
+    y: viewport.offsetTop + viewport.height - PET_BUTTON_SIZE - bottomOffset
   });
 };
 
@@ -273,11 +306,15 @@ const TripAiRecommendationPanel = ({
   );
   const ActiveModeIcon = activeModeOption.icon;
   const companionContainerClassName = isOpen
-    ? 'fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28'
-    : 'fixed z-50';
+    ? 'fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-[70] sm:left-auto sm:right-5 lg:bottom-28'
+    : 'fixed z-[70]';
   const companionContainerStyle = isOpen
-    ? undefined
-    : { left: `${companionPosition.x}px`, top: `${companionPosition.y}px` };
+    ? { '--footer-nav-height': PORTAL_FOOTER_NAV_HEIGHT }
+    : {
+        '--footer-nav-height': PORTAL_FOOTER_NAV_HEIGHT,
+        left: `${companionPosition.x}px`,
+        top: `${companionPosition.y}px`
+      };
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -289,16 +326,27 @@ const TripAiRecommendationPanel = ({
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
-    const handleResize = () => {
+    const keepCompanionInViewport = () => {
       setCompanionPosition((currentPosition) => {
         const nextPosition = clampCompanionPosition(currentPosition || getDefaultCompanionPosition());
-        persistCompanionPosition(nextPosition);
+        if (currentPosition?.x === nextPosition.x && currentPosition?.y === nextPosition.y) {
+          return currentPosition;
+        }
         return nextPosition;
       });
     };
+    const visualViewport = window.visualViewport;
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('resize', keepCompanionInViewport);
+    window.addEventListener('scroll', keepCompanionInViewport, { passive: true });
+    visualViewport?.addEventListener('resize', keepCompanionInViewport);
+    visualViewport?.addEventListener('scroll', keepCompanionInViewport);
+    return () => {
+      window.removeEventListener('resize', keepCompanionInViewport);
+      window.removeEventListener('scroll', keepCompanionInViewport);
+      visualViewport?.removeEventListener('resize', keepCompanionInViewport);
+      visualViewport?.removeEventListener('scroll', keepCompanionInViewport);
+    };
   }, []);
 
   useEffect(() => () => {
@@ -410,7 +458,10 @@ const TripAiRecommendationPanel = ({
 
   if (isCompanionHidden) {
     const hiddenCompanion = (
-      <div className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-50 sm:left-auto sm:right-5 lg:bottom-28">
+      <div
+        className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-[70] sm:left-auto sm:right-5 lg:bottom-28"
+        style={{ '--footer-nav-height': PORTAL_FOOTER_NAV_HEIGHT }}
+      >
         <button
           type="button"
           onClick={() => onSummon?.(mode)}
