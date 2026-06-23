@@ -593,7 +593,7 @@ body {
 .tp-ai-pet-sprite {
   animation-name: tp-ai-pet-sprite;
   animation-fill-mode: both;
-  animation-iteration-count: 1;
+  animation-iteration-count: infinite;
   background-repeat: no-repeat;
   image-rendering: pixelated;
 }

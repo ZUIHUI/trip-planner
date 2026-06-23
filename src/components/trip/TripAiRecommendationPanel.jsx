@@ -149,7 +149,8 @@ const AiTravelPet = ({ mood = 'idle', size = 'md' }) => {
   const spriteScale = spriteWidth / PET_CELL_WIDTH;
   const spriteHeight = Math.round(PET_CELL_HEIGHT * spriteScale);
   const rowY = Math.round(animation.row * PET_CELL_HEIGHT * spriteScale) * -1;
-  const toX = Math.round(animation.frames * PET_CELL_WIDTH * spriteScale) * -1;
+  const lastFrameIndex = Math.max(animation.frames - 1, 0);
+  const toX = Math.round(lastFrameIndex * PET_CELL_WIDTH * spriteScale) * -1;
   const backgroundWidth = Math.round(PET_CELL_WIDTH * PET_ATLAS_COLUMNS * spriteScale);
   const backgroundHeight = Math.round(PET_CELL_HEIGHT * PET_ATLAS_ROWS * spriteScale);
   const spriteStyle = {
