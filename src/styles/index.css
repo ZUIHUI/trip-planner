@@ -516,6 +516,16 @@ body {
   }
 }
 
+@keyframes tp-ai-pet-presence {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.015);
+  }
+}
+
 @keyframes tp-ai-companion-lift {
   from {
     transform: translateY(0) rotate(0deg) scale(1);
@@ -593,9 +603,14 @@ body {
 .tp-ai-pet-sprite {
   animation-name: tp-ai-pet-sprite;
   animation-fill-mode: both;
-  animation-iteration-count: infinite;
+  animation-iteration-count: 1;
   background-repeat: no-repeat;
   image-rendering: pixelated;
+}
+
+.tp-ai-pet-presence {
+  animation: tp-ai-pet-presence 2600ms ease-in-out infinite;
+  transform-origin: center bottom;
 }
 
 .tp-ai-companion-button {
@@ -831,6 +846,7 @@ body {
   .tp-nav-active::after,
   .tp-tap-ripple:active::before,
   .tp-nav-active svg,
+  .tp-ai-pet-presence,
   .tp-ai-pet-sprite,
   .tp-ai-companion-button {
     animation: none !important;

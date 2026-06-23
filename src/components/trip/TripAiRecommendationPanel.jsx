@@ -167,7 +167,7 @@ const AiTravelPet = ({ mood = 'idle', size = 'md' }) => {
 
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center overflow-visible ${wrapperSize}`}
+      className={`tp-ai-pet-presence relative flex shrink-0 items-center justify-center overflow-visible ${wrapperSize}`}
       aria-hidden="true"
     >
       <span className="tp-ai-pet-sprite block select-none" style={spriteStyle} />
