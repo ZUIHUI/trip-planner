@@ -4,8 +4,8 @@
   "id": "/",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f9faf7",
-  "theme_color": "#737f6c",
+  "background_color": "#fbfaf7",
+  "theme_color": "#677560",
   "orientation": "portrait",
   "icons": [
     {
