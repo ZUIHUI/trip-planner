@@ -643,6 +643,10 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /onHideCompanion/);
   assert.match(panelSource, /onSummon/);
   assert.match(panelSource, /PET_POSITION_STORAGE_KEY = 'tripPlanner\.aiCompanionPosition'/);
+  assert.match(panelSource, /offsetLeft: 0/);
+  assert.match(panelSource, /offsetTop: 0/);
+  assert.doesNotMatch(panelSource, /visualViewport\?\.offsetLeft/);
+  assert.doesNotMatch(panelSource, /visualViewport\?\.offsetTop/);
   assert.match(panelSource, /onPointerDown=\{handleCompanionPointerDown\}/);
   assert.match(panelSource, /onPointerMove=\{handleCompanionPointerMove\}/);
   assert.match(panelSource, /onPointerUp=\{handleCompanionPointerEnd\}/);

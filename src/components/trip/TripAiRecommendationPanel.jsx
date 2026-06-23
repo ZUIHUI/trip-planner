@@ -38,8 +38,12 @@ const getCompanionViewport = () => {
   return {
     width: visualViewport?.width || window.innerWidth,
     height: visualViewport?.height || window.innerHeight,
-    offsetLeft: visualViewport?.offsetLeft || 0,
-    offsetTop: visualViewport?.offsetTop || 0
+    // The companion is position: fixed and pointer events use clientX/clientY,
+    // so its stored coordinates must stay viewport-local. Some mobile browsers
+    // change visualViewport offsets while scrolling/toolbars collapse, which
+    // would otherwise push the companion outside the visible screen.
+    offsetLeft: 0,
+    offsetTop: 0
   };
 };
 
