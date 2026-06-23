@@ -622,6 +622,17 @@ test('builds place ideas with Google place fields from AI recommendations', () =
   assert.equal(place.lng, 135.502);
 });
 
+test('keeps Google sign-in on the login page when popup auth is unavailable', () => {
+  const authSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'contexts', 'AuthContext.jsx'), 'utf8');
+  const loginSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', 'LoginPage.jsx'), 'utf8');
+
+  assert.match(authSource, /signInWithPopup\(auth, provider\)/);
+  assert.match(authSource, /auth\/popup-unavailable/);
+  assert.doesNotMatch(authSource, /signInWithRedirect/);
+  assert.match(loginSource, /popup-unavailable/);
+  assert.match(loginSource, /Email 驗證碼/);
+});
+
 test('keeps AI recommendation entry points visible in trip tabs', () => {
   const panelSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripAiRecommendationPanel.jsx'), 'utf8');
   const hookSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'hooks', 'useTripAiRecommendations.js'), 'utf8');

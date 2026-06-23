@@ -65,6 +65,10 @@ const getErrorMessage = (error, fallback) => {
     return '瀏覽器封鎖了 Google 登入視窗，請允許彈出視窗後再試一次。';
   }
 
+  if (code === 'popup-unavailable' || code === 'operation-not-supported-in-this-environment') {
+    return '這個瀏覽器不支援 Google 登入視窗，請改用 Email 驗證碼登入，或用外部瀏覽器開啟 Trip Planner。';
+  }
+
   if (code === 'popup-closed-by-user') {
     return 'Google 登入視窗已關閉，尚未完成登入。';
   }

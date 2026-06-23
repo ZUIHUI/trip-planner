@@ -11,7 +11,6 @@ import {
   signInWithCustomToken,
   signInWithEmailLink,
   signInWithPopup,
-  signInWithRedirect,
   signOut,
   updateProfile
 } from 'firebase/auth';
@@ -59,6 +58,12 @@ const writeRememberDevicePreference = (rememberDevice) => {
 const isPopupUnavailableError = (error) => {
   const code = String(error?.code || '').replace(/^auth\//, '');
   return code === 'popup-blocked' || code === 'operation-not-supported-in-this-environment';
+};
+
+const createGooglePopupUnavailableError = () => {
+  const error = new Error('這個瀏覽器不支援 Google 登入視窗，請改用 Email 驗證碼登入，或用外部瀏覽器開啟 Trip Planner。');
+  error.code = 'auth/popup-unavailable';
+  return error;
 };
 
 const buildProfileFromUser = (user, patch = {}) => ({
@@ -290,8 +295,7 @@ export const AuthProvider = ({ children }) => {
       credential = await signInWithPopup(auth, provider);
     } catch (error) {
       if (!isPopupUnavailableError(error)) throw error;
-      await signInWithRedirect(auth, provider);
-      return null;
+      throw createGooglePopupUnavailableError();
     }
     const profile = await syncUserProfile(credential.user);
     setUserProfile(profile);
