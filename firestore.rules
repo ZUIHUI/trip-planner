@@ -639,6 +639,10 @@ service cloud.firestore {
           ]);
       }
 
+      match /handbooks/{handbookId} {
+        allow read, write: if false;
+      }
+
       match /details/{detailId} {
         allow read: if signedIn()
           && (
@@ -831,6 +835,14 @@ service cloud.firestore {
     }
 
     match /googleLookupRateLimits/{uid} {
+      allow read, write: if false;
+    }
+
+    match /aiRecommendationRateLimits/{uid} {
+      allow read, write: if false;
+    }
+
+    match /aiHandbookRateLimits/{uid} {
       allow read, write: if false;
     }
 

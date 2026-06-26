@@ -1,6 +1,6 @@
 # Firebase Deployment
 
-This project uses Firestore as the source of truth and Realtime Database only for trip presence.
+This project uses Firestore as the source of truth and Realtime Database only for trip presence and lightweight live collaboration state.
 
 ## Firebase Console Setup
 
@@ -9,6 +9,7 @@ Enable these products in the same Firebase project:
 - Authentication: Email/Password and Google provider
 - Cloud Firestore: production mode
 - Realtime Database: locked mode
+- Cloud Storage: production mode
 - Hosting
 - Cloud Functions
 
@@ -88,6 +89,8 @@ VITE_PRIMARY_OWNER_EMAIL=owner@example.com
 
 Keep provider API keys in Firebase Functions secrets, not in Vercel frontend env vars.
 
+Cloud Storage is intentionally closed to browser clients by `storage.rules`. The app writes handbook cover images with Admin SDK and returns server-created Firebase Storage token URLs; clients must not be able to list, upload, delete, or read arbitrary bucket objects through the Firebase Storage SDK.
+
 Email verification-code login uses Gmail SMTP. Use a dedicated Gmail account when possible, enable 2-Step Verification, then create a Google App Password for SMTP. Personal Gmail accounts are subject to Gmail sending limits, commonly 500 sent messages per day; if the limit is reached, sending can pause for 1 to 24 hours.
 
 Configure the Functions secrets before deploying Functions:
@@ -97,7 +100,12 @@ firebase functions:secrets:set GMAIL_SMTP_USER
 firebase functions:secrets:set GMAIL_SMTP_APP_PASSWORD
 firebase functions:secrets:set EMAIL_CODE_PEPPER
 firebase functions:secrets:set INVITE_CODE_PEPPER
+firebase functions:secrets:set FLIGHTAPI_IO_KEY
+firebase functions:secrets:set GOOGLE_GEOCODING_API_KEY
 firebase functions:secrets:set OPENAI_API_KEY
+firebase functions:secrets:set WEB_PUSH_VAPID_PUBLIC_KEY
+firebase functions:secrets:set WEB_PUSH_VAPID_PRIVATE_KEY
+firebase functions:secrets:set WEB_PUSH_VAPID_SUBJECT
 ```
 
 Set the optional sender display value to match the Gmail account or an allowed Gmail alias:
@@ -127,6 +135,14 @@ npm run build
 npm run functions:lint
 ```
 
+Security rules checks require Firebase CLI emulators:
+
+```bash
+npm run firestore:rules:test
+npm run database:rules:test
+npm run storage:rules:test
+```
+
 ## Deploy
 
 Realtime Database rules can only be deployed after the Firebase project has a Realtime Database instance. If deploy fails with `It looks like you haven't created a Realtime Database instance in this project before`, create the default instance first.
@@ -154,13 +170,13 @@ First-time full deploy:
 firebase login
 firebase use --add
 npm run build
-firebase deploy --only firestore:rules,database,functions,hosting
+firebase deploy --only firestore:rules,database,storage,functions,hosting
 ```
 
 Rules only:
 
 ```bash
-firebase deploy --only firestore:rules,database
+firebase deploy --only firestore:rules,database,storage
 ```
 
 Hosting only:
@@ -272,7 +288,7 @@ Build and deploy:
 & "$NodeRoot\firebase.cmd" login
 & "$NodeRoot\firebase.cmd" projects:list
 & "$NodeRoot\firebase.cmd" use trip-planner-36455
-& "$NodeRoot\firebase.cmd" deploy --only firestore:rules,database,functions,hosting
+& "$NodeRoot\firebase.cmd" deploy --only firestore:rules,database,storage,functions,hosting
 ```
 
 You can also run the helper script from the project root:

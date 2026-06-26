@@ -131,6 +131,14 @@ const run = async () => {
       await setDoc(doc(db, 'trips/trip-secure/members/editorUid'), member('editorUid', 'editor'));
       await setDoc(doc(db, 'trips/trip-secure/members/viewerUid'), member('viewerUid', 'view'));
       await setDoc(doc(db, 'trips/trip-secure/members/readerUid'), member('readerUid', 'view'));
+      await setDoc(doc(db, 'trips/trip-secure/handbooks/latest'), {
+        schemaVersion: 1,
+        generatedAt: now,
+        handbook: {
+          cover: { title: 'Private handbook' }
+        },
+        updatedAt: now
+      });
     });
 
     const anonymousDb = testEnv.unauthenticatedContext().firestore();
@@ -538,6 +546,27 @@ const run = async () => {
       resetAt: now
     }));
     await assertFails(deleteDoc(doc(ownerDb, 'googleLookupRateLimits/ownerUid')));
+    await assertFails(getDoc(doc(ownerDb, 'aiRecommendationRateLimits/ownerUid')));
+    await assertFails(setDoc(doc(ownerDb, 'aiRecommendationRateLimits/ownerUid'), {
+      attempts: 1,
+      windowStartedAtMs: 1767225600000,
+      updatedAt: now
+    }));
+    await assertFails(deleteDoc(doc(ownerDb, 'aiRecommendationRateLimits/ownerUid')));
+    await assertFails(getDoc(doc(ownerDb, 'aiHandbookRateLimits/ownerUid')));
+    await assertFails(setDoc(doc(ownerDb, 'aiHandbookRateLimits/ownerUid'), {
+      attempts: 1,
+      windowStartedAtMs: 1767225600000,
+      updatedAt: now
+    }));
+    await assertFails(deleteDoc(doc(ownerDb, 'aiHandbookRateLimits/ownerUid')));
+    await assertFails(getDoc(doc(ownerDb, 'trips/trip-secure/handbooks/latest')));
+    await assertFails(setDoc(doc(ownerDb, 'trips/trip-secure/handbooks/latest'), {
+      schemaVersion: 1,
+      generatedAt: now,
+      handbook: { cover: { title: 'Client write' } },
+      updatedAt: now
+    }));
     await assertFails(getDoc(doc(ownerDb, 'notificationDeliveries/delivery-1')));
     await assertFails(setDoc(doc(ownerDb, 'notificationDeliveries/delivery-1'), {
       status: 'sent',

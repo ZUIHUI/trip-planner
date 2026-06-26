@@ -95,10 +95,10 @@ switch ($Task) {
   }
   "deploy" {
     Invoke-RootNpm run build
-    Invoke-Firebase deploy --only "firestore:rules,database,functions,hosting"
+    Invoke-Firebase deploy --only "firestore:rules,database,storage,functions,hosting"
   }
   "rules" {
-    Invoke-Firebase deploy --only "firestore:rules,database"
+    Invoke-Firebase deploy --only "firestore:rules,database,storage"
   }
   "hosting" {
     Invoke-RootNpm run build
