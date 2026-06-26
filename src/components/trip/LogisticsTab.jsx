@@ -10,16 +10,12 @@ import {
   MapPin,
   Plane,
   Search,
-  UsersRound,
   Wallet
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
-import {
-  formatEditingMembersText,
-  getEditingMembersForTarget,
-  getEditingTargetLabel
-} from '../../utils/presence';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import { getFlightLookupAvailability } from '../../services/flightService';
 import { dateInputProps, moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 import {
@@ -32,6 +28,7 @@ import {
 import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
+import EditingNotice from './EditingNotice';
 
 const statusMeta = {
   planning: { label: '規劃中', variant: 'warning' },
@@ -146,22 +143,6 @@ const InfoTile = ({ label, value, icon: Icon }) => (
     </p>
   </div>
 );
-
-const EditingNotice = ({ target, members = [] }) => {
-  if (!members.length) return null;
-  const memberText = formatEditingMembersText(members);
-  const targetLabel = getEditingTargetLabel(target);
-  if (!memberText || !targetLabel) return null;
-
-  return (
-    <div className="mb-3 flex min-w-0 max-w-full items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200">
-      <UsersRound size={14} className="mt-0.5 shrink-0" />
-      <span className="min-w-0 break-words">
-        {memberText} {targetLabel}
-      </span>
-    </div>
-  );
-};
 
 const CompletionPanel = ({ tripDetails }) => {
   const tasks = getInfoTasks(tripDetails);
@@ -1121,31 +1102,32 @@ const LogisticsTab = () => {
     isLookingUpFlight,
     flightLookupError,
     editingByTarget,
-    updatePresenceEditingTarget
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
   } = useTripWorkspace();
   const [activeMobileSection, setActiveMobileSection] = useState('trip');
-
-  const handleEditingFocus = useCallback((target) => {
-    if (!target) return;
-    updatePresenceEditingTarget?.(target);
-  }, [updatePresenceEditingTarget]);
+  const {
+    startEditing: handleEditingFocus,
+    stopEditing: stopCollaborationEditing
+  } = useCollaborationEditing({
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
 
   const handleEditingBlur = useCallback((target, event) => {
-    if (!target) return;
+    if (!target || !canEdit) return;
     const nextFocusedElement = event?.relatedTarget;
     if (nextFocusedElement && event.currentTarget?.contains?.(nextFocusedElement)) {
       return;
     }
-    updatePresenceEditingTarget?.('');
-  }, [updatePresenceEditingTarget]);
-
-  useEffect(() => () => {
-    updatePresenceEditingTarget?.('');
-  }, [updatePresenceEditingTarget]);
+    stopCollaborationEditing();
+  }, [canEdit, stopCollaborationEditing]);
 
   useEffect(() => {
-    updatePresenceEditingTarget?.('');
-  }, [activeMobileSection, updatePresenceEditingTarget]);
+    stopCollaborationEditing();
+  }, [activeMobileSection, stopCollaborationEditing]);
 
   const tripSnapshot = useMemo(() => {
     const budget = Number(tripDetails?.budget?.total || 0);

@@ -319,7 +319,7 @@ const ExpenseFilters = ({
   </Card>
 );
 
-const ExpenseCard = ({ item, exchangeRate, onEdit, onDelete }) => {
+const ExpenseCard = ({ item, exchangeRate, onEdit, onDelete, readOnly = false }) => {
   const category = getCategory(item.category);
   const title = getExpenseTitle(item);
   const isSettled = isSettledExpense(item);
@@ -371,28 +371,30 @@ const ExpenseCard = ({ item, exchangeRate, onEdit, onDelete }) => {
         </p>
       )}
 
-      <div className="mt-4 flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-        <Button variant="secondary" size="sm" onClick={() => onEdit(item)} aria-label={`編輯支出 ${title}`}>
-          <Edit2 size={14} />
-          編輯
-        </Button>
-        <Button variant="danger" size="sm" onClick={() => onDelete(item)} aria-label={`刪除支出 ${title}`}>
-          <Trash2 size={14} />
-          刪除
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="mt-4 flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <Button variant="secondary" size="sm" onClick={() => onEdit(item)} aria-label={`編輯支出 ${title}`}>
+            <Edit2 size={14} />
+            編輯
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => onDelete(item)} aria-label={`刪除支出 ${title}`}>
+            <Trash2 size={14} />
+            刪除
+          </Button>
+        </div>
+      )}
     </Card>
   );
 };
 
-const ExpenseList = ({ groupedExpenses, exchangeRate, hasExpenses, hasActiveFilters, onEdit, onDelete, onAddExpense, onClearFilters }) => {
+const ExpenseList = ({ groupedExpenses, exchangeRate, hasExpenses, hasActiveFilters, onEdit, onDelete, onAddExpense, onClearFilters, readOnly = false }) => {
   if (Object.keys(groupedExpenses).length === 0) {
     return (
       <EmptyState
         icon={DollarSign}
         title={hasExpenses ? '找不到符合條件的支出' : '目前尚無支出'}
-        actionLabel={hasExpenses && hasActiveFilters ? '清除篩選' : '新增第一筆支出'}
-        onAction={hasExpenses && hasActiveFilters ? onClearFilters : onAddExpense}
+        actionLabel={hasExpenses && hasActiveFilters ? '清除篩選' : readOnly ? '' : '新增第一筆支出'}
+        onAction={hasExpenses && hasActiveFilters ? onClearFilters : readOnly ? undefined : onAddExpense}
       />
     );
   }
@@ -423,6 +425,7 @@ const ExpenseList = ({ groupedExpenses, exchangeRate, hasExpenses, hasActiveFilt
                   exchangeRate={exchangeRate}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  readOnly={readOnly}
                 />
               ))}
             </div>
@@ -773,7 +776,8 @@ const ExpenseTracker = forwardRef(({
   setExpenses,
   exchangeRate = 0.215,
   travelers = [],
-  onModalOpenChange
+  onModalOpenChange,
+  readOnly = false
 }, ref) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSettlementOpen, setIsSettlementOpen] = useState(false);
@@ -902,6 +906,7 @@ const ExpenseTracker = forwardRef(({
   }, [isFormOpen, isSettlementOpen, deleteTarget, onModalOpenChange]);
 
   const openAddForm = (defaults = {}) => {
+    if (readOnly) return;
     setEditingId(null);
     setFormErrors({});
     setFormData(buildFormState({
@@ -915,7 +920,7 @@ const ExpenseTracker = forwardRef(({
 
   useImperativeHandle(ref, () => ({
     openAddForm
-  }), [itinerary, payerOptions, selectedDay]);
+  }), [itinerary, payerOptions, readOnly, selectedDay]);
 
   const clearFilters = () => {
     setSelectedDay('all');
@@ -946,6 +951,7 @@ const ExpenseTracker = forwardRef(({
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (readOnly) return;
     if (!validateForm()) return;
 
     const expenseData = {
@@ -978,12 +984,14 @@ const ExpenseTracker = forwardRef(({
   };
 
   const handleConfirmDelete = () => {
+    if (readOnly) return;
     if (!deleteTarget) return;
     setExpenses((prev) => prev.filter((item) => item.id !== deleteTarget.id));
     setDeleteTarget(null);
   };
 
   const handleEdit = (item) => {
+    if (readOnly) return;
     setFormErrors({});
     setFormData({
       title: getExpenseTitle(item) === '未命名支出' ? '' : getExpenseTitle(item),
@@ -1050,6 +1058,7 @@ const ExpenseTracker = forwardRef(({
         onDelete={setDeleteTarget}
         onAddExpense={() => openAddForm()}
         onClearFilters={clearFilters}
+        readOnly={readOnly}
       />
 
       {isFormOpen && (

@@ -11,7 +11,8 @@ const Checklist = ({
   onAddItem,
   onToggleItem,
   onDeleteItem,
-  title = '清單'
+  title = '清單',
+  readOnly = false
 }) => {
   const { confirm, toast } = useFeedback();
   const [inputValue, setInputValue] = useState('');
@@ -24,6 +25,7 @@ const Checklist = ({
   };
 
   const addItem = () => {
+    if (readOnly) return;
     const text = inputValue.trim();
     if (!text) return;
 
@@ -46,6 +48,7 @@ const Checklist = ({
   };
 
   const toggleItem = (id) => {
+    if (readOnly) return;
     if (onToggleItem) {
       onToggleItem(id);
       return;
@@ -56,6 +59,7 @@ const Checklist = ({
   };
 
   const deleteItem = async (id) => {
+    if (readOnly) return;
     const target = safeItems.find((item) => item.id === id);
     if (!target) return;
     const shouldDelete = await confirm({
@@ -124,6 +128,7 @@ const Checklist = ({
                 type="checkbox"
                 checked={item.done || false}
                 onChange={() => toggleItem(item.id)}
+                disabled={readOnly}
                 className="tp-press-feedback h-5 w-5 rounded border-slate-300 text-brand-600 focus:ring-brand-500 checked:scale-110 dark:border-slate-700 dark:bg-slate-900"
                 aria-label={`標記 ${item.text} 完成狀態`}
               />
@@ -132,15 +137,17 @@ const Checklist = ({
               }`}>
                 {item.text}
               </span>
-              <button
-                type="button"
-                onClick={() => deleteItem(item.id)}
-                className="touch-target tp-press-feedback inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-300"
-                title={`刪除 ${item.text}`}
-                aria-label={`刪除 ${item.text}`}
-              >
-                <Trash2 size={16} />
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => deleteItem(item.id)}
+                  className="touch-target tp-press-feedback inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                  title={`刪除 ${item.text}`}
+                  aria-label={`刪除 ${item.text}`}
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
             </motion.div>
           ))}
         </div>
@@ -152,17 +159,18 @@ const Checklist = ({
           {...plainTextInputProps}
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
+          disabled={readOnly}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
               addItem();
             }
           }}
-          placeholder="新增待辦事項"
+          placeholder={readOnly ? '只能查看待辦事項' : '新增待辦事項'}
           aria-label="新增待辦事項"
           enterKeyHint="done"
         />
-        <Button onClick={addItem} disabled={!inputValue.trim()}>
+        <Button onClick={addItem} disabled={readOnly || !inputValue.trim()}>
           <Plus size={16} />
           新增
         </Button>

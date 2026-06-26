@@ -3,7 +3,10 @@ import { Luggage } from 'lucide-react';
 import PackingListContent from '../PackingListContent';
 import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import { mergeRealtimeChecklistStatus } from '../../utils/tripRealtime';
+import EditingNotice from './EditingNotice';
 import {
   getItemOrderKeyAtIndex,
   getSparseOrderKeyForItem,
@@ -21,9 +24,13 @@ const PackingTab = () => {
     setChecklists,
     currentUser,
     clientId,
+    canEdit,
     memberTravelers,
     itinerary,
+    editingByTarget,
     checklistStatusByListId,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
     publishChecklistItemStatus,
     saveTripChecklistItemDocument,
     deleteTripChecklistItemDocument,
@@ -31,11 +38,18 @@ const PackingTab = () => {
     handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
+  const editingTarget = 'checklist:packing';
+  const { getEditingHandlers } = useCollaborationEditing({
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
   const visibleItems = useMemo(
     () => mergeRealtimeChecklistStatus(checklists.packing, checklistStatusByListId?.packing),
     [checklists.packing, checklistStatusByListId]
   );
   const handleUpdate = useCallback((newItems) => {
+    if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
     updateSeqRef.current = updateSeq;
     const nextItems = newItems.map((item, index) => ({
@@ -143,6 +157,7 @@ const PackingTab = () => {
     });
   }, [
     applyChecklistsPatch,
+    canEdit,
     clientId,
     currentUser,
     deleteTripChecklistItemDocument,
@@ -157,7 +172,7 @@ const PackingTab = () => {
 
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
-      <Card className="p-3 sm:p-4">
+      <Card className="p-3 sm:p-4" {...getEditingHandlers(editingTarget)}>
         <div className="mb-4 flex items-center gap-3">
           <div className="tp-icon-chip">
             <Luggage size={20} />
@@ -166,11 +181,13 @@ const PackingTab = () => {
             <h2 className="tp-section-title">行李清單</h2>
           </div>
         </div>
+        <EditingNotice target={editingTarget} members={getEditingMembersForTarget(editingByTarget, editingTarget)} />
         <PackingListContent
           items={visibleItems}
           onUpdate={handleUpdate}
           travelers={memberTravelers || []}
           itinerary={itinerary}
+          readOnly={!canEdit}
         />
       </Card>
     </div>

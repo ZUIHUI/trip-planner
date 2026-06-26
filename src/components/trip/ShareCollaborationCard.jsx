@@ -147,6 +147,10 @@ const ShareCollaborationCard = ({
   const memberRows = Array.isArray(members) ? members : [];
   const currentUid = currentUser?.uid || '';
   const onlineRows = Array.isArray(onlineMembers) ? onlineMembers : [];
+  const editingRows = onlineRows.filter((member) => (
+    Boolean(member?.editingTarget) ||
+    (Array.isArray(member?.connections) && member.connections.some((connection) => Boolean(connection?.editingTarget)))
+  ));
   const selfOnline = currentUid ? Boolean(presenceByUid?.[currentUid]?.online) : false;
   const otherOnlineCount = onlineRows.filter((member) => member.uid && member.uid !== currentUid).length;
   const onlineBadgeText = otherOnlineCount
@@ -466,7 +470,7 @@ const ShareCollaborationCard = ({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      <div className="mt-4 grid gap-2 sm:grid-cols-4">
         <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
           <p className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
             <UsersRound size={13} />
@@ -487,6 +491,12 @@ const ShareCollaborationCard = ({
           <p className="mt-0.5 inline-flex items-center gap-1 text-sm font-black text-slate-900 dark:text-white">
             {settings.votesEnabled && <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-300" />}
             {settings.votesEnabled ? '已開啟' : '已關閉'}
+          </p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70">
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">正在編輯</p>
+          <p className="mt-0.5 text-sm font-black text-slate-900 dark:text-white">
+            {editingRows.length ? `${editingRows.length} 位` : '無'}
           </p>
         </div>
       </div>

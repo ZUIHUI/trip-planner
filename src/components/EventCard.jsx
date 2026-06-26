@@ -22,13 +22,13 @@ import {
   ShoppingBag,
   Train,
   Trash2,
-  UsersRound,
   Wallet
 } from 'lucide-react';
 import { Badge, Button, Card } from './ui';
 import { normalizeExternalUrl } from '../utils/externalUrl';
 import { buildEventReadiness } from '../utils/eventReadiness';
 import { formatEventTime, getEventDestination } from '../utils/tripEvents';
+import EditingNotice from './trip/EditingNotice';
 
 const eventTypeMeta = {
   flight: { label: '航班', icon: Plane, className: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300' },
@@ -56,12 +56,6 @@ const formatCost = (event) => {
   if (!cost) return null;
   const symbol = cost.currency === 'TWD' ? 'NT$' : '¥';
   return `${symbol}${cost.amount.toLocaleString()}`;
-};
-
-const getEditingMembersText = (members = []) => {
-  if (!members.length) return '';
-  if (members.length === 1) return `${members[0].name} 正在編輯`;
-  return `${members.length} 位旅伴正在編輯`;
 };
 
 const EventCard = ({
@@ -93,9 +87,9 @@ const EventCard = ({
   const eventDestination = getEventDestination(event);
   const costText = formatCost(event);
   const externalUrl = normalizeExternalUrl(event.url);
-  const editingText = getEditingMembersText(editingMembers);
   const canReorder = Boolean(onMove) && canEdit && (canMoveUp || canMoveDown);
   const canMoveDay = Boolean(onMoveToDay) && canEdit && (canMoveToPreviousDay || canMoveToNextDay);
+  const eventEditingTarget = `event:${event.id}`;
 
   const updateMenuPosition = useCallback(() => {
     if (!menuButtonRef.current || typeof window === 'undefined') return;
@@ -334,15 +328,7 @@ const EventCard = ({
                   補齊時間與地點後，路線與今日模式會更準確。
                 </p>
               )}
-              {editingText && (
-                <div
-                  className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200"
-                  title={editingMembers.map((member) => member.name).join('、')}
-                >
-                  <UsersRound size={13} className="shrink-0" />
-                  <span className="truncate">{editingText}</span>
-                </div>
-              )}
+              <EditingNotice target={eventEditingTarget} members={editingMembers} className="mb-0 mt-2 py-1" />
             </div>
           </div>
 

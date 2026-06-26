@@ -7,6 +7,7 @@ import { togglePlaceVote } from '../../services/tripService';
 import { mergeRealtimeVotesIntoPlaces } from '../../utils/tripRealtime';
 import { normalizeEventTime } from '../../utils/tripEvents';
 import { Badge, Button, Card, Field, Select } from '../ui';
+import EditingNotice from './EditingNotice';
 
 const makePlaceId = () => `place-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -278,7 +279,10 @@ const PlacePoolCard = ({
   realtimeError = '',
   canVote = false,
   canManageIdeas = false,
-  canScheduleIdeas = false
+  canScheduleIdeas = false,
+  editingTarget = '',
+  editingMembers = [],
+  editingHandlers = {}
 }) => {
   const [draftText, setDraftText] = React.useState('');
   const [selectedPlace, setSelectedPlace] = React.useState(null);
@@ -386,7 +390,7 @@ const PlacePoolCard = ({
   };
 
   return (
-    <Card id="trip-place-ideas" className="order-4 p-4 scroll-mt-24">
+    <Card id="trip-place-ideas" className="order-4 p-4 scroll-mt-24" {...editingHandlers}>
       <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="tp-icon-chip bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-800">
@@ -398,6 +402,7 @@ const PlacePoolCard = ({
         </div>
         <Badge variant="muted">{safePlacePool.length} 個</Badge>
       </div>
+      <EditingNotice target={editingTarget} members={editingMembers} />
 
       {canScheduleIdeas && dayOptions.length > 0 && (
         <div className="mb-3 flex min-w-0 flex-col gap-2 rounded-lg border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/60 dark:bg-sky-950/25 sm:flex-row sm:items-center sm:justify-between">

@@ -1,6 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import PlacePoolCard from './PlacePoolCard';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import {
   getItemOrderKeyAtIndex,
   getTripItemChanges,
@@ -39,6 +41,9 @@ const IdeasTab = () => {
     realtimeError,
     openAddModal,
     handleAppendEvent,
+    editingByTarget,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
     saveTripPlaceIdeaDocument,
     deleteTripPlaceIdeaDocument,
     handleDocumentPersistenceError
@@ -48,6 +53,12 @@ const IdeasTab = () => {
   const canVote = Boolean(accessRole);
   const canManageIdeas = accessRole === 'owner' || accessRole === 'editor' || accessRole === 'edit';
   const canScheduleIdeas = canManageIdeas;
+  const ideasEditingTarget = 'ideas:list';
+  const { getEditingHandlers } = useCollaborationEditing({
+    canEdit: canManageIdeas,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
   const handlePlacePoolChange = useCallback((updater) => {
     const updateSeq = updateSeqRef.current + 1;
     updateSeqRef.current = updateSeq;
@@ -151,6 +162,9 @@ const IdeasTab = () => {
         canVote={canVote}
         canManageIdeas={canManageIdeas}
         canScheduleIdeas={canScheduleIdeas}
+        editingTarget={ideasEditingTarget}
+        editingMembers={getEditingMembersForTarget(editingByTarget, ideasEditingTarget)}
+        editingHandlers={getEditingHandlers(ideasEditingTarget)}
       />
     </div>
   );

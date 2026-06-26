@@ -17,6 +17,10 @@ const PRESENCE_STALE_MS = 75000;
 const PRESENCE_RECHECK_MS = 15000;
 const PRESENCE_START_TIMEOUT_MS = 12000;
 
+const canWritePresenceEditingRole = (role = '') => (
+  role === 'owner' || role === 'editor' || role === 'edit'
+);
+
 const normalizeConnection = (connection = {}) => ({
   state: connection.state || 'offline',
   activeTab: connection.activeTab || '',
@@ -103,6 +107,7 @@ export const useTripPresence = ({
   const [connectionReady, setConnectionReady] = useState(false);
   const uid = currentUser?.uid || '';
   const isEnabled = Boolean(enabled && hasRealtimeDatabase() && tripId && uid && accessRole);
+  const canPublishPresenceEditing = canWritePresenceEditingRole(accessRole);
 
   useEffect(() => {
     latestStateRef.current = { activeTab, editingTarget };
@@ -411,9 +416,16 @@ export const useTripPresence = ({
     void pushStateUpdate();
   }, [isEnabled, connectionReady, tripId, uid, activeTab, editingTarget]);
 
+  useEffect(() => {
+    if (!canPublishPresenceEditing && editingTarget) {
+      setEditingTarget('');
+    }
+  }, [canPublishPresenceEditing, editingTarget]);
+
   const updatePresenceEditingTarget = useCallback((target = '') => {
+    if (!canPublishPresenceEditing && target) return;
     setEditingTarget(String(target || '').slice(0, 160));
-  }, []);
+  }, [canPublishPresenceEditing]);
 
   return useMemo(() => ({
     onlineMembers,

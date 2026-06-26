@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import ShoppingListContent from '../ShoppingListContent';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import { mergeRealtimeShoppingStatus } from '../../utils/tripRealtime';
 import {
   getItemOrderKeyAtIndex,
@@ -9,6 +11,7 @@ import {
   getTripItemId
 } from '../../utils/tripItemDocuments';
 import { makeShoppingCategoryId } from '../../utils/tripCollectionDocuments';
+import EditingNotice from './EditingNotice';
 
 const SHOPPING_ITEM_FIELDS = ['name', 'category', 'shop', 'quantity', 'notes', 'image', 'purchased'];
 
@@ -24,7 +27,11 @@ const ShoppingTab = () => {
     setShoppingCategories,
     currentUser,
     clientId,
+    canEdit,
+    editingByTarget,
     shoppingItemStatusById,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
     publishShoppingItemStatus,
     saveTripShoppingItemDocument,
     deleteTripShoppingItemDocument,
@@ -32,16 +39,26 @@ const ShoppingTab = () => {
     saveTripShoppingCategoryDocument,
     deleteTripShoppingCategoryDocument,
     setIsShoppingModalOpen,
-    isReadOnly,
     handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
   const categoryUpdateSeqRef = useRef(0);
+  const editingTarget = 'shopping:list';
+  const {
+    getEditingHandlers,
+    startEditing,
+    stopEditing
+  } = useCollaborationEditing({
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
   const visibleShoppingList = useMemo(
     () => mergeRealtimeShoppingStatus(shoppingList, shoppingItemStatusById),
     [shoppingList, shoppingItemStatusById]
   );
   const handleShoppingListChange = useCallback((nextItems) => {
+    if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
     updateSeqRef.current = updateSeq;
     const normalizedNextItems = nextItems.map((item, index) => ({
@@ -144,6 +161,7 @@ const ShoppingTab = () => {
     });
   }, [
     applyShoppingListPatch,
+    canEdit,
     clientId,
     currentUser,
     deleteTripShoppingItemDocument,
@@ -156,6 +174,7 @@ const ShoppingTab = () => {
     visibleShoppingList
   ]);
   const handleShoppingCategoriesChange = useCallback((nextCategoriesValue) => {
+    if (!canEdit) return;
     const updateSeq = categoryUpdateSeqRef.current + 1;
     categoryUpdateSeqRef.current = updateSeq;
     const currentCategories = Array.isArray(shoppingCategories) ? shoppingCategories : [];
@@ -242,6 +261,7 @@ const ShoppingTab = () => {
     });
   }, [
     applyShoppingCategoriesPatch,
+    canEdit,
     clientId,
     currentUser,
     deleteTripShoppingCategoryDocument,
@@ -251,17 +271,28 @@ const ShoppingTab = () => {
     shoppingCategories,
     tripId
   ]);
+  const handleShoppingModalOpenChange = useCallback((open) => {
+    setIsShoppingModalOpen?.(open);
+    if (open) {
+      startEditing(editingTarget);
+      return;
+    }
+    stopEditing();
+  }, [setIsShoppingModalOpen, startEditing, stopEditing]);
 
   return (
-    <div className="mt-2 pb-44 sm:pb-28 lg:pb-20">
+    <div className="mt-2 pb-44 sm:pb-28 lg:pb-20" {...getEditingHandlers(editingTarget)}>
+      <div className="px-4 pt-4 sm:px-6 lg:px-8">
+        <EditingNotice target={editingTarget} members={getEditingMembersForTarget(editingByTarget, editingTarget)} />
+      </div>
       <ShoppingListContent
         ref={shoppingListRef}
         shoppingList={visibleShoppingList}
         shoppingCategories={shoppingCategories}
         onShoppingListChange={handleShoppingListChange}
         onShoppingCategoriesChange={handleShoppingCategoriesChange}
-        readOnly={isReadOnly}
-        onModalOpenChange={setIsShoppingModalOpen}
+        readOnly={!canEdit}
+        onModalOpenChange={handleShoppingModalOpenChange}
       />
     </div>
   );

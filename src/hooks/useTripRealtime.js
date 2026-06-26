@@ -15,6 +15,10 @@ const TRIP_REALTIME_SYNC_ERROR = '即時同步暫時無法使用，正式資料�
 
 const emptyRealtimeState = normalizeTripRealtimeValue({});
 
+const canWriteRealtimeRole = (role = '') => (
+  role === 'owner' || role === 'editor' || role === 'edit'
+);
+
 const withOptimisticChecklistStatus = (state, { listId, itemId, done, updatedAt }) => {
   const checklistStatusByListId = state?.checklistStatusByListId || {};
   const listStatus = checklistStatusByListId[listId] || {};
@@ -71,6 +75,7 @@ export const useTripRealtime = ({
   const [realtimeState, setRealtimeState] = useState(emptyRealtimeState);
   const [realtimeError, setRealtimeError] = useState('');
   const isEnabled = Boolean(enabled && hasTripRealtimeDatabase() && tripId && uid && accessRole);
+  const canPublishRealtimeWrites = canWriteRealtimeRole(accessRole);
 
   useEffect(() => {
     activeTabRef.current = activeTab || 'summary';
@@ -159,17 +164,19 @@ export const useTripRealtime = ({
     return () => {
       cancelled = true;
       unsubscribe?.();
-      void updateTripRealtimeEditing({
-        tripId,
-        uid,
-        activeTab: activeTabRef.current,
-        target: ''
-      }).catch(() => {});
+      if (canPublishRealtimeWrites) {
+        void updateTripRealtimeEditing({
+          tripId,
+          uid,
+          activeTab: activeTabRef.current,
+          target: ''
+        }).catch(() => {});
+      }
     };
-  }, [ensureAccess, isEnabled, tripId, uid]);
+  }, [canPublishRealtimeWrites, ensureAccess, isEnabled, tripId, uid]);
 
   const updateRealtimeEditingTarget = useCallback(async (target = '', label = '') => {
-    if (!isEnabled) return false;
+    if (!isEnabled || !canPublishRealtimeWrites) return false;
 
     try {
       await ensureAccess();
@@ -202,10 +209,10 @@ export const useTripRealtime = ({
       setRealtimeError('');
       return false;
     }
-  }, [ensureAccess, isEnabled, tripId, uid]);
+  }, [canPublishRealtimeWrites, ensureAccess, isEnabled, tripId, uid]);
 
   const publishChecklistItemStatus = useCallback(async ({ listId, itemId, done }) => {
-    if (!isEnabled) return false;
+    if (!isEnabled || !canPublishRealtimeWrites) return false;
 
     setRealtimeState((current) => withOptimisticChecklistStatus(current, {
       listId,
@@ -223,10 +230,10 @@ export const useTripRealtime = ({
       setRealtimeError(TRIP_REALTIME_SYNC_ERROR);
       return false;
     }
-  }, [ensureAccess, isEnabled, tripId, uid]);
+  }, [canPublishRealtimeWrites, ensureAccess, isEnabled, tripId, uid]);
 
   const publishShoppingItemStatus = useCallback(async ({ itemId, purchased }) => {
-    if (!isEnabled) return false;
+    if (!isEnabled || !canPublishRealtimeWrites) return false;
 
     setRealtimeState((current) => withOptimisticShoppingStatus(current, {
       itemId,
@@ -243,7 +250,7 @@ export const useTripRealtime = ({
       setRealtimeError(TRIP_REALTIME_SYNC_ERROR);
       return false;
     }
-  }, [ensureAccess, isEnabled, tripId, uid]);
+  }, [canPublishRealtimeWrites, ensureAccess, isEnabled, tripId, uid]);
 
   return useMemo(() => ({
     ...realtimeState,

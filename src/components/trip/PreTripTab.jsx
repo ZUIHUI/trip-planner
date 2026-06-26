@@ -3,7 +3,10 @@ import { CheckSquare } from 'lucide-react';
 import Checklist from '../Checklist';
 import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import { mergeRealtimeChecklistStatus } from '../../utils/tripRealtime';
+import EditingNotice from './EditingNotice';
 import {
   getItemOrderKeyAtIndex,
   getSparseOrderKeyForItem,
@@ -21,7 +24,11 @@ const PreTripTab = () => {
     setChecklists,
     currentUser,
     clientId,
+    canEdit,
+    editingByTarget,
     checklistStatusByListId,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
     publishChecklistItemStatus,
     saveTripChecklistItemDocument,
     deleteTripChecklistItemDocument,
@@ -29,11 +36,18 @@ const PreTripTab = () => {
     handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
+  const editingTarget = 'checklist:preTrip';
+  const { getEditingHandlers } = useCollaborationEditing({
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
   const visibleItems = useMemo(
     () => mergeRealtimeChecklistStatus(checklists.preTrip, checklistStatusByListId?.preTrip),
     [checklists.preTrip, checklistStatusByListId]
   );
   const handleUpdate = useCallback((newItems) => {
+    if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
     updateSeqRef.current = updateSeq;
     const nextItems = newItems.map((item, index) => ({
@@ -141,6 +155,7 @@ const PreTripTab = () => {
     });
   }, [
     applyChecklistsPatch,
+    canEdit,
     clientId,
     currentUser,
     deleteTripChecklistItemDocument,
@@ -155,7 +170,7 @@ const PreTripTab = () => {
 
   return (
     <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
-      <Card className="p-4">
+      <Card className="p-4" {...getEditingHandlers(editingTarget)}>
         <div className="mb-4 flex items-center gap-3">
           <div className="tp-icon-chip">
             <CheckSquare size={20} />
@@ -164,9 +179,11 @@ const PreTripTab = () => {
             <h2 className="tp-section-title">出國前待辦</h2>
           </div>
         </div>
+        <EditingNotice target={editingTarget} members={getEditingMembersForTarget(editingByTarget, editingTarget)} />
         <Checklist
           items={visibleItems}
           onUpdate={handleUpdate}
+          readOnly={!canEdit}
         />
       </Card>
     </div>

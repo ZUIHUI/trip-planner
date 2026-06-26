@@ -137,7 +137,7 @@ const createPackingItem = ({ text, activeCategory, selectedDay, assignedTo }) =>
   day: activeCategory === 'clothing' ? selectedDay : null
 });
 
-const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [] }) => {
+const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [], readOnly = false }) => {
   const [activeCategory, setActiveCategory] = useState('suitcase');
   const [selectedDay, setSelectedDay] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -191,6 +191,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   const progressLabel = `${stats.categoryPacked}/${stats.categoryTotal}`;
 
   const handleAddItem = (text, assignedTo = newItemAssignedTo) => {
+    if (readOnly) return;
     const nextText = text.trim();
     if (!nextText) return;
 
@@ -207,6 +208,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
 
   const handleAddSubmit = (event) => {
     event.preventDefault();
+    if (readOnly) return;
     const nextText = newItemText.trim();
     if (!nextText) return;
 
@@ -215,6 +217,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   };
 
   const handleToggleItem = (id) => {
+    if (readOnly) return;
     const newItems = items.map((item) =>
       getItemId(item.id) === getItemId(id) ? { ...item, done: !item.done } : item
     );
@@ -222,18 +225,21 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   };
 
   const handleConfirmDelete = () => {
+    if (readOnly) return;
     if (!itemToDelete) return;
     onUpdate(items.filter((item) => getItemId(item.id) !== getItemId(itemToDelete.id)));
     setItemToDelete(null);
   };
 
   const handleStartEdit = (item) => {
+    if (readOnly) return;
     setEditingId(item.id);
     setEditingText(item.text);
     setEditError('');
   };
 
   const handleSaveEdit = () => {
+    if (readOnly) return;
     const nextText = editingText.trim();
 
     if (!nextText) {
@@ -257,6 +263,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   };
 
   const reorderItem = (targetId) => {
+    if (readOnly) return;
     if (!draggedItemId || getItemId(draggedItemId) === getItemId(targetId)) return;
 
     const sourceIndex = items.findIndex((item) => getItemId(item.id) === getItemId(draggedItemId));
@@ -271,28 +278,33 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   };
 
   const handleDragStart = (event, id) => {
+    if (readOnly) return;
     if (editingId === id) return;
     setDraggedItemId(getItemId(id));
     event.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (event) => {
+    if (readOnly) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (event, targetId) => {
+    if (readOnly) return;
     event.preventDefault();
     reorderItem(targetId);
     setDraggedItemId(null);
   };
 
   const handleTouchStart = (event, id) => {
+    if (readOnly) return;
     if (!sortMode || editingId === id) return;
     setDraggedItemId(getItemId(id));
   };
 
   const handleTouchMove = (event) => {
+    if (readOnly) return;
     if (!sortMode || !draggedItemId) return;
 
     if (event.cancelable) {
@@ -330,7 +342,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
         data-item-id={item.id}
-        draggable={!isEditing}
+        draggable={!readOnly && !isEditing}
         onDragStart={(event) => handleDragStart(event, item.id)}
         onDragOver={handleDragOver}
         onDrop={(event) => handleDrop(event, item.id)}
@@ -340,7 +352,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             : 'border-slate-200 bg-white hover:border-brand-200 hover:bg-brand-50/30 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/20'
         } ${isDragging ? 'opacity-60 ring-2 ring-brand-200 dark:ring-brand-800' : ''}`}
       >
-        {!isEditing && (
+        {!readOnly && !isEditing && (
           <button
             type="button"
             aria-label="拖曳排序"
@@ -404,6 +416,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 type="checkbox"
                 checked={Boolean(item.done)}
                 onChange={() => handleToggleItem(item.id)}
+                disabled={readOnly}
                 className={`tp-press-feedback h-5 w-5 rounded border-slate-300 bg-white text-brand-600 checked:scale-110 ${currentCategory.ring} dark:border-slate-600 dark:bg-slate-800`}
               />
               <span className="min-w-0 flex-1">
@@ -424,6 +437,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               </span>
             </label>
 
+            {!readOnly && (
             <div className="flex shrink-0 items-center gap-1">
               <button
                 type="button"
@@ -442,6 +456,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 <Trash2 size={17} />
               </button>
             </div>
+            )}
           </>
         )}
       </motion.div>
@@ -470,6 +485,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             variant={sortMode ? 'primary' : 'secondary'}
             size="sm"
             onClick={() => setSortMode((value) => !value)}
+            disabled={readOnly}
             aria-pressed={sortMode}
             className="w-full sm:w-auto"
           >
@@ -575,6 +591,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             variant={addPanelOpen ? 'ghost' : 'primary'}
             size="sm"
             onClick={() => setAddPanelOpen((value) => !value)}
+            disabled={readOnly}
             aria-expanded={addPanelOpen}
             className="w-full sm:w-auto"
           >
@@ -589,6 +606,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               {...plainTextInputProps}
               value={newItemText}
               onChange={(event) => setNewItemText(event.target.value)}
+              disabled={readOnly}
               placeholder="輸入物品名稱"
               aria-label="新增行李物品名稱"
               enterKeyHint="done"
@@ -596,6 +614,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
             <Select
               value={newItemAssignedTo}
               onChange={(event) => setNewItemAssignedTo(event.target.value)}
+              disabled={readOnly}
               aria-label="選擇行李歸屬"
             >
               <option value="">共用物品</option>
@@ -605,7 +624,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 </option>
               ))}
             </Select>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={readOnly}>
               <Plus size={16} />
               加入行李清單
             </Button>
@@ -624,6 +643,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                   key={suggestion}
                   type="button"
                   onClick={() => handleAddItem(suggestion)}
+                  disabled={readOnly}
                   className="min-h-[36px] rounded-full border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-brand-700 dark:hover:bg-brand-900/30"
                 >
                   + {suggestion}

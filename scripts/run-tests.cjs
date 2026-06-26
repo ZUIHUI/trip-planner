@@ -71,6 +71,8 @@ const { buildDayReadiness, buildEventReadiness } = require('../src/utils/eventRe
 const {
   PLACE_VOTE_OPERATION,
   TRIP_DOCUMENT_TOUCH_OPERATIONS,
+  buildSyncConflictSummary,
+  getTripSyncOperationLabel,
   isSaveResultCurrent,
   isOwnPlaceVoteWrite,
   isTripDocumentTouchOperation,
@@ -173,6 +175,24 @@ test('keeps background collaboration sync failures out of visible trip errors', 
   const realtimeBackgroundSource = realtimeSource.slice(0, publishIndex);
   assert.doesNotMatch(realtimeBackgroundSource, /setRealtimeError\(TRIP_REALTIME_SYNC_ERROR\)/);
   assert.match(realtimeSource, /const publishChecklistItemStatus[\s\S]+setRealtimeError\(TRIP_REALTIME_SYNC_ERROR\)/);
+});
+
+test('keeps viewer collaboration writes gated in frontend hooks and tabs', () => {
+  const presenceSource = fs.readFileSync(path.join(__dirname, '..', 'src/hooks/useTripPresence.js'), 'utf8');
+  const realtimeSource = fs.readFileSync(path.join(__dirname, '..', 'src/hooks/useTripRealtime.js'), 'utf8');
+  const preTripSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/PreTripTab.jsx'), 'utf8');
+  const packingSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/PackingTab.jsx'), 'utf8');
+  const shoppingSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ShoppingTab.jsx'), 'utf8');
+  const expensesSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ExpensesTab.jsx'), 'utf8');
+
+  assert.match(presenceSource, /canWritePresenceEditingRole/);
+  assert.match(presenceSource, /if \(!canPublishPresenceEditing && target\) return/);
+  assert.match(realtimeSource, /canWriteRealtimeRole/);
+  assert.match(realtimeSource, /if \(!isEnabled \|\| !canPublishRealtimeWrites\) return false/);
+  assert.match(preTripSource, /if \(!canEdit\) return/);
+  assert.match(packingSource, /readOnly=\{!canEdit\}/);
+  assert.match(shoppingSource, /readOnly=\{!canEdit\}/);
+  assert.match(expensesSource, /readOnly=\{!canEdit\}/);
 });
 
 test('does not autosave no-op or date-range maintenance updates', () => {
@@ -1795,6 +1815,50 @@ test('keeps conflict protection for other users and other devices', () => {
   }), true);
 });
 
+test('summarizes sync conflicts with actor and changed section', () => {
+  assert.equal(getTripSyncOperationLabel(TRIP_DOCUMENT_TOUCH_OPERATIONS.expense), '費用');
+  assert.equal(getTripSyncOperationLabel('unknown-operation'), '旅程內容');
+
+  const summary = buildSyncConflictSummary({
+    syncConflict: {
+      remoteData: {
+        syncMeta: {
+          updatedByUid: 'member-1',
+          updatedByOperation: TRIP_DOCUMENT_TOUCH_OPERATIONS.event,
+          updatedEntityId: 'event-123456789012345678901234567890',
+          updatedAt: '2026-06-26T07:05:00.000Z'
+        }
+      }
+    },
+    members: [{ uid: 'member-1', displayName: 'Ada' }],
+    currentUser: { uid: 'owner-1' }
+  });
+
+  assert.match(summary, /Ada 更新了行程/);
+  assert.match(summary, /event-123456789012345678/);
+  assert.match(summary, /·/);
+
+  const sameUserSummary = buildSyncConflictSummary({
+    syncConflict: {
+      remoteData: {
+        syncMeta: {
+          updatedByUid: 'owner-1',
+          updatedByOperation: 'trip-details'
+        }
+      }
+    },
+    currentUser: { uid: 'owner-1' }
+  });
+
+  assert.equal(sameUserSummary, '你的另一個裝置更新了旅程資訊');
+
+  const detailPageSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  assert.match(detailPageSource, /buildSyncConflictSummary/);
+  assert.match(detailPageSource, /syncConflictSummary/);
+  assert.match(detailPageSource, /使用最新內容/);
+  assert.match(detailPageSource, /保留我的內容/);
+});
+
 test('merges own place vote snapshots without overwriting local edits', () => {
   const result = mergePlaceVoteIntoPlacePool(
     [
@@ -1969,14 +2033,65 @@ test('groups top-level presence editing targets without connection targets', () 
   assert.equal(getEditingMembersForTarget(state.editingByTarget, 'trip-details:meta').length, 0);
 });
 
+test('uses realtime editing entries when presence target details are missing', () => {
+  const state = buildPresenceUiState({
+    currentUser: { uid: 'owner-1', displayName: 'Owner' },
+    members: [
+      { uid: 'owner-1', displayName: 'Owner', role: 'owner' },
+      { uid: 'member-1', displayName: 'Ada', role: 'editor' },
+      { uid: 'member-2', displayName: 'Ben', role: 'editor' }
+    ],
+    onlineMembers: [
+      {
+        uid: 'member-1',
+        online: true,
+        profile: { displayName: 'Ada' },
+        connections: []
+      }
+    ],
+    realtimeEditingByTarget: {
+      'shopping:list': [
+        {
+          uid: 'member-1',
+          target: 'shopping:list',
+          activeTab: 'shopping',
+          updatedAt: 1767225600000
+        }
+      ],
+      'event:event-3': [
+        {
+          uid: 'member-2',
+          target: 'event:event-3',
+          activeTab: 'itinerary',
+          updatedAt: 1767225600000
+        }
+      ]
+    }
+  });
+
+  assert.deepEqual(state.editingByTarget['shopping:list'].map((member) => member.uid), ['member-1']);
+  assert.deepEqual(state.editingByEventId['event-3'].map((member) => member.uid), ['member-2']);
+  assert.equal(state.editingByTarget['shopping:list'][0].editingLabel, '正在編輯購物清單');
+});
+
 test('labels supported editing targets', () => {
   assert.equal(getEditingTargetLabel('trip-details:meta'), '正在編輯旅程資訊');
   assert.equal(getEditingTargetLabel('trip-details:accommodation'), '正在編輯住宿資訊');
   assert.equal(getEditingTargetLabel('trip-details:budget'), '正在編輯旅程預算');
   assert.equal(getEditingTargetLabel('trip-details:flights:outbound'), '正在編輯去程航班');
   assert.equal(getEditingTargetLabel('trip-details:flights:inbound'), '正在編輯回程航班');
+  assert.equal(getEditingTargetLabel('day:2'), '正在編輯 Day 資訊');
   assert.equal(getEditingTargetLabel('event:new'), '正在新增行程');
   assert.equal(getEditingTargetLabel('event:event-1'), '正在編輯行程');
+  assert.equal(getEditingTargetLabel('ideas:list'), '正在編輯想去地點');
+  assert.equal(getEditingTargetLabel('place:place-1'), '正在編輯想去地點');
+  assert.equal(getEditingTargetLabel('checklist:preTrip'), '正在編輯行前清單');
+  assert.equal(getEditingTargetLabel('checklist:preTrip:item-1'), '正在編輯行前清單');
+  assert.equal(getEditingTargetLabel('checklist:packing'), '正在編輯行李清單');
+  assert.equal(getEditingTargetLabel('shopping:list'), '正在編輯購物清單');
+  assert.equal(getEditingTargetLabel('shopping:item-1'), '正在編輯購物清單');
+  assert.equal(getEditingTargetLabel('expenses:list'), '正在編輯費用');
+  assert.equal(getEditingTargetLabel('expense:expense-1'), '正在編輯費用');
 });
 
 test('normalizes realtime trip overlays without replacing canonical records', () => {

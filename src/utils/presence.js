@@ -50,14 +50,26 @@ const editingTargetLabels = {
   'trip-details:accommodation': '正在編輯住宿資訊',
   'trip-details:budget': '正在編輯旅程預算',
   'trip-details:flights:outbound': '正在編輯去程航班',
-  'trip-details:flights:inbound': '正在編輯回程航班'
+  'trip-details:flights:inbound': '正在編輯回程航班',
+  'ideas:list': '正在編輯想去地點',
+  'checklist:preTrip': '正在編輯行前清單',
+  'checklist:packing': '正在編輯行李清單',
+  'shopping:list': '正在編輯購物清單',
+  'shopping:categories': '正在編輯購物分類',
+  'expenses:list': '正在編輯費用'
 };
 
 export const getEditingTargetLabel = (target = '') => {
   if (!target) return '';
   if (editingTargetLabels[target]) return editingTargetLabels[target];
+  if (target.startsWith('day:')) return '正在編輯 Day 資訊';
   if (target === 'event:new') return '正在新增行程';
   if (target.startsWith('event:')) return '正在編輯行程';
+  if (target.startsWith('place:')) return '正在編輯想去地點';
+  if (target.startsWith('checklist:preTrip:')) return '正在編輯行前清單';
+  if (target.startsWith('checklist:packing:')) return '正在編輯行李清單';
+  if (target.startsWith('shopping:')) return '正在編輯購物清單';
+  if (target.startsWith('expense:')) return '正在編輯費用';
   return '正在編輯';
 };
 
@@ -126,6 +138,70 @@ const normalizePresencePerson = (presence = {}, membersByUid = {}, now = Date.no
 const addUniquePerson = (collection, person) => {
   if (!person?.uid || collection.some((item) => item.uid === person.uid)) return;
   collection.push(person);
+};
+
+const getRealtimeEditingEntries = (realtimeEditingByTarget = {}, target = '') => {
+  const entries = realtimeEditingByTarget?.[target];
+  if (!entries) return [];
+  return Array.isArray(entries) ? entries : Object.values(entries);
+};
+
+const normalizeRealtimeEditingPerson = ({
+  entry = {},
+  target = '',
+  membersByUid = {},
+  now = Date.now()
+} = {}) => {
+  const uid = String(entry?.uid || '').trim();
+  const member = membersByUid[uid] || {};
+  const name = getPresenceName({ uid, profile: entry?.profile || {} }, member);
+  const updatedAt = Number(entry?.updatedAt || 0);
+  const editingTarget = String(entry?.target || target || '');
+  const editingLabel = entry?.label || getEditingTargetLabel(editingTarget);
+
+  return {
+    uid,
+    name,
+    initials: getPresenceInitials(name),
+    photoURL: member?.photoURL || '',
+    email: member?.email || '',
+    role: member?.role || member?.permission || '',
+    online: true,
+    editing: true,
+    status: 'editing',
+    statusLabel: presenceStatusLabels.editing,
+    connectionCount: 1,
+    activeTab: String(entry?.activeTab || ''),
+    tabLabel: getPresenceTabLabel(entry?.activeTab || ''),
+    editingTarget,
+    editingLabel,
+    lastActiveAt: updatedAt,
+    lastActiveLabel: formatLastActiveAt(updatedAt, now),
+    detailText: [
+      getPresenceTabLabel(entry?.activeTab || ''),
+      editingLabel,
+      formatLastActiveAt(updatedAt, now)
+    ].filter(Boolean).join(' · ')
+  };
+};
+
+const addEditingTargetPerson = ({
+  editingByTarget,
+  editingByEventId,
+  target,
+  person
+}) => {
+  if (!target || !person?.uid) return;
+
+  if (!editingByTarget[target]) editingByTarget[target] = [];
+  addUniquePerson(editingByTarget[target], person);
+
+  if (target.startsWith('event:') && target !== 'event:new') {
+    const eventId = target.slice('event:'.length);
+    if (!eventId) return;
+    if (!editingByEventId[eventId]) editingByEventId[eventId] = [];
+    addUniquePerson(editingByEventId[eventId], person);
+  }
 };
 
 const normalizeOfflineMember = (member = {}, currentUser = null) => {
@@ -210,7 +286,8 @@ export const buildPresenceUiState = ({
   onlineMembers = [],
   presenceByUid = {},
   members = [],
-  currentUser = null
+  currentUser = null,
+  realtimeEditingByTarget = {}
 } = {}) => {
   const currentUid = currentUser?.uid || '';
   const now = Date.now();
@@ -260,15 +337,32 @@ export const buildPresenceUiState = ({
         editingLabel: getEditingTargetLabel(target)
       };
 
-      if (!editingByTarget[target]) editingByTarget[target] = [];
-      addUniquePerson(editingByTarget[target], targetPerson);
+      addEditingTargetPerson({
+        editingByTarget,
+        editingByEventId,
+        target,
+        person: targetPerson
+      });
+    });
+  });
 
-      if (target.startsWith('event:') && target !== 'event:new') {
-        const eventId = target.slice('event:'.length);
-        if (!eventId) return;
-        if (!editingByEventId[eventId]) editingByEventId[eventId] = [];
-        addUniquePerson(editingByEventId[eventId], targetPerson);
-      }
+  Object.keys(realtimeEditingByTarget || {}).forEach((target) => {
+    getRealtimeEditingEntries(realtimeEditingByTarget, target).forEach((entry) => {
+      if (!entry?.uid || entry.uid === currentUid) return;
+      const editingTarget = String(entry?.target || target || '');
+      const targetPerson = normalizeRealtimeEditingPerson({
+        entry: { ...entry, target: editingTarget },
+        target: editingTarget,
+        membersByUid,
+        now
+      });
+
+      addEditingTargetPerson({
+        editingByTarget,
+        editingByEventId,
+        target: editingTarget,
+        person: targetPerson
+      });
     });
   });
 

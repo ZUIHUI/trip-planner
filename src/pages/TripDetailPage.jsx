@@ -59,6 +59,7 @@ import { getTripDetailsPatchSections } from '../utils/tripDetailsPatch';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
 import { moveEventInDay, moveEventToDay } from '../utils/itineraryEvents';
+import { buildSyncConflictSummary } from '../utils/tripSync';
 import {
   getAppendOrderKey,
   getEventOrderKeyAtIndex,
@@ -644,9 +645,14 @@ const TripDetailPage = () => {
       onlineMembers,
       presenceByUid,
       members,
-      currentUser
+      currentUser,
+      realtimeEditingByTarget
     }),
-    [onlineMembers, presenceByUid, members, currentUser]
+    [onlineMembers, presenceByUid, members, currentUser, realtimeEditingByTarget]
+  );
+  const syncConflictSummary = useMemo(
+    () => buildSyncConflictSummary({ syncConflict, members, currentUser }),
+    [syncConflict, members, currentUser]
   );
 
   const budgetInfo = useBudget(itinerary, expenses, exchangeRate);
@@ -1656,6 +1662,11 @@ const TripDetailPage = () => {
           {(saveError || syncConflict) && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 p-3 text-sm font-semibold text-amber-900 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
               <p>{syncConflict ? '另一位旅伴剛更新了旅程，請選擇要使用哪一版。' : saveError}</p>
+              {syncConflict && syncConflictSummary && (
+                <p className="mt-1 break-words text-xs text-amber-800/80 dark:text-amber-100/80">
+                  {syncConflictSummary}
+                </p>
+              )}
               {syncConflict && (
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                   <Button size="sm" variant="secondary" onClick={() => resolveConflict('remote')}>

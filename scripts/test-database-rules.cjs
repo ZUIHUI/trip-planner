@@ -97,6 +97,18 @@ const run = async () => {
       startedAt: now,
       lastActiveAt: now
     }));
+    await assertSucceeds(set(ref(editorDb, `tripRealtime/${tripId}/editing/editorUid`), {
+      target: 'shopping:list',
+      label: '正在編輯購物清單',
+      activeTab: 'shopping',
+      updatedAt: now
+    }));
+    await assertFails(set(ref(editorDb, `tripRealtime/${tripId}/editing/ownerUid`), {
+      target: 'shopping:list',
+      label: '正在編輯購物清單',
+      activeTab: 'shopping',
+      updatedAt: now
+    }));
 
     await assertFails(set(ref(viewerDb, `tripRealtime/${tripId}/checklistStatus/preTrip/item-1/viewerUid`), {
       done: true,

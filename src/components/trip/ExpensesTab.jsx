@@ -1,11 +1,14 @@
 import React, { useCallback, useRef } from 'react';
 import ExpenseTracker from '../ExpenseTracker';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import {
   getItemOrderKeyAtIndex,
   getTripItemChanges,
   getTripItemId
 } from '../../utils/tripItemDocuments';
+import EditingNotice from './EditingNotice';
 
 const EXPENSE_FIELDS = [
   'title',
@@ -30,6 +33,10 @@ const ExpensesTab = () => {
     setExpenses,
     currentUser,
     clientId,
+    canEdit,
+    editingByTarget,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget,
     saveTripExpenseDocument,
     deleteTripExpenseDocument,
     memberTravelers,
@@ -38,7 +45,18 @@ const ExpensesTab = () => {
     handleDocumentPersistenceError
   } = useTripWorkspace();
   const updateSeqRef = useRef(0);
+  const editingTarget = 'expenses:list';
+  const {
+    getEditingHandlers,
+    startEditing,
+    stopEditing
+  } = useCollaborationEditing({
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
   const handleExpensesChange = useCallback((updater) => {
+    if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
     updateSeqRef.current = updateSeq;
     const currentExpenses = Array.isArray(expenses) ? expenses : [];
@@ -111,6 +129,7 @@ const ExpensesTab = () => {
     });
   }, [
     applyExpensesPatch,
+    canEdit,
     clientId,
     currentUser,
     deleteTripExpenseDocument,
@@ -120,9 +139,18 @@ const ExpensesTab = () => {
     setExpenses,
     tripId
   ]);
+  const handleExpenseModalOpenChange = useCallback((open) => {
+    setIsExpenseModalOpen?.(open);
+    if (open) {
+      startEditing(editingTarget);
+      return;
+    }
+    stopEditing();
+  }, [setIsExpenseModalOpen, startEditing, stopEditing]);
 
   return (
-    <div className="mt-2 px-4 pb-20 sm:px-6 lg:px-8">
+    <div className="mt-2 px-4 pb-20 sm:px-6 lg:px-8" {...getEditingHandlers(editingTarget)}>
+      <EditingNotice target={editingTarget} members={getEditingMembersForTarget(editingByTarget, editingTarget)} />
       <ExpenseTracker
         ref={expenseTrackerRef}
         itinerary={itinerary}
@@ -130,7 +158,8 @@ const ExpensesTab = () => {
         setExpenses={handleExpensesChange}
         travelers={memberTravelers || []}
         exchangeRate={exchangeRate}
-        onModalOpenChange={setIsExpenseModalOpen}
+        onModalOpenChange={handleExpenseModalOpenChange}
+        readOnly={!canEdit}
       />
     </div>
   );

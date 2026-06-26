@@ -147,7 +147,7 @@ export const getShoppingSuggestions = (filterCategory = 'All') => (
   SUGGESTIONS_BY_CATEGORY[filterCategory] || COMMON_SUGGESTIONS
 );
 
-const ShoppingSummary = ({ stats, sortMode, onToggleSort }) => (
+const ShoppingSummary = ({ stats, sortMode, onToggleSort, readOnly = false }) => (
   <Card className="p-4">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
@@ -162,6 +162,7 @@ const ShoppingSummary = ({ stats, sortMode, onToggleSort }) => (
         variant={sortMode ? 'primary' : 'secondary'}
         size="sm"
         onClick={onToggleSort}
+        disabled={readOnly}
         aria-pressed={sortMode}
         className="w-full sm:w-auto"
       >
@@ -207,7 +208,8 @@ const ShoppingControls = ({
   searchQuery,
   setSearchQuery,
   onManageCategories,
-  onClearFilters
+  onClearFilters,
+  readOnly = false
 }) => {
   const hasActiveFilters = Boolean(searchQuery.trim()) || filterCategory !== 'All' || statusFilter !== 'all';
 
@@ -252,7 +254,7 @@ const ShoppingControls = ({
             </Select>
           </div>
 
-          <Button variant="secondary" onClick={onManageCategories}>
+          <Button variant="secondary" onClick={onManageCategories} disabled={readOnly}>
             <Settings size={17} />
             管理分類
           </Button>
@@ -649,7 +651,8 @@ const ShoppingItemCard = ({
   onTogglePurchased,
   onEdit,
   onDelete,
-  onZoomImage
+  onZoomImage,
+  readOnly = false
 }) => {
   const isDragging = draggedItemId === getId(item.id);
   const purchased = Boolean(item.purchased);
@@ -663,30 +666,33 @@ const ShoppingItemCard = ({
       className={`tp-motion-panel overflow-hidden p-0 ${
         purchased ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/70 dark:bg-emerald-950/20' : ''
       } ${isDragging ? 'opacity-60 ring-2 ring-orange-200 dark:ring-orange-900/70' : ''}`}
-      draggable
+      draggable={!readOnly}
       data-item-id={getId(item.id)}
       onDragStart={(event) => onDragStart(event, item.id)}
       onDragOver={onDragOver}
       onDrop={(event) => onDrop(event, item.id)}
     >
       <div className="flex gap-2 p-3 sm:gap-3 sm:p-4">
-        <button
-          type="button"
-          aria-label="拖曳排序"
-          onTouchStart={(event) => onTouchStart(event, item.id)}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          className={`tp-press-feedback h-11 w-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400 ${
-            sortMode ? 'flex' : 'hidden sm:flex'
-          }`}
-        >
-          <GripVertical size={18} />
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            aria-label="拖曳排序"
+            onTouchStart={(event) => onTouchStart(event, item.id)}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            className={`tp-press-feedback h-11 w-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-300 transition hover:bg-slate-100 hover:text-slate-500 active:cursor-grabbing dark:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-400 ${
+              sortMode ? 'flex' : 'hidden sm:flex'
+            }`}
+          >
+            <GripVertical size={18} />
+          </button>
+        )}
 
         <input
           type="checkbox"
           checked={purchased}
           onChange={() => onTogglePurchased(item.id)}
+          disabled={readOnly}
           className="tp-press-feedback mt-2 h-5 w-5 shrink-0 rounded border-slate-300 text-orange-600 focus:ring-orange-500 checked:scale-110 dark:border-slate-700 dark:bg-slate-900"
           aria-label={`標記 ${item.name} 為${purchased ? '未購買' : '已購買'}`}
         />
@@ -694,9 +700,11 @@ const ShoppingItemCard = ({
         <div
           role="button"
           tabIndex={0}
-          onClick={() => onTogglePurchased(item.id)}
+          onClick={() => {
+            if (!readOnly) onTogglePurchased(item.id);
+          }}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
+            if (!readOnly && (event.key === 'Enter' || event.key === ' ')) {
               event.preventDefault();
               onTogglePurchased(item.id);
             }
@@ -732,24 +740,28 @@ const ShoppingItemCard = ({
               <ImageIcon size={16} />
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => onEdit(item)}
-            className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
-            title={`編輯 ${item.name}`}
-            aria-label={`編輯 ${item.name}`}
-          >
-            <Pencil size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(item)}
-            className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
-            title={`刪除 ${item.name}`}
-            aria-label={`刪除 ${item.name}`}
-          >
-            <Trash2 size={16} />
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                type="button"
+                onClick={() => onEdit(item)}
+                className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900/30 dark:hover:text-brand-300"
+                title={`編輯 ${item.name}`}
+                aria-label={`編輯 ${item.name}`}
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onDelete(item)}
+                className="touch-target tp-press-feedback inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                title={`刪除 ${item.name}`}
+                aria-label={`刪除 ${item.name}`}
+              >
+                <Trash2 size={16} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -1120,6 +1132,7 @@ const ShoppingListContent = forwardRef(({
         stats={stats}
         sortMode={sortMode}
         onToggleSort={() => setSortMode((value) => !value)}
+        readOnly={readOnly}
       />
 
       <ShoppingControls
@@ -1132,14 +1145,15 @@ const ShoppingListContent = forwardRef(({
         setSearchQuery={setSearchQuery}
         onManageCategories={() => setIsManageCategoriesOpen(true)}
         onClearFilters={clearFilters}
+        readOnly={readOnly}
       />
 
       {filteredItems.length === 0 ? (
         <EmptyState
           icon={ShoppingCart}
           title={safeItems.length ? '沒有符合條件的商品' : '目前沒有購物項目'}
-          actionLabel={safeItems.length ? '清除篩選' : '新增第一個商品'}
-          onAction={safeItems.length ? clearFilters : () => openAddForm()}
+          actionLabel={safeItems.length ? '清除篩選' : readOnly ? '' : '新增第一個商品'}
+          onAction={safeItems.length ? clearFilters : readOnly ? undefined : () => openAddForm()}
         />
       ) : (
         <div className="space-y-3">
@@ -1159,6 +1173,7 @@ const ShoppingListContent = forwardRef(({
               onEdit={handleEditItem}
               onDelete={requestDeleteItem}
               onZoomImage={setZoomedImage}
+              readOnly={readOnly}
             />
           ))}
         </div>

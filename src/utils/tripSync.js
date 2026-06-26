@@ -11,6 +11,19 @@ export const TRIP_DOCUMENT_TOUCH_OPERATIONS = Object.freeze({
 
 const TRIP_DOCUMENT_TOUCH_OPERATION_VALUES = Object.freeze(Object.values(TRIP_DOCUMENT_TOUCH_OPERATIONS));
 
+const TRIP_SYNC_OPERATION_LABELS = Object.freeze({
+  'trip-details': '旅程資訊',
+  'trip-collaboration': '協作設定',
+  'trip-day': 'Day 資訊',
+  [PLACE_VOTE_OPERATION]: '想去回應',
+  [TRIP_DOCUMENT_TOUCH_OPERATIONS.event]: '行程',
+  [TRIP_DOCUMENT_TOUCH_OPERATIONS.checklistItem]: '清單',
+  [TRIP_DOCUMENT_TOUCH_OPERATIONS.shoppingItem]: '購物清單',
+  [TRIP_DOCUMENT_TOUCH_OPERATIONS.expense]: '費用',
+  [TRIP_DOCUMENT_TOUCH_OPERATIONS.placeIdea]: '想去地點',
+  [TRIP_DOCUMENT_TOUCH_OPERATIONS.shoppingCategory]: '購物分類'
+});
+
 export const isTripDocumentTouchOperation = (syncMeta = {}) => (
   TRIP_DOCUMENT_TOUCH_OPERATION_VALUES.includes(String(syncMeta?.updatedByOperation || ''))
 );
@@ -52,6 +65,55 @@ export const shouldKeepLocalChangesForSameClientSnapshot = ({
 export const isSaveResultCurrent = (saveStartedAtSeq = 0, currentSeq = 0) => (
   Number(saveStartedAtSeq) === Number(currentSeq)
 );
+
+export const getTripSyncOperationLabel = (operation = '') => (
+  TRIP_SYNC_OPERATION_LABELS[String(operation || '')] || '旅程內容'
+);
+
+const getMemberNameByUid = (members = [], uid = '') => {
+  const safeUid = String(uid || '').trim();
+  if (!safeUid) return '';
+  const member = (Array.isArray(members) ? members : []).find((item) => (
+    String(item?.uid || item?.id || '') === safeUid
+  ));
+  return member?.displayName || member?.email || '';
+};
+
+const formatSyncUpdatedAt = (value = '') => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('zh-TW', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+};
+
+export const buildSyncConflictSummary = ({
+  syncConflict = null,
+  members = [],
+  currentUser = null
+} = {}) => {
+  const syncMeta = syncConflict?.remoteData?.syncMeta || {};
+  if (!syncMeta.updatedByUid && !syncMeta.updatedByOperation && !syncMeta.updatedAt) {
+    return '';
+  }
+
+  const actorUid = String(syncMeta.updatedByUid || '');
+  const actorName = actorUid === currentUser?.uid
+    ? '你的另一個裝置'
+    : getMemberNameByUid(members, actorUid) || '另一位旅伴';
+  const operationLabel = getTripSyncOperationLabel(syncMeta.updatedByOperation);
+  const updatedAt = formatSyncUpdatedAt(syncMeta.updatedAt);
+  const entityHint = syncMeta.updatedEntityId ? ` (${String(syncMeta.updatedEntityId).slice(0, 24)})` : '';
+  const actorSeparator = /[A-Za-z0-9]$/.test(actorName) ? ' ' : '';
+  const summary = `${actorName}${actorSeparator}更新了${operationLabel}${entityHint}`;
+
+  return updatedAt ? `${summary} · ${updatedAt}` : summary;
+};
 
 export const mergePlaceVoteIntoPlacePool = (
   localPlacePool = [],

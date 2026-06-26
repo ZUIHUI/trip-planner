@@ -6,7 +6,10 @@ import DayReadinessStrip from './DayReadinessStrip';
 import ItineraryRoutePanel from './ItineraryRoutePanel';
 import { Button, Card, EmptyState, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
+import { getEditingMembersForTarget } from '../../utils/presence';
 import { plainTextInputProps } from '../../utils/mobileInputProps';
+import EditingNotice from './EditingNotice';
 
 const currencySymbol = (currency) => (currency === 'TWD' ? 'NT$' : '¥');
 
@@ -57,8 +60,27 @@ const ItineraryTab = () => {
     handleMoveEvent,
     handleMoveEventToAdjacentDay,
     handleOpenGoogleMaps,
-    editingByEventId
+    editingByEventId,
+    editingByTarget,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
   } = useTripWorkspace();
+  const dayEditingTarget = currentDayData ? `day:${selectedDay}` : '';
+  const dayEditingMembers = getEditingMembersForTarget(editingByTarget, dayEditingTarget);
+  const {
+    getEditingHandlers,
+    stopEditing: stopCollaborationEditing
+  } = useCollaborationEditing({
+    canEdit,
+    updatePresenceEditingTarget,
+    updateRealtimeEditingTarget
+  });
+
+  React.useEffect(() => {
+    if (!isEditingDayMeta) {
+      stopCollaborationEditing();
+    }
+  }, [isEditingDayMeta, stopCollaborationEditing]);
 
   const todayCostItems = (currentDayData?.events || [])
     .map(readEventCost)
@@ -109,8 +131,12 @@ const ItineraryTab = () => {
           </div>
         )}
 
-        <section className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} flex flex-col gap-4 border-b border-slate-200 pb-5 sm:mt-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}>
+        <section
+          className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} flex flex-col gap-4 border-b border-slate-200 pb-5 sm:mt-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}
+          {...(isEditingDayMeta ? getEditingHandlers(dayEditingTarget) : {})}
+        >
           <div className="min-w-0 flex-1">
+            <EditingNotice target={dayEditingTarget} members={dayEditingMembers} />
             {currentDayData ? (
               isEditingDayMeta ? (
                 <div className="grid gap-3 sm:grid-cols-[1fr_0.7fr_auto] sm:items-end">
