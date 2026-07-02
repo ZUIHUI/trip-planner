@@ -256,9 +256,9 @@ const LoginPage = () => {
   }
 
   return (
-    <main className="tp-page-shell min-h-screen">
+    <main className="tp-page-shell tp-auth-shell min-h-screen">
       <PageContainer className="flex min-h-screen flex-col items-center justify-center gap-4 py-10">
-        <Card className="relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
+        <Card className="tp-auth-card relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
           <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
           <div className="mb-6">
             <div className="tp-icon-chip mb-4">

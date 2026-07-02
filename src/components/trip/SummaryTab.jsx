@@ -276,7 +276,7 @@ const CommandCenterCard = ({
   const nextStep = steps.find((step) => !step.done);
 
   return (
-    <Card className="order-0 overflow-hidden p-4">
+    <Card className="tp-command-center order-0 overflow-hidden p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -460,7 +460,7 @@ const QuickActionsCard = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
             key={label}
             type="button"
             onClick={onClick || (() => onTabChange?.(tabId))}
-            className={`min-h-16 rounded-lg border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
+            className={`tp-module-button min-h-16 rounded-lg border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm ${
               primary
                 ? 'border-brand-500 bg-brand-600 text-white'
                 : 'border-slate-200 bg-white text-slate-700 hover:border-brand-200 hover:bg-brand-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-brand-800 dark:hover:bg-brand-950/25'
@@ -694,7 +694,7 @@ const CollapsibleOverviewSection = ({ open, onToggle, children }) => (
     <button
       type="button"
       onClick={onToggle}
-      className="touch-target flex w-full items-center justify-between gap-3 rounded-lg border border-cyan-100 bg-white/90 px-4 py-3 text-left shadow-sm transition hover:border-brand-200 hover:bg-sky-50/70 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-brand-800 dark:hover:bg-brand-950/25"
+      className="touch-target tp-module-button flex w-full items-center justify-between gap-3 rounded-lg border border-cyan-100 bg-white/90 px-4 py-3 text-left shadow-sm transition hover:border-brand-200 hover:bg-sky-50/70 dark:border-slate-800 dark:bg-slate-900/90 dark:hover:border-brand-800 dark:hover:bg-brand-950/25"
       aria-expanded={open}
     >
       <span className="min-w-0">

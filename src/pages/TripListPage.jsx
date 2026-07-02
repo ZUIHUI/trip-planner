@@ -139,7 +139,7 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`touch-target tp-press-feedback tp-hover-icon tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
+    className={`touch-target tp-action-mode-button tp-press-feedback tp-hover-icon tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
       active
         ? 'border-brand-300 bg-white text-brand-800 shadow-sm ring-1 ring-brand-100 dark:border-brand-300/30 dark:bg-brand-100/65 dark:text-brand-900 dark:ring-brand-300/20'
         : 'border-[#e0e9e0] bg-white/70 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/40 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/55'
@@ -160,7 +160,7 @@ const ContinueTripShortcut = ({ trip, label, onOpen }) => {
 
   return (
     <motion.div
-      className="relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-brand-200/20 dark:bg-brand-50/80"
+      className="tp-continue-trip relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-brand-200/20 dark:bg-brand-50/80"
       initial={{ opacity: 0, y: 10, scale: 0.99 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -196,7 +196,7 @@ const TripFilterChip = ({ active, label, count, onClick }) => (
     animate={{ scale: active ? 1.025 : 1 }}
     whileTap={{ scale: 0.96 }}
     transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
-    className={`touch-target tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
+    className={`touch-target tp-filter-chip tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
       active
         ? 'border-brand-700 bg-brand-700 text-white shadow-sm dark:border-brand-800 dark:bg-brand-800 dark:text-brand-50'
         : 'border-[#e0e9e0] bg-white/80 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/60'
@@ -221,7 +221,7 @@ const TripCard = ({
   const showCover = coverImageUrl && !coverFailed;
 
   return (
-    <Card as="article" interactive className="overflow-hidden">
+    <Card as="article" interactive className="tp-trip-card overflow-hidden">
       <button
         type="button"
         onClick={onOpen}
@@ -670,7 +670,7 @@ const TripListPage = () => {
   return (
     <main className="tp-page-shell">
       <PageContainer className="py-7 sm:py-10">
-        <div className="tp-panel mb-6 p-4 sm:p-5">
+        <div className="tp-panel tp-account-bar mb-6 p-4 sm:p-5">
           <div className="flex min-w-0 items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <div className="tp-icon-chip">
@@ -730,7 +730,7 @@ const TripListPage = () => {
         </div>
 
         <motion.section
-          className="tp-panel relative mb-7 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
+          className="tp-panel tp-command-hero relative mb-7 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
           initial={{ opacity: 0, y: 12, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}

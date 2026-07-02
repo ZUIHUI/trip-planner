@@ -84,7 +84,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`tp-ambient-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-[#e0e9e0] bg-white/[0.86] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-[#e0e9e0] lg:pb-0 dark:border-brand-200/20 dark:bg-[#09100d]/[0.94] ${
+        className={`tp-ambient-dock tp-bottom-nav fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-[#e0e9e0] bg-white/[0.86] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-[#e0e9e0] lg:pb-0 dark:border-brand-200/20 dark:bg-[#09100d]/[0.94] ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
@@ -102,7 +102,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.01 : 1 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.58 }}
-                className={`touch-target tp-press-feedback relative flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
+                className={`touch-target tp-press-feedback tp-nav-item relative flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'tp-nav-active bg-white/95 text-brand-800 shadow-sm ring-1 ring-brand-100 dark:bg-brand-100/70 dark:text-brand-900 dark:ring-brand-300/20'
                     : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
@@ -132,7 +132,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.008 : 1 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.58 }}
-                className={`touch-target tp-press-feedback relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
+                className={`touch-target tp-press-feedback tp-nav-item relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
                   isActive
                     ? 'tp-nav-active bg-white/95 text-brand-800 shadow-sm ring-1 ring-brand-100 dark:bg-brand-100/70 dark:text-brand-900 dark:ring-brand-300/20'
                     : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'

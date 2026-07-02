@@ -76,7 +76,7 @@ const Header = forwardRef(({
   return (
     <motion.header
       ref={ref}
-      className="sticky top-0 z-30 border-b border-[#e0e9e0] bg-white/[0.88] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-[#09100d]/90"
+      className="tp-app-header sticky top-0 z-30 border-b border-[#e0e9e0] bg-white/[0.88] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-[#09100d]/90"
       layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -86,8 +86,8 @@ const Header = forwardRef(({
         style={headerStyle}
         layout
         className={shouldShowCoverBackground
-          ? 'text-white'
-          : 'relative overflow-hidden bg-white/80 text-stone-800 dark:bg-brand-50/80 dark:text-brand-900'}
+          ? 'tp-app-header-cover text-white'
+          : 'tp-app-header-surface relative overflow-hidden bg-white/80 text-stone-800 dark:bg-brand-50/80 dark:text-brand-900'}
       >
         {!shouldShowCoverBackground && (
           <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
@@ -164,7 +164,7 @@ const Header = forwardRef(({
 
       {children && (
         <motion.div
-          className="border-t border-[#e0e9e0]/80 bg-white/[0.88] dark:border-brand-200/20 dark:bg-[#09100d]/[0.92]"
+          className="tp-app-header-subnav border-t border-[#e0e9e0]/80 bg-white/[0.88] dark:border-brand-200/20 dark:bg-[#09100d]/[0.92]"
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}

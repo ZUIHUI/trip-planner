@@ -75,7 +75,7 @@ const ToastItem = ({ toast, onDismiss }) => {
 
   return (
     <motion.div
-      className={`pointer-events-auto w-full rounded-lg border ${containerClass} ${style.className}`}
+      className={`tp-toast-surface pointer-events-auto w-full rounded-lg border ${containerClass} ${style.className}`}
       role="status"
       aria-live={variant === 'danger' ? 'assertive' : 'polite'}
       layout
@@ -152,7 +152,7 @@ const ConfirmDialog = ({ state, onCancel, onConfirm }) => {
       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
     >
       <motion.div
-        className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        className="tp-confirm-surface w-full max-w-sm rounded-lg border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         initial={{ opacity: 0, y: 22, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 16, scale: 0.985 }}

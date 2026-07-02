@@ -200,7 +200,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
     : null;
 
   return (
-    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[#e0e9e0] bg-white/80 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:p-4 dark:border-brand-200/20 dark:bg-brand-50/80">
+    <div className="tp-day-switcher flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[#e0e9e0] bg-white/80 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:p-4 dark:border-brand-200/20 dark:bg-brand-50/80">
       <button
         type="button"
         onClick={() => previousDay && onSelectDay(previousDay.day)}
@@ -299,7 +299,7 @@ const AirportDayFlightCard = ({ flights, onEditFlights }) => {
   const hasAnyFlightCode = flights.some((flight) => flight.hasFlightCode);
 
   return (
-    <Card className="border-[#e0e9e0] bg-white/80 p-5 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/85">
+    <Card className="tp-flight-card border-[#e0e9e0] bg-white/80 p-5 shadow-sm dark:border-brand-200/20 dark:bg-brand-50/85">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           <div className="tp-icon-chip">
@@ -345,7 +345,7 @@ const TodayHero = ({
         initial={{ opacity: 0, y: 14, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-        className="relative overflow-hidden rounded-lg border border-brand-700 bg-brand-700 p-5 text-white shadow-sm sm:p-6 dark:border-brand-300/20 dark:bg-brand-100/80 dark:text-brand-900"
+        className="tp-journey-hero relative overflow-hidden rounded-lg border border-brand-700 bg-brand-700 p-5 text-white shadow-sm sm:p-6 dark:border-brand-300/20 dark:bg-brand-100/80 dark:text-brand-900"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -384,7 +384,7 @@ const TodayHero = ({
       initial={{ opacity: 0, y: 14, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 390, damping: 34, mass: 0.6 }}
-      className="relative overflow-hidden rounded-lg border border-brand-700 bg-brand-700 p-5 text-white shadow-sm sm:p-6 dark:border-brand-300/20 dark:bg-brand-100/80 dark:text-brand-900"
+      className="tp-journey-hero relative overflow-hidden rounded-lg border border-brand-700 bg-brand-700 p-5 text-white shadow-sm sm:p-6 dark:border-brand-300/20 dark:bg-brand-100/80 dark:text-brand-900"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
