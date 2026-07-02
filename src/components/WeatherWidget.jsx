@@ -91,7 +91,7 @@ const WeatherWidget = ({
   if (loading) {
     if (variant === 'compact') {
       return (
-        <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/90">
+        <div className="tp-trip-weather-card rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/90">
           <div className="flex items-center gap-2">
             <span className="inline-block text-lg">☁️</span>
             <span>天氣載入中</span>
@@ -101,10 +101,10 @@ const WeatherWidget = ({
     }
 
     return (
-      <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70">
+      <div className="tp-trip-weather-card tp-trip-weather-card-full mb-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70">
         <div className="flex items-center gap-3">
           <div className="text-3xl">⏳</div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">正在載入 {displayLocation} 的天氣...</p>
+          <p className="tp-trip-weather-meta text-sm text-gray-600 dark:text-gray-400">正在載入 {displayLocation} 的天氣...</p>
         </div>
       </div>
     );
@@ -113,7 +113,7 @@ const WeatherWidget = ({
   if (!weather) {
     if (variant === 'compact') {
       return (
-        <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80">
+        <div className="tp-trip-weather-card rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80">
           天氣暫不可用
         </div>
       );
@@ -149,14 +149,14 @@ const WeatherWidget = ({
 
   if (variant === 'compact') {
     return (
-      <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+      <div className="tp-trip-weather-card rounded-lg border border-white/20 bg-white/10 px-3 py-2">
         <div className="flex items-center gap-2">
           <CuteWeatherIcon code={weather.weatherCode} size="text-2xl" />
           <div className="min-w-0">
-            <p className="text-[11px] text-white/70 truncate">
+            <p className="tp-trip-weather-meta text-[11px] text-white/70 truncate">
               {displayLocation} {getSourceBadge()}
             </p>
-            <p className="text-sm font-semibold text-white">
+            <p className="tp-trip-weather-summary text-sm font-semibold text-white">
               {weather.temperature}°C · {weather.description}
             </p>
           </div>
@@ -166,20 +166,20 @@ const WeatherWidget = ({
   }
 
   return (
-    <div className="mb-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70">
+    <div className="tp-trip-weather-card tp-trip-weather-card-full mb-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/70">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CuteWeatherIcon code={weather.weatherCode} size="text-5xl" />
           <div>
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className="tp-trip-weather-meta text-sm text-gray-600 dark:text-slate-400">
               {getLocationLabel()} {getSourceBadge()}
             </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{weather.temperature}°C</p>
-            <p className="text-sm text-gray-600 dark:text-slate-400">{weather.description}</p>
+            <p className="tp-trip-weather-summary text-2xl font-bold text-gray-900 dark:text-slate-100">{weather.temperature}°C</p>
+            <p className="tp-trip-weather-meta text-sm text-gray-600 dark:text-slate-400">{weather.description}</p>
           </div>
         </div>
         {weather.precipitation !== undefined && weather.windSpeed !== undefined && (
-          <div className="text-right text-sm text-gray-600 dark:text-slate-400">
+          <div className="tp-trip-weather-meta text-right text-sm text-gray-600 dark:text-slate-400">
             {weather.precipitation > 0 && (
               <p className="mb-1">💧 {weather.precipitation}mm</p>
             )}
