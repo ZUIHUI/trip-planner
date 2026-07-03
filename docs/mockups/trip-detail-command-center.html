@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip Planner Command Center Mockup</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --brand-50: 240 249 255;
+      --brand-100: 224 242 254;
+      --brand-200: 186 230 253;
+      --brand-500: 14 165 233;
+      --brand-600: 2 132 199;
+      --brand-700: 3 105 161;
+      --brand-900: 12 74 110;
+      --ink-strong: 20 31 43;
+      --ink-body: 51 66 81;
+      --ink-muted: 92 108 122;
+      --surface-page: 244 250 252;
+      --surface-card: 255 255 255;
+      --surface-muted: 238 247 249;
+      --border-soft: 202 218 224;
+      --accent-petal: 255 237 235;
+      --accent-petal-strong: 225 78 58;
+      --accent-sun: 255 247 218;
+      --accent-sun-strong: 217 119 6;
+      --accent-lilac: 239 236 255;
+      --accent-lilac-strong: 124 58 237;
+      --accent-mint: 220 252 231;
+      --accent-mint-strong: 5 150 105;
+      --shadow-card: 0 22px 52px -36px rgba(7, 89, 133, 0.24), 0 1px 0 rgba(255, 255, 255, 0.94) inset;
+      --shadow-popover: 0 30px 82px -44px rgba(20, 31, 43, 0.24), 0 1px 0 rgba(255, 255, 255, 0.94) inset;
+      --radius: 8px;
+      font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgb(var(--surface-page)) 52%, rgba(var(--brand-100), 0.62) 100%);
+      color: rgb(var(--ink-strong));
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      padding-bottom: 110px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(var(--border-soft), 0.82);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 18px 44px -36px rgba(20, 31, 43, 0.32);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 16px 0;
+    }
+
+    .trip-title {
+      display: flex;
+      min-width: 0;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(var(--border-soft), 0.9);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.84);
+      color: rgb(var(--brand-700));
+      box-shadow: 0 12px 26px -22px rgba(var(--brand-700), 0.42);
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+
+    .badge {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid rgba(var(--border-soft), 0.82);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.76);
+      color: rgb(var(--ink-body));
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .badge.brand {
+      border-color: rgba(var(--brand-500), 0.28);
+      background: rgba(var(--brand-50), 0.88);
+      color: rgb(var(--brand-700));
+    }
+
+    .badge.mint {
+      border-color: rgba(var(--accent-mint-strong), 0.24);
+      background: rgb(var(--accent-mint));
+      color: rgb(var(--accent-mint-strong));
+    }
+
+    .badge.sun {
+      border-color: rgba(var(--accent-sun-strong), 0.22);
+      background: rgb(var(--accent-sun));
+      color: rgb(var(--accent-sun-strong));
+    }
+
+    .badge.lilac {
+      border-color: rgba(var(--accent-lilac-strong), 0.22);
+      background: rgb(var(--accent-lilac));
+      color: rgb(var(--accent-lilac-strong));
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      overflow: hidden;
+      color: rgb(var(--ink-strong));
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 900;
+      line-height: 1.16;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .trip-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 9px;
+      color: rgb(var(--ink-muted));
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .primary-button,
+    .secondary-button {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: var(--radius);
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 850;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .primary-button {
+      border: 1px solid rgba(var(--brand-900), 0.54);
+      background: rgb(var(--brand-700));
+      color: #fffefa;
+      box-shadow: 0 18px 40px -30px rgba(var(--brand-700), 0.72), 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+    }
+
+    .secondary-button {
+      border: 1px solid rgba(var(--border-soft), 0.88);
+      background: rgba(255, 255, 255, 0.82);
+      color: rgb(var(--ink-body));
+      box-shadow: 0 14px 32px -28px rgba(20, 31, 43, 0.38);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      overflow-x: auto;
+      padding: 0 0 12px;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      display: inline-flex;
+      min-height: 42px;
+      min-width: 80px;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      color: rgb(var(--ink-muted));
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .tab.active {
+      border-color: rgba(var(--brand-500), 0.28);
+      background: rgba(255, 255, 255, 0.94);
+      color: rgb(var(--brand-700));
+      box-shadow: 0 14px 32px -28px rgba(var(--brand-700), 0.4);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 330px;
+      gap: 18px;
+      width: min(1220px, calc(100% - 32px));
+      margin: 24px auto 0;
+      align-items: start;
+    }
+
+    .stack {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card,
+    .panel {
+      border: 1px solid rgba(var(--border-soft), 0.86);
+      border-radius: var(--radius);
+      background: rgba(var(--surface-card), 0.94);
+      box-shadow: var(--shadow-card);
+    }
+
+    .card {
+      overflow: hidden;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2,
+    .section-title h3 {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .muted {
+      color: rgb(var(--ink-muted));
+    }
+
+    .cover {
+      position: relative;
+      min-height: 180px;
+      padding: 18px;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, rgba(12, 74, 110, 0.74), rgba(14, 165, 233, 0.28)),
+        linear-gradient(120deg, #0b5f88 0%, #68d8c7 48%, #ffe7b5 100%);
+      color: white;
+    }
+
+    .cover::before,
+    .cover::after {
+      position: absolute;
+      content: "";
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      transform: rotate(-18deg);
+    }
+
+    .cover::before {
+      width: 270px;
+      height: 82px;
+      right: -120px;
+      top: 28px;
+    }
+
+    .cover::after {
+      width: 180px;
+      height: 64px;
+      left: -70px;
+      bottom: 24px;
+    }
+
+    .cover-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: 144px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cover h2 {
+      max-width: 190px;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.12;
+    }
+
+    .cover p {
+      max-width: 210px;
+      margin-top: 8px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+      background: rgba(var(--surface-muted), 0.72);
+    }
+
+    .mini-stat {
+      min-width: 0;
+      border: 1px solid rgba(var(--border-soft), 0.62);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 12px;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-bottom: 3px;
+      color: rgb(var(--ink-strong));
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .mini-stat span {
+      color: rgb(var(--ink-muted));
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .quick-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .quick-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(var(--border-soft), 0.72);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 10px;
+    }
+
+    .quick-icon {
+      display: inline-flex;
+      width: 34px;
+      height: 34px;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      background: rgb(var(--brand-50));
+      color: rgb(var(--brand-700));
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .quick-item strong {
+      display: block;
+      overflow: hidden;
+      color: rgb(var(--ink-strong));
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .quick-item span {
+      display: block;
+      overflow: hidden;
+      margin-top: 3px;
+      color: rgb(var(--ink-muted));
+      font-size: 12px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .main-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(230px, 0.95fr);
+      gap: 16px;
+      align-items: stretch;
+      padding: 18px;
+    }
+
+    .day-copy {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .day-copy h2 {
+      max-width: 580px;
+      font-size: clamp(26px, 4vw, 44px);
+      font-weight: 950;
+      line-height: 1.04;
+    }
+
+    .day-copy p {
+      max-width: 560px;
+      color: rgb(var(--ink-body));
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .day-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .route-card {
+      display: grid;
+      min-height: 230px;
+      overflow: hidden;
+      border: 1px solid rgba(var(--border-soft), 0.78);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(var(--brand-50), 0.95), rgba(var(--accent-mint), 0.62)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.46) 0 12px, rgba(var(--brand-100), 0.32) 12px 24px);
+    }
+
+    .map-surface {
+      position: relative;
+      min-height: 230px;
+      overflow: hidden;
+    }
+
+    .map-line {
+      position: absolute;
+      left: 42px;
+      top: 38px;
+      width: calc(100% - 84px);
+      height: calc(100% - 72px);
+      border: 3px solid rgba(var(--brand-600), 0.42);
+      border-left-color: transparent;
+      border-bottom-color: rgba(var(--accent-mint-strong), 0.58);
+      border-radius: 48% 52% 42% 58%;
+      transform: rotate(-8deg);
+    }
+
+    .map-pin {
+      position: absolute;
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border: 3px solid white;
+      border-radius: 999px;
+      background: rgb(var(--brand-700));
+      color: white;
+      box-shadow: 0 14px 30px -18px rgba(var(--brand-700), 0.8);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .map-pin.one {
+      left: 18%;
+      top: 24%;
+    }
+
+    .map-pin.two {
+      right: 24%;
+      top: 36%;
+      background: rgb(var(--accent-petal-strong));
+    }
+
+    .map-pin.three {
+      left: 44%;
+      bottom: 18%;
+      background: rgb(var(--accent-mint-strong));
+    }
+
+    .map-note {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      max-width: 170px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.82);
+      padding: 10px;
+      color: rgb(var(--ink-body));
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+      box-shadow: 0 16px 40px -30px rgba(20, 31, 43, 0.42);
+      backdrop-filter: blur(12px);
+    }
+
+    .readiness-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .readiness {
+      border: 1px solid rgba(var(--border-soft), 0.78);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.74);
+      padding: 12px;
+    }
+
+    .readiness span {
+      display: block;
+      color: rgb(var(--ink-muted));
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .readiness strong {
+      display: block;
+      margin-top: 7px;
+      color: rgb(var(--ink-strong));
+      font-size: 19px;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .event-row {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      border: 1px solid rgba(var(--border-soft), 0.76);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.78);
+      padding: 14px;
+    }
+
+    .event-time {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      background: rgb(var(--brand-50));
+      color: rgb(var(--brand-700));
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .event-row h3 {
+      overflow-wrap: anywhere;
+      color: rgb(var(--ink-strong));
+      font-size: 16px;
+      font-weight: 950;
+      line-height: 1.28;
+    }
+
+    .event-row p {
+      margin-top: 5px;
+      color: rgb(var(--ink-muted));
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .event-tools {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tool-button {
+      display: inline-flex;
+      width: 38px;
+      height: 38px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(var(--border-soft), 0.8);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.88);
+      color: rgb(var(--ink-body));
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .assistant-card {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      border: 1px solid rgba(var(--brand-500), 0.24);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(var(--brand-50), 0.96));
+      padding: 14px;
+      box-shadow: var(--shadow-popover);
+    }
+
+    .assistant-card img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .assistant-card h3 {
+      color: rgb(var(--ink-strong));
+      font-size: 15px;
+      font-weight: 950;
+      line-height: 1.25;
+    }
+
+    .assistant-card p {
+      margin-top: 6px;
+      color: rgb(var(--ink-body));
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .suggestion-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .suggestion {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(var(--border-soft), 0.76);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 12px;
+    }
+
+    .suggestion strong {
+      display: block;
+      color: rgb(var(--ink-strong));
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1.28;
+    }
+
+    .suggestion span {
+      display: block;
+      margin-top: 3px;
+      color: rgb(var(--ink-muted));
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .progress-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .progress-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .progress-top strong {
+      font-size: 32px;
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .progress-track {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(var(--brand-100), 0.86);
+    }
+
+    .progress-fill {
+      width: 68%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, rgb(var(--accent-mint-strong)), rgb(var(--brand-600)));
+    }
+
+    .bottom-dock {
+      position: fixed;
+      right: 50%;
+      bottom: 20px;
+      z-index: 11;
+      display: flex;
+      width: min(880px, calc(100% - 32px));
+      transform: translateX(50%);
+      gap: 8px;
+      border: 1px solid rgba(var(--border-soft), 0.86);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px;
+      box-shadow: 0 -18px 54px -38px rgba(20, 31, 43, 0.3), 0 16px 42px -34px rgba(var(--brand-500), 0.32);
+      backdrop-filter: blur(18px);
+    }
+
+    .dock-item {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border-radius: var(--radius);
+      padding: 10px 8px;
+      color: rgb(var(--ink-muted));
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1;
+    }
+
+    .dock-item.active {
+      background: rgba(var(--brand-50), 0.94);
+      color: rgb(var(--brand-700));
+      box-shadow: 0 12px 30px -26px rgba(var(--brand-700), 0.42);
+    }
+
+    .dock-symbol {
+      width: 20px;
+      height: 20px;
+      border: 2px solid currentColor;
+      border-radius: 6px;
+    }
+
+    .dock-symbol.round {
+      border-radius: 999px;
+    }
+
+    @media (max-width: 1100px) {
+      .content {
+        grid-template-columns: minmax(0, 1fr) 310px;
+      }
+
+      .left-rail {
+        display: none;
+      }
+
+      .main-hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app-shell {
+        padding-bottom: 98px;
+      }
+
+      .topbar-inner {
+        grid-template-columns: minmax(0, 1fr);
+        width: min(100% - 24px, 680px);
+      }
+
+      .top-actions {
+        justify-content: stretch;
+      }
+
+      .top-actions .secondary-button {
+        display: none;
+      }
+
+      .top-actions .primary-button {
+        width: 100%;
+      }
+
+      h1 {
+        white-space: normal;
+      }
+
+      .trip-meta {
+        display: none;
+      }
+
+      .tabs {
+        width: min(100% - 24px, 680px);
+      }
+
+      .content {
+        grid-template-columns: minmax(0, 1fr);
+        width: min(100% - 24px, 680px);
+        margin-top: 16px;
+      }
+
+      .right-rail {
+        order: -1;
+      }
+
+      .assistant-card {
+        grid-template-columns: 60px minmax(0, 1fr);
+        padding: 12px;
+      }
+
+      .assistant-card img {
+        width: 58px;
+        height: 58px;
+      }
+
+      .main-hero {
+        padding: 14px;
+      }
+
+      .day-copy h2 {
+        font-size: 30px;
+      }
+
+      .readiness-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 0 14px 14px;
+      }
+
+      .event-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .event-time {
+        width: 74px;
+      }
+
+      .event-tools {
+        justify-content: flex-end;
+      }
+
+      .bottom-dock {
+        bottom: 0;
+        width: 100%;
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 0;
+        padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      }
+
+      .dock-item {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .topbar-inner,
+      .tabs,
+      .content {
+        width: calc(100% - 20px);
+      }
+
+      .trip-title {
+        gap: 10px;
+      }
+
+      .icon-button {
+        width: 40px;
+        height: 40px;
+      }
+
+      .status-row .badge:not(.brand) {
+        display: none;
+      }
+
+      .day-copy h2 {
+        font-size: 27px;
+      }
+
+      .day-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .primary-button,
+      .secondary-button {
+        width: 100%;
+      }
+
+      .readiness-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .panel {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="trip-title">
+          <button class="icon-button" aria-label="回到旅程列表">←</button>
+          <div class="title-copy">
+            <div class="status-row">
+              <span class="badge brand">規劃中</span>
+              <span class="badge">2026/07/12 - 2026/07/18</span>
+              <span class="badge mint">2 位旅伴在線</span>
+            </div>
+            <h1>關西夏日七日旅行</h1>
+            <div class="trip-meta">
+              <span>大阪進，京都住三晚</span>
+              <span>同步完成 12 秒前</span>
+            </div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="secondary-button">設定</button>
+          <button class="primary-button">新增今日項目</button>
+        </div>
+      </div>
+      <nav class="tabs" aria-label="旅程分頁">
+        <span class="tab active">今日</span>
+        <span class="tab">總覽</span>
+        <span class="tab">行程</span>
+        <span class="tab">靈感</span>
+        <span class="tab">航班</span>
+        <span class="tab">準備</span>
+        <span class="tab">花費</span>
+      </nav>
+    </header>
+
+    <main class="content">
+      <aside class="stack left-rail">
+        <section class="card">
+          <div class="cover">
+            <div class="cover-content">
+              <div>
+                <span class="badge">Day 3</span>
+                <h2>京都散步與夜間鴨川</h2>
+                <p>把住宿、交通、預算和今日提醒集中成一張可掃描的旅程摘要。</p>
+              </div>
+              <span class="badge mint">路線已就緒</span>
+            </div>
+          </div>
+          <div class="mini-stats">
+            <div class="mini-stat">
+              <strong>6</strong>
+              <span>今日行程</span>
+            </div>
+            <div class="mini-stat">
+              <strong>3.8km</strong>
+              <span>步行距離</span>
+            </div>
+            <div class="mini-stat">
+              <strong>¥18k</strong>
+              <span>今日預算</span>
+            </div>
+            <div class="mini-stat">
+              <strong>82%</strong>
+              <span>準備度</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>快速入口</h2>
+          </div>
+          <div class="quick-list">
+            <div class="quick-item">
+              <span class="quick-icon">宿</span>
+              <div>
+                <strong>Hotel Resol Kyoto</strong>
+                <span>四條河原町，步行 6 分</span>
+              </div>
+              <span class="badge">已存</span>
+            </div>
+            <div class="quick-item">
+              <span class="quick-icon">機</span>
+              <div>
+                <strong>ITM 13:20 抵達</strong>
+                <span>回程待補登機資訊</span>
+              </div>
+              <span class="badge sun">提醒</span>
+            </div>
+            <div class="quick-item">
+              <span class="quick-icon">費</span>
+              <div>
+                <strong>剩餘 ¥42,800</strong>
+                <span>餐飲與交通支出正常</span>
+              </div>
+              <span class="badge mint">OK</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="stack">
+        <article class="card">
+          <div class="main-hero">
+            <div class="day-copy">
+              <div>
+                <div class="status-row">
+                  <span class="badge brand">Day 3</span>
+                  <span class="badge sun">11:10 下一站</span>
+                  <span class="badge lilac">雨備方案已加入</span>
+                </div>
+                <h2>今天主軸是慢速京都，交通不要切太碎。</h2>
+                <p>把時間線、路線、提醒和可加入的建議放在同一個工作面，避免使用者在「今日」「行程」「靈感」之間來回切換。</p>
+              </div>
+              <div class="day-actions">
+                <button class="primary-button">套用路線到地圖</button>
+                <button class="secondary-button">查看雨備建議</button>
+              </div>
+            </div>
+
+            <div class="route-card" aria-label="今日路線預覽">
+              <div class="map-surface">
+                <span class="map-line"></span>
+                <span class="map-pin one">1</span>
+                <span class="map-pin two">2</span>
+                <span class="map-pin three">3</span>
+                <div class="map-note">四條 → 清水寺 → 鴨川。建議把晚餐移到祇園，減少折返。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="readiness-grid">
+            <div class="readiness">
+              <span>下一段</span>
+              <strong>11:10</strong>
+            </div>
+            <div class="readiness">
+              <span>地點完整</span>
+              <strong>5 / 6</strong>
+            </div>
+            <div class="readiness">
+              <span>待辦剩餘</span>
+              <strong>3</strong>
+            </div>
+            <div class="readiness">
+              <span>預算狀態</span>
+              <strong>良好</strong>
+            </div>
+          </div>
+        </article>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>今日時間線</h2>
+            <span class="badge brand">可拖曳排序</span>
+          </div>
+          <div class="timeline">
+            <article class="event-row">
+              <span class="event-time">09:20</span>
+              <div>
+                <h3>從飯店出發，搭阪急到河原町</h3>
+                <p>先買一日交通券，轉乘時間預留 12 分鐘。</p>
+              </div>
+              <div class="event-tools">
+                <button class="tool-button" aria-label="編輯">編</button>
+                <button class="tool-button" aria-label="地圖">圖</button>
+              </div>
+            </article>
+
+            <article class="event-row">
+              <span class="event-time">11:10</span>
+              <div>
+                <h3>清水寺與二年坂散步</h3>
+                <p>此段人潮較多，建議把午餐從主街移到巷內備選。</p>
+              </div>
+              <div class="event-tools">
+                <button class="tool-button" aria-label="編輯">編</button>
+                <button class="tool-button" aria-label="地圖">圖</button>
+              </div>
+            </article>
+
+            <article class="event-row">
+              <span class="event-time">18:40</span>
+              <div>
+                <h3>鴨川旁晚餐與回飯店</h3>
+                <p>保留 30 分鐘彈性，若下雨就改到四條通室內街區。</p>
+              </div>
+              <div class="event-tools">
+                <button class="tool-button" aria-label="編輯">編</button>
+                <button class="tool-button" aria-label="地圖">圖</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <aside class="stack right-rail">
+        <section class="assistant-card">
+          <img src="../../src/assets/ai/pixel-navibun.png" alt="">
+          <div>
+            <h3>今日建議已整理</h3>
+            <p>把「靈感」做成可套用的小卡，直接補進今日時間線或備選清單。</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>可套用建議</h2>
+            <span class="badge mint">3 則</span>
+          </div>
+          <div class="suggestion-list">
+            <div class="suggestion">
+              <div>
+                <strong>把午餐移到花見小路旁</strong>
+                <span>避開主街排隊，步行距離少 900m。</span>
+              </div>
+              <button class="tool-button" aria-label="加入">＋</button>
+            </div>
+            <div class="suggestion">
+              <div>
+                <strong>加入雨天替代：京都高島屋</strong>
+                <span>保留購物與甜點，適合 16:00 後。</span>
+              </div>
+              <button class="tool-button" aria-label="加入">＋</button>
+            </div>
+            <div class="suggestion">
+              <div>
+                <strong>晚餐前先回飯店放戰利品</strong>
+                <span>避免晚間鴨川散步負重。</span>
+              </div>
+              <button class="tool-button" aria-label="加入">＋</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel progress-panel">
+          <div class="progress-top">
+            <div>
+              <h2>旅程準備</h2>
+              <p class="muted">證件、網卡、換匯與藥品</p>
+            </div>
+            <strong>82%</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill"></div>
+          </div>
+          <div class="status-row">
+            <span class="badge mint">完成 14</span>
+            <span class="badge sun">剩餘 3</span>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <nav class="bottom-dock" aria-label="主要功能">
+      <span class="dock-item active"><span class="dock-symbol round"></span>今日</span>
+      <span class="dock-item"><span class="dock-symbol"></span>行程</span>
+      <span class="dock-item"><span class="dock-symbol round"></span>靈感</span>
+      <span class="dock-item"><span class="dock-symbol"></span>更多</span>
+    </nav>
+  </div>
+</body>
+</html>

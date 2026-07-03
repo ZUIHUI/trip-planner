@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip Planner full app market UI mockup</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #13201b;
+      --muted: #65736d;
+      --soft: #eef5f1;
+      --line: #dce8e1;
+      --paper: #ffffff;
+      --brand: #116a62;
+      --brand-2: #1f8f72;
+      --sky: #3674c9;
+      --sun: #e2a044;
+      --rose: #d96363;
+      --violet: #6d65c8;
+      --shadow: 0 20px 50px rgba(28, 56, 48, 0.14);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f7faf8;
+      color: var(--ink);
+    }
+
+    .page {
+      padding: 32px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin: 0 auto 24px;
+      max-width: 1480px;
+    }
+
+    .kicker {
+      color: var(--brand);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      margin-top: 4px;
+      max-width: 760px;
+      font-size: clamp(32px, 4vw, 58px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin-top: 12px;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      font-weight: 650;
+    }
+
+    .source-card {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .source-card h2 {
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .source-pill {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f9fbfa;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #31443d;
+    }
+
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 1480px;
+      margin: 0 auto 30px;
+    }
+
+    .principle {
+      min-height: 112px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(35, 65, 55, 0.08);
+    }
+
+    .principle b {
+      display: block;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .principle span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      font-weight: 650;
+    }
+
+    .board {
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 34px 0 14px;
+    }
+
+    .section-title h2 {
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .phone-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .phone {
+      position: relative;
+      overflow: hidden;
+      min-height: 700px;
+      border: 1px solid #c9d9d2;
+      border-radius: 28px;
+      background: #fbfdfc;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .phone:before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 86px;
+      height: 5px;
+      border-radius: 999px;
+      background: #cddbd5;
+      transform: translateX(-50%);
+    }
+
+    .screen {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 672px;
+      margin-top: 12px;
+      border: 1px solid #e5eee9;
+      border-radius: 18px;
+      background: #f7faf8;
+      padding: 14px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #475b52;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title-row h3 {
+      font-size: 19px;
+      line-height: 1.15;
+      font-weight: 950;
+    }
+
+    .title-row p {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .icon-button,
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--brand);
+      font-weight: 950;
+      box-shadow: 0 6px 16px rgba(32, 66, 55, 0.08);
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(39, 68, 58, 0.08);
+    }
+
+    .card h4 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .card p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      border-radius: var(--radius);
+      background: var(--brand);
+      color: #fff;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .button.secondary {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--brand);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: #40524b;
+      padding: 6px 9px;
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .chip.active {
+      border-color: var(--brand);
+      background: #e8f5ef;
+      color: var(--brand);
+    }
+
+    .map {
+      position: relative;
+      overflow: hidden;
+      min-height: 210px;
+      border: 1px solid #d2e3dd;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, transparent 48%, rgba(17, 106, 98, 0.12) 49%, rgba(17, 106, 98, 0.12) 51%, transparent 52%),
+        linear-gradient(0deg, transparent 48%, rgba(54, 116, 201, 0.12) 49%, rgba(54, 116, 201, 0.12) 51%, transparent 52%),
+        #edf6f1;
+      background-size: 92px 92px, 72px 72px, auto;
+    }
+
+    .route {
+      position: absolute;
+      inset: 48px 38px 54px;
+      border: 4px solid rgba(17, 106, 98, 0.56);
+      border-left-color: transparent;
+      border-bottom-color: rgba(54, 116, 201, 0.48);
+      border-radius: 46% 54% 44% 58%;
+      transform: rotate(-7deg);
+    }
+
+    .pin {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 950;
+      box-shadow: 0 8px 16px rgba(19, 32, 27, 0.18);
+    }
+
+    .pin.sky {
+      background: var(--sky);
+    }
+
+    .pin.sun {
+      background: var(--sun);
+    }
+
+    .pin.rose {
+      background: var(--rose);
+    }
+
+    .pin.one { left: 18%; top: 32%; }
+    .pin.two { left: 50%; top: 22%; }
+    .pin.three { left: 68%; top: 58%; }
+    .pin.four { left: 28%; top: 67%; }
+
+    .timeline {
+      display: grid;
+      gap: 9px;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 10px;
+    }
+
+    .event strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .event small {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 46%),
+        linear-gradient(135deg, var(--sky), var(--brand-2));
+    }
+
+    .thumb.sun {
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 46%),
+        linear-gradient(135deg, var(--sun), #c97d52);
+    }
+
+    .thumb.rose {
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 46%),
+        linear-gradient(135deg, var(--rose), var(--violet));
+    }
+
+    .progress {
+      overflow: hidden;
+      height: 8px;
+      border-radius: 999px;
+      background: #e4ede8;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: var(--brand);
+    }
+
+    .bottom-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.92);
+      padding: 6px;
+    }
+
+    .bottom-nav span {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      border-radius: var(--radius);
+      color: #65736d;
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .bottom-nav .active {
+      background: #e8f5ef;
+      color: var(--brand);
+    }
+
+    .mini-module {
+      min-height: 250px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(39, 68, 58, 0.08);
+    }
+
+    .mini-module header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .mini-module h3 {
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .list-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid #e8f0ec;
+      border-radius: var(--radius);
+      background: #fbfdfc;
+      padding: 9px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .check {
+      display: inline-block;
+      width: 17px;
+      height: 17px;
+      border: 2px solid var(--brand);
+      border-radius: 5px;
+      background: #e8f5ef;
+    }
+
+    .desktop {
+      display: grid;
+      grid-template-columns: 220px minmax(480px, 1fr) 320px;
+      gap: 14px;
+      min-height: 760px;
+      border: 1px solid #cddbd5;
+      border-radius: var(--radius);
+      background: #fbfdfc;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .rail {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-right: 1px solid var(--line);
+      padding-right: 10px;
+    }
+
+    .rail .nav {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 8px;
+      align-items: center;
+      border-radius: var(--radius);
+      padding: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .rail .nav.active {
+      background: #e8f5ef;
+      color: var(--brand);
+    }
+
+    .desktop-main {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .desktop-map {
+      min-height: 518px;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .overlay-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .overlay {
+      min-height: 420px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .fake-input {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f9fbfa;
+      padding: 10px;
+      color: #40524b;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .ai-panel {
+      display: grid;
+      gap: 10px;
+      border: 1px solid #beded2;
+      background: #f6fbf8;
+    }
+
+    .coverage-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .coverage-strip span {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 9px;
+      color: #40524b;
+      font-size: 10px;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    @media (max-width: 1180px) {
+      .phone-grid,
+      .module-grid,
+      .principles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .desktop,
+      .overlay-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding-right: 0;
+        padding-bottom: 10px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 18px;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .phone-grid,
+      .module-grid,
+      .principles,
+      .coverage-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <p class="kicker">Trip Planner mockup v3</p>
+        <h1>市面產品參考後的全頁面 UI mockup</h1>
+        <p class="lead">把目前 app 的登入、旅程列表、行程詳情所有 tab 與浮層整理成一套可視化產品板。方向參考 Wanderlog 的地圖行程同屏、Tripsy 的資訊集中與權限/費用、Polarsteps 的旅程地圖與回憶感。</p>
+      </div>
+      <aside class="source-card">
+        <h2>參考產品語言</h2>
+        <div class="source-grid">
+          <span class="source-pill">Wanderlog<br>Map + itinerary</span>
+          <span class="source-pill">Tripsy<br>All details</span>
+          <span class="source-pill">Polarsteps<br>Journey map</span>
+        </div>
+      </aside>
+    </header>
+
+    <section class="principles" aria-label="design principles">
+      <article class="principle"><b>Map-first</b><span>今日旅途與桌面模式先看到路線、地點、下一站，再進入表單或清單。</span></article>
+      <article class="principle"><b>Calm operations</b><span>用短狀態、chip、卡片層級讓大量功能不吵，適合旅行中快速掃描。</span></article>
+      <article class="principle"><b>Group-ready</b><span>旅伴在線、權限、邀請碼、同步衝突都有固定位置，而不是臨時提示。</span></article>
+      <article class="principle"><b>AI as assist</b><span>AI 是可召喚的旅程助手，輸出能直接加入想去或排進 Day timeline。</span></article>
+    </section>
+
+    <div class="board">
+      <section>
+        <div class="section-title">
+          <h2>Core mobile flow</h2>
+          <span>登入 -> 旅程首頁 -> 今日旅途 -> 行程 -> 想去 -> 更多</span>
+        </div>
+        <div class="phone-grid">
+          <article class="phone">
+            <div class="screen">
+              <div class="status"><span>9:41</span><span>Trip Planner</span></div>
+              <div class="title-row">
+                <div><p>Welcome back</p><h3>開始你的下一段旅行</h3></div>
+                <span class="icon">✈</span>
+              </div>
+              <div class="map" style="min-height:150px">
+                <span class="route"></span><span class="pin one">1</span><span class="pin sky three">2</span>
+              </div>
+              <div class="card">
+                <h4>Google 登入</h4>
+                <p>主 CTA 清楚，備援 email 驗證收合在同張卡片。</p>
+                <div class="button" style="margin-top:12px;width:100%">使用 Google 登入</div>
+              </div>
+              <div class="card">
+                <h4>Email 備援</h4>
+                <div class="field"><label>Email</label><div class="fake-input">you@example.com</div></div>
+                <div class="chip-row" style="margin-top:10px"><span class="chip active">記住裝置</span><span class="chip">寄送驗證碼</span></div>
+              </div>
+              <div class="bottom-nav"><span class="active">登入</span><span>安全</span><span>裝置</span><span>安裝</span></div>
+            </div>
+          </article>
+
+          <article class="phone">
+            <div class="screen">
+              <div class="status"><span>9:41</span><span>5 trips</span></div>
+              <div class="title-row">
+                <div><p>Dashboard</p><h3>旅程首頁</h3></div>
+                <span class="icon">＋</span>
+              </div>
+              <div class="card">
+                <h4>繼續上次旅程</h4>
+                <p>東京 2026 / Day 3 / 12 個行程</p>
+                <div class="button" style="margin-top:10px">回到旅程</div>
+              </div>
+              <div class="chip-row"><span class="chip active">新增旅程</span><span class="chip">加入邀請</span></div>
+              <div class="field"><label>旅程名稱</label><div class="fake-input">2026 京都深呼吸</div></div>
+              <div class="button">建立旅程</div>
+              <div class="chip-row"><span class="chip active">全部 5</span><span class="chip">進行中 1</span><span class="chip">可編輯 3</span></div>
+              <div class="timeline">
+                <div class="event"><span class="thumb"></span><div><strong>東京冬日散步</strong><small>Owner / 8 天 / 36 stops</small></div><small>開啟</small></div>
+                <div class="event"><span class="thumb sun"></span><div><strong>瀨戶內週末</strong><small>Editor / 3 天 / 14 stops</small></div><small>開啟</small></div>
+                <div class="event"><span class="thumb rose"></span><div><strong>首爾快閃</strong><small>View-only / 4 天</small></div><small>檢視</small></div>
+              </div>
+              <div class="bottom-nav"><span class="active">旅程</span><span>搜尋</span><span>邀請</span><span>帳號</span></div>
+            </div>
+          </article>
+
+          <article class="phone">
+            <div class="screen">
+              <div class="status"><span>9:41</span><span>GPS active</span></div>
+              <div class="title-row">
+                <div><p>Day 3 / today</p><h3>今日旅途</h3></div>
+                <span class="icon">☰</span>
+              </div>
+              <div class="map">
+                <span class="route"></span>
+                <span class="pin one">A</span><span class="pin sky two">B</span><span class="pin sun three">C</span><span class="pin rose four">D</span>
+              </div>
+              <div class="card">
+                <h4>下一站：清水寺</h4>
+                <p>步行 14 分鐘 / 13:20 前抵達最佳</p>
+                <div class="chip-row" style="margin-top:10px"><span class="chip active">導航</span><span class="chip">AI 幫我排</span><span class="chip">航班提醒</span></div>
+              </div>
+              <div class="timeline">
+                <div class="event"><small>10:00</small><div><strong>錦市場早餐</strong><small>已完成 / 旅伴 2 人</small></div><span class="chip">照片</span></div>
+                <div class="event"><small>13:30</small><div><strong>清水寺</strong><small>門票提醒 / 熱門時段</small></div><span class="chip active">下一站</span></div>
+                <div class="event"><small>17:40</small><div><strong>祇園晚餐</strong><small>預約碼已存</small></div><span class="chip">地圖</span></div>
+              </div>
+              <div class="bottom-nav"><span class="active">旅途</span><span>行程</span><span>想去</span><span>更多</span></div>
+            </div>
+          </article>
+
+          <article class="phone">
+            <div class="screen">
+              <div class="status"><span>9:41</span><span>Day 3</span></div>
+              <div class="title-row">
+                <div><p>Timeline</p><h3>行程編排</h3></div>
+                <span class="icon">＋</span>
+              </div>
+              <div class="chip-row"><span class="chip">Day 1</span><span class="chip">Day 2</span><span class="chip active">Day 3</span><span class="chip">Day 4</span></div>
+              <div class="card">
+                <h4>Day metadata</h4>
+                <p>日期、標題、天氣、預估交通時間同列管理。</p>
+              </div>
+              <div class="timeline">
+                <div class="event"><small>09:10</small><div><strong>飯店出發</strong><small>從住宿開始</small></div><span class="chip">移動</span></div>
+                <div class="event"><small>10:00</small><div><strong>伏見稻荷</strong><small>建議停留 90 分鐘</small></div><span class="chip">拖曳</span></div>
+                <div class="event"><small>12:30</small><div><strong>午餐候補</strong><small>從想去清單加入</small></div><span class="chip">候補</span></div>
+                <div class="event"><small>15:10</small><div><strong>咖啡休息</strong><small>路線中段緩衝</small></div><span class="chip">編輯</span></div>
+              </div>
+              <div class="button">新增行程</div>
+              <div class="bottom-nav"><span>旅途</span><span class="active">行程</span><span>想去</span><span>更多</span></div>
+            </div>
+          </article>
+
+          <article class="phone">
+            <div class="screen">
+              <div class="status"><span>9:41</span><span>18 ideas</span></div>
+              <div class="title-row">
+                <div><p>Place pool</p><h3>想去清單</h3></div>
+                <span class="icon">★</span>
+              </div>
+              <div class="field"><label>搜尋或貼上地點</label><div class="fake-input">嵐山 甜點 / 京都車站附近</div></div>
+              <div class="chip-row"><span class="chip active">全部</span><span class="chip">餐廳</span><span class="chip">景點</span><span class="chip">雨天備案</span></div>
+              <div class="timeline">
+                <div class="event"><span class="thumb"></span><div><strong>嵐山竹林</strong><small>4 票 / 建議 Day 4</small></div><span class="chip active">加入</span></div>
+                <div class="event"><span class="thumb sun"></span><div><strong>小川咖啡</strong><small>離住宿 8 分鐘</small></div><span class="chip">投票</span></div>
+                <div class="event"><span class="thumb rose"></span><div><strong>京都塔夜景</strong><small>雨天備案</small></div><span class="chip">收藏</span></div>
+              </div>
+              <div class="card">
+                <h4>AI 推薦</h4>
+                <p>根據空檔、天氣、移動距離推薦地點，能直接加入想去或排進行程。</p>
+              </div>
+              <div class="bottom-nav"><span>旅途</span><span>行程</span><span class="active">想去</span><span>更多</span></div>
+            </div>
+          </article>
+
+          <article class="phone">
+            <div class="screen">
+              <div class="status"><span>9:41</span><span>Modules</span></div>
+              <div class="title-row">
+                <div><p>Hub</p><h3>更多功能</h3></div>
+                <span class="icon">⚙</span>
+              </div>
+              <div class="module-grid" style="grid-template-columns:1fr 1fr;gap:8px">
+                <div class="card"><h4>總覽</h4><p>36 stops</p></div>
+                <div class="card"><h4>資訊</h4><p>飯店 + 航班</p></div>
+                <div class="card"><h4>旅遊手冊</h4><p>PDF ready</p></div>
+                <div class="card"><h4>行前</h4><p>5 項待辦</p></div>
+                <div class="card"><h4>行李</h4><p>72%</p></div>
+                <div class="card"><h4>記帳</h4><p>NT$18,400</p></div>
+                <div class="card"><h4>購物</h4><p>8 items</p></div>
+                <div class="card"><h4>旅伴</h4><p>3 online</p></div>
+              </div>
+              <div class="card"><h4>提醒與裝置</h4><p>安裝 App、推播、GPS、同步狀態集中在底部。</p></div>
+              <div class="bottom-nav"><span>旅途</span><span>行程</span><span>想去</span><span class="active">更多</span></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>Functional modules</h2>
+          <span>每個 tab 至少有一張功能 mockup</span>
+        </div>
+        <div class="module-grid">
+          <article class="mini-module">
+            <header><h3>Summary / overview</h3><span class="icon">▦</span></header>
+            <div class="card"><h4>Readiness</h4><p>航班、住宿、行前、費用、行李狀態整合。</p><div class="progress"><span style="width:78%"></span></div></div>
+            <div class="list" style="margin-top:10px"><div class="list-row"><span class="check"></span><b>下一個行程</b><small>13:30</small></div><div class="list-row"><span class="check"></span><b>預算</b><small>62%</small></div></div>
+          </article>
+          <article class="mini-module">
+            <header><h3>Logistics</h3><span class="icon">✈</span></header>
+            <div class="list"><div class="list-row"><span class="check"></span><b>住宿地址</b><small>Map</small></div><div class="list-row"><span class="check"></span><b>去程航班</b><small>TPE 08:20</small></div><div class="list-row"><span class="check"></span><b>回程航班</b><small>KIX 18:40</small></div></div>
+          </article>
+          <article class="mini-module">
+            <header><h3>PreTrip</h3><span class="icon">✓</span></header>
+            <div class="list"><div class="list-row"><span class="check"></span><b>護照效期</b><small>done</small></div><div class="list-row"><span class="check"></span><b>網卡預約</b><small>todo</small></div><div class="list-row"><span class="check"></span><b>保險文件</b><small>todo</small></div></div>
+          </article>
+          <article class="mini-module">
+            <header><h3>Packing</h3><span class="icon">▣</span></header>
+            <div class="chip-row"><span class="chip active">衣物</span><span class="chip">文件</span><span class="chip">藥品</span></div>
+            <div class="card" style="margin-top:10px"><h4>行李完成度</h4><p>26 / 34 packed</p><div class="progress"><span style="width:76%"></span></div></div>
+          </article>
+          <article class="mini-module">
+            <header><h3>Expenses</h3><span class="icon">$</span></header>
+            <div class="card"><h4>預算</h4><p>NT$ 28,000 / 45,000</p><div class="progress"><span style="width:62%"></span></div></div>
+            <div class="chip-row" style="margin-top:10px"><span class="chip active">餐飲</span><span class="chip">交通</span><span class="chip">住宿</span></div>
+          </article>
+          <article class="mini-module">
+            <header><h3>Shopping</h3><span class="icon">□</span></header>
+            <div class="list"><div class="list-row"><span class="check"></span><b>伴手禮</b><small>4</small></div><div class="list-row"><span class="check"></span><b>藥妝</b><small>8</small></div><div class="list-row"><span class="check"></span><b>免稅</b><small>2</small></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>Desktop command center</h2>
+          <span>寬版規劃：左功能、中央地圖、右狀態</span>
+        </div>
+        <article class="desktop">
+          <aside class="rail">
+            <div class="nav active"><span class="icon">⌖</span><span>旅途</span></div>
+            <div class="nav"><span class="icon">▦</span><span>總覽</span></div>
+            <div class="nav"><span class="icon">≡</span><span>行程</span></div>
+            <div class="nav"><span class="icon">★</span><span>想去</span></div>
+            <div class="nav"><span class="icon">✈</span><span>資訊</span></div>
+            <div class="nav"><span class="icon">✓</span><span>行前</span></div>
+            <div class="nav"><span class="icon">$</span><span>記帳</span></div>
+            <div class="nav"><span class="icon">☷</span><span>旅伴</span></div>
+          </aside>
+          <div class="desktop-main">
+            <div class="title-row">
+              <div><p>Tokyo winter walk / Day 3</p><h3>地圖與行程同屏</h3></div>
+              <div class="chip-row"><span class="chip active">3 online</span><span class="chip">Saved</span><span class="chip">GPS</span></div>
+            </div>
+            <div class="map desktop-map">
+              <span class="route"></span>
+              <span class="pin one">1</span><span class="pin sky two">2</span><span class="pin sun three">3</span><span class="pin rose four">4</span>
+            </div>
+          </div>
+          <aside class="side-stack">
+            <div class="card"><h4>Next step</h4><p>13:30 清水寺，從目前位置步行 14 分鐘。</p><div class="button" style="margin-top:10px">導航</div></div>
+            <div class="card"><h4>Today timeline</h4><div class="timeline" style="margin-top:10px"><div class="event"><small>10:00</small><div><strong>錦市場</strong><small>done</small></div><span></span></div><div class="event"><small>13:30</small><div><strong>清水寺</strong><small>next</small></div><span></span></div></div></div>
+            <div class="card"><h4>Budget</h4><p>NT$ 28,000 used</p><div class="progress"><span style="width:62%"></span></div></div>
+            <div class="card"><h4>AI companion</h4><p>可直接把推薦加入想去或排進 Day 3。</p></div>
+          </aside>
+        </article>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h2>Overlay states</h2>
+          <span>設定、事件、PDF、AI、系統狀態</span>
+        </div>
+        <div class="overlay-grid">
+          <article class="overlay">
+            <div class="title-row"><div><p>Bottom sheet</p><h3>Settings</h3></div><span class="icon">×</span></div>
+            <div class="field"><label>Theme</label><div class="fake-input">Light / Dark toggle</div></div>
+            <div class="field"><label>Interface size</label><div class="fake-input">Small / Medium / Large</div></div>
+            <div class="field"><label>Exchange rate</label><div class="fake-input">1 JPY = 0.215 TWD</div></div>
+            <div class="field"><label>Cover image</label><div class="fake-input">Upload / remove / preview</div></div>
+            <div class="field"><label>GPS</label><div class="fake-input">Enable current location</div></div>
+          </article>
+          <article class="overlay">
+            <div class="title-row"><div><p>Modal</p><h3>Event editor</h3></div><span class="icon">＋</span></div>
+            <div class="field"><label>Title</label><div class="fake-input">清水寺</div></div>
+            <div class="field"><label>Time</label><div class="fake-input">13:30 - 15:00</div></div>
+            <div class="field"><label>Location</label><div class="fake-input">Google Maps place</div></div>
+            <div class="field"><label>Notes</label><div class="fake-input">門票、預約碼、上一站導航</div></div>
+            <div class="button" style="margin-top:12px">儲存行程</div>
+          </article>
+          <article class="overlay ai-panel">
+            <div class="title-row"><div><p>AI companion</p><h3>Day plan</h3></div><span class="icon">✦</span></div>
+            <div class="field"><label>輸入偏好</label><div class="fake-input">想要慢一點、少排隊、下午下雨備案</div></div>
+            <div class="card"><h4>推薦：京都塔夜景</h4><p>適合雨天，離晚餐地點近，可排入 19:30。</p><div class="chip-row" style="margin-top:10px"><span class="chip active">加入想去</span><span class="chip">排進 Day 3</span></div></div>
+            <div class="card"><h4>推薦：小川咖啡</h4><p>路線中段休息點，避開熱門時段。</p></div>
+          </article>
+        </div>
+        <div class="coverage-strip" aria-label="covered states">
+          <span>Handbook PDF</span><span>Install app prompt</span><span>Trip notifications</span><span>GPS status</span><span>Sync conflict</span><span>Read-only mode</span>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
