@@ -678,6 +678,15 @@ const TripListPage = () => {
         <span />
       </div>
       <PageContainer className="tp-atlas-page-frame py-7 sm:py-10">
+        <div className="tp-mobile-atlas-map tp-mobile-atlas-map-home" aria-hidden="true">
+          <span className="tp-mobile-atlas-topbar" />
+          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-1" />
+          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-2" />
+          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-3" />
+          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-4" />
+          <span className="tp-mobile-atlas-route-card tp-mobile-atlas-route-card-primary" />
+          <span className="tp-mobile-atlas-route-card tp-mobile-atlas-route-card-secondary" />
+        </div>
         <div className="tp-panel tp-account-bar mb-6 p-4 sm:p-5">
           <div className="flex min-w-0 items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">

@@ -89,7 +89,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
         }`}
         aria-label="主要功能導覽"
       >
-        <div className="mx-auto flex h-[4.5rem] max-w-4xl items-center gap-2 px-3 lg:hidden">
+        <div className="tp-atlas-dock-track mx-auto flex h-[4.5rem] max-w-4xl items-center gap-2 px-3 lg:hidden">
           {mobileTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = isMobileTabActive(tab.id);
@@ -113,13 +113,13 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
               >
                 <PresenceTabMarker count={getMobilePresenceCount(tab.id)} />
                 <Icon size={22} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
-                <span className="truncate">{tab.label}</span>
+                <span className="tp-nav-label truncate">{tab.label}</span>
               </motion.button>
             );
           })}
         </div>
 
-        <div className="mx-auto hidden h-[4.5rem] max-w-7xl items-center gap-2 px-3 lg:flex">
+        <div className="tp-atlas-dock-track mx-auto hidden h-[4.5rem] max-w-7xl items-center gap-2 px-3 lg:flex">
           {desktopTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -143,7 +143,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
               >
                 <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
                 <Icon size={21} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
-                <span className="max-w-full truncate">{tab.label}</span>
+                <span className="tp-nav-label max-w-full truncate">{tab.label}</span>
               </motion.button>
             );
           })}
