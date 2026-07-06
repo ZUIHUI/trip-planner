@@ -81,6 +81,10 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
       : activeTab === tabId
   );
 
+  const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item relative flex ${
+    isActive ? 'tp-nav-active' : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
+  }`;
+
   return (
     <>
       <nav
@@ -102,11 +106,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.01 : 1 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.58 }}
-                className={`touch-target tp-press-feedback tp-nav-item relative flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
-                  isActive
-                    ? 'tp-nav-active shadow-sm'
-                    : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
-                }`}
+                className={`${buildTabClass(isActive)} flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98]`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
                 title={tab.label}
@@ -132,11 +132,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
                 animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.008 : 1 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.58 }}
-                className={`touch-target tp-press-feedback tp-nav-item relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98] ${
-                  isActive
-                    ? 'tp-nav-active shadow-sm'
-                    : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
-                }`}
+                className={`${buildTabClass(isActive)} min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98]`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
                 title={tab.label}

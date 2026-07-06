@@ -3883,3 +3883,468 @@ textarea.tp-input {
     font-size: 16px;
   }
 }
+
+/* Final atlas dashboard / dock / AI rewrite:
+   flow layout, remove duplicate blocks, and enforce high-contrast active nav + clean AI state visuals. */
+.tp-mobile-atlas-dashboard {
+  display: block;
+}
+
+.tp-mobile-atlas-dashboard,
+.tp-mobile-atlas-dashboard * {
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .tp-mobile-atlas-dashboard {
+    margin: 0 0 1.05rem;
+    min-height: clamp(18.5rem, 80vw, 21rem);
+    isolation: isolate;
+    overflow: hidden;
+    padding: 0.9rem;
+    position: relative;
+  }
+
+  .tp-mobile-atlas-dashboard::before {
+    background:
+      radial-gradient(ellipse at 16% 18%, rgba(255, 255, 255, 0.34), transparent 8.5rem),
+      radial-gradient(ellipse at 78% 30%, rgba(var(--atlas-mint), 0.26), transparent 8rem),
+      radial-gradient(ellipse at 34% 76%, rgba(var(--atlas-paper), 0.42), transparent 9rem),
+      linear-gradient(90deg, rgba(var(--atlas-ocean), 0.14) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(var(--atlas-ocean), 0.11) 1px, transparent 1px),
+      linear-gradient(145deg, rgb(151, 213, 222) 0%, rgb(190, 230, 232) 42%, rgb(242, 247, 236) 72%, rgb(181, 220, 226) 100%);
+    background-size: auto, auto, auto, 34px 34px, 34px 34px, auto;
+    border: 1px solid rgba(var(--atlas-line), 0.2);
+    border-radius: 8px;
+    box-shadow: 0 26px 74px -44px rgba(var(--atlas-ocean), 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    content: "";
+    inset: 0;
+    opacity: 0.95;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+  }
+
+  .tp-mobile-atlas-dashboard-inner,
+  .tp-mobile-atlas-dashboard-actions,
+  .tp-mobile-atlas-dashboard-top,
+  .tp-mobile-atlas-summary-card,
+  .tp-mobile-atlas-account-edit {
+    position: relative;
+    z-index: 2;
+  }
+
+  .tp-mobile-atlas-dashboard-inner {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .tp-mobile-atlas-dashboard-map {
+    display: block;
+    height: 100%;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+  }
+
+  .tp-mobile-atlas-dashboard-top {
+    align-items: center;
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: 2.9rem minmax(0, 1fr) auto;
+  }
+
+  .tp-mobile-atlas-icon-button,
+  .tp-mobile-atlas-logout-button {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.16);
+    border-radius: 8px;
+    box-shadow: 0 14px 32px -24px rgba(var(--atlas-ocean), 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    color: rgb(var(--atlas-ocean));
+    display: inline-flex;
+    font-weight: 900;
+    height: 2.9rem;
+    justify-content: center;
+  }
+
+  .tp-mobile-atlas-icon-button {
+    width: 2.9rem;
+  }
+
+  .tp-mobile-atlas-logout-button {
+    padding-inline: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .tp-mobile-atlas-account {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
+    min-width: 0;
+    padding: 0.48rem 0.75rem;
+  }
+
+  .tp-mobile-atlas-account span,
+  .tp-mobile-atlas-account small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tp-mobile-atlas-account span {
+    color: rgb(var(--atlas-ink));
+    font-size: 0.9rem;
+    font-weight: 950;
+  }
+
+  .tp-mobile-atlas-account small {
+    color: rgb(var(--atlas-muted));
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .tp-mobile-atlas-account-edit {
+    border: 1px solid rgba(var(--atlas-line), 0.22);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 16px 38px -26px rgba(var(--atlas-ocean), 0.58);
+    padding: 0.72rem;
+  }
+
+  .tp-mobile-atlas-summary-card {
+    align-items: center;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88)),
+      rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.16);
+    border-radius: 8px;
+    color: rgb(var(--atlas-ink));
+    display: grid;
+    gap: 0.72rem;
+    grid-template-columns: 4.45rem minmax(0, 1fr) auto;
+    min-height: 5.9rem;
+    padding: 0.72rem;
+    text-align: left;
+  }
+
+  .tp-mobile-atlas-summary-thumb {
+    align-items: center;
+    background:
+      radial-gradient(circle at 76% 22%, rgba(255, 255, 255, 0.7) 0 0.42rem, transparent 0.46rem),
+      linear-gradient(135deg, rgba(var(--atlas-line), 0.95), rgba(var(--atlas-water), 0.72) 48%, rgba(var(--atlas-amber), 0.34));
+    background-position: center;
+    background-size: cover;
+    border-radius: 7px;
+    color: #fff;
+    display: inline-flex;
+    height: 4.45rem;
+    justify-content: center;
+    overflow: hidden;
+    width: 4.45rem;
+  }
+
+  .tp-mobile-atlas-summary-main {
+    display: grid;
+    gap: 0.18rem;
+    min-width: 0;
+  }
+
+  .tp-mobile-atlas-summary-kicker,
+  .tp-mobile-atlas-summary-main strong,
+  .tp-mobile-atlas-summary-main small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tp-mobile-atlas-summary-kicker {
+    color: rgb(var(--atlas-line));
+    font-size: 0.72rem;
+    font-weight: 950;
+  }
+
+  .tp-mobile-atlas-summary-main strong {
+    color: rgb(var(--atlas-ink));
+    font-size: 1.02rem;
+    font-weight: 950;
+    line-height: 1.12;
+  }
+
+  .tp-mobile-atlas-summary-meta {
+    align-items: center;
+    background: rgba(var(--atlas-water), 0.48);
+    border-radius: 8px;
+    color: rgb(var(--atlas-ocean));
+    display: grid;
+    justify-items: center;
+    min-width: 3.25rem;
+    padding: 0.45rem;
+  }
+
+  .tp-mobile-atlas-summary-meta span {
+    font-size: 1.1rem;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .tp-mobile-atlas-summary-main small,
+  .tp-mobile-atlas-summary-meta small {
+    color: rgb(var(--atlas-muted));
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .tp-mobile-atlas-dashboard-actions {
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+
+  .tp-mobile-atlas-dashboard-actions button {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.16);
+    border-radius: 8px;
+    box-shadow: 0 16px 36px -28px rgba(var(--atlas-ocean), 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    color: rgb(var(--atlas-ocean));
+    display: inline-flex;
+    font-weight: 950;
+    gap: 0.45rem;
+    justify-content: center;
+    min-height: 3rem;
+  }
+
+  .tp-mobile-atlas-dashboard-actions button.is-active {
+    background: linear-gradient(135deg, rgb(var(--atlas-line)), rgb(var(--atlas-mint)));
+    border-color: rgba(255, 255, 255, 0.64);
+    color: #fff;
+  }
+
+  .tp-list-shell .tp-account-bar {
+    display: none !important;
+  }
+}
+
+.tp-list-shell .tp-command-hero,
+.tp-list-shell .tp-command-hero form {
+  border-radius: 8px;
+}
+
+.tp-list-shell .tp-command-hero {
+  border: 1px solid rgba(var(--atlas-line), 0.18);
+  box-shadow: 0 26px 64px -36px rgba(var(--atlas-ocean), 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  margin: 0 0 1.25rem;
+  overflow: hidden;
+}
+
+.tp-list-shell .tp-command-hero-grid {
+  display: block;
+}
+
+.tp-list-shell .tp-command-hero form {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9)),
+    rgba(255, 255, 255, 0.92);
+  border-color: rgba(var(--atlas-line), 0.16);
+  box-shadow: 0 22px 54px -38px rgba(var(--atlas-ocean), 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.tp-list-shell .tp-command-hero-toolbar {
+  border-top: 1px dashed rgba(var(--atlas-line), 0.2);
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.05rem;
+  padding-top: 1rem;
+}
+
+.tp-list-shell .tp-command-hero-search {
+  min-width: 0;
+}
+
+.tp-list-shell .tp-command-hero-filters {
+  min-width: 0;
+}
+
+.tp-list-body-shell {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .tp-list-shell .tp-command-hero {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid rgba(var(--atlas-line), 0.18) !important;
+    box-shadow: 0 26px 64px -36px rgba(var(--atlas-ocean), 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    margin: 0 0 1.25rem !important;
+    overflow: hidden !important;
+  }
+
+  .tp-list-shell .tp-command-hero::before,
+  .tp-list-shell .tp-command-hero::after,
+  .tp-list-shell .tp-command-hero-rule,
+  .tp-list-shell .tp-command-hero-intro,
+  .tp-list-shell .tp-command-hero .tp-atlas-map-strip {
+    display: block !important;
+  }
+
+  .tp-list-shell .tp-command-hero .tp-atlas-action-stack {
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .tp-atlas-dock,
+  .tp-bottom-nav {
+    border: 1px solid rgba(var(--atlas-line), 0.2) !important;
+    border-radius: 8px !important;
+    bottom: calc(0.62rem + env(safe-area-inset-bottom)) !important;
+    left: 0.78rem !important;
+    padding-bottom: 0 !important;
+    right: 0.78rem !important;
+    width: auto !important;
+  }
+
+  .tp-atlas-dock .tp-atlas-dock-track,
+  .tp-bottom-nav > div {
+    gap: 0.38rem;
+    height: 4.05rem;
+    max-width: none;
+    padding: 0.36rem;
+  }
+
+  .tp-atlas-dock .tp-nav-item,
+  .tp-bottom-nav .tp-nav-item {
+    border-radius: 8px;
+    flex: 1 1 0;
+    min-height: 3.25rem;
+    padding: 0.55rem 0.35rem;
+  }
+
+  .tp-atlas-dock .tp-nav-label,
+  .tp-bottom-nav .tp-nav-label {
+    display: none;
+  }
+}
+
+.tp-atlas-dock,
+.tp-bottom-nav {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82)),
+    rgba(255, 255, 255, 0.86) !important;
+  border-color: rgba(var(--atlas-line), 0.2) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 -22px 56px -46px rgba(var(--atlas-ocean), 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.tp-bottom-nav .tp-nav-item,
+.tp-atlas-dock .tp-nav-item {
+  border-radius: 8px;
+  color: rgb(var(--ink-body));
+}
+
+.tp-bottom-nav .tp-nav-active,
+.tp-atlas-dock .tp-nav-active {
+  background: linear-gradient(135deg, rgb(255, 111, 97), rgb(var(--atlas-coral))) !important;
+  border-color: rgba(255, 255, 255, 0.72) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 34px -28px rgba(255, 111, 97, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.tp-bottom-nav .tp-nav-active svg,
+.tp-atlas-dock .tp-nav-active svg,
+.tp-nav-active::after,
+.tp-bottom-nav .tp-nav-active::after,
+.tp-atlas-dock .tp-nav-active::after {
+  color: #fff !important;
+  stroke-width: 2.35;
+  background: rgb(255, 111, 97) !important;
+}
+
+.tp-nav-active::after {
+  border-radius: 999px;
+  bottom: 0.34rem;
+  height: 0.36rem !important;
+  opacity: 1 !important;
+  width: 1.8rem !important;
+}
+
+.tp-ai-companion-button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.tp-ai-companion-button::before,
+.tp-ai-companion-button::after {
+  content: none !important;
+}
+
+.tp-workspace-shell-content {
+  padding-top: 0.65rem;
+}
+
+/* Reinforce the final atlas interaction blueprint for trip list / detail / AI.
+   Keep this block at EOF so it always wins over legacy overrides. */
+.tp-list-shell .tp-command-hero {
+  margin-top: 0 !important;
+}
+
+.tp-list-shell .tp-mobile-atlas-dashboard + .tp-command-hero {
+  margin-top: 0 !important;
+}
+
+.tp-list-shell .tp-account-bar {
+  display: none !important;
+}
+
+.tp-atlas-dock,
+.tp-bottom-nav {
+  border-color: rgba(var(--atlas-line), 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.86)),
+    rgba(255, 255, 255, 0.9) !important;
+}
+
+.tp-atlas-dock .tp-nav-item,
+.tp-bottom-nav .tp-nav-item {
+  color: rgb(var(--ink-body));
+}
+
+.tp-atlas-dock .tp-nav-active,
+.tp-bottom-nav .tp-nav-active {
+  background: linear-gradient(135deg, rgb(255, 111, 97), rgb(var(--atlas-coral))) !important;
+  border-color: rgba(255, 255, 255, 0.72) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 34px -28px rgba(255, 111, 97, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.tp-atlas-dock .tp-nav-active svg,
+.tp-bottom-nav .tp-nav-active svg,
+.tp-atlas-dock .tp-nav-active .tp-nav-label,
+.tp-bottom-nav .tp-nav-active .tp-nav-label {
+  color: #fff !important;
+}
+
+.tp-nav-active::after {
+  border-radius: 999px;
+  background: rgb(255, 111, 97) !important;
+}
+
+.tp-ai-companion-button,
+.tp-ai-companion-summon {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.tp-ai-companion-button::before,
+.tp-ai-companion-button::after,
+.tp-ai-companion-summon::before,
+.tp-ai-companion-summon::after {
+  content: none !important;
+}

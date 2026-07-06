@@ -26,7 +26,7 @@ const PET_BUTTON_SIZE = 64;
 const PET_DRAG_MARGIN = 8;
 const PET_MOBILE_BOTTOM_OFFSET = 84;
 const PET_DESKTOP_BOTTOM_OFFSET = 112;
-const PORTAL_FOOTER_NAV_HEIGHT = 'calc(72px + env(safe-area-inset-bottom))';
+const PORTAL_FOOTER_NAV_HEIGHT = 'calc(5.2rem + env(safe-area-inset-bottom))';
 const PET_POSITION_STORAGE_KEY = 'tripPlanner.aiCompanionPosition';
 
 const getCompanionViewport = () => {
@@ -136,7 +136,6 @@ const petMoodAnimation = {
   error: 'failed',
   happy: 'waving',
   idle: 'idle',
-  landing: 'jumping',
   lifted: 'waiting',
   thinking: 'running'
 };
@@ -297,14 +296,13 @@ const TripAiRecommendationPanel = ({
   const [portalTarget, setPortalTarget] = useState(null);
   const companionDragRef = useRef(null);
   const suppressCompanionClickRef = useRef(false);
-  const landingTimerRef = useRef(null);
   const recommendations = response?.recommendations || [];
   const petMood = error
     ? 'error'
     : (isLoading ? 'thinking' : (recommendations.length ? 'happy' : 'idle'));
-  const floatingPetMood = companionDragState === 'landing'
-    ? 'landing'
-    : ((companionDragState === 'lifted' || companionDragState === 'dragging') ? 'lifted' : petMood);
+  const floatingPetMood = (companionDragState === 'lifted' || companionDragState === 'dragging')
+    ? 'lifted'
+    : petMood;
   const activeModeOption = useMemo(
     () => modeOptions.find((option) => option.id === mode) || modeOptions[0],
     [mode]
@@ -354,33 +352,8 @@ const TripAiRecommendationPanel = ({
     };
   }, []);
 
-  useEffect(() => () => {
-    if (landingTimerRef.current && typeof window !== 'undefined') {
-      window.clearTimeout(landingTimerRef.current);
-    }
-  }, []);
-
-  const playCompanionLanding = useCallback(() => {
-    if (landingTimerRef.current && typeof window !== 'undefined') {
-      window.clearTimeout(landingTimerRef.current);
-    }
-
-    setCompanionDragState('landing');
-    if (typeof window !== 'undefined') {
-      landingTimerRef.current = window.setTimeout(() => {
-        setCompanionDragState('idle');
-        landingTimerRef.current = null;
-      }, 440);
-    }
-  }, []);
-
   const handleCompanionPointerDown = useCallback((event) => {
     if (isOpen || (event.button != null && event.button !== 0)) return;
-
-    if (landingTimerRef.current && typeof window !== 'undefined') {
-      window.clearTimeout(landingTimerRef.current);
-      landingTimerRef.current = null;
-    }
 
     companionDragRef.current = {
       pointerId: event.pointerId,
@@ -428,12 +401,11 @@ const TripAiRecommendationPanel = ({
     if (drag.moved) {
       suppressCompanionClickRef.current = true;
       event.preventDefault();
-      playCompanionLanding();
       return;
     }
 
     setCompanionDragState('idle');
-  }, [playCompanionLanding]);
+  }, []);
 
   const handleCompanionClick = useCallback((event) => {
     if (suppressCompanionClickRef.current) {

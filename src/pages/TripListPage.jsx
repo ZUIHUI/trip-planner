@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
-  ArrowRight,
   CalendarDays,
   ChevronDown,
   Check,
@@ -14,7 +13,6 @@ import {
   Plus,
   Search,
   X,
-  UserRound,
   ShieldCheck,
   Trash2
 } from 'lucide-react';
@@ -154,38 +152,6 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     </span>
   </button>
 );
-
-const ContinueTripShortcut = ({ trip, label, onOpen }) => {
-  if (!trip) return null;
-
-  return (
-    <motion.div
-      className="tp-continue-trip relative mt-4 flex min-w-0 flex-col gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-brand-200/20 dark:bg-brand-50/80"
-      initial={{ opacity: 0, y: 10, scale: 0.99 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-100/70 dark:text-brand-900 dark:ring-brand-300/20">
-          <ArrowRight size={18} />
-        </span>
-        <div className="min-w-0">
-          <p className="text-xs font-black text-brand-700 dark:text-brand-300">{label}</p>
-          <p className="truncate text-sm font-black text-stone-800 dark:text-brand-900">
-            {trip.title || '未命名旅程'}
-          </p>
-          <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {formatDateRange(trip)}
-          </p>
-        </div>
-      </div>
-      <Button type="button" size="sm" onClick={onOpen} className="shrink-0 justify-center shadow-sm">
-        繼續
-        <ArrowRight size={15} />
-      </Button>
-    </motion.div>
-  );
-};
 
 const TripFilterChip = ({ active, label, count, onClick }) => (
   <motion.button
@@ -686,142 +652,114 @@ const TripListPage = () => {
             <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-3" />
             <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-4" />
           </div>
-
-          <div className="tp-mobile-atlas-dashboard-top">
-            <button
-              type="button"
-              className="tp-mobile-atlas-icon-button"
-              onClick={handleStartNicknameEdit}
-              aria-label="編輯帳號名稱"
-              title="編輯帳號名稱"
-            >
-              <UserRound size={19} />
-            </button>
-            <div className="tp-mobile-atlas-account">
-              <span>{accountDisplayName}</span>
-              <small>{currentUser?.email || 'Trip Planner'}</small>
-            </div>
-            <button
-              type="button"
-              className="tp-mobile-atlas-logout-button"
-              onClick={logout}
-            >
-              登出
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className="tp-mobile-atlas-summary-card"
-            onClick={continueTrip ? () => openTripDetail(continueTrip.id) : focusNewTripTitle}
-          >
-            <span
-              className="tp-mobile-atlas-summary-thumb"
-              style={continueTripCoverImageUrl ? { backgroundImage: `url(${continueTripCoverImageUrl})` } : undefined}
-              aria-hidden="true"
-            >
-              {!continueTripCoverImageUrl && <PlaneTakeoff size={20} />}
-            </span>
-            <span className="tp-mobile-atlas-summary-main">
-              <span className="tp-mobile-atlas-summary-kicker">{continueTrip ? continueTripLabel : '新的旅程'}</span>
-              <strong>{continueTrip?.title || '建立第一趟旅程'}</strong>
-              <small>{continueTrip ? formatDateRange(continueTrip) : '把想去的地方先收進來'}</small>
-            </span>
-            <span className="tp-mobile-atlas-summary-meta">
-              <span>{continueTrip?.eventCount || totalTripCount || 0}</span>
-              <small>{continueTrip ? '行程' : '旅程'}</small>
-            </span>
-          </button>
-
-          <div className="tp-mobile-atlas-dashboard-actions" role="group" aria-label="旅程操作">
-            <button
-              type="button"
-              className={actionMode === 'create' ? 'is-active' : ''}
-              onClick={focusNewTripTitle}
-              aria-pressed={actionMode === 'create'}
-            >
-              <Plus size={20} />
-              <span>建立</span>
-            </button>
-            <button
-              type="button"
-              className={actionMode === 'join' ? 'is-active' : ''}
-              onClick={() => setActionMode('join')}
-              aria-pressed={actionMode === 'join'}
-            >
-              <KeyRound size={19} />
-              <span>加入</span>
-            </button>
-            {continueTrip && (
-              <button type="button" onClick={() => openTripDetail(continueTrip.id)}>
-                <ArrowRight size={19} />
-                <span>繼續</span>
+          <div className="tp-mobile-atlas-dashboard-inner">
+            <div className="tp-mobile-atlas-dashboard-top">
+              <button
+                type="button"
+                className="tp-mobile-atlas-icon-button"
+                onClick={handleStartNicknameEdit}
+                aria-label="編輯帳號名稱"
+                title="編輯帳號名稱"
+              >
+                <Pencil size={19} />
               </button>
+              <div className="tp-mobile-atlas-account">
+                <span>{accountDisplayName}</span>
+                <small>{currentUser?.email || 'Trip Planner'}</small>
+              </div>
+              <button
+                type="button"
+                className="tp-mobile-atlas-logout-button"
+                onClick={logout}
+              >
+                登出
+              </button>
+            </div>
+
+            {isEditingNickname && (
+              <form onSubmit={handleSaveNickname} className="tp-mobile-atlas-account-edit">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <label className="min-w-0 flex-1">
+                    <span className="mb-1 block text-xs font-black text-slate-500 dark:text-slate-400">顯示名稱</span>
+                    <Input
+                      {...plainTextInputProps}
+                      value={nicknameDraft}
+                      onChange={(event) => setNicknameDraft(event.target.value)}
+                      placeholder="設定你的暱稱"
+                      aria-label="設定你的暱稱"
+                      className="h-10 text-sm"
+                      enterKeyHint="done"
+                      autoFocus
+                    />
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 sm:flex sm:shrink-0">
+                    <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
+                      <Check size={15} />
+                      {isSavingNickname ? '儲存中...' : '儲存'}
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={handleCancelNicknameEdit} disabled={isSavingNickname} className="justify-center">
+                      <X size={15} />
+                      取消
+                    </Button>
+                  </div>
+                </div>
+              </form>
             )}
+
+            <button
+              type="button"
+              className="tp-mobile-atlas-summary-card"
+              onClick={continueTrip ? () => openTripDetail(continueTrip.id) : focusNewTripTitle}
+            >
+              <span
+                className="tp-mobile-atlas-summary-thumb"
+                style={continueTripCoverImageUrl ? { backgroundImage: `url(${continueTripCoverImageUrl})` } : undefined}
+                aria-hidden="true"
+              >
+                {!continueTripCoverImageUrl && <PlaneTakeoff size={20} />}
+              </span>
+              <span className="tp-mobile-atlas-summary-main">
+                <span className="tp-mobile-atlas-summary-kicker">{continueTrip ? continueTripLabel : '新的旅程'}</span>
+                <strong>{continueTrip?.title || '建立第一趟旅程'}</strong>
+                <small>{continueTrip ? formatDateRange(continueTrip) : '把想去的地方先收進來'}</small>
+              </span>
+              <span className="tp-mobile-atlas-summary-meta">
+                <span>{continueTrip?.eventCount || totalTripCount || 0}</span>
+                <small>{continueTrip ? '行程' : '旅程'}</small>
+              </span>
+            </button>
+
+            <div className="tp-mobile-atlas-dashboard-actions" role="group" aria-label="旅程操作">
+              <button
+                type="button"
+                className={actionMode === 'create' ? 'is-active' : ''}
+                onClick={focusNewTripTitle}
+                aria-pressed={actionMode === 'create'}
+              >
+                <Plus size={20} />
+                <span>建立</span>
+              </button>
+              <button
+                type="button"
+                className={actionMode === 'join' ? 'is-active' : ''}
+                onClick={() => setActionMode('join')}
+                aria-pressed={actionMode === 'join'}
+              >
+                <KeyRound size={19} />
+                <span>加入</span>
+              </button>
+              {continueTrip && (
+                <button type="button" onClick={() => openTripDetail(continueTrip.id)}>
+                  <Compass size={19} />
+                  <span>繼續</span>
+                </button>
+              )}
+            </div>
           </div>
         </section>
 
-        <div className={`tp-panel tp-account-bar ${isEditingNickname ? 'tp-account-bar-editing' : ''} mb-6 p-4 sm:p-5`}>
-          <div className="flex min-w-0 items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="tp-icon-chip">
-                <UserRound size={18} />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black text-slate-900 dark:text-white">
-                  {accountDisplayName}
-                </p>
-                <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  {currentUser?.email || '你的旅程會保存在這個帳號中'}
-                </p>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              {!isEditingNickname && (
-                <Button type="button" variant="ghost" size="sm" onClick={handleStartNicknameEdit} className="justify-center">
-                  <Pencil size={15} />
-                  <span className="hidden sm:inline">編輯名稱</span>
-                </Button>
-              )}
-              <Button variant="secondary" size="sm" onClick={logout}>
-                登出
-              </Button>
-            </div>
-          </div>
-
-          {isEditingNickname && (
-            <form onSubmit={handleSaveNickname} className="mt-4 border-t border-[#e0e9e0] pt-4 dark:border-brand-200/20">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <label className="min-w-0 flex-1">
-                  <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">顯示名稱</span>
-                  <Input
-                    {...plainTextInputProps}
-                    value={nicknameDraft}
-                    onChange={(event) => setNicknameDraft(event.target.value)}
-                    placeholder="設定你的暱稱"
-                    aria-label="設定你的暱稱"
-                    className="h-10 text-sm"
-                    enterKeyHint="done"
-                    autoFocus
-                  />
-                </label>
-                <div className="grid grid-cols-1 gap-3 sm:flex sm:shrink-0">
-                  <Button type="submit" variant="secondary" size="sm" disabled={isSavingNickname || !nicknameDraft.trim()} className="justify-center">
-                    <Check size={15} />
-                    {isSavingNickname ? '儲存中...' : '儲存'}
-                  </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={handleCancelNicknameEdit} disabled={isSavingNickname} className="justify-center">
-                    <X size={15} />
-                    取消
-                  </Button>
-                </div>
-              </div>
-            </form>
-          )}
-        </div>
-
         <motion.section
-          className="tp-panel tp-command-hero relative mb-7 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
+          className="tp-panel tp-command-hero relative mb-4 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
           initial={{ opacity: 0, y: 12, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -858,11 +796,6 @@ const TripListPage = () => {
                 />
               </div>
 
-              <ContinueTripShortcut
-                trip={continueTrip}
-                label={continueTripLabel}
-                onOpen={() => openTripDetail(continueTrip.id)}
-              />
             </div>
 
             <div className="tp-atlas-action-stack">
@@ -920,12 +853,43 @@ const TripListPage = () => {
               )}
               </AnimatePresence>
             </div>
+
+            <div className="tp-command-hero-toolbar">
+              <div className="tp-command-hero-search relative">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <label className="sr-only" htmlFor="trip-search">搜尋旅程</label>
+                <Input
+                  id="trip-search"
+                  {...searchInputProps}
+                  value={keyword}
+                  onChange={(event) => setKeyword(event.target.value)}
+                  placeholder="搜尋名稱、狀態或日期"
+                  className="pl-9"
+                />
+              </div>
+
+              {hasTrips && (
+                <div className="relative w-full tp-command-hero-filters">
+                  <div className="-mx-1 mt-0 flex gap-3 overflow-x-auto px-1 pb-2 no-scrollbar" aria-label="旅程篩選">
+                    {tripFilterOptions.map((option) => (
+                      <TripFilterChip
+                        key={option.id}
+                        active={tripFilter === option.id}
+                        label={option.label}
+                        count={option.count}
+                        onClick={() => setTripFilter(option.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </motion.section>
 
         <InstallAppPrompt className="mb-4" />
 
-        <section className="mt-8">
+        <section className="tp-list-body-shell mt-4 sm:mt-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="tp-section-title">我的旅程</h2>
@@ -935,33 +899,7 @@ const TripListPage = () => {
                 </p>
               )}
             </div>
-            <div className="relative w-full sm:max-w-sm">
-              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <label className="sr-only" htmlFor="trip-search">搜尋旅程</label>
-              <Input
-                id="trip-search"
-                {...searchInputProps}
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                placeholder="搜尋名稱、狀態或日期"
-                className="pl-9"
-              />
-            </div>
           </div>
-
-          {hasTrips && (
-            <div className="-mx-1 mt-4 flex gap-3 overflow-x-auto px-1 pb-2 no-scrollbar" aria-label="旅程篩選">
-              {tripFilterOptions.map((option) => (
-                <TripFilterChip
-                  key={option.id}
-                  active={tripFilter === option.id}
-                  label={option.label}
-                  count={option.count}
-                  onClick={() => setTripFilter(option.id)}
-                />
-              ))}
-            </div>
-          )}
 
           {cloudSyncWarning && (
             <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100" role="status" aria-live="polite">
