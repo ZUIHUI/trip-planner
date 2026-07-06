@@ -3142,12 +3142,12 @@ textarea.tp-input {
 @media (max-width: 767px) {
   .tp-mobile-atlas-dashboard {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.2)),
-      radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.42), transparent 5.8rem),
-      radial-gradient(circle at 76% 38%, rgba(var(--atlas-mint), 0.24), transparent 7rem),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
-      linear-gradient(135deg, rgba(var(--atlas-line), 0.92), rgba(var(--atlas-water), 0.9) 48%, rgba(var(--atlas-paper), 0.84));
+      radial-gradient(ellipse at 16% 18%, rgba(255, 255, 255, 0.34), transparent 8.5rem),
+      radial-gradient(ellipse at 78% 30%, rgba(var(--atlas-mint), 0.26), transparent 8rem),
+      radial-gradient(ellipse at 34% 76%, rgba(var(--atlas-paper), 0.42), transparent 9rem),
+      linear-gradient(90deg, rgba(var(--atlas-ocean), 0.14) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(var(--atlas-ocean), 0.11) 1px, transparent 1px),
+      linear-gradient(145deg, rgb(151, 213, 222) 0%, rgb(190, 230, 232) 42%, rgb(242, 247, 236) 72%, rgb(181, 220, 226) 100%);
     background-size: auto, auto, auto, 34px 34px, 34px 34px, auto;
     border: 1px solid rgba(var(--atlas-line), 0.2);
     border-radius: 8px;
@@ -3167,16 +3167,18 @@ textarea.tp-input {
     background-size: 108% 108%;
     content: "";
     inset: 0;
-    opacity: 0.92;
+    opacity: 0.5;
     position: absolute;
     z-index: 1;
   }
 
   .tp-mobile-atlas-dashboard::after {
     background:
-      radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.72) 0 0.9rem, transparent 0.95rem),
-      radial-gradient(circle at 72% 34%, rgba(255, 255, 255, 0.5) 0 0.7rem, transparent 0.75rem),
-      radial-gradient(circle at 36% 62%, rgba(255, 255, 255, 0.46) 0 0.65rem, transparent 0.7rem);
+      linear-gradient(126deg, transparent 0 20%, rgba(var(--atlas-paper), 0.5) 20.2% 28%, transparent 28.2% 100%),
+      linear-gradient(28deg, transparent 0 56%, rgba(var(--atlas-ocean), 0.12) 56.2% 56.6%, transparent 56.8% 100%),
+      radial-gradient(circle at 20% 35%, rgba(var(--atlas-ocean), 0.16) 0 0.12rem, transparent 0.15rem),
+      radial-gradient(circle at 72% 36%, rgba(var(--atlas-line), 0.14) 0 0.1rem, transparent 0.13rem),
+      radial-gradient(circle at 38% 68%, rgba(var(--atlas-line), 0.12) 0 0.12rem, transparent 0.15rem);
     content: "";
     inset: 0;
     pointer-events: none;
