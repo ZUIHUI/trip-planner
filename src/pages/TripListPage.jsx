@@ -668,8 +668,16 @@ const TripListPage = () => {
   };
 
   return (
-    <main className="tp-page-shell">
-      <PageContainer className="py-7 sm:py-10">
+    <main className="tp-page-shell tp-list-shell">
+      <div className="tp-atlas-side-rail" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <PageContainer className="tp-atlas-page-frame py-7 sm:py-10">
         <div className="tp-panel tp-account-bar mb-6 p-4 sm:p-5">
           <div className="flex min-w-0 items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
@@ -774,7 +782,9 @@ const TripListPage = () => {
               />
             </div>
 
-            <AnimatePresence mode="wait" initial={false}>
+            <div className="tp-atlas-action-stack">
+              <div className="tp-atlas-map-strip" aria-hidden="true" />
+              <AnimatePresence mode="wait" initial={false}>
               {actionMode === 'create' ? (
                 <motion.form
                   key="create-trip"
@@ -825,7 +835,8 @@ const TripListPage = () => {
                   </Button>
                 </motion.form>
               )}
-            </AnimatePresence>
+              </AnimatePresence>
+            </div>
           </div>
         </motion.section>
 

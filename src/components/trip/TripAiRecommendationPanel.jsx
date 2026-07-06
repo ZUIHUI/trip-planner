@@ -470,7 +470,7 @@ const TripAiRecommendationPanel = ({
         <button
           type="button"
           onClick={() => onSummon?.(mode)}
-          className="touch-target tp-press-feedback inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-brand-700 shadow-sm ring-1 ring-[#e0e9e0] transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 supports-[backdrop-filter]:backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-50/90 dark:text-brand-900 dark:ring-brand-300/20 dark:hover:bg-brand-100"
+          className="touch-target tp-press-feedback tp-ai-companion-summon inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-brand-700 shadow-sm ring-1 ring-[#e0e9e0] transition hover:-translate-y-1 hover:bg-white hover:text-brand-900 hover:shadow-md active:scale-95 supports-[backdrop-filter]:backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:bg-brand-50/90 dark:text-brand-900 dark:ring-brand-300/20 dark:hover:bg-brand-100"
           aria-label="叫回旅伴"
           title="叫回旅伴"
         >

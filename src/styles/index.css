@@ -2662,6 +2662,468 @@ textarea.tp-input {
   background-image: linear-gradient(135deg, rgba(var(--surface-card), 0.92), rgba(var(--accent-sky), 0.2) 54%, rgba(var(--accent-mint), 0.14));
 }
 
+/* Mockup-aligned Coastal Atlas redesign */
+:root {
+  --atlas-ocean: 8 59 73;
+  --atlas-ocean-deep: 4 35 49;
+  --atlas-water: 202 236 242;
+  --atlas-paper: 252 250 244;
+  --atlas-ink: 20 42 58;
+  --atlas-muted: 91 116 132;
+  --atlas-coral: 239 91 72;
+  --atlas-amber: 245 166 35;
+  --atlas-mint: 56 171 137;
+  --atlas-line: 29 118 154;
+}
+
+.tp-page-shell.tp-auth-shell,
+.tp-page-shell.tp-list-shell,
+.tp-page-shell.tp-workspace-shell {
+  background-color: rgb(var(--atlas-paper));
+  background-image:
+    radial-gradient(circle at 86% 8%, rgba(var(--atlas-mint), 0.2), transparent 18rem),
+    radial-gradient(circle at 8% 92%, rgba(var(--atlas-amber), 0.18), transparent 18rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(var(--atlas-water), 0.58) 54%, rgba(var(--atlas-paper), 0.96)),
+    linear-gradient(90deg, rgba(var(--atlas-line), 0.07) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--atlas-line), 0.06) 1px, transparent 1px);
+  background-size: auto, auto, auto, 48px 48px, 48px 48px;
+}
+
+.tp-page-shell.tp-auth-shell::before,
+.tp-page-shell.tp-list-shell::before,
+.tp-page-shell.tp-workspace-shell::before {
+  background-image:
+    linear-gradient(90deg, transparent 0 7%, rgba(var(--atlas-line), 0.22) 7.08% 7.18%, transparent 7.3% 100%),
+    linear-gradient(122deg, transparent 0 26%, rgba(var(--atlas-coral), 0.18) 26.12% 26.5%, transparent 26.72% 100%),
+    linear-gradient(62deg, transparent 0 78%, rgba(var(--atlas-mint), 0.2) 78.1% 78.48%, transparent 78.7% 100%),
+    linear-gradient(90deg, rgba(var(--atlas-line), 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--atlas-line), 0.06) 1px, transparent 1px);
+  background-size: auto, auto, auto, 32px 32px, 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.5) 58%, transparent);
+  opacity: 0.86;
+}
+
+.tp-page-shell.tp-auth-shell::after,
+.tp-page-shell.tp-list-shell::after,
+.tp-page-shell.tp-workspace-shell::after {
+  background-image:
+    radial-gradient(circle at 20% 24%, rgba(255, 255, 255, 0.92) 0 0.5rem, transparent 0.55rem),
+    radial-gradient(circle at 46% 40%, rgba(255, 255, 255, 0.92) 0 0.42rem, transparent 0.47rem),
+    radial-gradient(circle at 68% 58%, rgba(var(--atlas-coral), 0.88) 0 0.42rem, transparent 0.47rem),
+    linear-gradient(128deg, transparent 0 22%, rgba(var(--atlas-line), 0.42) 22.08% 22.26%, transparent 22.4% 100%);
+  opacity: 0.38;
+}
+
+.tp-atlas-page-frame {
+  position: relative;
+}
+
+.tp-atlas-side-rail {
+  display: none;
+}
+
+.tp-atlas-side-rail span {
+  display: block;
+}
+
+@media (min-width: 1180px) {
+  .tp-list-shell .tp-atlas-page-frame,
+  .tp-workspace-shell .tp-atlas-page-frame {
+    padding-left: 7.4rem;
+  }
+
+  .tp-atlas-side-rail {
+    align-items: center;
+    background:
+      linear-gradient(180deg, rgba(var(--atlas-ocean), 0.98), rgba(var(--atlas-ocean-deep), 0.98)),
+      rgb(var(--atlas-ocean));
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    box-shadow: 0 30px 90px -48px rgba(var(--atlas-ocean-deep), 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    left: max(1.5rem, calc((100vw - 1280px) / 2 + 1.25rem));
+    min-height: min(45rem, calc(100vh - 3rem));
+    padding: 1rem 0.75rem;
+    position: fixed;
+    top: 1.5rem;
+    width: 4.75rem;
+    z-index: 22;
+  }
+
+  .tp-atlas-side-rail::before {
+    background:
+      radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 0.38rem, transparent 0.42rem),
+      conic-gradient(from 30deg, transparent 0 20%, rgba(var(--atlas-water), 0.95) 20% 26%, transparent 26% 100%);
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    border-radius: 999px;
+    content: "";
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .tp-atlas-side-rail span {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    height: 2.65rem;
+    position: relative;
+    width: 2.65rem;
+  }
+
+  .tp-atlas-side-rail span::before {
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0 0.85rem, transparent 0.85rem),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.58) 0 1.35rem, transparent 1.35rem),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.72) 0 1.1rem, transparent 1.1rem);
+    background-position: 0.7rem 0.7rem, 0.7rem 1.25rem, 0.7rem 1.8rem;
+    background-repeat: no-repeat;
+    background-size: 1.15rem 0.12rem, 1.3rem 0.12rem, 0.9rem 0.12rem;
+    content: "";
+    inset: 0;
+    position: absolute;
+  }
+
+  .tp-atlas-side-rail span:nth-child(2),
+  .tp-atlas-side-rail span:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.34);
+  }
+
+  .tp-atlas-side-rail span:last-child {
+    margin-top: auto;
+  }
+}
+
+.tp-auth-layout {
+  display: grid;
+  gap: 1.25rem;
+  min-height: 100dvh;
+}
+
+@media (min-width: 980px) {
+  .tp-auth-layout {
+    grid-template-columns: minmax(22rem, 27rem) minmax(0, 1fr);
+  }
+}
+
+.tp-atlas-auth-card {
+  align-self: center;
+}
+
+.tp-auth-atlas-preview {
+  align-self: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.5)),
+    linear-gradient(90deg, rgba(var(--atlas-line), 0.1) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--atlas-line), 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(var(--atlas-water), 0.96), rgba(var(--atlas-paper), 0.82));
+  background-size: auto, 32px 32px, 32px 32px, auto;
+  border: 1px solid rgba(var(--border-soft), 0.92);
+  border-radius: 8px;
+  box-shadow: 0 34px 92px -56px rgba(var(--atlas-ocean), 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  display: none;
+  min-height: 30rem;
+  overflow: hidden;
+  padding: 1rem;
+  position: relative;
+}
+
+@media (min-width: 980px) {
+  .tp-auth-atlas-preview {
+    display: block;
+  }
+}
+
+.tp-auth-atlas-preview::before {
+  background:
+    radial-gradient(circle at 24% 25%, #fff 0 0.95rem, transparent 1rem),
+    radial-gradient(circle at 54% 43%, #fff 0 0.95rem, transparent 1rem),
+    radial-gradient(circle at 72% 66%, rgb(var(--atlas-coral)) 0 0.72rem, transparent 0.77rem),
+    linear-gradient(123deg, transparent 0 22%, rgba(var(--atlas-line), 0.74) 22.1% 22.42%, transparent 22.62% 100%);
+  content: "";
+  inset: 0;
+  opacity: 0.85;
+  position: absolute;
+}
+
+.tp-auth-atlas-preview::after {
+  background:
+    linear-gradient(90deg, rgba(var(--atlas-ocean), 0.8), rgba(var(--atlas-ocean), 0.54)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0));
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 8px;
+  box-shadow: 0 18px 40px -32px rgba(var(--atlas-ocean), 0.7);
+  content: "";
+  height: 5.2rem;
+  left: 1rem;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
+
+.tp-atlas-preview-card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(var(--border-soft), 0.86);
+  border-radius: 8px;
+  box-shadow: 0 18px 42px -34px rgba(var(--atlas-ocean), 0.5);
+  height: 5.1rem;
+  left: 2rem;
+  position: absolute;
+  right: 2rem;
+  z-index: 2;
+}
+
+.tp-atlas-preview-card:nth-child(1) {
+  top: 8.2rem;
+}
+
+.tp-atlas-preview-card:nth-child(2) {
+  top: 14.6rem;
+}
+
+.tp-atlas-preview-card:nth-child(3) {
+  top: 21rem;
+}
+
+.tp-atlas-preview-card::before {
+  background: linear-gradient(135deg, rgba(var(--atlas-line), 0.9), rgba(var(--atlas-water), 0.68));
+  border-radius: 6px;
+  content: "";
+  height: 3.55rem;
+  left: 0.75rem;
+  position: absolute;
+  top: 0.75rem;
+  width: 4.35rem;
+}
+
+.tp-atlas-preview-card::after {
+  background:
+    linear-gradient(90deg, rgba(var(--atlas-mint), 0.95) 0 38%, transparent 38%),
+    linear-gradient(90deg, rgba(var(--atlas-muted), 0.24) 0 66%, transparent 66%),
+    linear-gradient(90deg, rgba(var(--atlas-muted), 0.18) 0 82%, transparent 82%);
+  background-position: 6rem 1.1rem, 6rem 2.05rem, 6rem 2.95rem;
+  background-repeat: no-repeat;
+  background-size: calc(100% - 7rem) 0.28rem, calc(100% - 7rem) 0.22rem, calc(100% - 9rem) 0.22rem;
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.tp-atlas-preview-card:nth-child(2)::after {
+  background-image:
+    linear-gradient(90deg, rgba(var(--atlas-amber), 0.95) 0 34%, transparent 34%),
+    linear-gradient(90deg, rgba(var(--atlas-muted), 0.24) 0 66%, transparent 66%),
+    linear-gradient(90deg, rgba(var(--atlas-muted), 0.18) 0 82%, transparent 82%);
+}
+
+.tp-atlas-preview-card:nth-child(3)::after {
+  background-image:
+    linear-gradient(90deg, rgba(var(--atlas-coral), 0.92) 0 28%, transparent 28%),
+    linear-gradient(90deg, rgba(var(--atlas-muted), 0.24) 0 66%, transparent 66%),
+    linear-gradient(90deg, rgba(var(--atlas-muted), 0.18) 0 82%, transparent 82%);
+}
+
+.tp-atlas-action-stack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.tp-atlas-map-strip {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.64)),
+    linear-gradient(90deg, rgba(var(--atlas-line), 0.11) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--atlas-line), 0.09) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(var(--atlas-water), 0.92), rgba(var(--atlas-paper), 0.82));
+  background-size: auto, 28px 28px, 28px 28px, auto;
+  border: 1px solid rgba(var(--border-soft), 0.86);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  height: 9.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.tp-atlas-map-strip::before {
+  background:
+    radial-gradient(circle at 18% 72%, #fff 0 0.72rem, transparent 0.77rem),
+    radial-gradient(circle at 45% 42%, #fff 0 0.72rem, transparent 0.77rem),
+    radial-gradient(circle at 76% 28%, rgb(var(--atlas-coral)) 0 0.62rem, transparent 0.68rem),
+    linear-gradient(28deg, transparent 0 39%, rgba(var(--atlas-line), 0.75) 39.1% 39.48%, transparent 39.7% 100%);
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.tp-command-hero,
+.tp-account-bar {
+  border-radius: 8px;
+}
+
+.tp-command-hero {
+  border-color: rgba(var(--atlas-line), 0.18);
+  box-shadow: 0 34px 92px -58px rgba(var(--atlas-ocean), 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.tp-command-hero::before {
+  height: 0;
+}
+
+.tp-command-hero::after {
+  opacity: 0.48;
+}
+
+.tp-account-bar {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(var(--atlas-water), 0.34)),
+    rgba(255, 255, 255, 0.86);
+}
+
+.tp-trip-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88)),
+    rgba(255, 255, 255, 0.9);
+  border-color: rgba(var(--atlas-line), 0.18);
+  box-shadow: 0 28px 72px -56px rgba(var(--atlas-ocean), 0.64);
+}
+
+.tp-trip-card::before {
+  background: linear-gradient(90deg, rgb(var(--atlas-line)), rgb(var(--atlas-mint)), rgb(var(--atlas-amber)));
+  opacity: 1;
+}
+
+.tp-trip-card .bg-sky-50\/80,
+.tp-trip-card .bg-\[\#f4f8f5\]\/80 {
+  background:
+    linear-gradient(135deg, rgba(var(--atlas-water), 0.54), rgba(255, 255, 255, 0.76)) !important;
+  border: 1px solid rgba(var(--atlas-line), 0.12);
+}
+
+.tp-app-header {
+  border-bottom-color: rgba(var(--atlas-line), 0.16);
+  box-shadow: 0 18px 48px -38px rgba(var(--atlas-ocean), 0.48);
+}
+
+.tp-app-header-surface {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94), rgba(var(--atlas-water), 0.38)),
+    rgba(255, 255, 255, 0.88);
+}
+
+.tp-app-header-surface::before {
+  background:
+    linear-gradient(90deg, rgba(var(--atlas-line), 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--atlas-line), 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.tp-app-header-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.tp-journey-hero {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 34px 86px -50px rgba(var(--atlas-ocean), 0.75);
+}
+
+.tp-journey-hero::before {
+  opacity: 0.5;
+}
+
+.tp-day-switcher,
+.tp-module-button,
+.tp-action-mode-button,
+.tp-filter-chip,
+.tp-continue-trip {
+  border-color: rgba(var(--atlas-line), 0.16);
+}
+
+.tp-atlas-dock,
+.tp-bottom-nav {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.82)),
+    rgba(255, 255, 255, 0.86);
+  border-color: rgba(var(--atlas-line), 0.18) !important;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -24px 64px -46px rgba(var(--atlas-ocean), 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+@media (min-width: 1024px) {
+  .tp-atlas-dock,
+  .tp-bottom-nav {
+    border-radius: 8px;
+  }
+}
+
+.tp-nav-item {
+  min-height: 3.15rem;
+}
+
+.tp-nav-active {
+  background:
+    linear-gradient(180deg, rgba(var(--atlas-water), 0.94), rgba(255, 255, 255, 0.96)),
+    rgb(255, 255, 255);
+  color: rgb(var(--atlas-ocean)) !important;
+  box-shadow: 0 18px 38px -30px rgba(var(--atlas-line), 0.66), inset 0 -2px 0 rgb(var(--atlas-line));
+}
+
+.tp-nav-active::after {
+  background: rgb(var(--atlas-coral));
+  border-radius: 999px;
+  bottom: 0.28rem;
+  content: "";
+  height: 0.18rem;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 1.8rem;
+}
+
+.tp-ai-companion-button,
+.tp-ai-companion-summon {
+  background:
+    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.98), rgba(var(--atlas-water), 0.72) 54%, rgba(var(--atlas-line), 0.92)),
+    rgb(var(--atlas-line));
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 24px 58px -38px rgba(var(--atlas-ocean), 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.tp-panel,
+.tp-card,
+.tp-auth-card {
+  border-radius: 8px;
+}
+
+.dark .tp-page-shell.tp-auth-shell,
+.dark .tp-page-shell.tp-list-shell,
+.dark .tp-page-shell.tp-workspace-shell {
+  background-color: rgb(var(--surface-page));
+  background-image:
+    radial-gradient(circle at 84% 8%, rgba(var(--atlas-mint), 0.13), transparent 18rem),
+    linear-gradient(180deg, rgba(var(--atlas-ocean), 0.42), rgb(var(--surface-page)) 56%, rgba(var(--atlas-ocean-deep), 0.7)),
+    linear-gradient(90deg, rgba(var(--atlas-water), 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--atlas-water), 0.04) 1px, transparent 1px);
+}
+
+.dark .tp-atlas-dock,
+.dark .tp-bottom-nav,
+.dark .tp-app-header,
+.dark .tp-app-header-subnav,
+.dark .tp-account-bar,
+.dark .tp-command-hero,
+.dark .tp-card,
+.dark .tp-panel,
+.dark .tp-auth-card {
+  border-color: rgba(var(--atlas-water), 0.14) !important;
+}
+
 @media print {
   @page {
     size: A4;

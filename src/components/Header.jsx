@@ -76,7 +76,7 @@ const Header = forwardRef(({
   return (
     <motion.header
       ref={ref}
-      className="tp-app-header sticky top-0 z-30 border-b border-[#e0e9e0] bg-white/[0.88] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-[#09100d]/90"
+      className="tp-app-header tp-atlas-header sticky top-0 z-30 border-b border-[#e0e9e0] bg-white/[0.88] shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-[#09100d]/90"
       layout
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}

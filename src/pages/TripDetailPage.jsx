@@ -1640,7 +1640,15 @@ const TripDetailPage = () => {
 
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
-    <div className={`tp-page-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "calc(72px + env(safe-area-inset-bottom))" }}>
+    <div className={`tp-page-shell tp-workspace-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "calc(72px + env(safe-area-inset-bottom))" }}>
+      <div className="tp-atlas-side-rail" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
       <Header 
         details={tripDetails}
         onGoToTrips={handleBackToTrips}
@@ -1651,7 +1659,7 @@ const TripDetailPage = () => {
         presenceUi={presenceUi}
       />
 
-      <PageContainer className="pb-40 lg:pb-44">
+      <PageContainer className="tp-atlas-page-frame pb-40 lg:pb-44">
         <div className="pt-5 sm:pt-7">
           {isReadOnly && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">

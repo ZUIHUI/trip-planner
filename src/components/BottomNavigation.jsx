@@ -84,7 +84,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
   return (
     <>
       <nav
-        className={`tp-ambient-dock tp-bottom-nav fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-[#e0e9e0] bg-white/[0.86] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-[#e0e9e0] lg:pb-0 dark:border-brand-200/20 dark:bg-[#09100d]/[0.94] ${
+        className={`tp-ambient-dock tp-bottom-nav tp-atlas-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-[#e0e9e0] bg-white/[0.86] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-[#e0e9e0] lg:pb-0 dark:border-brand-200/20 dark:bg-[#09100d]/[0.94] ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
