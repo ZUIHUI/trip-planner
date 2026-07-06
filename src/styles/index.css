@@ -3074,6 +3074,19 @@ textarea.tp-input {
   box-shadow: 0 18px 38px -30px rgba(var(--atlas-line), 0.66), inset 0 -2px 0 rgb(var(--atlas-line));
 }
 
+.tp-atlas-dock .tp-nav-active {
+  background:
+    linear-gradient(135deg, rgb(var(--atlas-line)), rgb(var(--atlas-mint))) !important;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  color: #fff !important;
+  box-shadow: 0 18px 36px -24px rgba(var(--atlas-ocean), 0.88), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.tp-atlas-dock .tp-nav-active svg {
+  color: #fff !important;
+  stroke-width: 2.35;
+}
+
 .tp-nav-active::after {
   background: rgb(var(--atlas-coral));
   border-radius: 999px;
@@ -3122,6 +3135,299 @@ textarea.tp-input {
 .dark .tp-panel,
 .dark .tp-auth-card {
   border-color: rgba(var(--atlas-water), 0.14) !important;
+}
+
+.tp-mobile-atlas-dashboard {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tp-mobile-atlas-dashboard {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.2)),
+      radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.42), transparent 5.8rem),
+      radial-gradient(circle at 76% 38%, rgba(var(--atlas-mint), 0.24), transparent 7rem),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+      linear-gradient(135deg, rgba(var(--atlas-line), 0.92), rgba(var(--atlas-water), 0.9) 48%, rgba(var(--atlas-paper), 0.84));
+    background-size: auto, auto, auto, 34px 34px, 34px 34px, auto;
+    border: 1px solid rgba(var(--atlas-line), 0.2);
+    border-radius: 8px;
+    box-shadow: 0 26px 74px -44px rgba(var(--atlas-ocean), 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    display: block;
+    isolation: isolate;
+    margin: -0.45rem -1.25rem 1.05rem;
+    min-height: 26.5rem;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .tp-mobile-atlas-dashboard::before {
+    background-image: url("data:image/svg+xml,%3Csvg%20viewBox%3D%270%200%20390%20460%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20d%3D%27M208%2026%20C184%2068%20246%2089%20220%20132%20C196%20172%20135%20161%20128%20210%20C119%20274%20220%20248%20220%20320%20C220%20374%20175%20382%20192%20436%27%20fill%3D%27none%27%20stroke%3D%27%2308587b%27%20stroke-width%3D%274.5%27%20stroke-dasharray%3D%278%2010%27%20stroke-linecap%3D%27round%27/%3E%3Cpath%20d%3D%27M224%2030%20C211%2074%20264%20105%20234%20145%20C207%20180%20162%20182%20154%20222%20C143%20290%20242%20274%20243%20338%20C244%20398%20203%20404%20213%20448%27%20fill%3D%27none%27%20stroke%3D%27%23ffffff%27%20stroke-opacity%3D%270.64%27%20stroke-width%3D%271.4%27%20stroke-dasharray%3D%273%2014%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E");
+    background-position: center 0.35rem;
+    background-repeat: no-repeat;
+    background-size: 108% 108%;
+    content: "";
+    inset: 0;
+    opacity: 0.92;
+    position: absolute;
+    z-index: 1;
+  }
+
+  .tp-mobile-atlas-dashboard::after {
+    background:
+      radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.72) 0 0.9rem, transparent 0.95rem),
+      radial-gradient(circle at 72% 34%, rgba(255, 255, 255, 0.5) 0 0.7rem, transparent 0.75rem),
+      radial-gradient(circle at 36% 62%, rgba(255, 255, 255, 0.46) 0 0.65rem, transparent 0.7rem);
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+  }
+
+  .tp-mobile-atlas-dashboard-map,
+  .tp-mobile-atlas-dashboard-top,
+  .tp-mobile-atlas-summary-card,
+  .tp-mobile-atlas-dashboard-actions {
+    position: absolute;
+    z-index: 3;
+  }
+
+  .tp-mobile-atlas-dashboard-map {
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .tp-mobile-atlas-dashboard-node {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.88);
+    border-radius: 999px;
+    box-shadow: 0 16px 34px -24px rgba(var(--atlas-ocean), 0.8), 0 0 0 1px rgba(var(--atlas-line), 0.16);
+    height: 2.7rem;
+    position: absolute;
+    width: 2.7rem;
+  }
+
+  .tp-mobile-atlas-dashboard-node::before {
+    background:
+      radial-gradient(circle, rgba(var(--atlas-line), 0.9) 0 0.16rem, transparent 0.18rem),
+      linear-gradient(90deg, transparent 0 42%, rgba(var(--atlas-line), 0.84) 42% 58%, transparent 58%),
+      linear-gradient(180deg, transparent 0 42%, rgba(var(--atlas-line), 0.84) 42% 58%, transparent 58%);
+    border-radius: 999px;
+    content: "";
+    inset: 0.7rem;
+    position: absolute;
+  }
+
+  .tp-mobile-atlas-dashboard-node-1 {
+    left: 49%;
+    top: 13%;
+  }
+
+  .tp-mobile-atlas-dashboard-node-2 {
+    left: 30%;
+    top: 40%;
+  }
+
+  .tp-mobile-atlas-dashboard-node-3 {
+    left: 63%;
+    top: 52%;
+  }
+
+  .tp-mobile-atlas-dashboard-node-4 {
+    background: rgb(var(--atlas-coral));
+    left: 48%;
+    top: 70%;
+  }
+
+  .tp-mobile-atlas-dashboard-node-4::before {
+    background:
+      radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 0.16rem, transparent 0.18rem),
+      linear-gradient(90deg, transparent 0 42%, rgba(255, 255, 255, 0.95) 42% 58%, transparent 58%),
+      linear-gradient(180deg, transparent 0 42%, rgba(255, 255, 255, 0.95) 42% 58%, transparent 58%);
+  }
+
+  .tp-mobile-atlas-dashboard-top {
+    align-items: center;
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: 2.9rem minmax(0, 1fr) auto;
+    left: 0.9rem;
+    right: 0.9rem;
+    top: 0.9rem;
+  }
+
+  .tp-mobile-atlas-icon-button,
+  .tp-mobile-atlas-logout-button {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.16);
+    border-radius: 8px;
+    box-shadow: 0 14px 32px -24px rgba(var(--atlas-ocean), 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    color: rgb(var(--atlas-ocean));
+    display: inline-flex;
+    font-weight: 900;
+    height: 2.9rem;
+    justify-content: center;
+  }
+
+  .tp-mobile-atlas-icon-button {
+    width: 2.9rem;
+  }
+
+  .tp-mobile-atlas-logout-button {
+    padding: 0 0.85rem;
+  }
+
+  .tp-mobile-atlas-account {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
+    min-width: 0;
+    padding: 0.48rem 0.75rem;
+  }
+
+  .tp-mobile-atlas-account span,
+  .tp-mobile-atlas-account small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tp-mobile-atlas-account span {
+    color: rgb(var(--atlas-ink));
+    font-size: 0.9rem;
+    font-weight: 950;
+  }
+
+  .tp-mobile-atlas-account small {
+    color: rgb(var(--atlas-muted));
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .tp-mobile-atlas-summary-card {
+    align-items: center;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.88)),
+      rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.16);
+    border-radius: 8px;
+    bottom: 5.65rem;
+    box-shadow: 0 22px 54px -34px rgba(var(--atlas-ocean), 0.76), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    color: rgb(var(--atlas-ink));
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: 4.8rem minmax(0, 1fr) auto;
+    left: 0.9rem;
+    min-height: 6.4rem;
+    padding: 0.72rem;
+    right: 0.9rem;
+    text-align: left;
+  }
+
+  .tp-mobile-atlas-summary-thumb {
+    align-items: center;
+    background:
+      radial-gradient(circle at 76% 22%, rgba(255, 255, 255, 0.7) 0 0.42rem, transparent 0.46rem),
+      linear-gradient(135deg, rgba(var(--atlas-line), 0.95), rgba(var(--atlas-water), 0.72) 48%, rgba(var(--atlas-amber), 0.34));
+    background-position: center;
+    background-size: cover;
+    border-radius: 7px;
+    color: #fff;
+    display: inline-flex;
+    height: 4.9rem;
+    justify-content: center;
+    overflow: hidden;
+    width: 4.8rem;
+  }
+
+  .tp-mobile-atlas-summary-main {
+    display: grid;
+    gap: 0.18rem;
+    min-width: 0;
+  }
+
+  .tp-mobile-atlas-summary-main strong,
+  .tp-mobile-atlas-summary-main small,
+  .tp-mobile-atlas-summary-kicker {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tp-mobile-atlas-summary-kicker {
+    color: rgb(var(--atlas-line));
+    font-size: 0.72rem;
+    font-weight: 950;
+  }
+
+  .tp-mobile-atlas-summary-main strong {
+    color: rgb(var(--atlas-ink));
+    font-size: 1.02rem;
+    font-weight: 950;
+    line-height: 1.12;
+  }
+
+  .tp-mobile-atlas-summary-main small,
+  .tp-mobile-atlas-summary-meta small {
+    color: rgb(var(--atlas-muted));
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .tp-mobile-atlas-summary-meta {
+    align-items: center;
+    background: rgba(var(--atlas-water), 0.48);
+    border-radius: 8px;
+    color: rgb(var(--atlas-ocean));
+    display: grid;
+    justify-items: center;
+    min-width: 3.25rem;
+    padding: 0.45rem;
+  }
+
+  .tp-mobile-atlas-summary-meta span {
+    font-size: 1.1rem;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .tp-mobile-atlas-dashboard-actions {
+    bottom: 0.9rem;
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    left: 0.9rem;
+    right: 0.9rem;
+  }
+
+  .tp-mobile-atlas-dashboard-actions button {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(var(--atlas-line), 0.16);
+    border-radius: 8px;
+    box-shadow: 0 16px 36px -28px rgba(var(--atlas-ocean), 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    color: rgb(var(--atlas-ocean));
+    display: inline-flex;
+    font-weight: 950;
+    gap: 0.45rem;
+    justify-content: center;
+    min-height: 3.35rem;
+  }
+
+  .tp-mobile-atlas-dashboard-actions button.is-active {
+    background: linear-gradient(135deg, rgb(var(--atlas-line)), rgb(var(--atlas-mint)));
+    border-color: rgba(255, 255, 255, 0.64);
+    color: #fff;
+  }
+
+  .tp-list-shell .tp-account-bar:not(.tp-account-bar-editing) {
+    display: none;
+  }
 }
 
 .tp-mobile-atlas-map {
@@ -3403,8 +3709,7 @@ textarea.tp-input {
 
   .tp-atlas-dock .tp-nav-active {
     background:
-      radial-gradient(circle at 36% 26%, rgba(255, 255, 255, 0.98), rgba(var(--atlas-water), 0.66) 48%, rgb(var(--atlas-line)) 78%),
-      rgb(var(--atlas-line));
+      linear-gradient(135deg, rgb(var(--atlas-line)), rgb(var(--atlas-mint))) !important;
     box-shadow: 0 18px 34px -24px rgba(var(--atlas-ocean), 0.88), inset 0 1px 0 rgba(255, 255, 255, 0.74);
     color: #fff !important;
     flex-basis: 3.9rem;

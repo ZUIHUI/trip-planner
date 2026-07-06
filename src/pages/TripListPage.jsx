@@ -446,6 +446,7 @@ const TripListPage = () => {
     ? trips.find((trip) => trip.id === lastOpenedTripId)
     : null;
   const continueTrip = lastOpenedTrip || sortedTrips[0] || null;
+  const continueTripCoverImageUrl = normalizeCoverImageUrl(continueTrip?.coverImage);
   const continueTripLabel = lastOpenedTrip ? '接著上次規劃' : '最近有動靜';
 
   const focusNewTripTitle = () => {
@@ -678,16 +679,89 @@ const TripListPage = () => {
         <span />
       </div>
       <PageContainer className="tp-atlas-page-frame py-7 sm:py-10">
-        <div className="tp-mobile-atlas-map tp-mobile-atlas-map-home" aria-hidden="true">
-          <span className="tp-mobile-atlas-topbar" />
-          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-1" />
-          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-2" />
-          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-3" />
-          <span className="tp-mobile-atlas-pin tp-mobile-atlas-pin-4" />
-          <span className="tp-mobile-atlas-route-card tp-mobile-atlas-route-card-primary" />
-          <span className="tp-mobile-atlas-route-card tp-mobile-atlas-route-card-secondary" />
-        </div>
-        <div className="tp-panel tp-account-bar mb-6 p-4 sm:p-5">
+        <section className="tp-mobile-atlas-dashboard" aria-label="旅程總覽">
+          <div className="tp-mobile-atlas-dashboard-map" aria-hidden="true">
+            <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-1" />
+            <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-2" />
+            <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-3" />
+            <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-4" />
+          </div>
+
+          <div className="tp-mobile-atlas-dashboard-top">
+            <button
+              type="button"
+              className="tp-mobile-atlas-icon-button"
+              onClick={handleStartNicknameEdit}
+              aria-label="編輯帳號名稱"
+              title="編輯帳號名稱"
+            >
+              <UserRound size={19} />
+            </button>
+            <div className="tp-mobile-atlas-account">
+              <span>{accountDisplayName}</span>
+              <small>{currentUser?.email || 'Trip Planner'}</small>
+            </div>
+            <button
+              type="button"
+              className="tp-mobile-atlas-logout-button"
+              onClick={logout}
+            >
+              登出
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="tp-mobile-atlas-summary-card"
+            onClick={continueTrip ? () => openTripDetail(continueTrip.id) : focusNewTripTitle}
+          >
+            <span
+              className="tp-mobile-atlas-summary-thumb"
+              style={continueTripCoverImageUrl ? { backgroundImage: `url(${continueTripCoverImageUrl})` } : undefined}
+              aria-hidden="true"
+            >
+              {!continueTripCoverImageUrl && <PlaneTakeoff size={20} />}
+            </span>
+            <span className="tp-mobile-atlas-summary-main">
+              <span className="tp-mobile-atlas-summary-kicker">{continueTrip ? continueTripLabel : '新的旅程'}</span>
+              <strong>{continueTrip?.title || '建立第一趟旅程'}</strong>
+              <small>{continueTrip ? formatDateRange(continueTrip) : '把想去的地方先收進來'}</small>
+            </span>
+            <span className="tp-mobile-atlas-summary-meta">
+              <span>{continueTrip?.eventCount || totalTripCount || 0}</span>
+              <small>{continueTrip ? '行程' : '旅程'}</small>
+            </span>
+          </button>
+
+          <div className="tp-mobile-atlas-dashboard-actions" role="group" aria-label="旅程操作">
+            <button
+              type="button"
+              className={actionMode === 'create' ? 'is-active' : ''}
+              onClick={focusNewTripTitle}
+              aria-pressed={actionMode === 'create'}
+            >
+              <Plus size={20} />
+              <span>建立</span>
+            </button>
+            <button
+              type="button"
+              className={actionMode === 'join' ? 'is-active' : ''}
+              onClick={() => setActionMode('join')}
+              aria-pressed={actionMode === 'join'}
+            >
+              <KeyRound size={19} />
+              <span>加入</span>
+            </button>
+            {continueTrip && (
+              <button type="button" onClick={() => openTripDetail(continueTrip.id)}>
+                <ArrowRight size={19} />
+                <span>繼續</span>
+              </button>
+            )}
+          </div>
+        </section>
+
+        <div className={`tp-panel tp-account-bar ${isEditingNickname ? 'tp-account-bar-editing' : ''} mb-6 p-4 sm:p-5`}>
           <div className="flex min-w-0 items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <div className="tp-icon-chip">
