@@ -826,9 +826,9 @@ const TripListPage = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
         >
-          <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
-            <div className="min-w-0">
+          <div className="tp-command-hero-rule absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
+          <div className="tp-command-hero-grid grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
+            <div className="tp-command-hero-intro min-w-0">
               <div className="flex min-w-0 items-start gap-3">
                 <div className="tp-icon-chip">
                   <PlaneTakeoff size={19} />

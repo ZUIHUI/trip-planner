@@ -3423,6 +3423,10 @@ textarea.tp-input {
     color: #fff;
   }
 
+  .tp-mobile-atlas-dashboard-actions button:nth-child(n+3) {
+    display: none;
+  }
+
   .tp-list-shell .tp-account-bar:not(.tp-account-bar-editing) {
     display: none;
   }
@@ -3666,12 +3670,47 @@ textarea.tp-input {
 }
 
 @media (max-width: 767px) {
+  .tp-list-shell .tp-command-hero {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: -0.2rem 0 1.25rem;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .tp-list-shell .tp-command-hero::before,
+  .tp-list-shell .tp-command-hero::after,
+  .tp-list-shell .tp-command-hero-rule,
+  .tp-list-shell .tp-command-hero-intro,
   .tp-list-shell .tp-command-hero .tp-atlas-map-strip {
     display: none;
   }
 
-  .tp-account-bar {
-    margin-top: 0.35rem;
+  .tp-list-shell .tp-command-hero-grid {
+    display: block;
+  }
+
+  .tp-list-shell .tp-command-hero .tp-atlas-action-stack {
+    gap: 0;
+    margin: 0;
+  }
+
+  .tp-list-shell .tp-command-hero form {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9)),
+      rgba(255, 255, 255, 0.92);
+    border-color: rgba(var(--atlas-line), 0.16);
+    box-shadow: 0 22px 54px -38px rgba(var(--atlas-ocean), 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  }
+
+  .tp-list-shell .tp-command-hero form .tp-input {
+    min-height: 3.2rem;
+  }
+
+  .tp-list-shell .tp-command-hero form button[type="submit"] {
+    min-height: 3.2rem;
+    width: 100%;
   }
 }
 
