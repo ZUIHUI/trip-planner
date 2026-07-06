@@ -3155,7 +3155,7 @@ textarea.tp-input {
     display: block;
     isolation: isolate;
     margin: -0.45rem -1.25rem 1.05rem;
-    min-height: 26.5rem;
+    min-height: clamp(18.5rem, 86vw, 20.5rem);
     overflow: hidden;
     position: relative;
   }
@@ -3314,17 +3314,18 @@ textarea.tp-input {
       rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(var(--atlas-line), 0.16);
     border-radius: 8px;
-    bottom: 5.65rem;
+    bottom: auto;
     box-shadow: 0 22px 54px -34px rgba(var(--atlas-ocean), 0.76), inset 0 1px 0 rgba(255, 255, 255, 0.92);
     color: rgb(var(--atlas-ink));
     display: grid;
-    gap: 0.85rem;
-    grid-template-columns: 4.8rem minmax(0, 1fr) auto;
+    gap: 0.72rem;
+    grid-template-columns: 4.45rem minmax(0, 1fr) auto;
     left: 0.9rem;
-    min-height: 6.4rem;
+    min-height: 5.9rem;
     padding: 0.72rem;
     right: 0.9rem;
     text-align: left;
+    top: 6.9rem;
   }
 
   .tp-mobile-atlas-summary-thumb {
@@ -3337,10 +3338,10 @@ textarea.tp-input {
     border-radius: 7px;
     color: #fff;
     display: inline-flex;
-    height: 4.9rem;
+    height: 4.45rem;
     justify-content: center;
     overflow: hidden;
-    width: 4.8rem;
+    width: 4.45rem;
   }
 
   .tp-mobile-atlas-summary-main {
@@ -3395,7 +3396,7 @@ textarea.tp-input {
   }
 
   .tp-mobile-atlas-dashboard-actions {
-    bottom: 0.9rem;
+    bottom: 0.75rem;
     display: grid;
     gap: 0.55rem;
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
@@ -3414,7 +3415,7 @@ textarea.tp-input {
     font-weight: 950;
     gap: 0.45rem;
     justify-content: center;
-    min-height: 3.35rem;
+    min-height: 3rem;
   }
 
   .tp-mobile-atlas-dashboard-actions button.is-active {
