@@ -640,12 +640,23 @@ body {
   image-rendering: pixelated;
 }
 
+.tp-ai-pet-sprite-static {
+  animation-name: none;
+}
+
 .tp-ai-pet-presence {
   animation: tp-ai-pet-presence 3200ms ease-in-out infinite;
   transform-origin: center bottom;
 }
 
+.tp-ai-pet-presence-static {
+  animation: none;
+}
+
 .tp-ai-companion-button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
   cursor: grab;
   position: relative;
   transition: filter 140ms ease-in-out, transform 140ms ease-in-out;
@@ -659,19 +670,7 @@ body {
 }
 
 .tp-ai-companion-button::before {
-  background: linear-gradient(180deg, rgba(var(--accent-sky-strong), 0), rgba(var(--accent-sky-strong), 0.18));
-  border-radius: 999px;
-  bottom: calc(100% - 0.35rem);
-  content: "";
-  height: 22px;
-  left: 50%;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  transform: translateX(-50%);
-  transform-origin: bottom center;
-  transition: opacity 140ms ease;
-  width: 2px;
+  content: none;
 }
 
 .tp-ai-companion-button[data-drag-state="lifted"],
@@ -694,8 +693,8 @@ body {
 
 .tp-ai-companion-button[data-drag-state="lifted"]::before,
 .tp-ai-companion-button[data-drag-state="dragging"]::before {
-  animation: tp-ai-companion-tether 980ms ease-in-out infinite;
-  opacity: 0.22;
+  animation: none;
+  opacity: 0;
 }
 
 .tp-press-feedback {
@@ -3101,11 +3100,10 @@ textarea.tp-input {
 
 .tp-ai-companion-button,
 .tp-ai-companion-summon {
-  background:
-    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.98), rgba(var(--atlas-water), 0.72) 54%, rgba(var(--atlas-line), 0.92)),
-    rgb(var(--atlas-line));
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 24px 58px -38px rgba(var(--atlas-ocean), 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 14px 20px rgba(var(--atlas-ocean), 0.24));
 }
 
 .tp-panel,

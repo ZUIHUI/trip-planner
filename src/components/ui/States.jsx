@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Loader2 } from 'lucide-react';
+import { Compass } from 'lucide-react';
 import Button from './Button';
 import { cx } from './utils';
 
@@ -35,18 +35,15 @@ export const EmptyState = ({
 );
 
 export const LoadingState = ({ label = '載入中...', className = '' }) => (
-  <motion.div
+  <div
     className={cx('tp-loading-state', className)}
     role="status"
     aria-live="polite"
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
   >
-    <Loader2 className="tp-soft-pulse mx-auto mb-3 animate-spin text-brand-600" size={28} />
+    <Compass className="mx-auto mb-3 text-brand-600" size={28} />
     <p className="text-sm font-semibold">{label}</p>
-    <div className="tp-static-loading-line mx-auto mt-3 h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
-  </motion.div>
+    <div className="tp-static-loading-line mx-auto mt-3 h-1.5 w-16 rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
+  </div>
 );
 
 export const ErrorState = ({ title = 'Something went wrong', description, actionLabel, onAction, className = '' }) => (
