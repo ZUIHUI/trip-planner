@@ -2147,6 +2147,521 @@ textarea.tp-input {
     rgb(var(--surface-page));
 }
 
+/* Coastal atlas: imagegen-guided product UI direction */
+:root {
+  --color-brand-50: 239 253 255;
+  --color-brand-100: 207 250 254;
+  --color-brand-200: 165 243 252;
+  --color-brand-300: 103 232 249;
+  --color-brand-400: 34 211 238;
+  --color-brand-500: 8 178 202;
+  --color-brand-600: 7 142 166;
+  --color-brand-700: 14 116 144;
+  --color-brand-800: 21 88 112;
+  --color-brand-900: 18 67 87;
+  --color-brand-950: 8 41 55;
+  --ink-strong: 23 37 40;
+  --ink-body: 55 68 67;
+  --ink-muted: 96 111 108;
+  --accent-petal: 255 240 238;
+  --accent-petal-strong: 205 89 70;
+  --accent-sun: 255 248 214;
+  --accent-sun-strong: 185 123 18;
+  --accent-coral: 255 239 230;
+  --accent-coral-strong: 211 95 59;
+  --accent-lilac: 242 243 255;
+  --accent-lilac-strong: 93 91 170;
+  --accent-sky: 226 248 251;
+  --accent-sky-strong: 10 157 181;
+  --accent-mint: 225 246 235;
+  --accent-mint-strong: 35 139 109;
+  --surface-page: 247 252 250;
+  --surface-card: 255 255 251;
+  --surface-muted: 239 248 244;
+  --surface-strong: 220 239 234;
+  --border-soft: 191 218 216;
+  --shadow-card: 0 20px 48px -36px rgba(8, 41, 55, 0.28), 0 1px 0 rgba(255, 255, 255, 0.96) inset;
+  --shadow-card-hover: 0 30px 70px -42px rgba(8, 41, 55, 0.34), 0 1px 0 rgba(255, 255, 255, 0.98) inset;
+  --shadow-popover: 0 30px 76px -42px rgba(23, 37, 40, 0.36), 0 1px 0 rgba(255, 255, 255, 0.94) inset;
+  --shadow-nav: 0 -18px 52px -38px rgba(8, 41, 55, 0.28), 0 20px 46px -36px rgba(10, 157, 181, 0.24), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
+}
+
+.dark {
+  --color-brand-50: 8 41 55;
+  --color-brand-100: 18 67 87;
+  --color-brand-200: 21 88 112;
+  --color-brand-300: 14 116 144;
+  --color-brand-400: 8 178 202;
+  --color-brand-500: 34 211 238;
+  --color-brand-600: 103 232 249;
+  --color-brand-700: 165 243 252;
+  --color-brand-800: 207 250 254;
+  --color-brand-900: 239 253 255;
+  --color-brand-950: 247 254 255;
+  --ink-strong: 229 243 241;
+  --ink-body: 192 211 207;
+  --ink-muted: 145 166 162;
+  --accent-sky: 15 49 60;
+  --accent-sky-strong: 111 218 235;
+  --accent-mint: 20 54 43;
+  --accent-mint-strong: 121 219 184;
+  --accent-sun: 61 48 21;
+  --accent-sun-strong: 246 190 75;
+  --accent-coral: 67 37 29;
+  --accent-coral-strong: 251 142 100;
+  --surface-page: 10 21 24;
+  --surface-card: 17 31 34;
+  --surface-muted: 23 42 46;
+  --surface-strong: 33 60 64;
+  --border-soft: 51 82 85;
+}
+
+.tp-page-shell {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.98) 0%, rgb(var(--surface-page)) 44%, rgba(var(--accent-sky), 0.56) 100%),
+    linear-gradient(118deg, rgba(var(--accent-mint), 0.46) 0%, rgba(var(--accent-sky), 0.26) 48%, rgba(var(--accent-sun), 0.18) 100%);
+  background-attachment: fixed;
+}
+
+.tp-page-shell::before {
+  background:
+    linear-gradient(90deg, rgba(var(--color-brand-800), 0.075) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-800), 0.06) 1px, transparent 1px),
+    linear-gradient(118deg, transparent 0 22%, rgba(var(--accent-coral-strong), 0.12) 22.15% 22.55%, transparent 22.8% 100%),
+    linear-gradient(58deg, transparent 0 71%, rgba(var(--accent-sun-strong), 0.14) 71.1% 71.45%, transparent 71.8% 100%);
+  background-size: 48px 48px, 48px 48px, auto, auto;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.58), transparent 82%);
+  opacity: 0.5;
+}
+
+.tp-page-shell::after {
+  background:
+    linear-gradient(116deg, transparent 0 28%, rgba(var(--color-brand-600), 0.12) 28.12% 28.46%, transparent 28.7% 100%),
+    linear-gradient(68deg, transparent 0 78%, rgba(var(--accent-mint-strong), 0.13) 78.08% 78.44%, transparent 78.7% 100%);
+  content: "";
+  display: block;
+  inset: 0;
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.42) 18%, transparent 76%);
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.tp-auth-shell::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(var(--accent-sky), 0.16)),
+    linear-gradient(90deg, rgba(var(--color-brand-700), 0.16) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-700), 0.1) 1px, transparent 1px);
+  background-size: auto, 34px 34px, 34px 34px;
+  border-left: 1px solid rgba(var(--border-soft), 0.58);
+  box-shadow: -24px 0 70px -58px rgba(8, 41, 55, 0.38);
+  clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%);
+  display: none;
+  inset: 0 0 0 auto;
+  mask-image: none;
+  opacity: 0.76;
+  width: min(42vw, 560px);
+}
+
+.tp-auth-card,
+.tp-card,
+.tp-panel,
+.tp-modal-surface,
+.tp-confirm-surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.98), rgba(var(--surface-card), 0.94)),
+    linear-gradient(135deg, rgba(var(--accent-sky), 0.22), rgba(var(--accent-mint), 0.18) 54%, rgba(var(--accent-sun), 0.1));
+  border-color: rgba(var(--border-soft), 0.96);
+  box-shadow: var(--shadow-card);
+}
+
+.tp-card-animated::before {
+  background: linear-gradient(90deg, rgba(var(--color-brand-600), 0.86), rgba(var(--accent-mint-strong), 0.72), rgba(var(--accent-sun-strong), 0.58), rgba(var(--accent-coral-strong), 0.64));
+  height: 2px;
+  opacity: 0.72;
+}
+
+.tp-card-animated::after {
+  background:
+    linear-gradient(90deg, rgba(var(--color-brand-800), 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-800), 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+  content: "";
+  display: block;
+  inset: 0;
+  opacity: 0.32;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.tp-card-animated:hover::after,
+.tp-card-animated:focus-within::after {
+  display: block;
+}
+
+.tp-auth-card {
+  border-color: rgba(var(--color-brand-800), 0.18);
+  box-shadow: 0 26px 72px -46px rgba(8, 41, 55, 0.38), 0 1px 0 rgba(255, 255, 255, 0.98) inset;
+}
+
+.tp-auth-card > label,
+.tp-auth-card form,
+.tp-command-hero form {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.92), rgba(var(--surface-muted), 0.62)),
+    rgba(var(--surface-card), 0.9);
+  border-color: rgba(var(--border-soft), 0.92);
+}
+
+.tp-button-primary,
+.tp-nav-active,
+.tp-action-mode-button[aria-pressed="true"],
+.tp-filter-chip[aria-pressed="true"] {
+  background:
+    linear-gradient(135deg, rgb(var(--color-brand-700)), rgb(var(--accent-sky-strong)) 50%, rgb(var(--accent-mint-strong))),
+    rgb(var(--color-brand-700));
+  border-color: rgba(var(--color-brand-950), 0.34);
+  color: #ffffff;
+  box-shadow: 0 18px 42px -30px rgba(8, 41, 55, 0.6), 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+}
+
+.tp-button-primary:hover:not(:disabled) {
+  background:
+    linear-gradient(135deg, rgb(var(--color-brand-800)), rgb(var(--color-brand-600)) 52%, rgb(var(--accent-mint-strong))),
+    rgb(var(--color-brand-800));
+}
+
+.tp-button-secondary,
+.tp-button-ghost,
+.tp-input,
+.tp-select,
+textarea.tp-input {
+  background: rgba(255, 255, 252, 0.95);
+  border-color: rgba(var(--border-soft), 0.94);
+}
+
+.tp-input,
+.tp-select,
+textarea.tp-input {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.92) inset, 0 14px 30px -30px rgba(8, 41, 55, 0.28);
+}
+
+.tp-button-secondary:hover:not(:disabled),
+.tp-button-ghost:hover:not(:disabled),
+.tp-module-button:hover {
+  background:
+    linear-gradient(135deg, rgba(var(--accent-sky), 0.72), rgba(var(--accent-mint), 0.56)),
+    rgb(var(--surface-card));
+  color: rgb(var(--color-brand-900));
+}
+
+.tp-icon-chip {
+  background:
+    linear-gradient(135deg, rgba(var(--accent-sky), 0.94), rgba(var(--accent-mint), 0.78) 58%, rgba(var(--accent-sun), 0.52)),
+    rgb(var(--surface-card));
+  color: rgb(var(--color-brand-800));
+}
+
+.tp-badge {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset;
+}
+
+.tp-app-header,
+.tp-app-header-subnav,
+.tp-ambient-dock,
+.tp-bottom-nav {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.93), rgba(var(--accent-sky), 0.2)),
+    rgba(var(--surface-card), 0.9);
+  border-color: rgba(var(--border-soft), 0.88);
+}
+
+.tp-bottom-nav {
+  outline: 1px solid rgba(255, 255, 255, 0.5);
+  outline-offset: -2px;
+}
+
+.tp-nav-item {
+  color: rgb(var(--ink-body));
+}
+
+.tp-nav-active::after {
+  background: rgb(var(--accent-coral-strong));
+}
+
+.tp-account-bar,
+.tp-command-hero,
+.tp-command-center,
+.tp-continue-trip,
+.tp-day-switcher,
+.tp-module-button,
+.tp-action-mode-button,
+.tp-filter-chip {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 252, 0.94), rgba(var(--accent-sky), 0.28)),
+    rgba(var(--surface-card), 0.9);
+  border-color: rgba(var(--border-soft), 0.94);
+}
+
+.tp-command-hero::after,
+.tp-command-center::after {
+  background:
+    linear-gradient(90deg, rgba(var(--color-brand-800), 0.07) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-800), 0.055) 1px, transparent 1px),
+    linear-gradient(126deg, transparent 0 61%, rgba(var(--accent-coral-strong), 0.1) 61.2% 61.7%, transparent 62% 100%);
+  background-size: 30px 30px, 30px 30px, auto;
+  opacity: 0.34;
+}
+
+.tp-trip-card {
+  border-color: rgba(var(--border-soft), 0.98);
+  position: relative;
+}
+
+.tp-trip-card::after {
+  background:
+    linear-gradient(90deg, transparent 0 72%, rgba(var(--accent-coral-strong), 0.12) 72.2% 72.8%, transparent 73.2% 100%);
+  content: "";
+  display: block;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.tp-trip-card img {
+  filter: saturate(1.08) contrast(1.03) brightness(1.02);
+}
+
+.tp-journey-hero {
+  background:
+    linear-gradient(135deg, rgba(8, 41, 55, 0.98), rgba(14, 116, 144, 0.95) 48%, rgba(35, 139, 109, 0.86)),
+    linear-gradient(58deg, transparent 0 58%, rgba(var(--accent-sun-strong), 0.24) 58.2% 58.7%, transparent 59.1% 100%);
+}
+
+.tp-journey-hero::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(120deg, transparent 0 26%, rgba(255, 255, 255, 0.18) 26.2% 26.7%, transparent 27% 100%);
+  background-size: 34px 34px, 34px 34px, auto;
+  opacity: 0.32;
+}
+
+.tp-trip-weather-card,
+.tp-journey-hero .tp-trip-weather-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 252, 0.96), rgba(var(--accent-sky), 0.54) 58%, rgba(var(--accent-mint), 0.48)),
+    rgb(var(--surface-card));
+  border-color: rgba(var(--border-soft), 0.92);
+}
+
+.dark .tp-page-shell {
+  background:
+    linear-gradient(180deg, rgba(18, 67, 87, 0.34), rgb(var(--surface-page)) 48%, rgba(20, 54, 43, 0.32)),
+    rgb(var(--surface-page));
+}
+
+.dark .tp-page-shell::before,
+.dark .tp-page-shell::after {
+  opacity: 0.28;
+}
+
+.dark .tp-auth-card,
+.dark .tp-card,
+.dark .tp-panel,
+.dark .tp-modal-surface,
+.dark .tp-confirm-surface,
+.dark .tp-app-header,
+.dark .tp-app-header-subnav,
+.dark .tp-ambient-dock {
+  background:
+    linear-gradient(180deg, rgba(var(--surface-card), 0.94), rgba(var(--surface-muted), 0.82)),
+    rgba(var(--surface-card), 0.88);
+  border-color: rgba(var(--border-soft), 0.84);
+}
+
+.dark .tp-button-secondary,
+.dark .tp-button-ghost,
+.dark .tp-input,
+.dark .tp-select,
+.dark textarea.tp-input,
+.dark .tp-auth-card > label,
+.dark .tp-auth-card form,
+.dark .tp-command-hero form {
+  background: rgba(var(--surface-card), 0.9);
+  border-color: rgba(var(--border-soft), 0.82);
+  color: rgb(var(--ink-strong));
+}
+
+.dark .tp-button-primary,
+.dark .tp-nav-active,
+.dark .tp-action-mode-button[aria-pressed="true"],
+.dark .tp-filter-chip[aria-pressed="true"] {
+  background:
+    linear-gradient(135deg, rgb(var(--color-brand-500)), rgb(var(--accent-sky-strong)) 52%, rgb(var(--accent-mint-strong))),
+    rgb(var(--color-brand-500));
+  color: rgb(var(--surface-page));
+}
+
+.dark .tp-account-bar,
+.dark .tp-command-hero,
+.dark .tp-command-center,
+.dark .tp-continue-trip,
+.dark .tp-day-switcher,
+.dark .tp-module-button,
+.dark .tp-action-mode-button,
+.dark .tp-filter-chip {
+  background:
+    linear-gradient(135deg, rgba(var(--surface-card), 0.92), rgba(var(--accent-sky), 0.2) 54%, rgba(var(--accent-mint), 0.14)),
+    rgba(var(--surface-card), 0.88);
+}
+
+@media (min-width: 900px) {
+  .tp-auth-shell::after {
+    display: block;
+  }
+}
+
+/* Coastal atlas parser-safe background correction */
+.tp-page-shell {
+  background-attachment: fixed;
+  background-color: rgb(var(--surface-page));
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.98) 0%, rgb(var(--surface-page)) 44%, rgba(var(--accent-sky), 0.56) 100%),
+    linear-gradient(118deg, rgba(var(--accent-mint), 0.46) 0%, rgba(var(--accent-sky), 0.26) 48%, rgba(var(--accent-sun), 0.18) 100%);
+}
+
+.tp-page-shell::before {
+  background-color: transparent;
+  background-image:
+    linear-gradient(90deg, rgba(var(--color-brand-800), 0.075) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-800), 0.06) 1px, transparent 1px),
+    linear-gradient(118deg, transparent 0%, transparent 22%, rgba(var(--accent-coral-strong), 0.12) 22.15%, rgba(var(--accent-coral-strong), 0.12) 22.55%, transparent 22.8%, transparent 100%),
+    linear-gradient(58deg, transparent 0%, transparent 71%, rgba(var(--accent-sun-strong), 0.14) 71.1%, rgba(var(--accent-sun-strong), 0.14) 71.45%, transparent 71.8%, transparent 100%);
+}
+
+.tp-page-shell::after {
+  background-color: transparent;
+  background-image:
+    linear-gradient(116deg, transparent 0%, transparent 28%, rgba(var(--color-brand-600), 0.12) 28.12%, rgba(var(--color-brand-600), 0.12) 28.46%, transparent 28.7%, transparent 100%),
+    linear-gradient(68deg, transparent 0%, transparent 78%, rgba(var(--accent-mint-strong), 0.13) 78.08%, rgba(var(--accent-mint-strong), 0.13) 78.44%, transparent 78.7%, transparent 100%);
+}
+
+.tp-auth-shell::after {
+  background-color: transparent;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(var(--accent-sky), 0.16)),
+    linear-gradient(90deg, rgba(var(--color-brand-700), 0.16) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-700), 0.1) 1px, transparent 1px);
+}
+
+.tp-auth-card,
+.tp-card,
+.tp-panel,
+.tp-modal-surface,
+.tp-confirm-surface {
+  background-color: rgb(var(--surface-card));
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 252, 0.98), rgba(var(--surface-card), 0.94)),
+    linear-gradient(135deg, rgba(var(--accent-sky), 0.22), rgba(var(--accent-mint), 0.18) 54%, rgba(var(--accent-sun), 0.1));
+}
+
+.tp-card-animated::after {
+  background-color: transparent;
+  background-image:
+    linear-gradient(90deg, rgba(var(--color-brand-800), 0.055) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-800), 0.045) 1px, transparent 1px);
+}
+
+.tp-auth-card > label,
+.tp-auth-card form,
+.tp-command-hero form {
+  background-color: rgba(var(--surface-card), 0.9);
+  background-image: linear-gradient(180deg, rgba(255, 255, 252, 0.92), rgba(var(--surface-muted), 0.62));
+}
+
+.tp-app-header,
+.tp-app-header-subnav,
+.tp-ambient-dock,
+.tp-bottom-nav,
+.tp-account-bar,
+.tp-command-hero,
+.tp-command-center,
+.tp-continue-trip,
+.tp-day-switcher,
+.tp-module-button,
+.tp-action-mode-button,
+.tp-filter-chip {
+  background-color: rgba(var(--surface-card), 0.9);
+  background-image: linear-gradient(135deg, rgba(255, 255, 252, 0.94), rgba(var(--accent-sky), 0.28));
+}
+
+.tp-command-hero::after,
+.tp-command-center::after {
+  background-color: transparent;
+  background-image:
+    linear-gradient(90deg, rgba(var(--color-brand-800), 0.07) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(var(--color-brand-800), 0.055) 1px, transparent 1px),
+    linear-gradient(126deg, transparent 0%, transparent 61%, rgba(var(--accent-coral-strong), 0.1) 61.2%, rgba(var(--accent-coral-strong), 0.1) 61.7%, transparent 62%, transparent 100%);
+}
+
+.tp-trip-card::after {
+  background-color: transparent;
+  background-image: linear-gradient(90deg, transparent 0%, transparent 72%, rgba(var(--accent-coral-strong), 0.12) 72.2%, rgba(var(--accent-coral-strong), 0.12) 72.8%, transparent 73.2%, transparent 100%);
+}
+
+.tp-journey-hero {
+  background-color: rgb(var(--color-brand-900));
+  background-image:
+    linear-gradient(135deg, rgba(8, 41, 55, 0.98), rgba(14, 116, 144, 0.95) 48%, rgba(35, 139, 109, 0.86)),
+    linear-gradient(58deg, transparent 0%, transparent 58%, rgba(var(--accent-sun-strong), 0.24) 58.2%, rgba(var(--accent-sun-strong), 0.24) 58.7%, transparent 59.1%, transparent 100%);
+}
+
+.tp-journey-hero::before {
+  background-color: transparent;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(120deg, transparent 0%, transparent 26%, rgba(255, 255, 255, 0.18) 26.2%, rgba(255, 255, 255, 0.18) 26.7%, transparent 27%, transparent 100%);
+}
+
+.tp-trip-weather-card,
+.tp-journey-hero .tp-trip-weather-card {
+  background-color: rgb(var(--surface-card));
+  background-image: linear-gradient(135deg, rgba(255, 255, 252, 0.96), rgba(var(--accent-sky), 0.54) 58%, rgba(var(--accent-mint), 0.48));
+}
+
+.dark .tp-page-shell {
+  background-color: rgb(var(--surface-page));
+  background-image: linear-gradient(180deg, rgba(18, 67, 87, 0.34), rgb(var(--surface-page)) 48%, rgba(20, 54, 43, 0.32));
+}
+
+.dark .tp-auth-card,
+.dark .tp-card,
+.dark .tp-panel,
+.dark .tp-modal-surface,
+.dark .tp-confirm-surface,
+.dark .tp-app-header,
+.dark .tp-app-header-subnav,
+.dark .tp-ambient-dock {
+  background-color: rgba(var(--surface-card), 0.88);
+  background-image: linear-gradient(180deg, rgba(var(--surface-card), 0.94), rgba(var(--surface-muted), 0.82));
+}
+
+.dark .tp-account-bar,
+.dark .tp-command-hero,
+.dark .tp-command-center,
+.dark .tp-continue-trip,
+.dark .tp-day-switcher,
+.dark .tp-module-button,
+.dark .tp-action-mode-button,
+.dark .tp-filter-chip {
+  background-color: rgba(var(--surface-card), 0.88);
+  background-image: linear-gradient(135deg, rgba(var(--surface-card), 0.92), rgba(var(--accent-sky), 0.2) 54%, rgba(var(--accent-mint), 0.14));
+}
+
 @media print {
   @page {
     size: A4;
