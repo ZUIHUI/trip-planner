@@ -21,17 +21,21 @@ const canWritePresenceEditingRole = (role = '') => (
   role === 'owner' || role === 'editor' || role === 'edit'
 );
 
-const normalizeConnection = (connection = {}) => ({
-  state: connection.state || 'offline',
-  activeTab: connection.activeTab || '',
-  editingTarget: connection.editingTarget || '',
-  startedAt: Number(connection.startedAt || 0),
-  lastActiveAt: Number(connection.lastActiveAt || 0)
-});
+const normalizeConnection = (connection = {}) => {
+  const safeConnection = connection || {};
+  return {
+    state: safeConnection.state || 'offline',
+    activeTab: safeConnection.activeTab || '',
+    editingTarget: safeConnection.editingTarget || '',
+    startedAt: Number(safeConnection.startedAt || 0),
+    lastActiveAt: Number(safeConnection.lastActiveAt || 0)
+  };
+};
 
-const getConnectionActivityAt = (connection = {}) => (
-  Number(connection.lastActiveAt || connection.startedAt || 0)
-);
+const getConnectionActivityAt = (connection = {}) => {
+  const safeConnection = connection || {};
+  return Number(safeConnection.lastActiveAt || safeConnection.startedAt || 0);
+};
 
 const isFreshConnection = (connection, now = Date.now()) => {
   const activityAt = getConnectionActivityAt(connection);

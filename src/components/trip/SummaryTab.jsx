@@ -11,6 +11,7 @@ import {
   ChevronUp,
   Clock,
   Info,
+  LayoutDashboard,
   Luggage,
   MapPin,
   Navigation,
