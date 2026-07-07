@@ -23,6 +23,7 @@ import WeatherWidget from '../WeatherWidget';
 import { Badge, Button, Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import DayReadinessStrip from './DayReadinessStrip';
+import MobileMockupFrame from './MobileMockupFrame';
 import {
   buildGoogleMapsMultiStopDirectionsUrl,
   normalizePlaceText
@@ -936,7 +937,19 @@ const TodayTab = ({ onTabChange }) => {
   };
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10">
+    <MobileMockupFrame
+      icon={CalendarDays}
+      eyebrow={`Day ${selectedDay}`}
+      title={currentDayTitle || 'Today'}
+      subtitle={currentDayDate}
+      stats={[
+        { value: events.length, label: 'events' },
+        { value: routeStops.length, label: 'stops' },
+        { value: reminders.length, label: 'alerts' }
+      ]}
+      tone="teal"
+      className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
+    >
       <DaySwitcher
         itinerary={itinerary}
         selectedDay={selectedDay}
@@ -990,7 +1003,7 @@ const TodayTab = ({ onTabChange }) => {
       />
 
       <TodayRouteCard routeStops={routeStops} routeUrl={routeUrl} />
-    </div>
+    </MobileMockupFrame>
   );
 };
 

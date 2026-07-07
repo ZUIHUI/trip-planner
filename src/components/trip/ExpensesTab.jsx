@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { ReceiptText } from 'lucide-react';
 import ExpenseTracker from '../ExpenseTracker';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
@@ -9,6 +10,7 @@ import {
   getTripItemId
 } from '../../utils/tripItemDocuments';
 import EditingNotice from './EditingNotice';
+import MobileMockupFrame from './MobileMockupFrame';
 
 const EXPENSE_FIELDS = [
   'title',
@@ -147,9 +149,29 @@ const ExpensesTab = () => {
     }
     stopEditing();
   }, [setIsExpenseModalOpen, startEditing, stopEditing]);
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const totalSpentTwd = safeExpenses.reduce((total, expense) => {
+    const amount = Number(expense?.amount || 0);
+    if (!Number.isFinite(amount)) return total;
+    return total + (expense?.currency === 'JPY' ? Math.round(amount * exchangeRate) : amount);
+  }, 0);
+  const unsettledCount = safeExpenses.filter((expense) => !expense?.isSettled && expense?.splitType !== 'settled').length;
 
   return (
-    <div className="mt-2 px-4 pb-20 sm:px-6 lg:px-8" {...getEditingHandlers(editingTarget)}>
+    <MobileMockupFrame
+      icon={ReceiptText}
+      eyebrow="Budget"
+      title="Expenses"
+      subtitle="Record spending and split costs on the road."
+      stats={[
+        { value: `NT$ ${Math.round(totalSpentTwd).toLocaleString()}`, label: 'spent' },
+        { value: safeExpenses.length, label: 'records' },
+        { value: unsettledCount, label: 'open' }
+      ]}
+      tone="teal"
+      className="mt-2 px-4 pb-20 sm:px-6 lg:px-8"
+      {...getEditingHandlers(editingTarget)}
+    >
       <EditingNotice target={editingTarget} members={getEditingMembersForTarget(editingByTarget, editingTarget)} />
       <ExpenseTracker
         ref={expenseTrackerRef}
@@ -161,7 +183,7 @@ const ExpensesTab = () => {
         onModalOpenChange={handleExpenseModalOpenChange}
         readOnly={!canEdit}
       />
-    </div>
+    </MobileMockupFrame>
   );
 };
 

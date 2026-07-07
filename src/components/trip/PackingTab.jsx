@@ -7,6 +7,7 @@ import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { mergeRealtimeChecklistStatus } from '../../utils/tripRealtime';
 import EditingNotice from './EditingNotice';
+import MobileMockupFrame from './MobileMockupFrame';
 import {
   getItemOrderKeyAtIndex,
   getSparseOrderKeyForItem,
@@ -48,6 +49,8 @@ const PackingTab = () => {
     () => mergeRealtimeChecklistStatus(checklists.packing, checklistStatusByListId?.packing),
     [checklists.packing, checklistStatusByListId]
   );
+  const packedCount = visibleItems.filter((item) => item.done).length;
+  const remainingCount = Math.max(visibleItems.length - packedCount, 0);
   const handleUpdate = useCallback((newItems) => {
     if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
@@ -171,8 +174,20 @@ const PackingTab = () => {
   ]);
 
   return (
-    <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
-      <Card className="p-3 sm:p-4" {...getEditingHandlers(editingTarget)}>
+    <MobileMockupFrame
+      icon={Luggage}
+      eyebrow="Packing"
+      title="Packing List"
+      subtitle="Keep travel gear grouped and ready."
+      stats={[
+        { value: visibleItems.length, label: 'items' },
+        { value: packedCount, label: 'packed' },
+        { value: remainingCount, label: 'left' }
+      ]}
+      tone="coral"
+      className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
+    >
+      <Card className="tp-mobile-feature-card p-3 sm:p-4" {...getEditingHandlers(editingTarget)}>
         <div className="mb-4 flex items-center gap-3">
           <div className="tp-icon-chip">
             <Luggage size={20} />
@@ -190,7 +205,7 @@ const PackingTab = () => {
           readOnly={!canEdit}
         />
       </Card>
-    </div>
+    </MobileMockupFrame>
   );
 };
 

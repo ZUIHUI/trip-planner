@@ -31,7 +31,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 const fileSizeLabel = `${Math.round(MAX_COVER_IMAGE_FILE_SIZE_BYTES / 1024)}KB`;
 
 const Section = ({ icon: Icon, title, children }) => (
-  <section className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+  <section className="tp-mobile-settings-section rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
     <div className="mb-4 flex items-start gap-3">
       <div className="tp-icon-chip">
         <Icon size={20} />
@@ -172,10 +172,11 @@ const SettingsPanel = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="設定">
-      <div className="max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-slate-50 shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg dark:border-slate-800 dark:bg-slate-950">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="tp-mobile-settings-backdrop fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="設定">
+      <div className="tp-mobile-settings-sheet max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-slate-50 shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg dark:border-slate-800 dark:bg-slate-950">
+        <div className="tp-mobile-settings-header sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div>
+            <p className="tp-mobile-settings-eyebrow">Trip controls</p>
             <h2 className="text-xl font-black text-slate-950 dark:text-white">設定</h2>
           </div>
           <button
@@ -188,7 +189,7 @@ const SettingsPanel = ({
           </button>
         </div>
 
-        <div className="space-y-4 p-4">
+        <div className="tp-mobile-settings-body space-y-4 p-4">
           <Section
             icon={Palette}
             title="外觀模式"

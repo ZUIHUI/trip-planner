@@ -15,6 +15,7 @@ import { Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import ShareCollaborationCard from './ShareCollaborationCard';
 import TripNotificationCard from './TripNotificationCard';
+import MobileMockupFrame from './MobileMockupFrame';
 
 const getChecklistProgress = (items = []) => {
   const safeItems = Array.isArray(items) ? items : [];
@@ -119,7 +120,18 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
 
   if (section === 'companions') {
     return (
-      <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10">
+      <MobileMockupFrame
+        icon={UsersRound}
+        eyebrow="Shared trip"
+        title="Companions"
+        subtitle="Invite people and see who is active now."
+        stats={[
+          { value: members?.length || 0, label: 'members' },
+          { value: onlineCount, label: 'online' }
+        ]}
+        tone="teal"
+        className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
+      >
         <Card className="p-4">
           <div className="flex min-w-0 items-start gap-3">
             <span className="tp-icon-chip h-11 w-11">
@@ -132,12 +144,24 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
         </Card>
         {collaborationCard}
         <div className="h-2" />
-      </div>
+      </MobileMockupFrame>
     );
   }
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10">
+    <MobileMockupFrame
+      icon={Settings}
+      eyebrow="More"
+      title="Travel Tools"
+      subtitle="Open every planning module from one dashboard."
+      stats={[
+        { value: eventCount, label: 'events' },
+        { value: members?.length || 0, label: 'members' },
+        { value: onlineCount, label: 'online' }
+      ]}
+      tone="coral"
+      className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
+    >
       <ModuleSection title="旅行準備">
         <ModuleButton
           icon={LayoutDashboard}
@@ -208,7 +232,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
       </section>
 
       <div className="h-2" />
-    </div>
+    </MobileMockupFrame>
   );
 };
 

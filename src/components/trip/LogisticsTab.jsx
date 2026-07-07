@@ -29,6 +29,7 @@ import AirportCodeInput from '../AirportCodeInput';
 import GooglePlaceInput from '../GooglePlaceInput';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 import EditingNotice from './EditingNotice';
+import MobileMockupFrame from './MobileMockupFrame';
 
 const statusMeta = {
   planning: { label: '規劃中', variant: 'warning' },
@@ -1232,7 +1233,19 @@ const LogisticsTab = () => {
   };
 
   return (
-    <div className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8">
+    <MobileMockupFrame
+      icon={Plane}
+      eyebrow="Trip details"
+      title="Stay & Flights"
+      subtitle="Keep dates, hotel, budget, and flight info together."
+      stats={[
+        { value: tripSnapshot.dates, label: 'dates' },
+        { value: tripSnapshot.budget, label: 'budget' },
+        { value: activeMobileSection, label: 'section' }
+      ]}
+      tone="teal"
+      className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8"
+    >
       <CompletionPanel tripDetails={tripDetails} />
 
       <MobileSectionSwitcher
@@ -1287,7 +1300,7 @@ const LogisticsTab = () => {
           onEditingBlur={handleEditingBlur}
         />
       </div>
-    </div>
+    </MobileMockupFrame>
   );
 };
 

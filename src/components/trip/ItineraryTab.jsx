@@ -10,6 +10,7 @@ import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { plainTextInputProps } from '../../utils/mobileInputProps';
 import EditingNotice from './EditingNotice';
+import MobileMockupFrame from './MobileMockupFrame';
 
 const currencySymbol = (currency) => (currency === 'TWD' ? 'NT$' : '¥');
 
@@ -103,7 +104,18 @@ const ItineraryTab = () => {
   };
 
   return (
-    <>
+    <MobileMockupFrame
+      icon={CalendarDays}
+      eyebrow={`Day ${selectedDay}`}
+      title={currentDayTitle || 'Itinerary'}
+      subtitle={currentDayDate}
+      stats={[
+        { value: currentDayData?.events?.length || 0, label: 'events' },
+        { value: todayCostEventCount, label: 'costed' },
+        { value: itinerary.length || 0, label: 'days' }
+      ]}
+      tone="teal"
+    >
       <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
       {nextDayItem && (
         <div className="mt-3 px-5 sm:hidden">
@@ -270,7 +282,7 @@ const ItineraryTab = () => {
           </Card>
         )}
       </div>
-    </>
+    </MobileMockupFrame>
   );
 };
 

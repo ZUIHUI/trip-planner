@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import MobileMockupFrame from './MobileMockupFrame';
 import {
   formatEventTime,
   getEventDestination,
@@ -741,9 +742,25 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
     () => getReadinessItems({ tripDetails, itinerary, checklists, budgetTarget, remainingBudget }),
     [tripDetails, itinerary, checklists, budgetTarget, remainingBudget]
   );
+  const eventCount = useMemo(
+    () => itinerary.reduce((total, day) => total + (day.events?.length || 0), 0),
+    [itinerary]
+  );
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 pb-12 sm:gap-6 sm:px-7 lg:px-10">
+    <MobileMockupFrame
+      icon={LayoutDashboard}
+      eyebrow="Overview"
+      title="Trip Command"
+      subtitle="See readiness, next step, budget, and live activity."
+      stats={[
+        { value: eventCount, label: 'events' },
+        { value: `${budgetProgress || 0}%`, label: 'budget' },
+        { value: readinessItems.length, label: 'alerts' }
+      ]}
+      tone="teal"
+      className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 pb-12 sm:gap-6 sm:px-7 lg:px-10"
+    >
       <CommandCenterCard
         tripDetails={tripDetails}
         itinerary={itinerary}
@@ -801,7 +818,7 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
           />
         </div>
       </CollapsibleOverviewSection>
-    </div>
+    </MobileMockupFrame>
   );
 };
 

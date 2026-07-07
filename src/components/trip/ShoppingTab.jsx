@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
+import { ShoppingCart } from 'lucide-react';
 import ShoppingListContent from '../ShoppingListContent';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
@@ -12,6 +13,7 @@ import {
 } from '../../utils/tripItemDocuments';
 import { makeShoppingCategoryId } from '../../utils/tripCollectionDocuments';
 import EditingNotice from './EditingNotice';
+import MobileMockupFrame from './MobileMockupFrame';
 
 const SHOPPING_ITEM_FIELDS = ['name', 'category', 'shop', 'quantity', 'notes', 'image', 'purchased'];
 
@@ -57,6 +59,8 @@ const ShoppingTab = () => {
     () => mergeRealtimeShoppingStatus(shoppingList, shoppingItemStatusById),
     [shoppingList, shoppingItemStatusById]
   );
+  const purchasedCount = visibleShoppingList.filter((item) => item.purchased).length;
+  const remainingCount = Math.max(visibleShoppingList.length - purchasedCount, 0);
   const handleShoppingListChange = useCallback((nextItems) => {
     if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
@@ -281,7 +285,21 @@ const ShoppingTab = () => {
   }, [setIsShoppingModalOpen, startEditing, stopEditing]);
 
   return (
-    <div className="mt-2 pb-44 sm:pb-28 lg:pb-20" {...getEditingHandlers(editingTarget)}>
+    <MobileMockupFrame
+      icon={ShoppingCart}
+      eyebrow="Shopping"
+      title="Shopping List"
+      subtitle="Track things to buy, gifts, stores, and photos."
+      stats={[
+        { value: visibleShoppingList.length, label: 'items' },
+        { value: purchasedCount, label: 'bought' },
+        { value: remainingCount, label: 'left' },
+        { value: shoppingCategories?.length || 0, label: 'groups' }
+      ]}
+      tone="coral"
+      className="mt-2 pb-44 sm:pb-28 lg:pb-20"
+      {...getEditingHandlers(editingTarget)}
+    >
       <div className="px-4 pt-4 sm:px-6 lg:px-8">
         <EditingNotice target={editingTarget} members={getEditingMembersForTarget(editingByTarget, editingTarget)} />
       </div>
@@ -294,7 +312,7 @@ const ShoppingTab = () => {
         readOnly={!canEdit}
         onModalOpenChange={handleShoppingModalOpenChange}
       />
-    </div>
+    </MobileMockupFrame>
   );
 };
 

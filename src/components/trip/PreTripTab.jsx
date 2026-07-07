@@ -7,6 +7,7 @@ import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { mergeRealtimeChecklistStatus } from '../../utils/tripRealtime';
 import EditingNotice from './EditingNotice';
+import MobileMockupFrame from './MobileMockupFrame';
 import {
   getItemOrderKeyAtIndex,
   getSparseOrderKeyForItem,
@@ -46,6 +47,8 @@ const PreTripTab = () => {
     () => mergeRealtimeChecklistStatus(checklists.preTrip, checklistStatusByListId?.preTrip),
     [checklists.preTrip, checklistStatusByListId]
   );
+  const doneCount = visibleItems.filter((item) => item.done).length;
+  const remainingCount = Math.max(visibleItems.length - doneCount, 0);
   const handleUpdate = useCallback((newItems) => {
     if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
@@ -169,8 +172,20 @@ const PreTripTab = () => {
   ]);
 
   return (
-    <div className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8">
-      <Card className="p-4" {...getEditingHandlers(editingTarget)}>
+    <MobileMockupFrame
+      icon={CheckSquare}
+      eyebrow="Before you go"
+      title="Pre-trip Checklist"
+      subtitle="Confirm the essentials before departure."
+      stats={[
+        { value: visibleItems.length, label: 'tasks' },
+        { value: doneCount, label: 'done' },
+        { value: remainingCount, label: 'left' }
+      ]}
+      tone="teal"
+      className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
+    >
+      <Card className="tp-mobile-feature-card p-4" {...getEditingHandlers(editingTarget)}>
         <div className="mb-4 flex items-center gap-3">
           <div className="tp-icon-chip">
             <CheckSquare size={20} />
@@ -186,7 +201,7 @@ const PreTripTab = () => {
           readOnly={!canEdit}
         />
       </Card>
-    </div>
+    </MobileMockupFrame>
   );
 };
 

@@ -6,6 +6,8 @@ import {
   Plus,
   Save,
   ChevronRight,
+  Settings,
+  UsersRound,
   Lightbulb,
   Map as MapIcon,
   Menu as MenuIcon
@@ -145,6 +147,11 @@ const mobileDetailThemePresets = [
     paper: '247 236 223'
   }
 ];
+const mobileDetailStatusLabels = {
+  planning: 'Planning',
+  ongoing: 'On trip',
+  done: 'Archived'
+};
 const sameJsonValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
 
 const getMobileDetailTheme = (details = {}) => {
@@ -922,6 +929,20 @@ const TripDetailPage = () => {
     () => getMobileDetailTheme(tripDetails),
     [tripDetails?.title, tripDetails?.status]
   );
+  const mobileDetailHeroStyle = shouldShowCoverBackground
+    ? { '--tp-mobile-detail-cover-image': `url("${coverImageUrl}")` }
+    : undefined;
+  const mobileDetailDayCount = getDateRangeDays(
+    tripDetails?.dateRange?.start,
+    tripDetails?.dateRange?.end
+  );
+  const mobileDetailTravelerCount = memberTravelers.length || members.length || 1;
+  const mobileDetailStatusLabel = mobileDetailStatusLabels[tripDetails?.status] || mobileDetailStatusLabels.planning;
+  const mobileDetailActiveLabel = MOBILE_DETAIL_TABS.find((tab) => (
+    tab.id === 'more'
+      ? activeTab === 'more' || MORE_CHILD_TABS.has(activeTab)
+      : tab.id === activeTab
+  ))?.label || 'Details';
 
   useEffect(() => {
     setSelectedEventLocation(null);
@@ -1736,7 +1757,64 @@ const TripDetailPage = () => {
         <span />
         <span />
       </div>
-      <Header 
+      <section
+        className={`tp-mobile-detail-shell ${shouldShowCoverBackground ? 'has-cover' : 'has-generated-map'}`}
+        style={mobileDetailHeroStyle}
+        aria-label="Trip mobile overview"
+      >
+        <header className="tp-mobile-detail-hero">
+          <div className="tp-mobile-detail-photo" aria-hidden="true" />
+          <div className="tp-mobile-detail-route" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+
+          <div className="tp-mobile-detail-topbar">
+            <button
+              type="button"
+              className="tp-mobile-detail-icon-button"
+              onClick={handleBackToTrips}
+              aria-label="Back to trips"
+              title="Back to trips"
+            >
+              <ChevronLeft size={23} />
+            </button>
+            <span>{mobileDetailActiveLabel}</span>
+            <button
+              type="button"
+              className="tp-mobile-detail-icon-button"
+              onClick={() => setIsSettingsOpen(true)}
+              aria-label="Trip settings"
+              title="Trip settings"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
+
+          <div className="tp-mobile-detail-copy">
+            <span className="tp-mobile-detail-kicker">{mobileDetailStatusLabel}</span>
+            <h1>{tripDetails?.title || 'Untitled trip'}</h1>
+            <div className="tp-mobile-detail-meta">
+              <span>
+                <CalendarDays size={15} />
+                {tripDisplayDates || 'Dates TBD'}
+              </span>
+              <span>
+                <UsersRound size={15} />
+                {mobileDetailTravelerCount}
+              </span>
+            </div>
+            <div className="tp-mobile-detail-chips">
+              <span>{mobileDetailDayCount > 0 ? `${mobileDetailDayCount} days` : 'Plan dates'}</span>
+              {currentDayData?.events?.length > 0 && <span>{currentDayData.events.length} today</span>}
+              {isSaving || isSavingTripDetails ? <span>Saving</span> : <span>{presenceUi?.summaryText || 'Synced'}</span>}
+            </div>
+          </div>
+        </header>
+      </section>
+
+      <Header
         details={tripDetails}
         onGoToTrips={handleBackToTrips}
         onSettingsOpen={() => setIsSettingsOpen(true)}
@@ -1747,7 +1825,7 @@ const TripDetailPage = () => {
       />
 
       <PageContainer className="tp-detail-page-frame tp-atlas-page-frame pb-40 lg:pb-44">
-        <div className="tp-workspace-shell-content">
+        <div className="tp-workspace-shell-content tp-mobile-detail-sheet">
           <nav className="tp-mobile-detail-tabs" aria-label="Trip detail sections">
             {MOBILE_DETAIL_TABS.map((tab) => {
               const Icon = tab.icon;
@@ -1811,54 +1889,56 @@ const TripDetailPage = () => {
             </div>
           )}
 
-          {activeTab === 'today' && (
-            <TodayTab onTabChange={setActiveTab} />
-          )}
+          <section className={`tp-mobile-detail-stage tp-mobile-detail-stage-${activeTab}`} aria-label={`${mobileDetailActiveLabel} content`}>
+            {activeTab === 'today' && (
+              <TodayTab onTabChange={setActiveTab} />
+            )}
 
-          {activeTab === 'summary' && (
-            <SummaryTab
-              onTabChange={setActiveTab}
-              onAddEvent={openAddModal}
-              onOpenHandbook={tripHandbook.openPanel}
-            />
-          )}
+            {activeTab === 'summary' && (
+              <SummaryTab
+                onTabChange={setActiveTab}
+                onAddEvent={openAddModal}
+                onOpenHandbook={tripHandbook.openPanel}
+              />
+            )}
 
-          {activeTab === 'itinerary' && (
-            <ItineraryTab />
-          )}
+            {activeTab === 'itinerary' && (
+              <ItineraryTab />
+            )}
 
-          {activeTab === 'ideas' && (
-            <IdeasTab />
-          )}
+            {activeTab === 'ideas' && (
+              <IdeasTab />
+            )}
 
-          {(activeTab === 'more' || activeTab === 'companions') && (
-            <MoreTab
-              section={activeTab === 'companions' ? 'companions' : 'home'}
-              onTabChange={setActiveTab}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onOpenHandbook={tripHandbook.openPanel}
-            />
-          )}
+            {(activeTab === 'more' || activeTab === 'companions') && (
+              <MoreTab
+                section={activeTab === 'companions' ? 'companions' : 'home'}
+                onTabChange={setActiveTab}
+                onOpenSettings={() => setIsSettingsOpen(true)}
+                onOpenHandbook={tripHandbook.openPanel}
+              />
+            )}
 
-          {activeTab === 'preTrip' && (
-            <PreTripTab />
-          )}
+            {activeTab === 'preTrip' && (
+              <PreTripTab />
+            )}
 
-          {activeTab === 'packing' && (
-            <PackingTab />
-          )}
+            {activeTab === 'packing' && (
+              <PackingTab />
+            )}
 
-          {activeTab === 'flights' && (
-            <LogisticsTab />
-          )}
+            {activeTab === 'flights' && (
+              <LogisticsTab />
+            )}
 
-          {activeTab === 'shopping' && (
-            <ShoppingTab />
-          )}
+            {activeTab === 'shopping' && (
+              <ShoppingTab />
+            )}
 
-          {activeTab === 'expenses' && (
-            <ExpensesTab />
-          )}
+            {activeTab === 'expenses' && (
+              <ExpensesTab />
+            )}
+          </section>
         </div>
       </PageContainer>
 

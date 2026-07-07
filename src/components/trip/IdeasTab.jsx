@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import PlacePoolCard from './PlacePoolCard';
@@ -8,6 +9,7 @@ import {
   getTripItemChanges,
   getTripItemId
 } from '../../utils/tripItemDocuments';
+import MobileMockupFrame from './MobileMockupFrame';
 
 const PLACE_IDEA_FIELDS = [
   'name',
@@ -143,7 +145,19 @@ const IdeasTab = () => {
   ]);
 
   return (
-    <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-40 sm:gap-6 sm:px-7 sm:pb-28 lg:max-w-6xl lg:px-10">
+    <MobileMockupFrame
+      icon={Lightbulb}
+      eyebrow="Ideas"
+      title="Place Pool"
+      subtitle="Collect, vote, and schedule places into the trip."
+      stats={[
+        { value: Array.isArray(placePool) ? placePool.length : 0, label: 'places' },
+        { value: selectedDay, label: 'day' },
+        { value: canManageIdeas ? 'Edit' : 'View', label: 'access' }
+      ]}
+      tone="coral"
+      className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-40 sm:gap-6 sm:px-7 sm:pb-28 lg:max-w-6xl lg:px-10"
+    >
       <PlacePoolCard
         tripId={tripId}
         placePool={placePool}
@@ -166,7 +180,7 @@ const IdeasTab = () => {
         editingMembers={getEditingMembersForTarget(editingByTarget, ideasEditingTarget)}
         editingHandlers={getEditingHandlers(ideasEditingTarget)}
       />
-    </div>
+    </MobileMockupFrame>
   );
 };
 
