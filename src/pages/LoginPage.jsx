@@ -120,6 +120,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const codeInputRef = useRef(null);
+  const mobileCodeInputRef = useRef(null);
 
   useEffect(() => {
     setRememberDevicePreference(rememberDevice);
@@ -127,7 +128,11 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (loginStep !== 'code' || typeof window === 'undefined') return undefined;
-    const timer = window.setTimeout(() => codeInputRef.current?.focus(), 0);
+    const timer = window.setTimeout(() => {
+      const isMobileViewport = window.matchMedia?.('(max-width: 767px)').matches;
+      const targetInput = isMobileViewport ? mobileCodeInputRef.current : codeInputRef.current;
+      (targetInput || codeInputRef.current || mobileCodeInputRef.current)?.focus();
+    }, 0);
     return () => window.clearTimeout(timer);
   }, [loginStep]);
 
@@ -257,7 +262,130 @@ const LoginPage = () => {
 
   return (
     <main className="tp-page-shell tp-auth-shell min-h-screen">
-      <PageContainer className="tp-auth-layout py-10">
+      <section className="tp-mobile-auth-shell" aria-label="Trip Planner sign in">
+        <header className="tp-mobile-auth-hero">
+          <div className="tp-mobile-auth-route" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="tp-mobile-auth-brand">
+            <span className="tp-mobile-auth-icon">
+              <PlaneTakeoff size={28} />
+            </span>
+            <div>
+              <h1>Trip Planner</h1>
+              <p>Plan smarter. Travel better.</p>
+            </div>
+          </div>
+        </header>
+
+        <section className="tp-mobile-auth-sheet" aria-label="Sign in actions">
+          <div className="tp-mobile-auth-heading">
+            <h2>Welcome back</h2>
+            <p>Sign in to continue your journey</p>
+          </div>
+
+          <label className="tp-mobile-auth-remember">
+            <input
+              type="checkbox"
+              checked={rememberDevice}
+              onChange={(event) => setRememberDevice(event.target.checked)}
+            />
+            <span>Remember this device</span>
+          </label>
+
+          <Button
+            onClick={handleGoogleLogin}
+            disabled={isSubmitting}
+            className="tp-mobile-auth-primary w-full justify-center"
+          >
+            <Link2 size={18} />
+            Continue with Google
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowEmailBackup((open) => !open)}
+            className="tp-mobile-auth-email w-full justify-center"
+            aria-expanded={emailPanelOpen}
+          >
+            <Mail size={18} />
+            Continue with Email
+          </Button>
+
+          {emailPanelOpen && (
+            <div className="tp-mobile-auth-email-panel">
+              {loginStep === 'code' ? (
+                <form onSubmit={handleVerifyCode} className="grid gap-3">
+                  <Field label="Email" htmlFor="mobile-login-email-confirm">
+                    <Input
+                      id="mobile-login-email-confirm"
+                      {...emailInputProps}
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </Field>
+                  <Field label="Code" htmlFor="mobile-login-code">
+                    <Input
+                      id="mobile-login-code"
+                      ref={mobileCodeInputRef}
+                      {...codeInputProps}
+                      value={code}
+                      onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="123456"
+                      required
+                    />
+                  </Field>
+                  <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
+                    <Mail size={16} />
+                    Verify and sign in
+                  </Button>
+                  <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
+                    <RefreshCw size={16} />
+                    Request another code
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={isCompletingLink ? handleCompleteLink : handleRequestCode} className="grid gap-3">
+                  <Field label="Email" htmlFor="mobile-login-email">
+                    <Input
+                      id="mobile-login-email"
+                      {...emailInputProps}
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </Field>
+                  <Button type="submit" disabled={isSubmitting} className="justify-center">
+                    <Mail size={16} />
+                    {isCompletingLink ? 'Complete email sign in' : 'Send sign-in code'}
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {status && (
+            <p className="tp-mobile-auth-status tp-mobile-auth-status-success">
+              {status}
+            </p>
+          )}
+          {error && (
+            <p className="tp-mobile-auth-status tp-mobile-auth-status-error">
+              {error}
+            </p>
+          )}
+
+          <InstallAppPrompt className="tp-mobile-auth-install" />
+        </section>
+      </section>
+
+      <PageContainer className="tp-auth-layout tp-desktop-auth-shell py-10">
         <Card className="tp-auth-card tp-atlas-auth-card relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
           <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
           <div className="mb-6">

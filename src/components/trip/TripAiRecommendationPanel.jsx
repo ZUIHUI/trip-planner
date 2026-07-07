@@ -86,11 +86,18 @@ const getDefaultCompanionPosition = () => {
   const sideOffset = viewport.width >= 640 ? 20 : 12;
   const bottomOffset = getCompanionBottomOffset(viewport.width);
   return clampCompanionPosition({
-    x: viewport.width >= 640
-      ? viewport.offsetLeft + viewport.width - PET_BUTTON_SIZE - sideOffset
-      : viewport.offsetLeft + sideOffset,
+    x: viewport.offsetLeft + viewport.width - PET_BUTTON_SIZE - sideOffset,
     y: viewport.offsetTop + viewport.height - PET_BUTTON_SIZE - bottomOffset
   });
+};
+
+const isLegacyMobileLeftPosition = (position) => {
+  if (typeof window === 'undefined') return false;
+
+  const viewport = getCompanionViewport();
+  if (viewport.width >= 640) return false;
+
+  return Number(position?.x) <= viewport.offsetLeft + PET_DRAG_MARGIN + 12;
 };
 
 const readCompanionPosition = () => {
@@ -101,6 +108,9 @@ const readCompanionPosition = () => {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(PET_POSITION_STORAGE_KEY) || 'null');
     if (Number.isFinite(parsed?.x) && Number.isFinite(parsed?.y)) {
+      if (isLegacyMobileLeftPosition(parsed)) {
+        return getDefaultCompanionPosition();
+      }
       return clampCompanionPosition(parsed);
     }
   } catch {
@@ -436,7 +446,7 @@ const TripAiRecommendationPanel = ({
   if (isCompanionHidden) {
     const hiddenCompanion = (
       <div
-        className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] left-3 z-[70] sm:left-auto sm:right-5 lg:bottom-28"
+        className="fixed bottom-[calc(var(--footer-nav-height)+0.75rem)] right-3 z-[70] sm:right-5 lg:bottom-28"
         style={{ '--footer-nav-height': PORTAL_FOOTER_NAV_HEIGHT }}
       >
         <button

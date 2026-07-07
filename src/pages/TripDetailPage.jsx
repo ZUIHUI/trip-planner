@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Plus, Save, ChevronRight } from 'lucide-react';
+import {
+  CalendarDays,
+  ChevronLeft,
+  Plus,
+  Save,
+  ChevronRight,
+  Lightbulb,
+  Map as MapIcon,
+  Menu as MenuIcon
+} from 'lucide-react';
 import Header from '../components/Header';
 import Modal from '../components/Modal';
 import EditEventForm from '../components/EditEventForm';
@@ -88,7 +97,75 @@ const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
 const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping', 'companions']);
+const MOBILE_DETAIL_TABS = [
+  { id: 'today', label: 'Today', icon: CalendarDays },
+  { id: 'itinerary', label: 'Itinerary', icon: MapIcon },
+  { id: 'ideas', label: 'Ideas', icon: Lightbulb },
+  { id: 'more', label: 'More', icon: MenuIcon }
+];
+const mobileDetailThemePresets = [
+  {
+    id: 'coast',
+    keywords: ['beach', 'coast', 'ocean', 'sea', 'island', 'okinawa', 'bali', 'hawaii'],
+    primary: '4 83 95',
+    secondary: '8 132 139',
+    accent: '255 111 97',
+    paper: '224 246 242'
+  },
+  {
+    id: 'city',
+    keywords: ['tokyo', 'osaka', 'seoul', 'london', 'paris', 'new york', 'city'],
+    primary: '35 62 105',
+    secondary: '12 111 134',
+    accent: '255 126 84',
+    paper: '230 238 246'
+  },
+  {
+    id: 'trail',
+    keywords: ['mountain', 'alps', 'camp', 'hike', 'forest', 'swiss'],
+    primary: '27 85 72',
+    secondary: '83 139 96',
+    accent: '246 141 79',
+    paper: '229 243 230'
+  },
+  {
+    id: 'winter',
+    keywords: ['snow', 'ski', 'winter', 'sapporo', 'hokkaido'],
+    primary: '28 78 112',
+    secondary: '86 152 177',
+    accent: '255 128 112',
+    paper: '232 244 248'
+  },
+  {
+    id: 'sunset',
+    keywords: ['road', 'desert', 'sunset', 'california', 'australia'],
+    primary: '126 69 45',
+    secondary: '190 107 64',
+    accent: '255 111 97',
+    paper: '247 236 223'
+  }
+];
 const sameJsonValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+
+const getMobileDetailTheme = (details = {}) => {
+  const rawTitle = String(details?.title || '').toLowerCase();
+  const match = mobileDetailThemePresets.find((theme) =>
+    theme.keywords.some((keyword) => rawTitle.includes(keyword))
+  );
+  const hashBase = rawTitle || details?.status || 'atlas';
+  const hash = Array.from(hashBase).reduce((total, char) => total + char.charCodeAt(0), 0);
+  const theme = match || mobileDetailThemePresets[hash % mobileDetailThemePresets.length] || mobileDetailThemePresets[0];
+
+  return {
+    id: theme.id,
+    style: {
+      '--tp-mobile-detail-primary': theme.primary,
+      '--tp-mobile-detail-secondary': theme.secondary,
+      '--tp-mobile-detail-accent': theme.accent,
+      '--tp-mobile-detail-paper': theme.paper
+    }
+  };
+};
 
 const getDateRangeDays = (startDate, endDate) => {
   if (!startDate || !endDate) return 0;
@@ -841,6 +918,10 @@ const TripDetailPage = () => {
     [tripDetails?.coverImage]
   );
   const shouldShowCoverBackground = Boolean(coverImageUrl && !coverImageLoadFailed);
+  const mobileDetailTheme = useMemo(
+    () => getMobileDetailTheme(tripDetails),
+    [tripDetails?.title, tripDetails?.status]
+  );
 
   useEffect(() => {
     setSelectedEventLocation(null);
@@ -1640,7 +1721,13 @@ const TripDetailPage = () => {
 
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
-    <div className={`tp-page-shell tp-workspace-shell min-h-screen font-sans interface-size-${interfaceSize} transition-colors`} style={{ "--footer-nav-height": "calc(5.2rem + env(safe-area-inset-bottom))" }}>
+    <div
+      className={`tp-page-shell tp-workspace-shell tp-mobile-detail-theme-${mobileDetailTheme.id} min-h-screen font-sans interface-size-${interfaceSize} transition-colors`}
+      style={{
+        "--footer-nav-height": "calc(5.2rem + env(safe-area-inset-bottom))",
+        ...mobileDetailTheme.style
+      }}
+    >
       <div className="tp-atlas-side-rail" aria-hidden="true">
         <span />
         <span />
@@ -1659,8 +1746,30 @@ const TripDetailPage = () => {
         presenceUi={presenceUi}
       />
 
-      <PageContainer className="tp-atlas-page-frame pb-40 lg:pb-44">
+      <PageContainer className="tp-detail-page-frame tp-atlas-page-frame pb-40 lg:pb-44">
         <div className="tp-workspace-shell-content">
+          <nav className="tp-mobile-detail-tabs" aria-label="Trip detail sections">
+            {MOBILE_DETAIL_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = tab.id === 'more'
+                ? activeTab === 'more' || MORE_CHILD_TABS.has(activeTab)
+                : activeTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={isActive ? 'is-active' : ''}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  <Icon size={15} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
           {isReadOnly && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
               你目前只能查看這趟旅程；若要一起編輯，請主辦人重新產生可以一起編輯的邀請碼。
