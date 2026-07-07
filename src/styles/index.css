@@ -7066,6 +7066,27 @@ textarea.tp-input {
   }
 }
 
+/* Desktop layout guard: decorative rails must never take document flow space. */
+@media (max-width: 1179px) {
+  .tp-atlas-side-rail {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1180px) {
+  .tp-atlas-side-rail {
+    display: flex !important;
+    height: auto !important;
+    left: max(1.5rem, calc((100vw - 1280px) / 2 + 1.25rem)) !important;
+    margin: 0 !important;
+    max-height: calc(100vh - 3rem) !important;
+    min-height: min(45rem, calc(100vh - 3rem)) !important;
+    position: fixed !important;
+    top: 1.5rem !important;
+    transform: none !important;
+  }
+}
+
 /* Final hardening: remove legacy dashboard bleed-through and lock final active/dock/companion visuals. */
 .tp-page-shell.tp-list-shell .tp-desktop-trips-shell .tp-mobile-atlas-dashboard,
 .tp-mobile-atlas-dashboard {
