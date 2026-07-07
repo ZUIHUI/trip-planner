@@ -780,7 +780,7 @@ const TripListPage = () => {
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3" role="group" aria-label="選擇旅程操作">
+              <div className="tp-command-action-switch mt-5 grid grid-cols-2 gap-3" role="group" aria-label="選擇旅程操作">
                 <ActionModeButton
                   active={actionMode === 'create'}
                   icon={Plus}
