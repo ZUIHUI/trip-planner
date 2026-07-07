@@ -13,7 +13,7 @@ import { Badge, Button } from '../ui';
 import pixelNaviBunAtlas from '../../assets/ai/pixel-navibun-atlas.png';
 
 const modeOptions = [
-  { id: 'dayPlan', label: '今日行程', icon: CalendarPlus }
+  { id: 'dayPlan', label: '??謑??', icon: CalendarPlus }
 ];
 
 const AI_INITIAL_IDEA_MAX_LENGTH = 600;
@@ -150,7 +150,7 @@ const petMoodAnimation = {
   thinking: 'running'
 };
 
-const AiTravelPet = ({ mood = 'idle', size = 'md' }) => {
+const AiTravelPet = ({ mood = 'idle', size = 'md', animate = true }) => {
   const isButton = size === 'button';
   const wrapperSize = isButton ? 'h-16 w-16' : 'h-20 w-20';
   const animation = petAnimationStates[petMoodAnimation[mood] || 'idle'];
@@ -176,10 +176,15 @@ const AiTravelPet = ({ mood = 'idle', size = 'md' }) => {
 
   return (
     <div
-      className={`tp-ai-pet-presence ${isButton ? 'tp-ai-pet-presence-static' : ''} relative flex shrink-0 items-center justify-center overflow-visible ${wrapperSize}`}
+      className={`tp-ai-pet-presence ${
+        isButton || !animate ? 'tp-ai-pet-presence-static' : ''
+      } relative flex shrink-0 items-center justify-center overflow-visible ${wrapperSize}`}
       aria-hidden="true"
     >
-      <span className={`tp-ai-pet-sprite ${isButton ? 'tp-ai-pet-sprite-static' : ''} block select-none`} style={spriteStyle} />
+      <span
+        className={`tp-ai-pet-sprite ${isButton || !animate ? 'tp-ai-pet-sprite-static' : ''} block select-none`}
+        style={spriteStyle}
+      />
     </div>
   );
 };
@@ -228,7 +233,7 @@ const RecommendationCard = ({
           )}
         </div>
         <Badge variant={recommendation.kind === 'event' ? 'info' : 'success'}>
-          {recommendation.kind === 'event' ? '行程' : '想去'}
+          {recommendation.kind === 'event' ? '?蛛?' : '??啾'}
         </Badge>
       </div>
 
@@ -236,7 +241,7 @@ const RecommendationCard = ({
         <Badge variant="muted">Day {recommendation.suggestedDay}</Badge>
         {recommendation.time && <Badge variant="muted">{recommendation.time}</Badge>}
         {recommendation.durationMinutes > 0 && (
-          <Badge variant="muted">{recommendation.durationMinutes} 分鐘</Badge>
+          <Badge variant="muted">{recommendation.durationMinutes} ???</Badge>
         )}
         {recommendation.tags.map((tag) => (
           <Badge key={tag} variant="info">{tag}</Badge>
@@ -264,7 +269,7 @@ const RecommendationCard = ({
           className="w-full justify-center"
         >
           {placeApplied ? <CheckCircle2 size={14} /> : <Lightbulb size={14} />}
-          {placeApplied ? '已加入想去' : (isApplying === 'place' ? '加入中...' : '加到想去')}
+          {placeApplied ? '???鈭歹??? : (isApplying === 'place' ? '?蹎??..' : '?蹎???啾')}
         </Button>
         <Button
           variant={eventApplied ? 'secondary' : 'secondary'}
@@ -274,7 +279,7 @@ const RecommendationCard = ({
           className="w-full justify-center"
         >
           {eventApplied ? <CheckCircle2 size={14} /> : <CalendarPlus size={14} />}
-          {eventApplied ? '已排入行程' : (isApplying === 'event' ? '排入中...' : `排進 Day ${recommendation.suggestedDay}`)}
+          {eventApplied ? '???鈭??? : (isApplying === 'event' ? '????..' : `???Day ${recommendation.suggestedDay}`)}
         </Button>
       </div>
     </article>
@@ -452,11 +457,11 @@ const TripAiRecommendationPanel = ({
         <button
           type="button"
           onClick={() => onSummon?.(mode)}
-          className="touch-target tp-press-feedback tp-ai-companion-summon inline-flex h-16 w-16 items-center justify-center rounded-full text-brand-700 transition hover:-translate-y-1 hover:text-brand-900 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-brand-900"
-          aria-label="叫回旅伴"
-          title="叫回旅伴"
+          className="touch-target tp-press-feedback tp-ai-companion-button inline-flex h-16 w-16 items-center justify-center rounded-full transition hover:-translate-y-1 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+          aria-label="?????格?"
+          title="?????格?"
         >
-          <AiTravelPet mood="idle" size="button" />
+          <AiTravelPet mood="idle" size="button" animate={false} />
         </button>
       </div>
     );
@@ -476,10 +481,14 @@ const TripAiRecommendationPanel = ({
           onPointerCancel={handleCompanionPointerEnd}
           data-drag-state={companionDragState}
           className="touch-target tp-ai-companion-button inline-flex items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
-          aria-label="開啟旅伴"
-          title="旅伴"
+          aria-label="?????格?"
+          title="??格?"
         >
-          <AiTravelPet mood={floatingPetMood} size="button" />
+          <AiTravelPet
+            mood={floatingPetMood}
+            size="button"
+            animate={companionDragState === 'lifted' || companionDragState === 'dragging'}
+          />
         </button>
       )}
 
@@ -490,10 +499,10 @@ const TripAiRecommendationPanel = ({
               <AiTravelPet mood={petMood} />
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">
-                  旅伴
+                  ??格?
                 </p>
                 <h3 className="mt-0.5 text-lg font-black text-stone-800 dark:text-brand-900">
-                  {response?.headline || '幫你找下一個好點子'}
+                  {response?.headline || '?????????綜竣?'}
                 </h3>
               </div>
             </div>
@@ -502,8 +511,8 @@ const TripAiRecommendationPanel = ({
               type="button"
               onClick={onHideCompanion}
               className="touch-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-              aria-label="隱藏旅伴"
-              title="隱藏旅伴"
+              aria-label="?璇???格?"
+              title="?璇???格?"
             >
                 <EyeOff size={17} />
               </button>
@@ -511,8 +520,8 @@ const TripAiRecommendationPanel = ({
               type="button"
               onClick={onClose}
               className="touch-target inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-              aria-label="關閉旅伴"
-              title="關閉"
+              aria-label="?謚???格?"
+              title="?謚?"
             >
                 <X size={18} />
               </button>
@@ -525,13 +534,13 @@ const TripAiRecommendationPanel = ({
               htmlFor="trip-ai-initial-idea"
               className="mb-1.5 block text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400"
             >
-              初始想法
+              ?豲????
             </label>
             <textarea
               id="trip-ai-initial-idea"
               value={initialIdeaText}
               onChange={(event) => setInitialIdeaText(event.target.value.slice(0, AI_INITIAL_IDEA_MAX_LENGTH))}
-              placeholder="例如：想晚點出門、安排室內備案、晚上想吃燒肉"
+              placeholder="????垮??謍??蝎??蹓????????ｇ??蹓?????????
               rows={3}
               maxLength={AI_INITIAL_IDEA_MAX_LENGTH}
               className="w-full resize-none rounded-lg border border-[#e0e9e0] bg-white/80 px-3 py-2 text-sm font-semibold text-stone-800 shadow-sm outline-none transition placeholder:text-stone-400 supports-[backdrop-filter]:backdrop-blur focus:border-brand-400 focus:ring-2 focus:ring-sky-100 dark:border-brand-200/20 dark:bg-brand-50/70 dark:text-brand-900 dark:placeholder:text-brand-600 dark:focus:border-brand-500 dark:focus:ring-brand-200/20"
@@ -544,13 +553,12 @@ const TripAiRecommendationPanel = ({
             className="mt-3 w-full justify-center"
           >
             {isLoading ? <ActiveModeIcon size={16} /> : <Sparkles size={16} />}
-            {isLoading ? '整理路線中...' : '幫我排'}
+            {isLoading ? '?皜??????..' : '????}
           </Button>
 
           {!canEdit && (
             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-              目前是唯讀權限，不能產生或套用推薦。
-            </p>
+              ?獢???秋????????鞈?賹??????魂??            </p>
           )}
 
           {error && (
@@ -573,8 +581,7 @@ const TripAiRecommendationPanel = ({
               ))
             ) : (
               <div className="rounded-lg border border-dashed border-[#e0e9e0] p-4 text-sm font-semibold text-stone-500 dark:border-brand-200/20 dark:text-brand-700">
-                還沒有小提案。按「幫我排」開始整理。
-              </div>
+                ??????????蹇???粹????????迎?????              </div>
             )}
           </div>
         </section>

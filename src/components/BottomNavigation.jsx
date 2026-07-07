@@ -81,9 +81,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
       : activeTab === tabId
   );
 
-  const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item relative flex ${
-    isActive ? 'tp-nav-active' : 'text-stone-500 hover:bg-brand-50/70 hover:text-brand-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900'
-  }`;
+const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item relative flex ${isActive ? 'tp-nav-active' : ''}`;
 
   return (
     <>

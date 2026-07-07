@@ -117,6 +117,100 @@
   }
 }
 
+/* Final mobile layout lock: one truth for mockup shell behavior. */
+@media (max-width: 767px) {
+  .tp-page-shell.tp-auth-shell,
+  .tp-page-shell.tp-list-shell,
+  .tp-page-shell.tp-workspace-shell {
+    overflow-x: hidden;
+  }
+
+  .tp-desktop-auth-shell,
+  .tp-desktop-trips-shell,
+  .tp-workspace-shell .tp-app-header.tp-atlas-header {
+    display: none !important;
+  }
+
+  .tp-mobile-auth-shell,
+  .tp-mobile-trips-shell,
+  .tp-mobile-detail-shell {
+    display: block !important;
+  }
+
+  .tp-mobile-auth-shell {
+    display: grid !important;
+  }
+
+  .tp-mobile-auth-shell,
+  .tp-mobile-trips-shell,
+  .tp-mobile-detail-shell {
+    min-height: 100dvh;
+  }
+
+  .tp-atlas-dock,
+  .tp-bottom-nav,
+  .tp-mobile-trips-dock {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 0 !important;
+    border-radius: 18px 18px 0 0 !important;
+    box-shadow: 0 -16px 40px -36px rgba(var(--atlas-ocean), 0.56) !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+  }
+
+  .tp-atlas-dock .tp-nav-item,
+  .tp-bottom-nav .tp-nav-item {
+    border-radius: 12px !important;
+    color: rgb(var(--ink-muted)) !important;
+    min-width: 0 !important;
+  }
+
+  .tp-atlas-dock .tp-nav-active,
+  .tp-bottom-nav .tp-nav-active {
+    background: linear-gradient(135deg, rgb(255 111 97), rgb(255 126 84)) !important;
+    border: 0 !important;
+    color: #fff !important;
+    box-shadow: 0 16px 30px -24px rgba(255, 111, 97, 0.68) !important;
+  }
+
+  .tp-atlas-dock .tp-nav-active svg,
+  .tp-bottom-nav .tp-nav-active .tp-nav-label,
+  .tp-atlas-dock .tp-nav-active svg,
+  .tp-bottom-nav .tp-nav-active svg {
+    color: #fff !important;
+  }
+
+  .tp-nav-active::after {
+    display: none !important;
+  }
+
+  .tp-atlas-dock .tp-nav-item,
+  .tp-bottom-nav .tp-nav-item,
+  .tp-mobile-trips-dock button {
+    min-height: 2.95rem !important;
+  }
+
+  .tp-ai-companion-button,
+  .tp-ai-companion-summon {
+    border: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  .tp-ai-companion-button::before,
+  .tp-ai-companion-button::after,
+  .tp-ai-companion-summon::before,
+  .tp-ai-companion-summon::after {
+    display: none !important;
+  }
+
+  .tp-mobile-detail-sheet {
+    margin-top: 0 !important;
+  }
+}
+
 @layer base {
   p {
     line-height: var(--line-height-body);
@@ -6886,4 +6980,138 @@ textarea.tp-input {
   .tp-mobile-settings-section .tp-icon-chip {
     border-radius: 12px !important;
   }
+}
+
+/* Final responsive shell visibility and navigation truth source. */
+@media (max-width: 767px) {
+  .tp-page-shell.tp-auth-shell .tp-desktop-auth-shell,
+  .tp-page-shell.tp-list-shell .tp-desktop-trips-shell,
+  .tp-page-shell.tp-workspace-shell .tp-detail-desktop-header {
+    display: none !important;
+  }
+
+  .tp-page-shell.tp-auth-shell .tp-mobile-auth-shell,
+  .tp-page-shell.tp-list-shell .tp-mobile-trips-shell,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-shell,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-tabs,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-sheet {
+    display: block !important;
+  }
+
+  .tp-page-shell.tp-workspace-shell .tp-detail-desktop-header {
+    display: none !important;
+  }
+
+  .tp-page-shell.tp-auth-shell,
+  .tp-page-shell.tp-list-shell,
+  .tp-page-shell.tp-workspace-shell {
+    padding-bottom: 0 !important;
+  }
+
+  .tp-atlas-dock,
+  .tp-bottom-nav,
+  .tp-mobile-trips-dock {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border-top-left-radius: 18px !important;
+    border-top-right-radius: 18px !important;
+    box-shadow: 0 -18px 42px -34px rgba(var(--atlas-ocean), 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.94) !important;
+    border: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .tp-atlas-dock .tp-nav-item,
+  .tp-bottom-nav .tp-nav-item,
+  .tp-mobile-trips-dock button {
+    min-height: 2.95rem !important;
+    min-width: 0 !important;
+    border-radius: 12px !important;
+    color: rgb(var(--ink-muted)) !important;
+  }
+
+  .tp-atlas-dock .tp-nav-active,
+  .tp-bottom-nav .tp-nav-active,
+  .tp-mobile-trips-dock button.is-active {
+    background: linear-gradient(135deg, rgb(255, 111, 97), rgb(255, 126, 84)) !important;
+    color: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 16px 30px -24px rgba(255, 111, 97, 0.68) !important;
+  }
+
+  .tp-atlas-dock .tp-nav-active svg,
+  .tp-bottom-nav .tp-nav-active svg,
+  .tp-atlas-dock .tp-nav-active .tp-nav-label,
+  .tp-bottom-nav .tp-nav-active .tp-nav-label,
+  .tp-mobile-trips-dock button.is-active span {
+    color: #fff !important;
+  }
+
+  .tp-nav-active::after {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .tp-page-shell.tp-auth-shell .tp-mobile-auth-shell,
+  .tp-page-shell.tp-list-shell .tp-mobile-trips-shell,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-shell,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-tabs {
+    display: none !important;
+  }
+
+  .tp-page-shell.tp-auth-shell .tp-desktop-auth-shell,
+  .tp-page-shell.tp-list-shell .tp-desktop-trips-shell,
+  .tp-page-shell.tp-workspace-shell .tp-detail-desktop-header {
+    display: block !important;
+  }
+}
+
+/* Final hardening: remove legacy dashboard bleed-through and lock final active/dock/companion visuals. */
+.tp-page-shell.tp-list-shell .tp-desktop-trips-shell .tp-mobile-atlas-dashboard,
+.tp-mobile-atlas-dashboard {
+  display: none !important;
+}
+
+.tp-atlas-dock .tp-nav-active,
+.tp-bottom-nav .tp-nav-active {
+  background: linear-gradient(135deg, rgb(255, 111, 97), rgb(255, 126, 84)) !important;
+  border: 0 !important;
+  box-shadow: 0 16px 30px -24px rgba(255, 111, 97, 0.68) !important;
+  color: #fff !important;
+}
+
+.tp-atlas-dock .tp-nav-active svg,
+.tp-bottom-nav .tp-nav-active svg,
+.tp-atlas-dock .tp-nav-active .tp-nav-label,
+.tp-bottom-nav .tp-nav-active .tp-nav-label {
+  color: #fff !important;
+}
+
+.tp-nav-active::after {
+  display: none !important;
+}
+
+.tp-mobile-trips-dock button.is-active {
+  background: linear-gradient(135deg, rgb(255, 111, 97), rgb(255, 126, 84)) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 30px -24px rgba(255, 111, 97, 0.68) !important;
+}
+
+.tp-mobile-trips-dock button.is-active svg,
+.tp-mobile-trips-dock button.is-active span {
+  color: #fff !important;
+}
+
+.tp-ai-companion-summon,
+.tp-ai-companion-button {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.tp-ai-companion-summon::before,
+.tp-ai-companion-summon::after,
+.tp-ai-companion-button::before,
+.tp-ai-companion-button::after {
+  display: none !important;
 }
