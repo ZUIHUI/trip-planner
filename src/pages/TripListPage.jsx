@@ -664,6 +664,7 @@ const TripListPage = () => {
                 <Pencil size={19} />
               </button>
               <div className="tp-mobile-atlas-account">
+                <strong className="tp-mobile-atlas-dashboard-title">Trips</strong>
                 <span>{accountDisplayName}</span>
                 <small>{currentUser?.email || 'Trip Planner'}</small>
               </div>
@@ -928,7 +929,7 @@ const TripListPage = () => {
               />
             ) : (
               <motion.div
-                className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6"
+                className="tp-trip-stack grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6"
                 variants={tripGridMotion}
                 initial="hidden"
                 animate="visible"
