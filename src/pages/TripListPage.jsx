@@ -73,9 +73,9 @@ const normalizeInviteCodeInput = (value) => String(value || '')
   .replace(/(.{4})(.+)/, '$1-$2');
 
 const statusConfig = {
-  planning: { label: '閬?銝?, variant: 'warning' },
-  ongoing: { label: '?葉', variant: 'success' },
-  done: { label: '撌脣???, variant: 'muted' }
+  planning: { label: '規劃中', variant: 'warning' },
+  ongoing: { label: '旅途中', variant: 'success' },
+  done: { label: '已完成', variant: 'muted' }
 };
 
 const tripGridMotion = {
@@ -93,9 +93,9 @@ const tripGridItemMotion = {
 };
 
 const formatDateTime = (value) => {
-  if (!value) return '撠?湔';
+  if (!value) return '尚未更新';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '撠?湔';
+  if (Number.isNaN(date.getTime())) return '尚未更新';
   return date.toLocaleString('zh-TW', {
     month: '2-digit',
     day: '2-digit',
@@ -108,9 +108,9 @@ const formatDateRange = (trip) => {
   const start = trip?.dateRange?.start || '';
   const end = trip?.dateRange?.end || '';
   if (start && end) return `${start} - ${end}`;
-  if (start) return `${start} ?箇`;
-  if (end) return `${end} 蝯?`;
-  return '?芾身摰??;
+  if (start) return `${start} 出發`;
+  if (end) return `${end} 結束`;
+  return '未設定日期';
 };
 
 const getStatus = (status) => statusConfig[status] || statusConfig.planning;
@@ -121,10 +121,10 @@ const TripStatusBadge = ({ status }) => {
 };
 
 const accessRoleConfig = {
-  owner: { label: '????, variant: 'info' },
-  editor: { label: '?舐楊頛?, variant: 'success' },
-  edit: { label: '?舐楊頛?, variant: 'success' },
-  view: { label: '?航?', variant: 'muted' }
+  owner: { label: '擁有者', variant: 'info' },
+  editor: { label: '可編輯', variant: 'success' },
+  edit: { label: '可編輯', variant: 'success' },
+  view: { label: '唯讀', variant: 'muted' }
 };
 
 const TripAccessBadge = ({ role }) => {
@@ -135,8 +135,8 @@ const TripAccessBadge = ({ role }) => {
 const tripThemePresets = [
   {
     id: 'island',
-    label: '瘚瑕雀??',
-    keywords: ['okinawa', 'bali', 'hawaii', 'island', 'beach', 'ocean', 'sea', '瘝鼎', '撜?', '憭?憭?, '瘚?, '撜?, '瘝?'],
+    label: '海島旅程',
+    keywords: ['okinawa', 'bali', 'hawaii', 'island', 'beach', 'ocean', 'sea', '沖繩', '峇里', '夏威夷', '海', '島', '沙灘'],
     primary: '4 83 95',
     secondary: '8 132 139',
     accent: '255 111 97',
@@ -144,8 +144,8 @@ const tripThemePresets = [
   },
   {
     id: 'city',
-    label: '???Ｙ揣',
-    keywords: ['tokyo', 'osaka', 'seoul', 'london', 'paris', 'new york', 'city', '?曹漪', '憭折', '擐', '撌湧?', '?急', '蝝?', '??'],
+    label: '城市探索',
+    keywords: ['tokyo', 'osaka', 'seoul', 'london', 'paris', 'new york', 'city', '東京', '大阪', '首爾', '巴黎', '倫敦', '紐約', '城市'],
     primary: '35 62 105',
     secondary: '12 111 134',
     accent: '255 126 84',
@@ -153,8 +153,8 @@ const tripThemePresets = [
   },
   {
     id: 'mountain',
-    label: '撅梁?頝臬?',
-    keywords: ['mountain', 'alps', 'camp', 'hike', 'forest', 'swiss', '撅?, '璉格?', '?脩?', '?餃控', '?亥?', '?ㄚ'],
+    label: '山線路徑',
+    keywords: ['mountain', 'alps', 'camp', 'hike', 'forest', 'swiss', '山', '森林', '露營', '登山', '健行', '瑞士'],
     primary: '27 85 72',
     secondary: '83 139 96',
     accent: '246 141 79',
@@ -162,8 +162,8 @@ const tripThemePresets = [
   },
   {
     id: 'snow',
-    label: '?芸???',
-    keywords: ['snow', 'ski', 'winter', 'sapporo', 'hokkaido', '??, '皛', '??, '?剖?', '?絲??],
+    label: '雪境假期',
+    keywords: ['snow', 'ski', 'winter', 'sapporo', 'hokkaido', '雪', '滑雪', '冬', '札幌', '北海道'],
     primary: '28 78 112',
     secondary: '86 152 177',
     accent: '255 128 112',
@@ -171,8 +171,8 @@ const tripThemePresets = [
   },
   {
     id: 'sunset',
-    label: '?亥?祈楝',
-    keywords: ['road', 'desert', 'sunset', 'california', 'australia', '?祈楝', '瘝?', '憭', '??', '瞉單散'],
+    label: '日落公路',
+    keywords: ['road', 'desert', 'sunset', 'california', 'australia', '公路', '沙漠', '夕陽', '加州', '澳洲'],
     primary: '126 69 45',
     secondary: '190 107 64',
     accent: '255 111 97',
@@ -180,8 +180,8 @@ const tripThemePresets = [
   },
   {
     id: 'food',
-    label: '蝢??啣?',
-    keywords: ['food', 'cafe', 'market', 'wine', 'restaurant', '蝢?', '?', '撣?', '擗輒', '??'],
+    label: '美食地圖',
+    keywords: ['food', 'cafe', 'market', 'wine', 'restaurant', '美食', '咖啡', '市集', '餐廳', '酒莊'],
     primary: '112 65 54',
     secondary: '176 100 76',
     accent: '7 129 138',
@@ -270,12 +270,12 @@ const TripCard = ({
         type="button"
         onClick={onOpen}
         className="group/trip-card block w-full text-left"
-        aria-label={`?? ${trip.title || '?芸??蝔?}`}
+        aria-label={`開啟 ${trip.title || '未命名旅程'}`}
       >
         {showCover ? (
           <img
             src={coverImageUrl}
-            alt={`${trip.title || '??'} 撠`}
+            alt={`${trip.title || '旅程'} 封面`}
             className="h-36 w-full object-cover transition-transform duration-500 group-hover/trip-card:scale-[1.04] sm:h-40"
             onError={onCoverError}
           />
@@ -291,7 +291,7 @@ const TripCard = ({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="truncate text-lg font-bold text-slate-900 dark:text-white">
-                {trip.title || '?芸??蝔?}
+                {trip.title || '未命名旅程'}
               </p>
               <div className="mt-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <CalendarDays size={15} className="shrink-0 text-brand-600" />
@@ -306,11 +306,11 @@ const TripCard = ({
 
           <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg bg-sky-50/80 px-4 py-3 dark:bg-sky-950/30">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">銵???/p>
-              <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} ??/p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
+              <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
             </div>
             <div className="rounded-lg bg-[#f4f8f5]/80 px-4 py-3 dark:bg-brand-100/45">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">?餈??/p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
               <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
             </div>
           </div>
@@ -318,7 +318,7 @@ const TripCard = ({
           {trip.accessRole === 'view' && (
             <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#f4f8f5]/80 px-4 py-3 text-xs font-bold text-stone-600 dark:bg-brand-100/45 dark:text-brand-800">
               <ShieldCheck size={14} className="shrink-0" />
-              <span className="truncate">?芾?亦?</span>
+              <span className="truncate">只能查看</span>
             </div>
           )}
         </div>
@@ -333,20 +333,20 @@ const TripCard = ({
               className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-stone-500 hover:bg-brand-50 hover:text-stone-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900"
               aria-expanded={expanded}
             >
-              {expanded ? '?嗅?蝞∠?' : '蝞∠?'}
+              {expanded ? '收合管理' : '管理'}
               <ChevronDown size={14} className={expanded ? 'rotate-180 transition-transform' : 'transition-transform'} />
             </button>
           )}
           <Button variant="secondary" size="sm" onClick={onOpen}>
-            ????
+            開啟旅程
           </Button>
         </div>
 
         {expanded && canDelete && (
             <div className="mt-4 flex justify-end border-t border-[#e0e9e0] pt-4 dark:border-brand-200/20">
-            <Button variant="danger" size="sm" onClick={onDelete} aria-label={`?芷 ${trip.title || '?芸??蝔?}`}>
+            <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
               <Trash2 size={14} />
-              ?芷??
+              刪除旅程
             </Button>
           </div>
         )}
@@ -373,7 +373,7 @@ const MobileTripRow = ({
         type="button"
         onClick={onOpen}
         className="tp-mobile-trip-row-main"
-        aria-label={`?? ${trip.title || '??'}`}
+        aria-label={`開啟 ${trip.title || '旅程'}`}
       >
         <span className="tp-mobile-trip-row-cover" aria-hidden="true">
           {showCover ? (
@@ -391,13 +391,13 @@ const MobileTripRow = ({
             <TripStatusBadge status={trip.status} />
             <TripAccessBadge role={trip.accessRole} />
           </span>
-          <strong>{trip.title || '?芸??蝔?}</strong>
+          <strong>{trip.title || '未命名旅程'}</strong>
           <span className="tp-mobile-trip-row-date">
             <CalendarDays size={14} />
             <span>{formatDateRange(trip)}</span>
           </span>
           <span className="tp-mobile-trip-row-meta">
-            <span>{trip.eventCount || 0} ??蝔?/span>
+            <span>{trip.eventCount || 0} 個行程</span>
             <span>{formatDateTime(trip.updatedAt)}</span>
           </span>
         </span>
@@ -407,7 +407,7 @@ const MobileTripRow = ({
           type="button"
           className="tp-mobile-trip-row-delete"
           onClick={onDelete}
-          aria-label={`?芷 ${trip.title || '??'}`}
+          aria-label={`刪除 ${trip.title || '旅程'}`}
         >
           <Trash2 size={16} />
         </button>
@@ -462,7 +462,7 @@ const TripListPage = () => {
             const localTrip = localTripsById.get(trip.id);
             mergedMap.set(trip.id, {
               id: trip.id,
-              title: trip.title || localTrip?.title || '?芸??蝔?,
+              title: trip.title || localTrip?.title || '未命名旅程',
               status: trip.status || localTrip?.status || 'planning',
               coverImage: trip.coverImage || localTrip?.coverImage || '',
               dateRange: trip.dateRange || localTrip?.dateRange || { start: '', end: '' },
@@ -479,8 +479,8 @@ const TripListPage = () => {
         }
         setCloudSyncWarning('');
       } catch (error) {
-        setCloudSyncWarning('?脩垢?郊?急?憭望?嚗迤?券＊蝷箸璈???蝔???渡???閰虫?甈～?);
-        logger.warn('霈?蝡舀?蝔?銵典仃???寧?砍鞈?', error);
+        setCloudSyncWarning('雲端同步暫時失敗，正在顯示本機資料。請稍後重新整理或再試一次。');
+        logger.warn('讀取雲端旅程列表失敗，改用本地資料', error);
       }
     };
 
@@ -512,12 +512,12 @@ const TripListPage = () => {
     });
 
     return [
-      { id: 'all', label: '?券', count: counts.all },
-      { id: 'ongoing', label: '?葉', count: counts.ongoing },
-      { id: 'planning', label: '閬?銝?, count: counts.planning },
-      { id: 'owner', label: '?恣??, count: counts.owner },
-      { id: 'editable', label: '?舐楊頛?, count: counts.editable },
-      { id: 'readonly', label: '?航?', count: counts.readonly }
+      { id: 'all', label: '全部', count: counts.all },
+      { id: 'ongoing', label: '旅途中', count: counts.ongoing },
+      { id: 'planning', label: '規劃中', count: counts.planning },
+      { id: 'owner', label: '我管理', count: counts.owner },
+      { id: 'editable', label: '可編輯', count: counts.editable },
+      { id: 'readonly', label: '唯讀', count: counts.readonly }
     ];
   }, [sortedTrips]);
 
@@ -544,7 +544,7 @@ const TripListPage = () => {
   const hasTrips = trips.length > 0;
   const hasSearch = keyword.trim().length > 0;
   const hasActiveFilter = tripFilter !== 'all';
-  const accountDisplayName = userProfile?.displayName || currentUser?.displayName || currentUser?.email || '撌脩??;
+  const accountDisplayName = userProfile?.displayName || currentUser?.displayName || currentUser?.email || '已登入';
   const totalTripCount = trips.length;
   const ownedTripCount = trips.filter((trip) => trip.accessRole === 'owner').length;
   const lastOpenedTripId = getLastOpenedTripId();
@@ -558,7 +558,7 @@ const TripListPage = () => {
     ...continueTripTheme.style,
     ...(continueTripCoverImageUrl ? { '--tp-mobile-trip-hero-image': `url("${continueTripCoverImageUrl}")` } : {})
   };
-  const continueTripLabel = lastOpenedTrip ? '?亥?銝活閬?' : '?餈???';
+  const continueTripLabel = lastOpenedTrip ? '接著上次規劃' : '最近有動靜';
 
   const focusActiveNewTripInput = () => {
     const targetInput = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
@@ -625,8 +625,8 @@ const TripListPage = () => {
       localStorage.removeItem(getTripStorageKey(tripId, uid));
       toast({
         variant: 'danger',
-        title: '撱箇???憭望?',
-        description: '撌脣?皛暹?啗???隢?敺?閰艾?
+        title: '建立旅程失敗',
+        description: '已回滾本地資料，請稍後再試。'
       });
       logger.error(error);
     }
@@ -653,16 +653,16 @@ const TripListPage = () => {
         profile: userProfile
       });
       if (!result.tripId) {
-        throw new Error('?隢Ⅳ撌脫??雿???敺?蝔?閮?);
+        throw new Error('邀請碼已接受，但沒有取得旅程資訊。');
       }
       setInviteCode('');
       setLastOpenedTripId(result.tripId);
       toast({
         variant: 'success',
-        title: result.alreadyMember ? '雿歇蝬????銝? : '撌脣??交?蝔?,
+        title: result.alreadyMember ? '你已經在這趟旅程中' : '已加入旅程',
         description: result.alreadyMember
           ? (result.tripTitle || '')
-          : '?啜之摰嗆?颯????喳??
+          : '到「大家想去」按「我想去」。'
       });
       navigate(`/trip/${result.tripId}`, {
         state: {
@@ -673,8 +673,8 @@ const TripListPage = () => {
     } catch (error) {
       toast({
         variant: 'danger',
-        title: '?⊥????',
-        description: error.message || '隢Ⅱ隤?隢Ⅳ?臬甇?Ⅱ??
+        title: '無法加入旅程',
+        description: error.message || '請確認邀請碼是否正確。'
       });
     } finally {
       setIsJoiningInvite(false);
@@ -686,9 +686,9 @@ const TripListPage = () => {
     if (!target) return;
 
     const shouldDelete = await confirm({
-      title: '?芷??嚗?,
-      description: `??{target.title}??敺璈??脩垢蝘駁嚗迨???⊥?敺拙??,
-      confirmLabel: '?芷??',
+      title: '刪除旅程？',
+      description: `「${target.title}」會從本機與雲端移除，此動作無法復原。`,
+      confirmLabel: '刪除旅程',
       variant: 'danger'
     });
 
@@ -708,7 +708,7 @@ const TripListPage = () => {
       await deleteTrip(tripId);
       toast({
         variant: 'success',
-        title: '撌脣?斗?蝔?,
+        title: '已刪除旅程',
         description: target.title
       });
     } catch (error) {
@@ -719,8 +719,8 @@ const TripListPage = () => {
       }
       toast({
         variant: 'danger',
-        title: '?芷憭望?',
-        description: '撌脣?敺拙?憪???隢?敺?閰艾?
+        title: '刪除失敗',
+        description: '已回復原始資料，請稍後再試。'
       });
       logger.error(error);
     }
@@ -751,7 +751,7 @@ const TripListPage = () => {
   const handleSaveNickname = async (event) => {
     event.preventDefault();
     const nextName = nicknameDraft.trim();
-    const nameError = validateRequiredText(nextName, '?梁迂', { maxLength: 120 });
+    const nameError = validateRequiredText(nextName, '暱稱', { maxLength: 120 });
 
     if (nameError) {
       toast({
@@ -771,15 +771,15 @@ const TripListPage = () => {
       });
       toast({
         variant: 'success',
-        title: '?梁迂撌脫??,
-        description: result.updated ? `撌脫??${result.updated} 頞?蝔葉?＊蝷箏?蝔晞 : '?唳?蝔?雿輻?蝔晞?
+        title: '暱稱已更新',
+        description: result.updated ? `已更新 ${result.updated} 趟旅程中的顯示名稱。` : '新旅程會使用這個暱稱。'
       });
       setIsEditingNickname(false);
     } catch (error) {
       toast({
         variant: 'danger',
-        title: '?梁迂?湔憭望?',
-        description: error.message || '隢?敺?閰艾?
+        title: '暱稱更新失敗',
+        description: error.message || '請稍後再試。'
       });
     } finally {
       setIsSavingNickname(false);
@@ -787,7 +787,7 @@ const TripListPage = () => {
   };
 
   return (
-      <main className="tp-page-shell tp-list-shell">
+    <main className="tp-page-shell tp-list-shell">
       <div className="tp-atlas-side-rail" aria-hidden="true">
         <span />
         <span />
@@ -820,21 +820,21 @@ const TripListPage = () => {
               className="tp-mobile-trips-logout"
               onClick={logout}
             >
-              ?餃
+              登出
             </button>
           </div>
 
           <div className="tp-mobile-trips-account">
             <div className="min-w-0">
-              <span>?犖</span>
+              <span>旅人</span>
               <strong>{accountDisplayName}</strong>
               <small>{currentUser?.email || 'Trip Planner'}</small>
             </div>
             <button
               type="button"
               onClick={handleStartNicknameEdit}
-              aria-label="靽格?梁迂"
-              title="靽格?梁迂"
+              aria-label="修改暱稱"
+              title="修改暱稱"
             >
               <Pencil size={17} />
             </button>
@@ -842,24 +842,24 @@ const TripListPage = () => {
 
           {isEditingNickname && (
             <form onSubmit={handleSaveNickname} className="tp-mobile-trips-nickname-form">
-              <label htmlFor="mobile-nickname-draft">?梁迂</label>
+              <label htmlFor="mobile-nickname-draft">暱稱</label>
               <Input
                 id="mobile-nickname-draft"
                 {...plainTextInputProps}
                 value={nicknameDraft}
                 onChange={(event) => setNicknameDraft(event.target.value)}
-                placeholder="頛詨憿舐內?迂"
+                placeholder="輸入顯示名稱"
                 enterKeyHint="done"
                 autoFocus
               />
               <div>
                 <button type="submit" disabled={isSavingNickname || !nicknameDraft.trim()}>
                   <Check size={15} />
-                  ?脣?
+                  儲存
                 </button>
                 <button type="button" onClick={handleCancelNicknameEdit} disabled={isSavingNickname}>
                   <X size={15} />
-                  ??
+                  取消
                 </button>
               </div>
             </form>
@@ -867,7 +867,7 @@ const TripListPage = () => {
 
         </header>
 
-        <section className="tp-mobile-trips-sheet" aria-label="????">
+        <section className="tp-mobile-trips-sheet" aria-label="旅程操作">
           <button
             type="button"
             className="tp-mobile-trips-continue"
@@ -881,17 +881,17 @@ const TripListPage = () => {
               {!continueTripCoverImageUrl && <PlaneTakeoff size={21} />}
             </span>
             <span className="tp-mobile-trips-continue-copy">
-              <span>{continueTrip ? continueTripLabel : '敹恍?憪?}</span>
-              <strong>{continueTrip?.title || '撱箇?蝚砌?頞?蝔?}</strong>
-              <small>{continueTrip ? formatDateRange(continueTrip) : '????????渡??其?韏?}</small>
+              <span>{continueTrip ? continueTripLabel : '快速開始'}</span>
+              <strong>{continueTrip?.title || '建立第一趟旅程'}</strong>
+              <small>{continueTrip ? formatDateRange(continueTrip) : '把目的地、日期與靈感整理在一起'}</small>
             </span>
             <span className="tp-mobile-trips-continue-count">
               <strong>{continueTrip?.eventCount || totalTripCount || 0}</strong>
-              <small>{continueTrip ? '銵?' : '??'}</small>
+              <small>{continueTrip ? '行程' : '旅程'}</small>
             </span>
           </button>
 
-          <div className="tp-mobile-action-tabs" role="group" aria-label="????">
+          <div className="tp-mobile-action-tabs" role="group" aria-label="旅程操作">
             <button
               type="button"
               className={actionMode === 'create' ? 'is-active' : ''}
@@ -899,7 +899,7 @@ const TripListPage = () => {
               aria-pressed={actionMode === 'create'}
             >
               <Plus size={18} />
-              ?啣?
+              新增
             </button>
             <button
               type="button"
@@ -908,7 +908,7 @@ const TripListPage = () => {
               aria-pressed={actionMode === 'join'}
             >
               <KeyRound size={17} />
-              ?
+              加入
             </button>
           </div>
 
@@ -923,19 +923,19 @@ const TripListPage = () => {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
               >
-                <label className="sr-only" htmlFor="mobile-new-trip-title">?啣????迂</label>
+                <label className="sr-only" htmlFor="mobile-new-trip-title">新增旅程名稱</label>
                 <Input
                   id="mobile-new-trip-title"
                   ref={mobileNewTripInputRef}
                   {...plainTextInputProps}
                   value={newTripTitle}
                   onChange={(event) => setNewTripTitle(event.target.value)}
-                  placeholder="靘?嚗?蝜拙??交?銵?
+                  placeholder="例如：沖繩夏日旅行"
                   enterKeyHint="go"
                 />
                 <Button type="submit" className="justify-center">
                   <Plus size={18} />
-                  撱箇?
+                  建立
                 </Button>
               </motion.form>
             ) : (
@@ -948,7 +948,7 @@ const TripListPage = () => {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
               >
-                <label className="sr-only" htmlFor="mobile-trip-invite-code">?隢Ⅳ</label>
+                <label className="sr-only" htmlFor="mobile-trip-invite-code">邀請碼</label>
                 <Input
                   id="mobile-trip-invite-code"
                   {...inviteCodeInputProps}
@@ -959,7 +959,7 @@ const TripListPage = () => {
                 />
                 <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
                   <KeyRound size={16} />
-                  {isJoiningInvite ? '?銝? : '?'}
+                  {isJoiningInvite ? '加入中' : '加入'}
                 </Button>
               </motion.form>
             )}
@@ -967,21 +967,21 @@ const TripListPage = () => {
 
         </section>
 
-        <section className="tp-mobile-trips-search-panel" aria-label="???祟??>
+        <section className="tp-mobile-trips-search-panel" aria-label="搜尋與篩選">
           <div className="tp-mobile-trip-search">
             <Search size={17} aria-hidden="true" />
-            <label className="sr-only" htmlFor="mobile-trip-search">????</label>
+            <label className="sr-only" htmlFor="mobile-trip-search">搜尋旅程</label>
             <Input
               id="mobile-trip-search"
               {...searchInputProps}
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
-              placeholder="??????????
+              placeholder="搜尋旅程、狀態、角色"
             />
           </div>
 
           {hasTrips && (
-            <div className="tp-mobile-trip-filters" aria-label="??蝭拚">
+            <div className="tp-mobile-trip-filters" aria-label="旅程篩選">
               {tripFilterOptions.map((option) => (
                 <TripFilterChip
                   key={option.id}
@@ -995,11 +995,11 @@ const TripListPage = () => {
           )}
         </section>
 
-        <section className="tp-mobile-trips-list-panel" aria-label="???”">
+        <section className="tp-mobile-trips-list-panel" aria-label="旅程列表">
           <div className="tp-mobile-trips-list-heading">
             <div>
               <span>Journey stack</span>
-              <h2>雿???</h2>
+              <h2>你的旅程</h2>
             </div>
             {hasTrips && <strong>{sortedAndFilteredTrips.length}/{totalTripCount}</strong>}
           </div>
@@ -1019,8 +1019,8 @@ const TripListPage = () => {
             ) : sortedAndFilteredTrips.length === 0 ? (
               <EmptyState
                 icon={Compass}
-                title={hasTrips && (hasSearch || hasActiveFilter) ? '?曆??啁泵??隞嗥???' : '????蝔?}
-                actionLabel={hasTrips && hasSearch ? '皜??' : hasTrips && hasActiveFilter ? '憿舐內?券' : '撱箇???'}
+                title={hasTrips && (hasSearch || hasActiveFilter) ? '找不到符合條件的旅程' : '還沒有旅程'}
+                actionLabel={hasTrips && hasSearch ? '清除搜尋' : hasTrips && hasActiveFilter ? '顯示全部' : '建立旅程'}
                 onAction={() => {
                   if (hasTrips && hasSearch) {
                     setKeyword('');
@@ -1066,45 +1066,42 @@ const TripListPage = () => {
             <div className="tp-mobile-trip-list-actions">
               {hiddenTripCount > 0 && (
                 <Button variant="secondary" onClick={() => setShowAllTrips(true)}>
-                  憿舐內?游? {hiddenTripCount}
+                  顯示更多 {hiddenTripCount}
                 </Button>
               )}
               {showAllTrips && sortedAndFilteredTrips.length > 6 && (
                 <Button variant="ghost" onClick={() => setShowAllTrips(false)}>
-                  ?嗅??”
+                  收合列表
                 </Button>
               )}
             </div>
           </div>
         </section>
 
-        <nav className="tp-mobile-trips-dock" aria-label="??敹恍?閬?>
+        <nav className="tp-mobile-trips-dock" aria-label="旅程快速導覽">
           <button type="button" className="is-active" aria-current="page">
             <Compass size={20} />
-            <span>??</span>
+            <span>旅程</span>
           </button>
           <button type="button" onClick={focusNewTripTitle}>
             <Plus size={20} />
-            <span>?啣?</span>
+            <span>新增</span>
           </button>
           <button type="button" onClick={() => setActionMode('join')}>
             <KeyRound size={19} />
-            <span>?</span>
+            <span>加入</span>
           </button>
           <button
             type="button"
             onClick={continueTrip ? () => openTripDetail(continueTrip.id) : focusNewTripTitle}
           >
             <PlaneTakeoff size={19} />
-            <span>蝜潛?</span>
+            <span>繼續</span>
           </button>
         </nav>
       </section>
 
-      <PageContainer
-        className="tp-desktop-trips-shell tp-atlas-page-frame py-7 sm:py-10"
-      >
-
+      <PageContainer className="tp-desktop-trips-shell tp-atlas-page-frame py-7 sm:py-10">
         <motion.section
           className="tp-panel tp-command-hero relative mb-4 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
           initial={{ opacity: 0, y: 12, scale: 0.99 }}
@@ -1119,26 +1116,26 @@ const TripListPage = () => {
                   <PlaneTakeoff size={19} />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">??撠??/h1>
+                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">旅程小基地</h1>
                   <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    {totalTripCount ? `撌脫憟?${totalTripCount} 頞?蝔?${ownedTripCount} 頞雿恣? : '???喳??寞?脖?'}
+                    {totalTripCount ? `已收好 ${totalTripCount} 趟旅程，${ownedTripCount} 趟由你管理` : '先把想去的地方收進來'}
                   </p>
                 </div>
               </div>
 
-              <div className="tp-command-action-switch mt-5 grid grid-cols-2 gap-3" role="group" aria-label="?豢?????">
+              <div className="tp-command-action-switch mt-5 grid grid-cols-2 gap-3" role="group" aria-label="選擇旅程操作">
                 <ActionModeButton
                   active={actionMode === 'create'}
                   icon={Plus}
-                  title="撱箇?"
-                  meta="??餅憟?
+                  title="建立"
+                  meta="把想去收好"
                   onClick={() => setActionMode('create')}
                 />
                 <ActionModeButton
                   active={actionMode === 'join'}
                   icon={KeyRound}
-                  title="?"
-                  meta="??隡港?韏?
+                  title="加入"
+                  meta="和旅伴一起"
                   onClick={() => setActionMode('join')}
                 />
               </div>
@@ -1158,19 +1155,19 @@ const TripListPage = () => {
                   exit={{ opacity: 0, x: 12 }}
                   transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <label className="sr-only" htmlFor="new-trip-title">?啁????迂</label>
+                  <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
                   <Input
                     id="new-trip-title"
                     ref={newTripInputRef}
                     {...plainTextInputProps}
                     value={newTripTitle}
                     onChange={(event) => setNewTripTitle(event.target.value)}
-                    placeholder="靘?嚗?026 ?曹漪鞈姣"
+                    placeholder="例如：2026 東京賞櫻"
                     enterKeyHint="go"
                   />
                   <Button type="submit" className="justify-center">
                     <Plus size={18} />
-                    撱箇???
+                    建立旅程
                   </Button>
                 </motion.form>
               ) : (
@@ -1183,7 +1180,7 @@ const TripListPage = () => {
                   exit={{ opacity: 0, x: -12 }}
                   transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <label className="sr-only" htmlFor="trip-invite-code">?隢Ⅳ</label>
+                  <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
                   <Input
                     id="trip-invite-code"
                     {...inviteCodeInputProps}
@@ -1194,7 +1191,7 @@ const TripListPage = () => {
                   />
                   <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
                     <KeyRound size={16} />
-                    {isJoiningInvite ? '?銝?..' : '???'}
+                    {isJoiningInvite ? '加入中...' : '加入旅程'}
                   </Button>
                 </motion.form>
               )}
@@ -1204,20 +1201,20 @@ const TripListPage = () => {
             <div className="tp-command-hero-toolbar">
               <div className="tp-command-hero-search relative">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <label className="sr-only" htmlFor="trip-search">????</label>
+                <label className="sr-only" htmlFor="trip-search">搜尋旅程</label>
                 <Input
                   id="trip-search"
                   {...searchInputProps}
                   value={keyword}
                   onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="???迂?????交?"
+                  placeholder="搜尋名稱、狀態或日期"
                   className="pl-9"
                 />
               </div>
 
               {hasTrips && (
                 <div className="relative w-full tp-command-hero-filters">
-                  <div className="-mx-1 mt-0 flex gap-3 overflow-x-auto px-1 pb-2 no-scrollbar" aria-label="??蝭拚">
+                  <div className="-mx-1 mt-0 flex gap-3 overflow-x-auto px-1 pb-2 no-scrollbar" aria-label="旅程篩選">
                     {tripFilterOptions.map((option) => (
                       <TripFilterChip
                         key={option.id}
@@ -1239,10 +1236,10 @@ const TripListPage = () => {
         <section className="tp-list-body-shell mt-4 sm:mt-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="tp-section-title">????</h2>
+              <h2 className="tp-section-title">我的旅程</h2>
               {hasTrips && (
                 <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
-                  憿舐內 {sortedAndFilteredTrips.length} / {totalTripCount}
+                  顯示 {sortedAndFilteredTrips.length} / {totalTripCount}
                 </p>
               )}
             </div>
@@ -1261,8 +1258,8 @@ const TripListPage = () => {
             ) : sortedAndFilteredTrips.length === 0 ? (
               <EmptyState
                 icon={Compass}
-                title={hasTrips && (hasSearch || hasActiveFilter) ? '?曆??啁泵??隞嗥???' : '?桀?撠??'}
-                actionLabel={hasTrips && hasSearch ? '皜??' : hasTrips && hasActiveFilter ? '?亦??券' : '?啣?蝚砌???蝔?}
+                title={hasTrips && (hasSearch || hasActiveFilter) ? '找不到符合條件的旅程' : '目前尚無旅程'}
+                actionLabel={hasTrips && hasSearch ? '清除搜尋' : hasTrips && hasActiveFilter ? '查看全部' : '新增第一個旅程'}
                 onAction={() => {
                   if (hasTrips && hasSearch) {
                     setKeyword('');
@@ -1310,12 +1307,12 @@ const TripListPage = () => {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {hiddenTripCount > 0 && (
                 <Button variant="secondary" onClick={() => setShowAllTrips(true)}>
-                  ?亦??游???嚗?{hiddenTripCount}嚗?
+                  查看更多旅程（+{hiddenTripCount}）
                 </Button>
               )}
               {showAllTrips && sortedAndFilteredTrips.length > 6 && (
                 <Button variant="ghost" onClick={() => setShowAllTrips(false)}>
-                  ?嗅????”
+                  收合旅程列表
                 </Button>
               )}
             </div>
