@@ -132,6 +132,84 @@ const TripAccessBadge = ({ role }) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
+const tripThemePresets = [
+  {
+    id: 'island',
+    label: '海島旅程',
+    keywords: ['okinawa', 'bali', 'hawaii', 'island', 'beach', 'ocean', 'sea', '沖繩', '峇里', '夏威夷', '海', '島', '沙灘'],
+    primary: '4 83 95',
+    secondary: '8 132 139',
+    accent: '255 111 97',
+    paper: '224 246 242'
+  },
+  {
+    id: 'city',
+    label: '城市探索',
+    keywords: ['tokyo', 'osaka', 'seoul', 'london', 'paris', 'new york', 'city', '東京', '大阪', '首爾', '巴黎', '倫敦', '紐約', '城市'],
+    primary: '35 62 105',
+    secondary: '12 111 134',
+    accent: '255 126 84',
+    paper: '230 238 246'
+  },
+  {
+    id: 'mountain',
+    label: '山線路徑',
+    keywords: ['mountain', 'alps', 'camp', 'hike', 'forest', 'swiss', '山', '森林', '露營', '登山', '健行', '瑞士'],
+    primary: '27 85 72',
+    secondary: '83 139 96',
+    accent: '246 141 79',
+    paper: '229 243 230'
+  },
+  {
+    id: 'snow',
+    label: '雪境假期',
+    keywords: ['snow', 'ski', 'winter', 'sapporo', 'hokkaido', '雪', '滑雪', '冬', '札幌', '北海道'],
+    primary: '28 78 112',
+    secondary: '86 152 177',
+    accent: '255 128 112',
+    paper: '232 244 248'
+  },
+  {
+    id: 'sunset',
+    label: '日落公路',
+    keywords: ['road', 'desert', 'sunset', 'california', 'australia', '公路', '沙漠', '夕陽', '加州', '澳洲'],
+    primary: '126 69 45',
+    secondary: '190 107 64',
+    accent: '255 111 97',
+    paper: '247 236 223'
+  },
+  {
+    id: 'food',
+    label: '美食地圖',
+    keywords: ['food', 'cafe', 'market', 'wine', 'restaurant', '美食', '咖啡', '市集', '餐廳', '酒莊'],
+    primary: '112 65 54',
+    secondary: '176 100 76',
+    accent: '7 129 138',
+    paper: '246 236 229'
+  }
+];
+
+const getTripTheme = (trip) => {
+  const rawTitle = String(trip?.title || '').toLowerCase();
+  const match = tripThemePresets.find((theme) =>
+    theme.keywords.some((keyword) => rawTitle.includes(keyword.toLowerCase()))
+  );
+  const hashBase = rawTitle || trip?.status || 'atlas';
+  const hash = Array.from(hashBase).reduce((total, char) => total + char.charCodeAt(0), 0);
+  const theme = match || tripThemePresets[hash % tripThemePresets.length] || tripThemePresets[0];
+
+  return {
+    ...theme,
+    className: `is-theme-${theme.id}`,
+    style: {
+      '--tp-mobile-trip-theme-primary': theme.primary,
+      '--tp-mobile-trip-theme-secondary': theme.secondary,
+      '--tp-mobile-trip-theme-accent': theme.accent,
+      '--tp-mobile-trip-theme-paper': theme.paper
+    }
+  };
+};
+
 const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
   <button
     type="button"
@@ -277,12 +355,74 @@ const TripCard = ({
   );
 };
 
+const MobileTripRow = ({
+  trip,
+  coverFailed,
+  onCoverError,
+  onOpen,
+  onDelete,
+  canDelete = false
+}) => {
+  const coverImageUrl = normalizeCoverImageUrl(trip.coverImage);
+  const showCover = coverImageUrl && !coverFailed;
+  const tripTheme = getTripTheme(trip);
+
+  return (
+    <article className={`tp-mobile-trip-row ${tripTheme.className}`} style={tripTheme.style}>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="tp-mobile-trip-row-main"
+        aria-label={`開啟 ${trip.title || '旅程'}`}
+      >
+        <span className="tp-mobile-trip-row-cover" aria-hidden="true">
+          {showCover ? (
+            <img
+              src={coverImageUrl}
+              alt=""
+              onError={onCoverError}
+            />
+          ) : (
+            <Compass size={23} />
+          )}
+        </span>
+        <span className="tp-mobile-trip-row-content">
+          <span className="tp-mobile-trip-row-badges">
+            <TripStatusBadge status={trip.status} />
+            <TripAccessBadge role={trip.accessRole} />
+          </span>
+          <strong>{trip.title || '未命名旅程'}</strong>
+          <span className="tp-mobile-trip-row-date">
+            <CalendarDays size={14} />
+            <span>{formatDateRange(trip)}</span>
+          </span>
+          <span className="tp-mobile-trip-row-meta">
+            <span>{trip.eventCount || 0} 個行程</span>
+            <span>{formatDateTime(trip.updatedAt)}</span>
+          </span>
+        </span>
+      </button>
+      {canDelete && (
+        <button
+          type="button"
+          className="tp-mobile-trip-row-delete"
+          onClick={onDelete}
+          aria-label={`刪除 ${trip.title || '旅程'}`}
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
+    </article>
+  );
+};
+
 const TripListPage = () => {
   const navigate = useNavigate();
   const { confirm, toast } = useFeedback();
   const { currentUser, userProfile, updateDisplayName, logout } = useAuth();
   const uid = currentUser?.uid || '';
   const newTripInputRef = useRef(null);
+  const mobileNewTripInputRef = useRef(null);
   const [trips, setTrips] = useState([]);
   const [newTripTitle, setNewTripTitle] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -413,12 +553,24 @@ const TripListPage = () => {
     : null;
   const continueTrip = lastOpenedTrip || sortedTrips[0] || null;
   const continueTripCoverImageUrl = normalizeCoverImageUrl(continueTrip?.coverImage);
+  const continueTripTheme = getTripTheme(continueTrip);
+  const continueTripHeroStyle = {
+    ...continueTripTheme.style,
+    ...(continueTripCoverImageUrl ? { '--tp-mobile-trip-hero-image': `url("${continueTripCoverImageUrl}")` } : {})
+  };
   const continueTripLabel = lastOpenedTrip ? '接著上次規劃' : '最近有動靜';
+
+  const focusActiveNewTripInput = () => {
+    const targetInput = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+      ? mobileNewTripInputRef.current
+      : newTripInputRef.current;
+    targetInput?.focus();
+  };
 
   const focusNewTripTitle = () => {
     setActionMode('create');
     if (typeof window !== 'undefined') {
-      window.setTimeout(() => newTripInputRef.current?.focus(), 0);
+      window.setTimeout(focusActiveNewTripInput, 0);
     }
   };
 
@@ -426,7 +578,7 @@ const TripListPage = () => {
     event?.preventDefault();
     const title = newTripTitle.trim();
     if (!title) {
-      newTripInputRef.current?.focus();
+      focusActiveNewTripInput();
       return;
     }
 
@@ -644,7 +796,312 @@ const TripListPage = () => {
         <span />
         <span />
       </div>
-      <PageContainer className="tp-atlas-page-frame py-7 sm:py-10">
+
+      <section
+        className={`tp-mobile-trips-shell ${continueTripTheme.className}`}
+        style={continueTripHeroStyle}
+        aria-label="Trips mobile dashboard"
+      >
+        <header
+          className={`tp-mobile-trips-hero ${continueTripTheme.className} ${continueTripCoverImageUrl ? 'has-trip-cover' : continueTrip ? 'has-trip-theme' : ''}`}
+        >
+          <div className="tp-mobile-trips-route" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="tp-mobile-trips-topline">
+            <div className="min-w-0">
+              <span className="tp-mobile-trips-eyebrow">{continueTrip ? continueTripTheme.label : 'Coastal Atlas'}</span>
+              <h1>Trips</h1>
+            </div>
+            <button
+              type="button"
+              className="tp-mobile-trips-logout"
+              onClick={logout}
+            >
+              登出
+            </button>
+          </div>
+
+          <div className="tp-mobile-trips-account">
+            <div className="min-w-0">
+              <span>旅人</span>
+              <strong>{accountDisplayName}</strong>
+              <small>{currentUser?.email || 'Trip Planner'}</small>
+            </div>
+            <button
+              type="button"
+              onClick={handleStartNicknameEdit}
+              aria-label="修改暱稱"
+              title="修改暱稱"
+            >
+              <Pencil size={17} />
+            </button>
+          </div>
+
+          {isEditingNickname && (
+            <form onSubmit={handleSaveNickname} className="tp-mobile-trips-nickname-form">
+              <label htmlFor="mobile-nickname-draft">暱稱</label>
+              <Input
+                id="mobile-nickname-draft"
+                {...plainTextInputProps}
+                value={nicknameDraft}
+                onChange={(event) => setNicknameDraft(event.target.value)}
+                placeholder="輸入顯示名稱"
+                enterKeyHint="done"
+                autoFocus
+              />
+              <div>
+                <button type="submit" disabled={isSavingNickname || !nicknameDraft.trim()}>
+                  <Check size={15} />
+                  儲存
+                </button>
+                <button type="button" onClick={handleCancelNicknameEdit} disabled={isSavingNickname}>
+                  <X size={15} />
+                  取消
+                </button>
+              </div>
+            </form>
+          )}
+
+        </header>
+
+        <section className="tp-mobile-trips-sheet" aria-label="旅程操作">
+          <button
+            type="button"
+            className="tp-mobile-trips-continue"
+            onClick={continueTrip ? () => openTripDetail(continueTrip.id) : focusNewTripTitle}
+          >
+            <span
+              className="tp-mobile-trips-continue-cover"
+              style={continueTripCoverImageUrl ? { backgroundImage: `url(${continueTripCoverImageUrl})` } : undefined}
+              aria-hidden="true"
+            >
+              {!continueTripCoverImageUrl && <PlaneTakeoff size={21} />}
+            </span>
+            <span className="tp-mobile-trips-continue-copy">
+              <span>{continueTrip ? continueTripLabel : '快速開始'}</span>
+              <strong>{continueTrip?.title || '建立第一趟旅程'}</strong>
+              <small>{continueTrip ? formatDateRange(continueTrip) : '把目的地、日期與靈感整理在一起'}</small>
+            </span>
+            <span className="tp-mobile-trips-continue-count">
+              <strong>{continueTrip?.eventCount || totalTripCount || 0}</strong>
+              <small>{continueTrip ? '行程' : '旅程'}</small>
+            </span>
+          </button>
+
+          <div className="tp-mobile-action-tabs" role="group" aria-label="旅程操作">
+            <button
+              type="button"
+              className={actionMode === 'create' ? 'is-active' : ''}
+              onClick={focusNewTripTitle}
+              aria-pressed={actionMode === 'create'}
+            >
+              <Plus size={18} />
+              新增
+            </button>
+            <button
+              type="button"
+              className={actionMode === 'join' ? 'is-active' : ''}
+              onClick={() => setActionMode('join')}
+              aria-pressed={actionMode === 'join'}
+            >
+              <KeyRound size={17} />
+              加入
+            </button>
+          </div>
+
+          <AnimatePresence mode="wait" initial={false}>
+            {actionMode === 'create' ? (
+              <motion.form
+                key="mobile-create-trip"
+                onSubmit={handleCreateTrip}
+                className="tp-mobile-trip-form"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <label className="sr-only" htmlFor="mobile-new-trip-title">新增旅程名稱</label>
+                <Input
+                  id="mobile-new-trip-title"
+                  ref={mobileNewTripInputRef}
+                  {...plainTextInputProps}
+                  value={newTripTitle}
+                  onChange={(event) => setNewTripTitle(event.target.value)}
+                  placeholder="例如：沖繩夏日旅行"
+                  enterKeyHint="go"
+                />
+                <Button type="submit" className="justify-center">
+                  <Plus size={18} />
+                  建立
+                </Button>
+              </motion.form>
+            ) : (
+              <motion.form
+                key="mobile-join-trip"
+                onSubmit={handleJoinByInviteCode}
+                className="tp-mobile-trip-form"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <label className="sr-only" htmlFor="mobile-trip-invite-code">邀請碼</label>
+                <Input
+                  id="mobile-trip-invite-code"
+                  {...inviteCodeInputProps}
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
+                  placeholder="YK82-P7Q9"
+                  className="font-mono uppercase"
+                />
+                <Button type="submit" disabled={isJoiningInvite || inviteCode.replace('-', '').length !== 8} className="justify-center">
+                  <KeyRound size={16} />
+                  {isJoiningInvite ? '加入中' : '加入'}
+                </Button>
+              </motion.form>
+            )}
+          </AnimatePresence>
+
+        </section>
+
+        <section className="tp-mobile-trips-search-panel" aria-label="搜尋與篩選">
+          <div className="tp-mobile-trip-search">
+            <Search size={17} aria-hidden="true" />
+            <label className="sr-only" htmlFor="mobile-trip-search">搜尋旅程</label>
+            <Input
+              id="mobile-trip-search"
+              {...searchInputProps}
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="搜尋旅程、狀態、角色"
+            />
+          </div>
+
+          {hasTrips && (
+            <div className="tp-mobile-trip-filters" aria-label="旅程篩選">
+              {tripFilterOptions.map((option) => (
+                <TripFilterChip
+                  key={option.id}
+                  active={tripFilter === option.id}
+                  label={option.label}
+                  count={option.count}
+                  onClick={() => setTripFilter(option.id)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="tp-mobile-trips-list-panel" aria-label="旅程列表">
+          <div className="tp-mobile-trips-list-heading">
+            <div>
+              <span>Journey stack</span>
+              <h2>你的旅程</h2>
+            </div>
+            {hasTrips && <strong>{sortedAndFilteredTrips.length}/{totalTripCount}</strong>}
+          </div>
+
+          <InstallAppPrompt className="tp-mobile-install-card" />
+
+          {cloudSyncWarning && (
+            <div className="tp-mobile-sync-warning" role="status" aria-live="polite">
+              <AlertTriangle size={17} />
+              <p>{cloudSyncWarning}</p>
+            </div>
+          )}
+
+          <div className="tp-mobile-trip-list-region">
+            {isLoading ? (
+              <LoadingState />
+            ) : sortedAndFilteredTrips.length === 0 ? (
+              <EmptyState
+                icon={Compass}
+                title={hasTrips && (hasSearch || hasActiveFilter) ? '找不到符合條件的旅程' : '還沒有旅程'}
+                actionLabel={hasTrips && hasSearch ? '清除搜尋' : hasTrips && hasActiveFilter ? '顯示全部' : '建立旅程'}
+                onAction={() => {
+                  if (hasTrips && hasSearch) {
+                    setKeyword('');
+                  } else if (hasTrips && hasActiveFilter) {
+                    setTripFilter('all');
+                  } else {
+                    focusNewTripTitle();
+                  }
+                }}
+              />
+            ) : (
+              <motion.div
+                className="tp-mobile-trip-list"
+                variants={tripGridMotion}
+                initial="hidden"
+                animate="visible"
+              >
+                {visibleTrips.map((trip) => (
+                  <motion.div
+                    key={trip.id}
+                    layout
+                    variants={tripGridItemMotion}
+                    transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.55 }}
+                  >
+                    <MobileTripRow
+                      trip={trip}
+                      coverFailed={Boolean(failedCoverImages[trip.id])}
+                      onCoverError={() =>
+                        setFailedCoverImages((prev) => ({
+                          ...prev,
+                          [trip.id]: true
+                        }))
+                      }
+                      onOpen={() => openTripDetail(trip.id)}
+                      onDelete={() => handleDeleteTrip(trip.id)}
+                      canDelete={trip.accessRole === 'owner'}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+
+            <div className="tp-mobile-trip-list-actions">
+              {hiddenTripCount > 0 && (
+                <Button variant="secondary" onClick={() => setShowAllTrips(true)}>
+                  顯示更多 {hiddenTripCount}
+                </Button>
+              )}
+              {showAllTrips && sortedAndFilteredTrips.length > 6 && (
+                <Button variant="ghost" onClick={() => setShowAllTrips(false)}>
+                  收合列表
+                </Button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <nav className="tp-mobile-trips-dock" aria-label="旅程快速導覽">
+          <button type="button" className="is-active" aria-current="page">
+            <Compass size={20} />
+            <span>旅程</span>
+          </button>
+          <button type="button" onClick={focusNewTripTitle}>
+            <Plus size={20} />
+            <span>新增</span>
+          </button>
+          <button type="button" onClick={() => setActionMode('join')}>
+            <KeyRound size={19} />
+            <span>加入</span>
+          </button>
+          <button
+            type="button"
+            onClick={continueTrip ? () => openTripDetail(continueTrip.id) : focusNewTripTitle}
+          >
+            <PlaneTakeoff size={19} />
+            <span>繼續</span>
+          </button>
+        </nav>
+      </section>
+
+      <PageContainer className="tp-desktop-trips-shell tp-atlas-page-frame py-7 sm:py-10">
         <section className="tp-mobile-atlas-dashboard" aria-label="旅程總覽">
           <div className="tp-mobile-atlas-dashboard-map" aria-hidden="true">
             <span className="tp-mobile-atlas-dashboard-node tp-mobile-atlas-dashboard-node-1" />
