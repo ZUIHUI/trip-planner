@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
 const VISIBLE_EDGE_PADDING = 10;
@@ -12,22 +12,22 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
   const scrollContainerRef = useRef(null);
   const selectedTabRef = useRef(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const scrollSelectedTabIntoView = () => {
       const container = scrollContainerRef.current;
-      const selectedTab = selectedTabRef.current;
+      const selectedTab = container?.querySelector?.('[aria-pressed="true"]') || selectedTabRef.current;
       if (!container || !selectedTab) return;
 
-      const containerRect = container.getBoundingClientRect();
-      const selectedTabRect = selectedTab.getBoundingClientRect();
-      const visibleLeft = containerRect.left + VISIBLE_EDGE_PADDING;
-      const visibleRight = containerRect.right - VISIBLE_EDGE_PADDING;
+      const selectedLeft = selectedTab.offsetLeft;
+      const selectedRight = selectedLeft + selectedTab.offsetWidth;
+      const visibleLeft = container.scrollLeft + VISIBLE_EDGE_PADDING;
+      const visibleRight = container.scrollLeft + container.clientWidth - VISIBLE_EDGE_PADDING;
       let nextLeft = container.scrollLeft;
 
-      if (selectedTabRect.left < visibleLeft) {
-        nextLeft -= visibleLeft - selectedTabRect.left;
-      } else if (selectedTabRect.right > visibleRight) {
-        nextLeft += selectedTabRect.right - visibleRight;
+      if (selectedLeft < visibleLeft) {
+        nextLeft = selectedLeft - VISIBLE_EDGE_PADDING;
+      } else if (selectedRight > visibleRight) {
+        nextLeft = selectedRight - container.clientWidth + VISIBLE_EDGE_PADDING;
       } else {
         return;
       }
@@ -39,14 +39,17 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     };
 
     let secondFrame = 0;
+    let finalCheck = 0;
     const firstFrame = window.requestAnimationFrame(() => {
       scrollSelectedTabIntoView();
       secondFrame = window.requestAnimationFrame(scrollSelectedTabIntoView);
+      finalCheck = window.setTimeout(scrollSelectedTabIntoView, 180);
     });
 
     return () => {
       window.cancelAnimationFrame(firstFrame);
       if (secondFrame) window.cancelAnimationFrame(secondFrame);
+      if (finalCheck) window.clearTimeout(finalCheck);
     };
   }, [selectedDay, itinerary.length]);
 
