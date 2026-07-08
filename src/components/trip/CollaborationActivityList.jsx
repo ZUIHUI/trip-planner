@@ -43,11 +43,45 @@ const LEGACY_PACKING_CLOTHING_TITLES = new Set([
   '雨衣'
 ]);
 
+const ENTITY_KIND_LABELS = Object.freeze({
+  'itinerary-event': '行程',
+  'itinerary-day': '行程天',
+  'trip-detail-meta': '基本資料',
+  'trip-detail-logistics': '交通住宿',
+  'trip-detail-finance': '預算設定',
+  'pre-trip-todo': '行前待辦',
+  packing: '行李',
+  'packing-clothing': '行李衣物',
+  'shopping-item': '購物項目',
+  expense: '記帳',
+  'place-idea': '景點靈感',
+  'shopping-category': '購物分類'
+});
+
+const COLLECTION_LABELS = Object.freeze({
+  events: '行程',
+  days: '行程天',
+  details: '旅程資料',
+  checklistItems: '行前待辦',
+  shoppingItems: '購物項目',
+  expenses: '記帳',
+  placeIdeas: '景點靈感',
+  shoppingCategories: '購物分類'
+});
+
+const PACKING_CATEGORY_LABELS = Object.freeze({
+  suitcase: '托運行李',
+  carryOn: '隨身行李',
+  clothing: '行李衣物',
+  other: '行李物品'
+});
+
 const normalizeActivityLabel = (activity = {}) => {
-  if (activity.entityKind === 'packing-clothing') return '行李衣物';
-  if (activity.entityKind === 'packing') return '行李';
-  if (activity.listId === 'packing' && activity.category === 'clothing') return '行李衣物';
-  if (activity.listId === 'packing') return '行李';
+  if (activity.entityKind === 'packing-clothing') return ENTITY_KIND_LABELS['packing-clothing'];
+  if (activity.entityKind === 'packing' || activity.listId === 'packing') {
+    return PACKING_CATEGORY_LABELS[activity.category] || '行李';
+  }
+  if (ENTITY_KIND_LABELS[activity.entityKind]) return ENTITY_KIND_LABELS[activity.entityKind];
 
   const body = String(activity.body || activity.entityTitle || '').trim();
   if (
@@ -58,7 +92,7 @@ const normalizeActivityLabel = (activity = {}) => {
     return '行李衣物';
   }
 
-  return activity.label || '旅程內容';
+  return COLLECTION_LABELS[activity.collectionId] || activity.label || '旅程內容';
 };
 
 const formatActivityTitle = (activity = {}, currentUid = '') => {

@@ -1299,26 +1299,47 @@ const getCollaborationActionText = (action) => {
   return '更新';
 };
 
+const PACKING_CATEGORY_LABELS = Object.freeze({
+  suitcase: '托運行李',
+  carryOn: '隨身行李',
+  clothing: '行李衣物',
+  other: '行李物品'
+});
+
+const DETAIL_SECTION_LABELS = Object.freeze({
+  meta: '基本資料',
+  logistics: '交通住宿',
+  finance: '預算設定'
+});
+
+const getKnownValueLabel = (value, labels = {}, fallback = '') => {
+  const key = cleanPushString(value, 60);
+  return labels[key] || fallback || key;
+};
+
 const getCollaborationChecklistMeta = (data = {}) => {
   const listId = cleanPushString(data.listId, 40);
   if (listId === 'packing') {
     const category = cleanPushString(data.category, 40);
+    const categoryLabel = getKnownValueLabel(category, PACKING_CATEGORY_LABELS, '行李物品');
     if (category === 'clothing') {
       return {
-        label: '行李衣物',
+        label: categoryLabel,
         fallback: '一件行李衣物',
         entityKind: 'packing-clothing',
         listId,
-        category
+        category,
+        categoryLabel
       };
     }
 
     return {
-      label: '行李',
+      label: categoryLabel,
       fallback: '一件行李物品',
       entityKind: 'packing',
       listId,
-      category
+      category,
+      categoryLabel
     };
   }
 
@@ -1327,11 +1348,24 @@ const getCollaborationChecklistMeta = (data = {}) => {
     fallback: '一個待辦',
     entityKind: 'pre-trip-todo',
     listId: listId || 'preTrip',
-    category: cleanPushString(data.category, 40)
+    category: cleanPushString(data.category, 40),
+    categoryLabel: ''
   };
 };
 
-const getCollaborationCollectionConfig = ({ collectionId, data = {} }) => {
+const getCollaborationDetailMeta = (data = {}, documentId = '') => {
+  const section = cleanPushString(data.section || data.id || documentId, 80);
+  const sectionLabel = getKnownValueLabel(section, DETAIL_SECTION_LABELS, '旅程資料');
+  return {
+    label: sectionLabel,
+    fallback: sectionLabel,
+    entityKind: section ? `trip-detail-${section}` : 'trip-detail',
+    section,
+    sectionLabel
+  };
+};
+
+const getCollaborationCollectionConfig = ({ collectionId, data = {}, documentId = '' }) => {
   const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
   if (collectionId === 'checklistItems') {
     return {
@@ -1340,7 +1374,38 @@ const getCollaborationCollectionConfig = ({ collectionId, data = {} }) => {
     };
   }
 
-  return config;
+  if (collectionId === 'details') {
+    return {
+      ...config,
+      ...getCollaborationDetailMeta(data, documentId)
+    };
+  }
+
+  const collectionMeta = {
+    events: { label: '行程', fallback: '一個行程', entityKind: 'itinerary-event' },
+    days: { label: '行程天', fallback: '一天行程', entityKind: 'itinerary-day' },
+    shoppingItems: {
+      label: '購物項目',
+      fallback: '一個購物項目',
+      entityKind: 'shopping-item',
+      category: cleanPushString(data.category, 60),
+      categoryLabel: cleanPushString(data.category, 60)
+    },
+    expenses: {
+      label: '記帳',
+      fallback: '一筆費用',
+      entityKind: 'expense',
+      category: cleanPushString(data.category, 60),
+      categoryLabel: cleanPushString(data.category, 60)
+    },
+    placeIdeas: { label: '景點靈感', fallback: '一個景點靈感', entityKind: 'place-idea' },
+    shoppingCategories: { label: '購物分類', fallback: '一個購物分類', entityKind: 'shopping-category' }
+  };
+
+  return {
+    ...config,
+    ...(collectionMeta[collectionId] || {})
+  };
 };
 
 const getCollaborationDayLabel = (data = {}) => {
@@ -1361,12 +1426,18 @@ const getCollaborationMemberName = (member = {}, uid = '') => {
   );
 };
 
+const getCollaborationAmountText = (data = {}) => {
+  const amount = Number(data.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return '';
+  const currency = cleanPushString(data.currency, 12);
+  return [currency, amount.toLocaleString('en-US')].filter(Boolean).join(' ');
+};
+
 const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
-  const config = getCollaborationCollectionConfig({ collectionId, data });
+  const config = getCollaborationCollectionConfig({ collectionId, data, documentId });
 
   if (collectionId === 'details') {
-    const section = cleanPushString(data.section || data.id || documentId, 80);
-    return config.sectionLabels?.[section] || config.fallback || section;
+    return config.sectionLabel || config.fallback || '旅程資料';
   }
 
   if (collectionId === 'events') {
@@ -1383,6 +1454,41 @@ const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
     const dayTitle = cleanPushString(data.title || data.date, 100);
     const eventTitle = [dayLabel, dayTitle].filter(Boolean).join(' · ');
     if (eventTitle) return eventTitle;
+  }
+
+  if (collectionId === 'checklistItems') {
+    const dayLabel = config.entityKind === 'packing-clothing' ? getCollaborationDayLabel(data) : '';
+    const title = cleanPushString(data.text || data.category, 100);
+    const categoryLabel = config.entityKind === 'packing-clothing' ? '' : cleanPushString(config.categoryLabel, 60);
+    const checklistTitle = [dayLabel, categoryLabel, title].filter(Boolean).join(' · ');
+    if (checklistTitle) return checklistTitle;
+  }
+
+  if (collectionId === 'shoppingItems') {
+    const categoryLabel = cleanPushString(config.categoryLabel || data.category, 60);
+    const name = cleanPushString(data.name || data.title, 100);
+    const shoppingTitle = [categoryLabel, name].filter(Boolean).join(' · ');
+    if (shoppingTitle) return shoppingTitle;
+  }
+
+  if (collectionId === 'expenses') {
+    const categoryLabel = cleanPushString(config.categoryLabel || data.category, 60);
+    const title = cleanPushString(data.title || data.payer, 100);
+    const amountText = getCollaborationAmountText(data);
+    const expenseTitle = [categoryLabel, title, amountText].filter(Boolean).join(' · ');
+    if (expenseTitle) return expenseTitle;
+  }
+
+  if (collectionId === 'placeIdeas') {
+    const name = cleanPushString(data.name || data.address, 100);
+    const address = cleanPushString(data.address, 100);
+    const placeTitle = [name, address && address !== name ? address : ''].filter(Boolean).join(' · ');
+    if (placeTitle) return placeTitle;
+  }
+
+  if (collectionId === 'shoppingCategories') {
+    const name = cleanPushString(data.name || documentId, 100);
+    if (name) return name;
   }
 
   const fields = Array.isArray(config.titleFields) ? config.titleFields : [];
@@ -1408,7 +1514,7 @@ const buildCollaborationActivity = ({
   actorUid,
   actorName
 }) => {
-  const config = getCollaborationCollectionConfig({ collectionId, data });
+  const config = getCollaborationCollectionConfig({ collectionId, data, documentId });
   const label = config.label || '旅程內容';
   const actionText = getCollaborationActionText(action);
   const entityTitle = getCollaborationEntityTitle({ collectionId, documentId, data });
@@ -1427,6 +1533,9 @@ const buildCollaborationActivity = ({
     entityKind: config.entityKind || collectionId,
     listId: config.listId || '',
     category: config.category || '',
+    categoryLabel: config.categoryLabel || '',
+    section: config.section || '',
+    sectionLabel: config.sectionLabel || '',
     entityTitle: body,
     title: cleanPushString(`${actorName} ${actionText}了${label}`, 100),
     body,
