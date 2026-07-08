@@ -290,7 +290,7 @@ const EventCard = ({
         event.urgent ? 'border-red-500' : 'border-brand-400'
       }`} layout />
 
-      <Card interactive className="relative cursor-pointer p-4 sm:p-5" onClick={handleCardClick}>
+      <Card interactive className="tp-itinerary-event-card relative cursor-pointer p-4 sm:p-5" onClick={handleCardClick}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-4">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11 ${meta.className}`}>

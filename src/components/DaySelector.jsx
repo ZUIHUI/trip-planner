@@ -6,18 +6,36 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
   const selectedTabRef = useRef(null);
 
   useEffect(() => {
-    if (selectedTabRef.current && scrollContainerRef.current) {
-      selectedTabRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center'
+    const scrollSelectedTabIntoView = () => {
+      const container = scrollContainerRef.current;
+      const selectedTab = selectedTabRef.current;
+      if (!container || !selectedTab) return;
+
+      const maxLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+      const centeredLeft = selectedTab.offsetLeft - ((container.clientWidth - selectedTab.offsetWidth) / 2);
+      const nextLeft = Math.min(maxLeft, Math.max(0, centeredLeft));
+
+      container.scrollTo({
+        left: nextLeft,
+        behavior: 'smooth'
       });
-    }
-  }, [selectedDay]);
+    };
+
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      scrollSelectedTabIntoView();
+      secondFrame = window.requestAnimationFrame(scrollSelectedTabIntoView);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+    };
+  }, [selectedDay, itinerary.length]);
 
   return (
     <motion.section
-      className="px-5 sm:px-7 lg:px-10"
+      className="tp-day-selector-strip px-5 sm:px-7 lg:px-10"
       aria-label="選擇行程日期"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -25,14 +43,11 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
     >
       <motion.div
         ref={scrollContainerRef}
-        className="tp-panel no-scrollbar flex gap-3 overflow-x-auto scroll-smooth p-3"
+        className="tp-panel tp-day-selector-track no-scrollbar flex gap-2 overflow-x-auto scroll-smooth p-2.5 sm:gap-3 sm:p-3"
         layout
       >
         {itinerary.map((item) => {
-          const isSelected = selectedDay === item.day;
-          const eventCount = item.events?.length || 0;
-          const dateText = item.date || `第 ${item.day} 天`;
-          const weekdayText = item.weekday || '';
+          const isSelected = String(selectedDay) === String(item.day);
 
           return (
             <motion.button
@@ -45,20 +60,14 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               animate={{ y: isSelected ? -2 : 0, scale: isSelected ? 1.025 : 1 }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
-              className={`touch-target min-w-[5.65rem] rounded-lg px-3 py-3 text-left transition active:scale-[0.98] sm:min-w-[6.5rem] sm:px-4 ${
+              aria-label={`切換到第 ${item.day} 天`}
+              className={`touch-target tp-day-selector-chip min-w-[4.25rem] rounded-lg px-3 py-2.5 text-center transition active:scale-[0.98] sm:min-w-[5rem] sm:px-4 ${
                 isSelected
                   ? 'bg-brand-700 text-white shadow-sm dark:bg-brand-800 dark:text-brand-50'
                   : 'bg-white/75 text-stone-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/65'
               }`}
             >
-              <span className="block text-xs font-bold opacity-80">第 {item.day} 天</span>
-              <span className="mt-1 block text-sm font-black leading-tight">{dateText}</span>
-              <span className="mt-1.5 block truncate text-[11px] font-semibold opacity-75">
-                {weekdayText || `${eventCount} 個行程`}
-              </span>
-              {weekdayText && (
-                <span className="mt-0.5 block text-[11px] font-semibold opacity-70">{eventCount} 個行程</span>
-              )}
+              <span className="block whitespace-nowrap text-sm font-black leading-none">第 {item.day} 天</span>
             </motion.button>
           );
         })}

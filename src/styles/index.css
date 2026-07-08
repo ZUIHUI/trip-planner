@@ -7849,4 +7849,48 @@ textarea.tp-input {
   .tp-mobile-feature-stats {
     grid-template-columns: repeat(auto-fit, minmax(4.55rem, 1fr)) !important;
   }
+
+  .tp-day-selector-strip {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .tp-day-selector-track {
+    align-items: center !important;
+    border-radius: 14px !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .tp-day-selector-chip {
+    flex: 0 0 auto !important;
+    max-width: none !important;
+    min-height: 2.65rem !important;
+    min-width: 4.25rem !important;
+  }
+
+  .tp-day-selector-chip span {
+    overflow-wrap: normal !important;
+    white-space: nowrap !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-event-card {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1.5px solid rgba(15, 23, 42, 0.58) !important;
+    box-shadow:
+      0 14px 28px -24px rgba(15, 23, 42, 0.62),
+      0 0 0 1px rgba(255, 255, 255, 0.88) inset !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-event-card:active {
+    border-color: rgba(var(--tp-mobile-detail-secondary, 8 132 139), 0.8) !important;
+  }
+
+  .dark .tp-mobile-detail-stage-itinerary .tp-itinerary-event-card {
+    background: rgba(15, 23, 42, 0.96) !important;
+    border-color: rgba(226, 232, 240, 0.42) !important;
+    box-shadow:
+      0 18px 32px -24px rgba(0, 0, 0, 0.72),
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
+  }
 }
