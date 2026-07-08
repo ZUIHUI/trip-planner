@@ -25,6 +25,7 @@ import {
 import { Badge, Button, Card, EmptyState } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import MobileMockupFrame from './MobileMockupFrame';
+import CollaborationActivityList from './CollaborationActivityList';
 import {
   formatEventTime,
   getEventDestination,
@@ -479,7 +480,7 @@ const QuickActionsCard = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
   );
 };
 
-const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
+const RealtimeActivityCard = ({ presenceUi, presenceError, recentActivities, currentUid }) => {
   const others = presenceUi?.otherOnlineMembers || [];
   const selfOnline = Boolean(presenceUi?.selfOnline);
 
@@ -491,45 +492,60 @@ const RealtimeActivityCard = ({ presenceUi, presenceError }) => {
         iconClass="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
       />
 
-      {presenceError ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
-          在線狀態暫時無法顯示，旅程內容仍可正常使用。
-        </div>
-      ) : others.length ? (
-        <div className="grid gap-2">
-          {others.map((person) => (
-            <motion.div
-              key={person.uid}
-              layout
-              initial={{ opacity: 0, y: 8, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
-              className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70"
-            >
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-50 text-xs font-black text-brand-700 dark:bg-brand-950/50 dark:text-brand-200">
-                  {person.photoURL ? (
-                    <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" />
-                  ) : (
-                    person.initials
-                  )}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-slate-900 dark:text-white">{person.name}</p>
-                  <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {person.detailText || '在線'}
-                  </p>
-                </div>
-              </div>
-              <Badge variant={person.editingLabel ? 'success' : 'info'}>{person.editingLabel || person.tabLabel}</Badge>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
-          {selfOnline ? '你在線，目前沒有其他旅伴在線。' : '同步在線狀態中...'}
-        </div>
-      )}
+      <div className="grid gap-4">
+        <section className="space-y-2" aria-label="在線旅伴">
+          <h3 className="text-xs font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">在線旅伴</h3>
+          {presenceError ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
+              在線狀態暫時無法顯示，旅程內容仍可正常使用。
+            </div>
+          ) : others.length ? (
+            <div className="grid gap-2">
+              {others.map((person) => (
+                <motion.div
+                  key={person.uid}
+                  layout
+                  initial={{ opacity: 0, y: 8, scale: 0.985 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}
+                  className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/70"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-50 text-xs font-black text-brand-700 dark:bg-brand-950/50 dark:text-brand-200">
+                      {person.photoURL ? (
+                        <img src={person.photoURL} alt={person.name} className="h-full w-full object-cover" />
+                      ) : (
+                        person.initials
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-slate-900 dark:text-white">{person.name}</p>
+                      <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {person.detailText || '在線'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={person.editingLabel ? 'success' : 'info'}>{person.editingLabel || person.tabLabel}</Badge>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-500 dark:bg-slate-800/70 dark:text-slate-300">
+              {selfOnline ? '你在線，目前沒有其他旅伴在線。' : '同步在線狀態中...'}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-2" aria-label="最近協作">
+          <h3 className="text-xs font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">最近協作</h3>
+          <CollaborationActivityList
+            activities={recentActivities}
+            currentUid={currentUid}
+            limit={4}
+            emptyText="還沒有新的協作活動。"
+          />
+        </section>
+      </div>
     </Card>
   );
 };
@@ -730,6 +746,8 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
     placePool,
     presenceUi,
     presenceError,
+    recentActivities,
+    currentUser,
     handleOpenGoogleMaps
   } = useTripWorkspace();
   const [showMoreOverview, setShowMoreOverview] = useState(false);
@@ -792,7 +810,12 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
           onOpenHandbook={onOpenHandbook}
         />
 
-        <RealtimeActivityCard presenceUi={presenceUi} presenceError={presenceError} />
+        <RealtimeActivityCard
+          presenceUi={presenceUi}
+          presenceError={presenceError}
+          recentActivities={recentActivities}
+          currentUid={currentUser?.uid || ''}
+        />
 
         <TripOverviewCard
           tripDisplayDates={tripDisplayDates}

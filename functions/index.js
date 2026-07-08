@@ -1299,6 +1299,11 @@ const getCollaborationActionText = (action) => {
   return '更新';
 };
 
+const getCollaborationDayLabel = (data = {}) => {
+  const dayNumber = Number(data.dayNumber || data.day);
+  return Number.isFinite(dayNumber) && dayNumber > 0 ? `第 ${dayNumber} 天` : '';
+};
+
 const getCollaborationActorUid = (beforeData, afterData) => cleanPushString(
   afterData.updatedByUid || beforeData.updatedByUid,
   200
@@ -1321,9 +1326,18 @@ const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
   }
 
   if (collectionId === 'events') {
+    const dayLabel = getCollaborationDayLabel(data);
     const time = cleanPushString(data.time || data.startTime, 20);
     const title = cleanPushString(data.title || data.location, 100);
-    const eventTitle = [time, title].filter(Boolean).join(' ');
+    const eventTitle = [time, title].filter(Boolean).join(' ') || config.fallback;
+    const eventSummary = [dayLabel, eventTitle].filter(Boolean).join(' · ');
+    if (eventSummary) return eventSummary;
+  }
+
+  if (collectionId === 'days') {
+    const dayLabel = getCollaborationDayLabel(data);
+    const dayTitle = cleanPushString(data.title || data.date, 100);
+    const eventTitle = [dayLabel, dayTitle].filter(Boolean).join(' · ');
     if (eventTitle) return eventTitle;
   }
 

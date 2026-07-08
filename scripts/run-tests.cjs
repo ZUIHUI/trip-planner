@@ -872,6 +872,8 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   const pushServiceSource = fs.readFileSync(path.join(__dirname, '..', 'src/services/pushNotificationService.js'), 'utf8');
   const cardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripNotificationCard.jsx'), 'utf8');
   const moreSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
+  const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/SummaryTab.jsx'), 'utf8');
+  const activityListSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/CollaborationActivityList.jsx'), 'utf8');
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
   const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
 
@@ -881,10 +883,16 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   assert.doesNotMatch(cardSource, /旅伴更新/);
   assert.match(moreSource, /TripNotificationCard/);
   assert.match(moreSource, /提醒與裝置/);
+  assert.match(moreSource, /CollaborationActivityList/);
+  assert.match(summarySource, /CollaborationActivityList/);
+  assert.match(activityListSource, /collaboration-update/);
   assert.doesNotMatch(todaySource, /TripNotificationCard/);
   assert.match(functionsSource, /type:\s*'collaboration-update'/);
   assert.match(functionsSource, /appendRealtimeActivity/);
   assert.match(functionsSource, /publishTripCollaborationActivity/);
+  assert.match(functionsSource, /getCollaborationDayLabel/);
+  assert.match(functionsSource, /`第 \$\{dayNumber\} 天`/);
+  assert.match(functionsSource, /eventSummary/);
   assert.doesNotMatch(functionsSource, /category:\s*'collaboration'/);
   assert.doesNotMatch(functionsSource, /isCollaborationNotificationEnabled/);
   assert.match(functionsSource, /notifyTripEventWrite/);
@@ -898,6 +906,7 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   assert.doesNotMatch(functionsSource, /notifyTripRootWrite/);
   assert.match(tripDetailSource, /collaboration-update/);
   assert.match(tripDetailSource, /seenCollaborationActivityIdsRef/);
+  assert.match(tripDetailSource, /activity\.actorUid && activity\.actorUid === currentUid/);
   assert.match(tripDetailSource, /duration:\s*4200/);
   assert.match(tripDetailSource, /size:\s*'compact'/);
 });

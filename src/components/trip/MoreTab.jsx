@@ -16,6 +16,7 @@ import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import ShareCollaborationCard from './ShareCollaborationCard';
 import TripNotificationCard from './TripNotificationCard';
 import MobileMockupFrame from './MobileMockupFrame';
+import CollaborationActivityList from './CollaborationActivityList';
 
 const getChecklistProgress = (items = []) => {
   const safeItems = Array.isArray(items) ? items : [];
@@ -95,7 +96,8 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
     onlineMembers,
     presenceByUid,
     presenceUi,
-    presenceError
+    presenceError,
+    recentActivities
   } = useTripWorkspace();
 
   const eventCount = (Array.isArray(itinerary) ? itinerary : [])
@@ -223,6 +225,17 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           meta="偏好"
           onClick={onOpenSettings}
         />
+      </ModuleSection>
+
+      <ModuleSection title="最近協作">
+        <div className="sm:col-span-2">
+          <CollaborationActivityList
+            activities={recentActivities}
+            currentUid={currentUser?.uid || ''}
+            limit={5}
+            emptyText="旅伴新增或更新行程後，會出現在這裡。"
+          />
+        </div>
       </ModuleSection>
 
       <section className="space-y-3" aria-label="提醒與裝置">
