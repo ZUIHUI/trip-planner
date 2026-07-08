@@ -704,7 +704,7 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
   assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
   assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
-  assert.match(todaySource, /幫我排 Day/);
+  assert.match(todaySource, /幫我排第/);
   assert.doesNotMatch(todaySource, /AI 旅伴幫我排/);
   assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);

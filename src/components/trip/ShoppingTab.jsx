@@ -287,14 +287,14 @@ const ShoppingTab = () => {
   return (
     <MobileMockupFrame
       icon={ShoppingCart}
-      eyebrow="Shopping"
-      title="Shopping List"
-      subtitle="Track things to buy, gifts, stores, and photos."
+      eyebrow="購物"
+      title="購物清單"
+      subtitle="整理想買物品、伴手禮、店家與照片。"
       stats={[
-        { value: visibleShoppingList.length, label: 'items' },
-        { value: purchasedCount, label: 'bought' },
-        { value: remainingCount, label: 'left' },
-        { value: shoppingCategories?.length || 0, label: 'groups' }
+        { value: visibleShoppingList.length, label: '項目' },
+        { value: purchasedCount, label: '已買' },
+        { value: remainingCount, label: '剩餘' },
+        { value: shoppingCategories?.length || 0, label: '分類' }
       ]}
       tone="coral"
       className="mt-2 pb-44 sm:pb-28 lg:pb-20"

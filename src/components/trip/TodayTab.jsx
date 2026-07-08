@@ -215,7 +215,7 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
 
       <div className="min-w-0 px-2 text-center">
         <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
-          Day {selectedDay}
+          第 {selectedDay} 天
         </p>
         <h2 className="truncate text-lg font-black text-stone-800 dark:text-brand-900">{currentDayTitle}</h2>
         <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{currentDayDate}</p>
@@ -519,8 +519,8 @@ const QuickActions = ({
           onClick={onOpenAiRecommendations}
           disabled={!canEdit}
           className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
-          aria-label={`幫我排 Day ${selectedDay}`}
-          title={`幫我排 Day ${selectedDay}`}
+          aria-label={`幫我排第 ${selectedDay} 天`}
+          title={`幫我排第 ${selectedDay} 天`}
         >
           <Sparkles size={16} />
           幫排
@@ -939,13 +939,13 @@ const TodayTab = ({ onTabChange }) => {
   return (
     <MobileMockupFrame
       icon={CalendarDays}
-      eyebrow={`Day ${selectedDay}`}
-      title={currentDayTitle || 'Today'}
+      eyebrow={`第 ${selectedDay} 天`}
+      title={currentDayTitle || '今日行程'}
       subtitle={currentDayDate}
       stats={[
-        { value: events.length, label: 'events' },
-        { value: routeStops.length, label: 'stops' },
-        { value: reminders.length, label: 'alerts' }
+        { value: events.length, label: '行程' },
+        { value: routeStops.length, label: '停靠點' },
+        { value: reminders.length, label: '提醒' }
       ]}
       tone="teal"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"

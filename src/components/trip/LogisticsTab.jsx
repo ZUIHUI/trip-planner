@@ -448,7 +448,7 @@ const AccommodationCard = ({
       <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-800/45">
         <p className="mb-3 text-sm font-black text-slate-800 dark:text-slate-100">入住時間</p>
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-          <Field label="Check-in" htmlFor={`${idPrefix}hotel-check-in`}>
+          <Field label="入住時間" htmlFor={`${idPrefix}hotel-check-in`}>
             <Input
               id={`${idPrefix}hotel-check-in`}
               {...plainTextInputProps}
@@ -462,7 +462,7 @@ const AccommodationCard = ({
               }
             />
           </Field>
-          <Field label="Check-out" htmlFor={`${idPrefix}hotel-check-out`}>
+          <Field label="退房時間" htmlFor={`${idPrefix}hotel-check-out`}>
             <Input
               id={`${idPrefix}hotel-check-out`}
               {...plainTextInputProps}
@@ -1143,6 +1143,11 @@ const LogisticsTab = () => {
   }, [tripDetails]);
 
   const mobileSectionStatus = useMemo(() => getMobileSectionStatus(tripDetails), [tripDetails]);
+  const activeMobileSectionLabel = useMemo(() => ({
+    trip: '旅程',
+    accommodation: '住宿',
+    flights: '航班'
+  }[activeMobileSection] || '旅程'), [activeMobileSection]);
 
   const handleAccommodationAddressChange = (value) => {
     setTripDetails((prev) => ({
@@ -1235,13 +1240,13 @@ const LogisticsTab = () => {
   return (
     <MobileMockupFrame
       icon={Plane}
-      eyebrow="Trip details"
-      title="Stay & Flights"
-      subtitle="Keep dates, hotel, budget, and flight info together."
+      eyebrow="旅程資訊"
+      title="住宿與航班"
+      subtitle="集中管理日期、住宿、預算與航班。"
       stats={[
-        { value: tripSnapshot.dates, label: 'dates' },
-        { value: tripSnapshot.budget, label: 'budget' },
-        { value: activeMobileSection, label: 'section' }
+        { value: tripSnapshot.dates, label: '日期' },
+        { value: tripSnapshot.budget, label: '預算' },
+        { value: activeMobileSectionLabel, label: '區塊' }
       ]}
       tone="teal"
       className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8"

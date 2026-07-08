@@ -238,7 +238,7 @@ const RecommendationCard = ({
       </div>
 
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Badge variant="muted">Day {recommendation.suggestedDay}</Badge>
+        <Badge variant="muted">第 {recommendation.suggestedDay} 天</Badge>
         {recommendation.time && <Badge variant="muted">{recommendation.time}</Badge>}
         {recommendation.durationMinutes > 0 && (
           <Badge variant="muted">{recommendation.durationMinutes} 分鐘</Badge>
@@ -279,7 +279,7 @@ const RecommendationCard = ({
           className="w-full justify-center"
         >
           {eventApplied ? <CheckCircle2 size={14} /> : <CalendarPlus size={14} />}
-          {eventApplied ? '已排入行程' : (isApplying === 'event' ? '排入中...' : `排進 Day ${recommendation.suggestedDay}`)}
+          {eventApplied ? '已排入行程' : (isApplying === 'event' ? '排入中...' : `排進第 ${recommendation.suggestedDay} 天`)}
         </Button>
       </div>
     </article>

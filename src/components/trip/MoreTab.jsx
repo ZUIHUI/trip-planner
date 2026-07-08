@@ -122,12 +122,12 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
     return (
       <MobileMockupFrame
         icon={UsersRound}
-        eyebrow="Shared trip"
-        title="Companions"
-        subtitle="Invite people and see who is active now."
+        eyebrow="共享旅程"
+        title="旅伴"
+        subtitle="邀請成員，查看目前在線旅伴。"
         stats={[
-          { value: members?.length || 0, label: 'members' },
-          { value: onlineCount, label: 'online' }
+          { value: members?.length || 0, label: '成員' },
+          { value: onlineCount, label: '在線' }
         ]}
         tone="teal"
         className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
@@ -151,13 +151,13 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
   return (
     <MobileMockupFrame
       icon={Settings}
-      eyebrow="More"
-      title="Travel Tools"
-      subtitle="Open every planning module from one dashboard."
+      eyebrow="更多"
+      title="旅行工具"
+      subtitle="從同一個儀表板開啟所有規劃模組。"
       stats={[
-        { value: eventCount, label: 'events' },
-        { value: members?.length || 0, label: 'members' },
-        { value: onlineCount, label: 'online' }
+        { value: eventCount, label: '行程' },
+        { value: members?.length || 0, label: '成員' },
+        { value: onlineCount, label: '在線' }
       ]}
       tone="coral"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"

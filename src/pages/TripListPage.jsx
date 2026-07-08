@@ -802,7 +802,7 @@ const TripListPage = () => {
       <section
         className={`tp-mobile-trips-shell ${continueTripTheme.className}`}
         style={continueTripHeroStyle}
-        aria-label="Trips mobile dashboard"
+        aria-label="旅程手機儀表板"
       >
         <header
           className={`tp-mobile-trips-hero ${continueTripTheme.className} ${continueTripCoverImageUrl ? 'has-trip-cover' : continueTrip ? 'has-trip-theme' : ''}`}
@@ -814,8 +814,8 @@ const TripListPage = () => {
           </div>
           <div className="tp-mobile-trips-topline">
             <div className="min-w-0">
-              <span className="tp-mobile-trips-eyebrow">{continueTrip ? continueTripTheme.label : 'Coastal Atlas'}</span>
-              <h1>Trips</h1>
+              <span className="tp-mobile-trips-eyebrow">{continueTrip ? continueTripTheme.label : '海岸地圖'}</span>
+              <h1>我的旅程</h1>
             </div>
             <button
               type="button"
@@ -1000,7 +1000,7 @@ const TripListPage = () => {
         <section className="tp-mobile-trips-list-panel" aria-label="旅程列表">
           <div className="tp-mobile-trips-list-heading">
             <div>
-              <span>Journey stack</span>
+              <span>旅程列表</span>
               <h2>你的旅程</h2>
             </div>
             {hasTrips && <strong>{sortedAndFilteredTrips.length}/{totalTripCount}</strong>}

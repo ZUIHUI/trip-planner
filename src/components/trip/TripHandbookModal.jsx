@@ -141,7 +141,7 @@ const HandbookCover = ({ handbook, coverImage }) => {
 
 const OverviewPage = ({ handbook }) => (
   <section className="trip-handbook-page">
-    <SectionHeading icon={BookOpen} title="旅程摘要" kicker="Overview" />
+    <SectionHeading icon={BookOpen} title="旅程摘要" kicker="總覽" />
     <div className="trip-handbook-feature-card">
       <p className="break-words text-base font-semibold leading-7 text-slate-700 print:text-slate-700 dark:text-slate-200">
         {handbook.overview.summary || '目前旅程資料已整理成每日行程、交通住宿、清單與費用摘要。'}
@@ -164,7 +164,7 @@ const DayPage = ({ day }) => (
   <section className="trip-handbook-page">
     <div className="mb-5 flex flex-col gap-2 border-b border-slate-200 pb-4 print:border-slate-300 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <p className="text-sm font-black text-sky-700 print:text-slate-500 dark:text-sky-300">Day {day.day}</p>
+        <p className="text-sm font-black text-sky-700 print:text-slate-500 dark:text-sky-300">第 {day.day} 天</p>
         <h3 className="break-words text-2xl font-black text-slate-950 print:text-slate-950 dark:text-white">{day.title}</h3>
       </div>
       {day.date && <p className="text-sm font-black text-slate-500 print:text-slate-600 dark:text-slate-300">{day.date}</p>}
@@ -189,7 +189,7 @@ const LogisticsPage = ({ handbook }) => {
 
   return (
     <section className="trip-handbook-page">
-      <SectionHeading icon={Plane} title="交通與住宿" kicker="Logistics" />
+      <SectionHeading icon={Plane} title="交通與住宿" kicker="交通" />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="trip-handbook-card">
           <SectionHeading icon={Bed} title="住宿" />
@@ -214,7 +214,7 @@ const LogisticsPage = ({ handbook }) => {
 
 const ListsPage = ({ handbook }) => (
   <section className="trip-handbook-page">
-    <SectionHeading icon={CheckSquare} title="清單與花費" kicker="Checklist" />
+    <SectionHeading icon={CheckSquare} title="清單與花費" kicker="清單" />
     <div className="grid gap-4 lg:grid-cols-3">
       <div className="trip-handbook-card">
         <SectionHeading icon={CheckSquare} title="行前" />

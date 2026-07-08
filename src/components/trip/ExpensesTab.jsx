@@ -160,13 +160,13 @@ const ExpensesTab = () => {
   return (
     <MobileMockupFrame
       icon={ReceiptText}
-      eyebrow="Budget"
-      title="Expenses"
-      subtitle="Record spending and split costs on the road."
+      eyebrow="記帳"
+      title="旅費管理"
+      subtitle="記錄支出、分帳，掌握旅途中花費。"
       stats={[
-        { value: `NT$ ${Math.round(totalSpentTwd).toLocaleString()}`, label: 'spent' },
-        { value: safeExpenses.length, label: 'records' },
-        { value: unsettledCount, label: 'open' }
+        { value: `NT$ ${Math.round(totalSpentTwd).toLocaleString()}`, label: '已花費' },
+        { value: safeExpenses.length, label: '筆數' },
+        { value: unsettledCount, label: '未結清' }
       ]}
       tone="teal"
       className="mt-2 px-4 pb-20 sm:px-6 lg:px-8"

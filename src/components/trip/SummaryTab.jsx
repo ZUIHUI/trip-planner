@@ -751,13 +751,13 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
   return (
     <MobileMockupFrame
       icon={LayoutDashboard}
-      eyebrow="Overview"
-      title="Trip Command"
-      subtitle="See readiness, next step, budget, and live activity."
+      eyebrow="總覽"
+      title="旅程控制台"
+      subtitle="查看準備狀態、下一步、預算與即時動態。"
       stats={[
-        { value: eventCount, label: 'events' },
-        { value: `${budgetProgress || 0}%`, label: 'budget' },
-        { value: readinessItems.length, label: 'alerts' }
+        { value: eventCount, label: '行程' },
+        { value: `${budgetProgress || 0}%`, label: '預算' },
+        { value: readinessItems.length, label: '提醒' }
       ]}
       tone="teal"
       className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 pb-12 sm:gap-6 sm:px-7 lg:px-10"

@@ -176,13 +176,13 @@ const PackingTab = () => {
   return (
     <MobileMockupFrame
       icon={Luggage}
-      eyebrow="Packing"
-      title="Packing List"
-      subtitle="Keep travel gear grouped and ready."
+      eyebrow="行李"
+      title="行李清單"
+      subtitle="整理旅行裝備，出發前一眼確認。"
       stats={[
-        { value: visibleItems.length, label: 'items' },
-        { value: packedCount, label: 'packed' },
-        { value: remainingCount, label: 'left' }
+        { value: visibleItems.length, label: '項目' },
+        { value: packedCount, label: '已打包' },
+        { value: remainingCount, label: '剩餘' }
       ]}
       tone="coral"
       className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"

@@ -300,10 +300,10 @@ const LoginPage = () => {
           </div>
         </header>
 
-        <section className="tp-mobile-auth-sheet" aria-label="Sign in actions">
+        <section className="tp-mobile-auth-sheet" aria-label="登入操作">
           <div className="tp-mobile-auth-heading">
-            <h2>Welcome back</h2>
-            <p>Sign in to continue your journey</p>
+            <h2>歡迎回來</h2>
+            <p>登入後繼續規劃旅程</p>
           </div>
 
           <label className="tp-mobile-auth-remember">
@@ -312,7 +312,7 @@ const LoginPage = () => {
               checked={rememberDevice}
               onChange={(event) => setRememberDevice(event.target.checked)}
             />
-            <span>Remember this device</span>
+            <span>記住這台裝置</span>
           </label>
 
           <Button
@@ -321,7 +321,7 @@ const LoginPage = () => {
             className="tp-mobile-auth-primary w-full justify-center"
           >
             {isGoogleSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Link2 size={18} />}
-            {isGoogleSubmitting ? 'Signing in...' : 'Continue with Google'}
+            {isGoogleSubmitting ? '登入中...' : '使用 Google 登入'}
           </Button>
 
           <Button
@@ -332,14 +332,14 @@ const LoginPage = () => {
             aria-expanded={emailPanelOpen}
           >
             <Mail size={18} />
-            Continue with Email
+            使用 Email 驗證碼登入
           </Button>
 
           {emailPanelOpen && (
             <div className="tp-mobile-auth-email-panel">
               {loginStep === 'code' ? (
                 <form onSubmit={handleVerifyCode} className="grid gap-3">
-                  <Field label="Email" htmlFor="mobile-login-email-confirm">
+                  <Field label="電子信箱" htmlFor="mobile-login-email-confirm">
                     <Input
                       id="mobile-login-email-confirm"
                       {...emailInputProps}
@@ -349,7 +349,7 @@ const LoginPage = () => {
                       required
                     />
                   </Field>
-                  <Field label="Code" htmlFor="mobile-login-code">
+                  <Field label="驗證碼" htmlFor="mobile-login-code">
                     <Input
                       id="mobile-login-code"
                       ref={mobileCodeInputRef}
@@ -362,16 +362,16 @@ const LoginPage = () => {
                   </Field>
                   <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
                     {isVerifyingEmailCode ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-                    {isVerifyingEmailCode ? 'Signing in...' : 'Verify and sign in'}
+                    {isVerifyingEmailCode ? '登入中...' : '驗證並登入'}
                   </Button>
                   <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
                     <RefreshCw size={16} />
-                    Request another code
+                    重新寄送驗證碼
                   </Button>
                 </form>
               ) : (
                 <form onSubmit={isCompletingLink ? handleCompleteLink : handleRequestCode} className="grid gap-3">
-                  <Field label="Email" htmlFor="mobile-login-email">
+                  <Field label="電子信箱" htmlFor="mobile-login-email">
                     <Input
                       id="mobile-login-email"
                       {...emailInputProps}
@@ -384,8 +384,8 @@ const LoginPage = () => {
                   <Button type="submit" disabled={isSubmitting} className="justify-center">
                     {(isCompletingEmailLink || isRequestingEmailCode) ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
                     {isCompletingLink
-                      ? (isCompletingEmailLink ? 'Signing in...' : 'Complete email sign in')
-                      : (isRequestingEmailCode ? 'Sending code...' : 'Send sign-in code')}
+                      ? (isCompletingEmailLink ? '登入中...' : '完成 Email 登入')
+                      : (isRequestingEmailCode ? '寄送中...' : '發送驗證碼')}
                   </Button>
                 </form>
               )}

@@ -174,13 +174,13 @@ const PreTripTab = () => {
   return (
     <MobileMockupFrame
       icon={CheckSquare}
-      eyebrow="Before you go"
-      title="Pre-trip Checklist"
-      subtitle="Confirm the essentials before departure."
+      eyebrow="出發前"
+      title="行前清單"
+      subtitle="出發前確認證件、預訂與重要事項。"
       stats={[
-        { value: visibleItems.length, label: 'tasks' },
-        { value: doneCount, label: 'done' },
-        { value: remainingCount, label: 'left' }
+        { value: visibleItems.length, label: '事項' },
+        { value: doneCount, label: '完成' },
+        { value: remainingCount, label: '剩餘' }
       ]}
       tone="teal"
       className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
