@@ -1798,7 +1798,7 @@ const TripDetailPage = () => {
             <div className="tp-mobile-detail-meta">
               <span>
                 <CalendarDays size={15} />
-                {tripDisplayDates || 'Dates TBD'}
+                {tripDisplayDates || '未設定日期'}
               </span>
               <span>
                 <UsersRound size={15} />
@@ -1806,9 +1806,9 @@ const TripDetailPage = () => {
               </span>
             </div>
             <div className="tp-mobile-detail-chips">
-              <span>{mobileDetailDayCount > 0 ? `${mobileDetailDayCount} days` : 'Plan dates'}</span>
-              {currentDayData?.events?.length > 0 && <span>{currentDayData.events.length} today</span>}
-              {isSaving || isSavingTripDetails ? <span>Saving</span> : <span>{presenceUi?.summaryText || 'Synced'}</span>}
+              <span>{mobileDetailDayCount > 0 ? `${mobileDetailDayCount} 天` : '設定日期'}</span>
+              {currentDayData?.events?.length > 0 && <span>今日 {currentDayData.events.length} 個</span>}
+              {isSaving || isSavingTripDetails ? <span>儲存中</span> : <span>{presenceUi?.summaryText || '已同步'}</span>}
             </div>
           </div>
         </header>
@@ -1828,7 +1828,7 @@ const TripDetailPage = () => {
 
       <PageContainer className="tp-detail-page-frame tp-atlas-page-frame pb-40 lg:pb-44">
         <div className="tp-workspace-shell-content tp-mobile-detail-sheet">
-          <nav className="tp-mobile-detail-tabs" aria-label="Trip detail sections">
+          <nav className="tp-mobile-detail-tabs" aria-label="旅程頁面導覽">
             {MOBILE_DETAIL_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = tab.id === 'more'

@@ -7727,3 +7727,126 @@ textarea.tp-input {
     max-width: 100% !important;
   }
 }
+
+@media (max-width: 767px) {
+  .tp-page-shell.tp-workspace-shell {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-shell,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-sheet,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-stage,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-feature-frame,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-feature-header,
+  .tp-page-shell.tp-workspace-shell .tp-mobile-feature-body {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .tp-workspace-shell-content.tp-mobile-detail-sheet {
+    border-radius: 24px 24px 8px 8px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    max-width: calc(100vw - 0.8rem) !important;
+    overflow-x: hidden !important;
+    padding: 0.78rem 0.7rem 1rem !important;
+  }
+
+  .tp-mobile-detail-tabs {
+    display: flex !important;
+    gap: 0.5rem !important;
+    grid-template-columns: none !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    padding: 0.45rem !important;
+    scroll-padding-inline: 0.45rem !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .tp-mobile-detail-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .tp-mobile-detail-tabs button {
+    flex: 0 0 clamp(4.8rem, 24vw, 5.65rem) !important;
+    font-size: 0.78rem !important;
+    gap: 0.34rem !important;
+    min-height: 3.05rem !important;
+    min-width: 4.8rem !important;
+    padding: 0 0.5rem !important;
+    scroll-snap-align: start !important;
+  }
+
+  .tp-mobile-detail-tabs button span {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+  }
+
+  .tp-mobile-detail-stage {
+    align-items: stretch !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+
+  .tp-mobile-detail-stage *,
+  .tp-mobile-detail-stage *::before,
+  .tp-mobile-detail-stage *::after {
+    box-sizing: border-box;
+  }
+
+  .tp-mobile-detail-stage > *,
+  .tp-mobile-feature-body > *,
+  .tp-mobile-detail-stage .tp-card,
+  .tp-mobile-detail-stage .tp-panel,
+  .tp-mobile-detail-stage .tp-motion-panel,
+  .tp-mobile-detail-stage article,
+  .tp-mobile-detail-stage section {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .tp-mobile-detail-stage .flex,
+  .tp-mobile-detail-stage .grid,
+  .tp-mobile-detail-stage [class*="grid-cols-"] {
+    min-width: 0 !important;
+  }
+
+  .tp-mobile-detail-stage input,
+  .tp-mobile-detail-stage select,
+  .tp-mobile-detail-stage textarea,
+  .tp-mobile-detail-stage button,
+  .tp-mobile-detail-stage .tp-input {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .tp-mobile-detail-stage p,
+  .tp-mobile-detail-stage span,
+  .tp-mobile-detail-stage h2,
+  .tp-mobile-detail-stage h3,
+  .tp-mobile-detail-stage strong,
+  .tp-mobile-detail-stage small {
+    overflow-wrap: anywhere;
+  }
+
+  .tp-mobile-feature-heading {
+    grid-template-columns: 2.45rem minmax(0, 1fr) !important;
+  }
+
+  .tp-mobile-feature-icon {
+    height: 2.45rem !important;
+    width: 2.45rem !important;
+  }
+
+  .tp-mobile-feature-stats {
+    grid-template-columns: repeat(auto-fit, minmax(4.55rem, 1fr)) !important;
+  }
+}
