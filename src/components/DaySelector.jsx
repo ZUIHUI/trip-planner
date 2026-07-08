@@ -1,6 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
+const VISIBLE_EDGE_PADDING = 10;
+
+const clampScrollLeft = (container, nextLeft) => {
+  const maxLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+  return Math.min(maxLeft, Math.max(0, nextLeft));
+};
+
 const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
   const scrollContainerRef = useRef(null);
   const selectedTabRef = useRef(null);
@@ -11,12 +18,22 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
       const selectedTab = selectedTabRef.current;
       if (!container || !selectedTab) return;
 
-      const maxLeft = Math.max(0, container.scrollWidth - container.clientWidth);
-      const centeredLeft = selectedTab.offsetLeft - ((container.clientWidth - selectedTab.offsetWidth) / 2);
-      const nextLeft = Math.min(maxLeft, Math.max(0, centeredLeft));
+      const containerRect = container.getBoundingClientRect();
+      const selectedTabRect = selectedTab.getBoundingClientRect();
+      const visibleLeft = containerRect.left + VISIBLE_EDGE_PADDING;
+      const visibleRight = containerRect.right - VISIBLE_EDGE_PADDING;
+      let nextLeft = container.scrollLeft;
+
+      if (selectedTabRect.left < visibleLeft) {
+        nextLeft -= visibleLeft - selectedTabRect.left;
+      } else if (selectedTabRect.right > visibleRight) {
+        nextLeft += selectedTabRect.right - visibleRight;
+      } else {
+        return;
+      }
 
       container.scrollTo({
-        left: nextLeft,
+        left: clampScrollLeft(container, Math.round(nextLeft)),
         behavior: 'smooth'
       });
     };
