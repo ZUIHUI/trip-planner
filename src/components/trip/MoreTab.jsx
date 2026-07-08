@@ -227,16 +227,14 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
         />
       </ModuleSection>
 
-      <ModuleSection title="最近協作">
-        <div className="sm:col-span-2">
-          <CollaborationActivityList
-            activities={recentActivities}
-            currentUid={currentUser?.uid || ''}
-            limit={5}
-            emptyText="旅伴新增或更新行程後，會出現在這裡。"
-          />
-        </div>
-      </ModuleSection>
+      <Card as="section" className="p-4" aria-label="協作活動">
+        <CollaborationActivityList
+          activities={recentActivities}
+          currentUid={currentUser?.uid || ''}
+          limit={5}
+          emptyText="旅伴新增或更新行程後，會出現在這裡。"
+        />
+      </Card>
 
       <section className="space-y-3" aria-label="提醒與裝置">
         <h2 className="px-1 text-sm font-black text-slate-950 dark:text-white">提醒與裝置</h2>

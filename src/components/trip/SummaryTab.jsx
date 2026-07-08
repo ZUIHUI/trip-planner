@@ -536,8 +536,7 @@ const RealtimeActivityCard = ({ presenceUi, presenceError, recentActivities, cur
           )}
         </section>
 
-        <section className="space-y-2" aria-label="最近協作">
-          <h3 className="text-xs font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">最近協作</h3>
+        <section aria-label="協作活動">
           <CollaborationActivityList
             activities={recentActivities}
             currentUid={currentUid}
