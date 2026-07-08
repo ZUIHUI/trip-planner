@@ -8,13 +8,15 @@ import {
   Check,
   Compass,
   KeyRound,
+  LogOut,
   Pencil,
   PlaneTakeoff,
   Plus,
   Search,
   X,
   ShieldCheck,
-  Trash2
+  Trash2,
+  UserRound
 } from 'lucide-react';
 import {
   createTrip,
@@ -1122,6 +1124,60 @@ const TripListPage = () => {
                   </p>
                 </div>
               </div>
+
+              <div className="tp-desktop-trips-account" aria-label="個人資訊">
+                <div className="tp-desktop-trips-account-avatar" aria-hidden="true">
+                  <UserRound size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span>旅人</span>
+                  <strong>{accountDisplayName}</strong>
+                  <small>{currentUser?.email || 'Trip Planner'}</small>
+                </div>
+                <div className="tp-desktop-trips-account-actions">
+                  <button
+                    type="button"
+                    className="tp-desktop-trips-account-button"
+                    onClick={handleStartNicknameEdit}
+                  >
+                    <Pencil size={14} />
+                    修改
+                  </button>
+                  <button
+                    type="button"
+                    className="tp-desktop-trips-account-button is-danger"
+                    onClick={logout}
+                  >
+                    <LogOut size={14} />
+                    登出
+                  </button>
+                </div>
+              </div>
+
+              {isEditingNickname && (
+                <form onSubmit={handleSaveNickname} className="tp-desktop-trips-nickname-form">
+                  <label htmlFor="desktop-nickname-draft">暱稱</label>
+                  <Input
+                    id="desktop-nickname-draft"
+                    {...plainTextInputProps}
+                    value={nicknameDraft}
+                    onChange={(event) => setNicknameDraft(event.target.value)}
+                    placeholder="輸入顯示名稱"
+                    enterKeyHint="done"
+                    autoFocus
+                  />
+                  <div>
+                    <button type="submit" disabled={isSavingNickname || !nicknameDraft.trim()}>
+                      <Check size={14} />
+                      儲存
+                    </button>
+                    <button type="button" onClick={handleCancelNicknameEdit} disabled={isSavingNickname}>
+                      <X size={14} />
+                      取消
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="tp-command-action-switch mt-5 grid grid-cols-2 gap-3" role="group" aria-label="選擇旅程操作">
                 <ActionModeButton

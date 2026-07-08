@@ -1814,15 +1814,17 @@ const TripDetailPage = () => {
         </header>
       </section>
 
-      <Header
-        details={tripDetails}
-        onGoToTrips={handleBackToTrips}
-        onSettingsOpen={() => setIsSettingsOpen(true)}
-        isSaving={isSaving || isSavingTripDetails}
-        coverImageUrl={coverImageUrl}
-        shouldShowCoverBackground={shouldShowCoverBackground}
-        presenceUi={presenceUi}
-      />
+      <div className="tp-detail-desktop-header">
+        <Header
+          details={tripDetails}
+          onGoToTrips={handleBackToTrips}
+          onSettingsOpen={() => setIsSettingsOpen(true)}
+          isSaving={isSaving || isSavingTripDetails}
+          coverImageUrl={coverImageUrl}
+          shouldShowCoverBackground={shouldShowCoverBackground}
+          presenceUi={presenceUi}
+        />
+      </div>
 
       <PageContainer className="tp-detail-page-frame tp-atlas-page-frame pb-40 lg:pb-44">
         <div className="tp-workspace-shell-content tp-mobile-detail-sheet">

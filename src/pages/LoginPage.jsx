@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Link2, Mail, PlaneTakeoff, RefreshCw } from 'lucide-react';
+import { CalendarDays, Link2, Loader2, Mail, MapPinned, PlaneTakeoff, RefreshCw, Sparkles, UsersRound } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
 import InstallAppPrompt from '../components/InstallAppPrompt';
@@ -119,6 +119,7 @@ const LoginPage = () => {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingAuthAction, setPendingAuthAction] = useState('');
   const codeInputRef = useRef(null);
   const mobileCodeInputRef = useRef(null);
 
@@ -161,6 +162,7 @@ const LoginPage = () => {
     }
 
     setIsSubmitting(true);
+    setPendingAuthAction('email-link');
     completeEmailLink(storedEmail, currentHref, rememberDevice)
       .then(() => {
         setStatus('Email 驗證成功，正在進入 Trip Planner。');
@@ -168,7 +170,10 @@ const LoginPage = () => {
       .catch((authError) => {
         setError(getErrorMessage(authError, 'Email 連結登入失敗，請重新取得驗證碼。'));
       })
-      .finally(() => setIsSubmitting(false));
+      .finally(() => {
+        setIsSubmitting(false);
+        setPendingAuthAction('');
+      });
   }, [isCompletingLink, currentUser, completeEmailLink, currentHref, rememberDevice]);
 
   const handleRequestCode = async (event) => {
@@ -176,6 +181,7 @@ const LoginPage = () => {
     setError('');
     setStatus('');
     setIsSubmitting(true);
+    setPendingAuthAction('request-code');
 
     try {
       const result = await requestEmailCode(email, redirectPath);
@@ -186,6 +192,7 @@ const LoginPage = () => {
       setError(getErrorMessage(authError, '無法寄出驗證碼，請稍後再試。'));
     } finally {
       setIsSubmitting(false);
+      setPendingAuthAction('');
     }
   };
 
@@ -194,6 +201,7 @@ const LoginPage = () => {
     setError('');
     setStatus('');
     setIsSubmitting(true);
+    setPendingAuthAction('verify-code');
 
     try {
       await verifyEmailCode({
@@ -208,6 +216,7 @@ const LoginPage = () => {
       setError(getErrorMessage(authError, '驗證碼不正確或已過期，請重新確認。'));
     } finally {
       setIsSubmitting(false);
+      setPendingAuthAction('');
     }
   };
 
@@ -216,6 +225,7 @@ const LoginPage = () => {
     setError('');
     setStatus('');
     setIsSubmitting(true);
+    setPendingAuthAction('email-link');
 
     try {
       await completeEmailLink(email, currentHref, rememberDevice);
@@ -224,6 +234,7 @@ const LoginPage = () => {
       setError(getErrorMessage(authError, 'Email 連結登入失敗，請確認 Email 與登入信一致。'));
     } finally {
       setIsSubmitting(false);
+      setPendingAuthAction('');
     }
   };
 
@@ -231,6 +242,7 @@ const LoginPage = () => {
     setError('');
     setStatus('');
     setIsSubmitting(true);
+    setPendingAuthAction('google');
 
     try {
       await signInWithGoogle(redirectPath, rememberDevice);
@@ -238,6 +250,7 @@ const LoginPage = () => {
       setError(getErrorMessage(authError, 'Google 登入失敗，請稍後再試。'));
     } finally {
       setIsSubmitting(false);
+      setPendingAuthAction('');
     }
   };
 
@@ -251,6 +264,10 @@ const LoginPage = () => {
   };
 
   const emailPanelOpen = showEmailBackup || loginStep === 'code' || isCompletingLink;
+  const isRequestingEmailCode = isSubmitting && pendingAuthAction === 'request-code';
+  const isVerifyingEmailCode = isSubmitting && pendingAuthAction === 'verify-code';
+  const isCompletingEmailLink = isSubmitting && pendingAuthAction === 'email-link';
+  const isGoogleSubmitting = isSubmitting && pendingAuthAction === 'google';
 
   if (isAuthLoading) {
     return (
@@ -262,7 +279,10 @@ const LoginPage = () => {
 
   return (
     <main className="tp-page-shell tp-auth-shell min-h-screen">
-      <section className="tp-mobile-auth-shell" aria-label="Trip Planner sign in">
+      <section
+        className="tp-mobile-auth-shell"
+        aria-label="Trip Planner sign in"
+      >
         <header className="tp-mobile-auth-hero">
           <div className="tp-mobile-auth-route" aria-hidden="true">
             <span />
@@ -300,8 +320,8 @@ const LoginPage = () => {
             disabled={isSubmitting}
             className="tp-mobile-auth-primary w-full justify-center"
           >
-            <Link2 size={18} />
-            Continue with Google
+            {isGoogleSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Link2 size={18} />}
+            {isGoogleSubmitting ? 'Signing in...' : 'Continue with Google'}
           </Button>
 
           <Button
@@ -341,8 +361,8 @@ const LoginPage = () => {
                     />
                   </Field>
                   <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
-                    <Mail size={16} />
-                    Verify and sign in
+                    {isVerifyingEmailCode ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                    {isVerifyingEmailCode ? 'Signing in...' : 'Verify and sign in'}
                   </Button>
                   <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
                     <RefreshCw size={16} />
@@ -362,8 +382,10 @@ const LoginPage = () => {
                     />
                   </Field>
                   <Button type="submit" disabled={isSubmitting} className="justify-center">
-                    <Mail size={16} />
-                    {isCompletingLink ? 'Complete email sign in' : 'Send sign-in code'}
+                    {(isCompletingEmailLink || isRequestingEmailCode) ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                    {isCompletingLink
+                      ? (isCompletingEmailLink ? 'Signing in...' : 'Complete email sign in')
+                      : (isRequestingEmailCode ? 'Sending code...' : 'Send sign-in code')}
                   </Button>
                 </form>
               )}
@@ -385,115 +407,164 @@ const LoginPage = () => {
         </section>
       </section>
 
-      <PageContainer className="tp-auth-layout tp-desktop-auth-shell py-10">
-        <Card className="tp-auth-card tp-atlas-auth-card relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
-          <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
-          <div className="mb-6">
-            <div className="tp-icon-chip mb-4">
-              <PlaneTakeoff size={22} />
+      <PageContainer
+        className="tp-auth-layout tp-desktop-auth-shell py-10"
+      >
+        <section className="tp-auth-composite" aria-label="Trip Planner 登入">
+          <Card className="tp-auth-card tp-atlas-auth-card relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
+            <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
+            <div className="mb-6">
+              <div className="tp-icon-chip mb-4">
+                <PlaneTakeoff size={22} />
+              </div>
+              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">登入 Trip Planner</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">繼續整理你的下一段旅程</p>
             </div>
-            <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">歡迎回到 Trip Planner</h1>
-            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">你的旅程都在這裡等你</p>
-          </div>
 
-          <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#e0e9e0] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">
-            <input
-              type="checkbox"
-              checked={rememberDevice}
-              onChange={(event) => setRememberDevice(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-            />
-            在此裝置保持登入
-          </label>
+            <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#e0e9e0] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">
+              <input
+                type="checkbox"
+                checked={rememberDevice}
+                onChange={(event) => setRememberDevice(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              />
+              在此裝置保持登入
+            </label>
 
-          <Button onClick={handleGoogleLogin} disabled={isSubmitting} className="w-full justify-center">
-            <Link2 size={16} />
-            使用 Google 登入
-          </Button>
+            <Button onClick={handleGoogleLogin} disabled={isSubmitting} className="w-full justify-center">
+              {isGoogleSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Link2 size={16} />}
+              {isGoogleSubmitting ? '登入中...' : '使用 Google 登入'}
+            </Button>
 
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setShowEmailBackup((open) => !open)}
-            className="mt-3 w-full justify-center"
-            aria-expanded={emailPanelOpen}
-          >
-            <Mail size={16} />
-            Email 驗證碼
-          </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowEmailBackup((open) => !open)}
+              className="mt-3 w-full justify-center"
+              aria-expanded={emailPanelOpen}
+            >
+              <Mail size={16} />
+              Email 驗證碼
+            </Button>
 
-          {emailPanelOpen && (
-            <div className="mt-3 rounded-lg border border-[#e0e9e0] bg-white/75 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60">
-              {loginStep === 'code' ? (
-                <form onSubmit={handleVerifyCode} className="grid gap-3">
-                  <Field label="Email" htmlFor="login-email-confirm">
-                    <Input
-                      id="login-email-confirm"
-                      {...emailInputProps}
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </Field>
-                  <Field label="驗證碼" htmlFor="login-code">
-                    <Input
-                      id="login-code"
-                      ref={codeInputRef}
-                      {...codeInputProps}
-                      value={code}
-                      onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="123456"
-                      required
-                    />
-                  </Field>
-                  <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
-                    <Mail size={16} />
-                    完成登入
-                  </Button>
-                  <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
-                    <RefreshCw size={16} />
-                    重新寄送驗證碼
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={isCompletingLink ? handleCompleteLink : handleRequestCode} className="grid gap-3">
-                  <Field label="Email" htmlFor="login-email">
-                    <Input
-                      id="login-email"
-                      {...emailInputProps}
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </Field>
-                  <Button type="submit" disabled={isSubmitting} className="justify-center">
-                    <Mail size={16} />
-                    {isCompletingLink ? '完成舊登入連結' : '寄送驗證碼'}
-                  </Button>
-                </form>
-              )}
+            {emailPanelOpen && (
+              <div className="mt-3 rounded-lg border border-[#e0e9e0] bg-white/75 p-3 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60">
+                {loginStep === 'code' ? (
+                  <form onSubmit={handleVerifyCode} className="grid gap-3">
+                    <Field label="Email" htmlFor="login-email-confirm">
+                      <Input
+                        id="login-email-confirm"
+                        {...emailInputProps}
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="you@example.com"
+                        required
+                      />
+                    </Field>
+                    <Field label="驗證碼" htmlFor="login-code">
+                      <Input
+                        id="login-code"
+                        ref={codeInputRef}
+                        {...codeInputProps}
+                        value={code}
+                        onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="123456"
+                        required
+                      />
+                    </Field>
+                    <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
+                      {isVerifyingEmailCode ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                      {isVerifyingEmailCode ? '登入中...' : '完成登入'}
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={handleBackToEmail} disabled={isSubmitting} className="justify-center">
+                      <RefreshCw size={16} />
+                      重新寄送驗證碼
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={isCompletingLink ? handleCompleteLink : handleRequestCode} className="grid gap-3">
+                    <Field label="Email" htmlFor="login-email">
+                      <Input
+                        id="login-email"
+                        {...emailInputProps}
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="you@example.com"
+                        required
+                      />
+                    </Field>
+                    <Button type="submit" disabled={isSubmitting} className="justify-center">
+                      {(isCompletingEmailLink || isRequestingEmailCode) ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                      {isCompletingLink
+                        ? (isCompletingEmailLink ? '登入中...' : '完成舊登入連結')
+                        : (isRequestingEmailCode ? '寄送中...' : '寄送驗證碼')}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {status && (
+              <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200">
+                {status}
+              </p>
+            )}
+            {error && (
+              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200">
+                {error}
+              </p>
+            )}
+          </Card>
+          <aside className="tp-auth-atlas-preview" aria-label="Trip Planner 工作台摘要">
+            <div className="tp-auth-preview-map" aria-hidden="true">
+              <span className="tp-auth-route-dot" />
+              <span className="tp-auth-route-dot" />
+              <span className="tp-auth-route-dot" />
             </div>
-          )}
 
-          {status && (
-            <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200">
-              {status}
+            <div className="tp-auth-preview-copy">
+            <p className="tp-auth-preview-kicker">旅程工作台</p>
+              <h2>Trip Planner</h2>
+            <p>
+              登入後接續管理行程、地點、購物清單、記帳、行李與 AI 旅伴提醒。
             </p>
-          )}
-          {error && (
-            <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200">
-              {error}
-            </p>
-          )}
-        </Card>
-        <aside className="tp-auth-atlas-preview" aria-hidden="true">
-          <span className="tp-atlas-preview-card" />
-          <span className="tp-atlas-preview-card" />
-          <span className="tp-atlas-preview-card" />
-        </aside>
-        <InstallAppPrompt className="w-full max-w-md" />
+            </div>
+
+            <div className="tp-auth-preview-metrics">
+              <div>
+                <span>行程</span>
+                <strong>日期與待辦</strong>
+              </div>
+              <div>
+                <span>地點</span>
+                <strong>路線與清單</strong>
+              </div>
+              <div>
+                <span>同行</span>
+                <strong>共享與分帳</strong>
+              </div>
+            </div>
+
+            <div className="tp-auth-preview-list">
+              <div>
+                <CalendarDays size={18} />
+                <span>每日行程與待辦集中管理</span>
+              </div>
+              <div>
+                <MapPinned size={18} />
+                <span>地點、時間與路線視覺化整理</span>
+              </div>
+              <div>
+                <UsersRound size={18} />
+                <span>和旅伴同步購物、記帳與行李</span>
+              </div>
+              <div>
+                <Sparkles size={18} />
+                <span>AI 旅伴協助補齊推薦與提醒</span>
+              </div>
+            </div>
+          </aside>
+        </section>
       </PageContainer>
     </main>
   );
