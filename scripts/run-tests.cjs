@@ -886,8 +886,12 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   assert.match(moreSource, /CollaborationActivityList/);
   assert.match(summarySource, /CollaborationActivityList/);
   assert.match(activityListSource, /collaboration-update/);
+  assert.match(activityListSource, /normalizeActivityLabel/);
+  assert.match(activityListSource, /LEGACY_PACKING_CLOTHING_TITLES/);
   assert.doesNotMatch(todaySource, /TripNotificationCard/);
   assert.match(functionsSource, /type:\s*'collaboration-update'/);
+  assert.match(functionsSource, /getCollaborationChecklistMeta/);
+  assert.match(functionsSource, /entityKind:\s*'packing-clothing'/);
   assert.match(functionsSource, /appendRealtimeActivity/);
   assert.match(functionsSource, /publishTripCollaborationActivity/);
   assert.match(functionsSource, /getCollaborationDayLabel/);

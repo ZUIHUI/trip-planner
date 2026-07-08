@@ -31,12 +31,46 @@ const formatRelativeTime = (activity = {}) => {
   }).format(new Date(time));
 };
 
+const LEGACY_PACKING_CLOTHING_TITLES = new Set([
+  '上衣',
+  '褲子',
+  '內衣',
+  '襪子',
+  '睡衣',
+  '外套',
+  '帽子',
+  '圍巾',
+  '雨衣'
+]);
+
+const normalizeActivityLabel = (activity = {}) => {
+  if (activity.entityKind === 'packing-clothing') return '行李衣物';
+  if (activity.entityKind === 'packing') return '行李';
+  if (activity.listId === 'packing' && activity.category === 'clothing') return '行李衣物';
+  if (activity.listId === 'packing') return '行李';
+
+  const body = String(activity.body || activity.entityTitle || '').trim();
+  if (
+    activity.collectionId === 'checklistItems' &&
+    (activity.label === '待辦' || !activity.label) &&
+    LEGACY_PACKING_CLOTHING_TITLES.has(body)
+  ) {
+    return '行李衣物';
+  }
+
+  return activity.label || '旅程內容';
+};
+
 const formatActivityTitle = (activity = {}, currentUid = '') => {
-  const label = activity.label || '旅程內容';
+  const label = normalizeActivityLabel(activity);
   const actionText = activity.actionText || '更新';
 
   if (activity.actorUid && currentUid && activity.actorUid === currentUid) {
     return `你${actionText}了${label}`;
+  }
+
+  if (activity.title && activity.label && activity.label !== label) {
+    return activity.title.replace(activity.label, label);
   }
 
   return activity.title || `${activity.actorName || '旅伴'} ${actionText}了${label}`;

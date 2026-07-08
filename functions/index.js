@@ -1299,6 +1299,50 @@ const getCollaborationActionText = (action) => {
   return '更新';
 };
 
+const getCollaborationChecklistMeta = (data = {}) => {
+  const listId = cleanPushString(data.listId, 40);
+  if (listId === 'packing') {
+    const category = cleanPushString(data.category, 40);
+    if (category === 'clothing') {
+      return {
+        label: '行李衣物',
+        fallback: '一件行李衣物',
+        entityKind: 'packing-clothing',
+        listId,
+        category
+      };
+    }
+
+    return {
+      label: '行李',
+      fallback: '一件行李物品',
+      entityKind: 'packing',
+      listId,
+      category
+    };
+  }
+
+  return {
+    label: '待辦',
+    fallback: '一個待辦',
+    entityKind: 'pre-trip-todo',
+    listId: listId || 'preTrip',
+    category: cleanPushString(data.category, 40)
+  };
+};
+
+const getCollaborationCollectionConfig = ({ collectionId, data = {} }) => {
+  const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
+  if (collectionId === 'checklistItems') {
+    return {
+      ...config,
+      ...getCollaborationChecklistMeta(data)
+    };
+  }
+
+  return config;
+};
+
 const getCollaborationDayLabel = (data = {}) => {
   const dayNumber = Number(data.dayNumber || data.day);
   return Number.isFinite(dayNumber) && dayNumber > 0 ? `第 ${dayNumber} 天` : '';
@@ -1318,7 +1362,7 @@ const getCollaborationMemberName = (member = {}, uid = '') => {
 };
 
 const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
-  const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
+  const config = getCollaborationCollectionConfig({ collectionId, data });
 
   if (collectionId === 'details') {
     const section = cleanPushString(data.section || data.id || documentId, 80);
@@ -1364,7 +1408,7 @@ const buildCollaborationActivity = ({
   actorUid,
   actorName
 }) => {
-  const config = COLLABORATION_NOTIFICATION_COLLECTIONS[collectionId] || {};
+  const config = getCollaborationCollectionConfig({ collectionId, data });
   const label = config.label || '旅程內容';
   const actionText = getCollaborationActionText(action);
   const entityTitle = getCollaborationEntityTitle({ collectionId, documentId, data });
@@ -1380,6 +1424,9 @@ const buildCollaborationActivity = ({
     collectionId,
     documentId,
     label,
+    entityKind: config.entityKind || collectionId,
+    listId: config.listId || '',
+    category: config.category || '',
     entityTitle: body,
     title: cleanPushString(`${actorName} ${actionText}了${label}`, 100),
     body,
