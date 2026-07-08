@@ -100,17 +100,15 @@ const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item 
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                layout
-                animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.01 : 1 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.58 }}
-                className={`${buildTabClass(isActive)} flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98]`}
+                whileTap={{ scale: 0.992 }}
+                transition={{ type: 'tween', duration: 0.08, ease: 'easeOut' }}
+                className={`${buildTabClass(isActive)} flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-colors duration-150`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
                 title={tab.label}
               >
                 <PresenceTabMarker count={getMobilePresenceCount(tab.id)} />
-                <Icon size={22} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
+                <Icon size={22} className={`transition-transform duration-150 ${isActive ? 'scale-105' : ''}`} />
                 <span className="tp-nav-label truncate">{tab.label}</span>
               </motion.button>
             );
@@ -126,17 +124,15 @@ const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item 
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                layout
-                animate={{ y: isActive ? -1 : 0, scale: isActive ? 1.008 : 1 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.58 }}
-                className={`${buildTabClass(isActive)} min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-all duration-200 active:scale-[0.98]`}
+                whileTap={{ scale: 0.992 }}
+                transition={{ type: 'tween', duration: 0.08, ease: 'easeOut' }}
+                className={`${buildTabClass(isActive)} min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-colors duration-150`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
                 title={tab.label}
               >
                 <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
-                <Icon size={21} className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
+                <Icon size={21} className={`transition-transform duration-150 ${isActive ? 'scale-105' : ''}`} />
                 <span className="tp-nav-label max-w-full truncate">{tab.label}</span>
               </motion.button>
             );

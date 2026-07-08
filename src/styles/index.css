@@ -7793,6 +7793,7 @@ textarea.tp-input {
     align-items: stretch !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
+    overflow-anchor: none !important;
     width: 100% !important;
   }
 
@@ -7841,6 +7842,16 @@ textarea.tp-input {
     grid-template-columns: 2.45rem minmax(0, 1fr) !important;
   }
 
+  .tp-mobile-feature-frame,
+  .tp-mobile-feature-body,
+  .tp-page-container,
+  .tp-card-animated,
+  .tp-itinerary-event-card {
+    backface-visibility: hidden;
+    overflow-anchor: none !important;
+    transform: translateZ(0);
+  }
+
   .tp-mobile-feature-icon {
     height: 2.45rem !important;
     width: 2.45rem !important;
@@ -7851,6 +7862,7 @@ textarea.tp-input {
   }
 
   .tp-day-selector-strip {
+    overflow-anchor: none !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
@@ -7860,6 +7872,12 @@ textarea.tp-input {
     border-radius: 14px !important;
     max-width: 100% !important;
     overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    scroll-behavior: auto !important;
+    touch-action: pan-x pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+    will-change: scroll-position !important;
   }
 
   .tp-day-selector-chip {
@@ -7867,6 +7885,7 @@ textarea.tp-input {
     max-width: none !important;
     min-height: 2.65rem !important;
     min-width: 4.25rem !important;
+    overflow-anchor: none !important;
   }
 
   .tp-day-selector-chip span {

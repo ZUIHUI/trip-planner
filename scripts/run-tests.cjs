@@ -935,6 +935,33 @@ test('passes trip-day dates into travel next-event surfaces', () => {
   assert.match(summarySource, /getSummaryNextEvent\(itinerary,\s*selectedDay,\s*tripDetails\)/);
 });
 
+test('keeps mobile day switching and core PWA interactions stable', () => {
+  const daySelectorSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/DaySelector.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
+  const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
+  const cardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Card.jsx'), 'utf8');
+  const badgeSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Badge.jsx'), 'utf8');
+  const pageContainerSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/PageContainer.jsx'), 'utf8');
+  const bottomNavSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/BottomNavigation.jsx'), 'utf8');
+
+  assert.match(daySelectorSource, /DAY_SELECTOR_SCROLL_DURATION_MS = 220/);
+  assert.match(daySelectorSource, /requestAnimationFrame\(tick\)/);
+  assert.match(daySelectorSource, /cancelAnimationFrame\(animationRef\.current\)/);
+  assert.doesNotMatch(daySelectorSource, /motion\/react|<motion|layout|scroll-smooth|behavior:\s*'smooth'|setTimeout/);
+  assert.match(itinerarySource, /selectDayWithoutViewportJump/);
+  assert.match(itinerarySource, /pendingViewportRef/);
+  assert.match(itinerarySource, /window\.scrollTo\(\{/);
+  assert.match(stylesSource, /overflow-anchor:\s*none !important/);
+  assert.match(stylesSource, /scroll-behavior:\s*auto !important/);
+  assert.match(buttonSource, /scale:\s*0\.988/);
+  assert.match(cardSource, /initial:\s*false/);
+  assert.doesNotMatch(badgeSource, /motion\/react|<motion|layout|initial=/);
+  assert.doesNotMatch(pageContainerSource, /motion\/react|layout/);
+  assert.doesNotMatch(bottomNavSource, /layout\s*[\r\n]/);
+  assert.doesNotMatch(bottomNavSource, /scale:\s*0\.97/);
+});
+
 test('moves itinerary events without sorting by time', () => {
   const events = [
     { id: 'a', title: 'First', time: '12:00' },

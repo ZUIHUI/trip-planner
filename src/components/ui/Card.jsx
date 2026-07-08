@@ -13,13 +13,12 @@ const Card = ({ as: Component = 'div', interactive = false, className = '', chil
   const isMotionElement = Boolean(motionElements[Component]);
   const motionProps = isMotionElement
     ? {
-        initial: { opacity: 0, y: 8, scale: 0.992 },
-        animate: { opacity: 1, y: 0, scale: 1 },
+        initial: false,
         whileHover: interactive
-          ? { y: -2, scale: 1.002 }
-          : { y: -1, scale: 1.001 },
-        whileTap: interactive ? { y: 0, scale: 0.996 } : undefined,
-        transition: { type: 'spring', stiffness: 380, damping: 36, mass: 0.62 }
+          ? { y: -1, scale: 1.001 }
+          : undefined,
+        whileTap: interactive ? { y: 0, scale: 0.992 } : undefined,
+        transition: { type: 'tween', duration: 0.1, ease: 'easeOut' }
       }
     : {};
 

@@ -281,14 +281,11 @@ const EventCard = ({
   return (
     <motion.div
       className="relative ml-4 border-l-2 border-slate-200 pb-8 pl-7 last:pb-0 dark:border-slate-800"
-      layout
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
+      initial={false}
     >
       <motion.span className={`tp-soft-pulse absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
         event.urgent ? 'border-red-500' : 'border-brand-400'
-      }`} layout />
+      }`} />
 
       <Card interactive className="tp-itinerary-event-card relative cursor-pointer p-4 sm:p-5" onClick={handleCardClick}>
         <div className="flex items-start justify-between gap-4">

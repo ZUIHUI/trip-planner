@@ -97,10 +97,33 @@ const ItineraryTab = () => {
   const nextDayItem = itinerary.length > 1
     ? itinerary[((currentDayIndex >= 0 ? currentDayIndex : 0) + 1) % itinerary.length]
     : null;
+  const pendingViewportRef = React.useRef(null);
+
+  const selectDayWithoutViewportJump = React.useCallback((day) => {
+    if (String(day) === String(selectedDay)) return;
+    if (typeof window !== 'undefined') {
+      pendingViewportRef.current = {
+        left: window.scrollX,
+        top: window.scrollY
+      };
+    }
+    setSelectedDay(day);
+  }, [selectedDay, setSelectedDay]);
+
+  React.useLayoutEffect(() => {
+    const pendingViewport = pendingViewportRef.current;
+    if (!pendingViewport || typeof window === 'undefined') return;
+    pendingViewportRef.current = null;
+    window.scrollTo({
+      left: pendingViewport.left,
+      top: pendingViewport.top,
+      behavior: 'auto'
+    });
+  }, [selectedDay]);
 
   const handleSelectNextDay = () => {
     if (!nextDayItem) return;
-    setSelectedDay(nextDayItem.day);
+    selectDayWithoutViewportJump(nextDayItem.day);
   };
 
   return (
@@ -116,7 +139,7 @@ const ItineraryTab = () => {
       ]}
       tone="teal"
     >
-      <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
+      <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} />
       {nextDayItem && (
         <div className="mt-3 px-5 sm:hidden">
           <Button
