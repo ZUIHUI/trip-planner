@@ -1,13 +1,8 @@
 import { normalizePlaceText } from './placeText';
+import { readFiniteCoordinate } from './placeCoordinates';
 import { getEventDestination, formatEventTime } from './tripEvents';
 
 export const getRouteEventDestination = getEventDestination;
-
-const readFiniteCoordinate = (value) => {
-  if (value === null || value === undefined || String(value).trim() === '') return null;
-  const coordinate = Number(value);
-  return Number.isFinite(coordinate) ? coordinate : null;
-};
 
 export const getTripRouteOrigin = (tripDetails = {}, currentLocation = null) => {
   const currentLocationName = normalizePlaceText(currentLocation?.locationName);

@@ -1,24 +1,7 @@
 import { getPlaceId, normalizePlaceText } from './placeText';
+import { hasUsableCoordinatePair, readFiniteCoordinate } from './placeCoordinates';
 
 export const GOOGLE_MAPS_EMBED_MAX_WAYPOINTS = 20;
-
-const readCoordinate = (...values) => {
-  for (const value of values) {
-    if (value === null || value === undefined || String(value).trim() === '') continue;
-    const number = Number(value);
-    if (Number.isFinite(number)) return number;
-  }
-  return null;
-};
-
-const hasValidCoordinates = (lat, lng) => (
-  lat !== null
-  && lng !== null
-  && lat >= -90
-  && lat <= 90
-  && lng >= -180
-  && lng <= 180
-);
 
 export const formatGoogleMapsEmbedPlace = (place) => {
   const placeId = getPlaceId(place);
@@ -26,10 +9,10 @@ export const formatGoogleMapsEmbedPlace = (place) => {
 
   if (place && typeof place === 'object') {
     const location = place.location || place.geometry?.location || null;
-    const lat = readCoordinate(place.lat, place.latitude, location?.lat, location?.latitude);
-    const lng = readCoordinate(place.lng, place.longitude, location?.lng, location?.longitude);
+    const lat = readFiniteCoordinate(place.lat, place.latitude, location?.lat, location?.latitude);
+    const lng = readFiniteCoordinate(place.lng, place.longitude, location?.lng, location?.longitude);
 
-    if (hasValidCoordinates(lat, lng)) {
+    if (hasUsableCoordinatePair(lat, lng)) {
       return `${lat},${lng}`;
     }
   }
@@ -59,7 +42,7 @@ export const buildGoogleMapsEmbedRouteUrl = ({
   destinations = [],
   mode = 'transit',
   language = 'zh-TW',
-  region = 'TW',
+  region = '',
   placeZoom = 14
 } = {}) => {
   const normalizedApiKey = String(apiKey || '').trim();

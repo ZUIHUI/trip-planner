@@ -40,6 +40,10 @@ const {
   formatGoogleMapsEmbedPlace
 } = require('../src/utils/googleMapsEmbed.js');
 const {
+  hasUsableCoordinatePair,
+  readFiniteCoordinate
+} = require('../src/utils/placeCoordinates.js');
+const {
   getEventLocationText,
   getTripDayIsoDate,
   normalizeEventTime,
@@ -880,8 +884,33 @@ test('builds an authenticated Google Maps Embed route in itinerary order', () =>
   assert.equal(parsed.searchParams.get('destination'), 'Final stop');
   assert.equal(parsed.searchParams.get('waypoints'), 'place_id:stop-a|25.033,121.5654');
   assert.equal(parsed.searchParams.get('mode'), 'transit');
+  assert.equal(parsed.searchParams.has('region'), false);
   assert.equal(formatGoogleMapsEmbedPlace({ placeId: 'stable-place', lat: 1, lng: 2 }), 'place_id:stable-place');
   assert.equal(formatGoogleMapsEmbedPlace({ address: 'Tokyo Station', lat: null, lng: null }), 'Tokyo Station');
+});
+
+test('falls back to place text for empty and zeroed coordinates without a fixed country bias', () => {
+  assert.equal(readFiniteCoordinate(null, '', 34.6937), 34.6937);
+  assert.equal(readFiniteCoordinate(undefined, '135.5023'), 135.5023);
+  assert.equal(hasUsableCoordinatePair(0, 0), false);
+  assert.equal(hasUsableCoordinatePair(34.6937, 135.5023), true);
+  assert.equal(
+    formatGoogleMapsEmbedPlace({ address: 'H2H Shinsaibashi, Osaka, Japan', lat: 0, lng: 0 }),
+    'H2H Shinsaibashi, Osaka, Japan'
+  );
+
+  const parsed = new URL(buildGoogleMapsEmbedRouteUrl({
+    apiKey: 'browser-key',
+    destinations: ['H2H Shinsaibashi, Osaka, Japan']
+  }));
+  assert.equal(parsed.searchParams.has('region'), false);
+
+  const explicitlyBiased = new URL(buildGoogleMapsEmbedRouteUrl({
+    apiKey: 'browser-key',
+    destinations: ['Osaka Station'],
+    region: 'JP'
+  }));
+  assert.equal(explicitlyBiased.searchParams.get('region'), 'JP');
 });
 
 test('uses the first stop as origin and caps Google Maps Embed waypoints', () => {

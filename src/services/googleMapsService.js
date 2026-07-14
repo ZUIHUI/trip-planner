@@ -4,6 +4,7 @@ import {
   getPlaceId,
   normalizePlaceText as normalizeSharedPlaceText
 } from '../utils/placeText';
+import { readFiniteCoordinate } from '../utils/placeCoordinates';
 import app from './firebase';
 
 const functions = getFunctions(app);
@@ -92,14 +93,6 @@ const callGoogleFunction = async (name, payload) => {
   const callable = httpsCallable(functions, name);
   const response = await callable(payload);
   return response.data || {};
-};
-
-const readCoordinate = (...values) => {
-  for (const value of values) {
-    const number = Number(value);
-    if (Number.isFinite(number)) return number;
-  }
-  return null;
 };
 
 export const buildGoogleMapsSearchUrl = (query) => {
@@ -204,8 +197,8 @@ export const normalizeGooglePlaceResult = (place, fallbackText = '') => {
     name,
     address,
     placeId: getPlaceId(place),
-    lat: readCoordinate(place.lat, location?.lat, location?.latitude),
-    lng: readCoordinate(place.lng, location?.lng, location?.longitude)
+    lat: readFiniteCoordinate(place.lat, location?.lat, location?.latitude),
+    lng: readFiniteCoordinate(place.lng, location?.lng, location?.longitude)
   };
 };
 
