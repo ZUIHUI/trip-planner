@@ -52,6 +52,11 @@ const {
   markLazyImportReload
 } = require('../src/utils/lazyImportRecovery.js');
 const {
+  buildErrorDiagnostic,
+  getFirstComponentName,
+  sanitizeErrorDiagnosticText
+} = require('../src/utils/errorDiagnostics.js');
+const {
   applyTripEventDocumentsToItinerary,
   buildTripEventDocument,
   getAppendOrderKey,
@@ -784,6 +789,24 @@ test('reloads once when a deployed lazy chunk is no longer available', () => {
     storage,
     now: 1_000 + LAZY_IMPORT_RELOAD_COOLDOWN_MS
   }), true);
+});
+
+test('builds safe production render diagnostics without exposing credentials', () => {
+  const error = new TypeError(
+    'Failed at https://example.com/trip/private?key=secret-value with AIza123456789012345678901234567890 and owner@example.com'
+  );
+  const componentStack = '\n    at ItineraryRoutePanel (https://example.com/assets/detail.js:1:2)\n    at Suspense';
+  const diagnostic = buildErrorDiagnostic(error, componentStack);
+
+  assert.match(diagnostic.code, /^ERR-[0-9A-F]{8}$/);
+  assert.equal(diagnostic.name, 'TypeError');
+  assert.equal(diagnostic.component, 'ItineraryRoutePanel');
+  assert.equal(getFirstComponentName(componentStack), 'ItineraryRoutePanel');
+  assert.match(diagnostic.message, /\[redacted-url\]/);
+  assert.match(diagnostic.message, /\[redacted-api-key\]/);
+  assert.match(diagnostic.message, /\[redacted-email\]/);
+  assert.doesNotMatch(diagnostic.message, /secret-value|owner@example\.com|AIza123/);
+  assert.equal(sanitizeErrorDiagnosticText('  repeated   spaces  '), 'repeated spaces');
 });
 
 test('does not rewrite missing asset requests to the SPA document', () => {
