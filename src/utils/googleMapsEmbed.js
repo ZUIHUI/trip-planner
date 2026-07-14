@@ -59,7 +59,8 @@ export const buildGoogleMapsEmbedRouteUrl = ({
   destinations = [],
   mode = 'transit',
   language = 'zh-TW',
-  region = 'TW'
+  region = 'TW',
+  placeZoom = 14
 } = {}) => {
   const normalizedApiKey = String(apiKey || '').trim();
   if (!normalizedApiKey) return '';
@@ -83,6 +84,10 @@ export const buildGoogleMapsEmbedRouteUrl = ({
   if (!routePoints.length) {
     const params = buildEmbedBaseParams({ apiKey: normalizedApiKey, language, region });
     params.set('q', originPoint);
+    const normalizedZoom = Number(placeZoom);
+    if (Number.isFinite(normalizedZoom)) {
+      params.set('zoom', String(Math.min(21, Math.max(0, Math.round(normalizedZoom)))));
+    }
     return `https://www.google.com/maps/embed/v1/place?${params.toString()}`;
   }
 

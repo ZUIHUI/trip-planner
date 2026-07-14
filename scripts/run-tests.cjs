@@ -824,6 +824,7 @@ test('falls back to a Google place embed for a single stop without an origin', (
 
   assert.equal(parsed.pathname, '/maps/embed/v1/place');
   assert.equal(parsed.searchParams.get('q'), 'Tokyo Station');
+  assert.equal(parsed.searchParams.get('zoom'), '14');
   assert.equal(buildGoogleMapsEmbedRouteUrl({ apiKey: '', destinations: ['Tokyo'] }), '');
 });
 

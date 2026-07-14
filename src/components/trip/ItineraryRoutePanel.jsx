@@ -211,7 +211,6 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
 
         <div className="min-h-64 border-t border-slate-200 bg-slate-100 lg:border-l lg:border-t-0 dark:border-slate-800 dark:bg-slate-950">
           <GoogleRoutePreview
-            origin={origin}
             routeStops={routeStops}
             title="每日行程 Google Maps 路線預覽"
             className="h-64 lg:h-full"

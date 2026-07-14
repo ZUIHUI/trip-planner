@@ -7,7 +7,6 @@ const googleMapsEmbedApiKey = String(
 ).trim();
 
 const GoogleRoutePreview = ({
-  origin,
   routeStops = [],
   title = 'Google Maps 今日路線預覽',
   className = '',
@@ -18,14 +17,14 @@ const GoogleRoutePreview = ({
     () => routeStops.map((stop) => stop?.destination || stop).filter(Boolean),
     [routeStops]
   );
+  // Keep the preview fitted to planned stops; live GPS remains available to the external navigation link.
   const embedUrl = useMemo(
     () => buildGoogleMapsEmbedRouteUrl({
       apiKey: googleMapsEmbedApiKey,
-      origin,
       destinations,
       mode: 'transit'
     }),
-    [destinations, origin]
+    [destinations]
   );
 
   useEffect(() => {

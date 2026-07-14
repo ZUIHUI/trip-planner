@@ -168,7 +168,6 @@ export const DesktopMapOverview = ({ activeTab }) => {
   return (
     <section className="tp-v4-desktop-map" aria-label="今日地圖概覽">
       <GoogleRoutePreview
-        origin={origin}
         routeStops={routeStops}
         title="桌面今日指揮中心 Google Maps 路線預覽"
         className="tp-v4-desktop-route-preview"

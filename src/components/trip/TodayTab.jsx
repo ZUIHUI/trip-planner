@@ -767,7 +767,7 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
   );
 };
 
-const TodayRouteCard = ({ origin, routeStops, routeUrl }) => {
+const TodayRouteCard = ({ routeStops, routeUrl }) => {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
@@ -800,7 +800,6 @@ const TodayRouteCard = ({ origin, routeStops, routeUrl }) => {
       </div>
 
       <GoogleRoutePreview
-        origin={origin}
         routeStops={routeStops}
         title="今日指揮中心 Google Maps 路線預覽"
         className="h-60 border-y border-[#e0e9e0] dark:border-brand-200/20"
@@ -996,7 +995,7 @@ const TodayTab = ({ onTabChange }) => {
         onOpenMaps={handleOpenGoogleMaps}
       />
 
-      <TodayRouteCard origin={origin} routeStops={routeStops} routeUrl={routeUrl} />
+      <TodayRouteCard routeStops={routeStops} routeUrl={routeUrl} />
     </MobileMockupFrame>
   );
 };
