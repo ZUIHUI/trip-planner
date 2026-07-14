@@ -2,6 +2,7 @@ import React from 'react';
 import {
   BookOpen,
   CheckSquare,
+  ChevronRight,
   LayoutDashboard,
   Luggage,
   Plane,
@@ -49,33 +50,33 @@ const getLogisticsStatus = (tripDetails = {}) => {
   return '尚未補齊';
 };
 
-const ModuleButton = ({ icon: Icon, title, meta, onClick }) => (
+const ModuleButton = ({ icon: Icon, title, description, meta, tone = 'soft', onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="touch-target tp-module-button flex w-full min-w-0 items-center gap-3 rounded-lg border border-slate-200 bg-white/90 p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:bg-brand-50/70 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-800 dark:hover:bg-slate-800/80"
+    className={`touch-target tp-module-button tp-v4-module-entry tp-v4-module-${tone}`}
   >
-    <span className="tp-icon-chip h-11 w-11">
+    <span className="tp-icon-chip tp-v4-module-icon">
       <Icon size={20} />
     </span>
-    <span className="min-w-0 flex-1">
-      <span className="block truncate text-sm font-black text-slate-950 dark:text-white">{title}</span>
+    <span className="tp-v4-module-copy">
+      <span className="tp-v4-module-title">{title}</span>
+      {description && <span className="tp-v4-module-description">{description}</span>}
     </span>
-    {meta && (
-      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-        {meta}
-      </span>
-    )}
+    <span className="tp-v4-module-footer">
+      {meta && <span>{meta}</span>}
+      <ChevronRight size={16} aria-hidden="true" />
+    </span>
   </button>
 );
 
 const ModuleSection = ({ title, children }) => (
-  <Card className="p-4">
-    <h2 className="text-sm font-black text-slate-950 dark:text-white">{title}</h2>
-    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+  <section className="tp-v4-module-section">
+    <h2>{title}</h2>
+    <div className="tp-v4-module-grid">
       {children}
     </div>
-  </Card>
+  </section>
 );
 
 const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home' }) => {
@@ -85,6 +86,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
     itinerary,
     checklists,
     expenses,
+    budgetProgress,
     collaboration,
     setCollaboration,
     currentUser,
@@ -103,6 +105,8 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
   const eventCount = (Array.isArray(itinerary) ? itinerary : [])
     .reduce((total, day) => total + (day.events?.length || 0), 0);
   const onlineCount = presenceUi?.otherOnlineMembers?.length || 0;
+  const preTripProgress = getChecklistProgress(checklists?.preTrip);
+  const packingProgress = getChecklistProgress(checklists?.packing);
   const collaborationCard = (
     <ShareCollaborationCard
       tripId={tripId}
@@ -164,66 +168,97 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
       tone="coral"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
     >
+      <section className="tp-v4-module-summary" aria-label="旅程管理摘要">
+        <div>
+          <span>TRIP CONTROL</span>
+          <h2>{tripDetails?.title || '我的旅程'}</h2>
+          <p>{presenceUi?.summaryText || '已同步'} · {members?.length || 0} 位旅伴</p>
+        </div>
+        <div className="tp-v4-module-summary-stats">
+          <div><strong>{preTripProgress.remaining}</strong><span>待辦</span></div>
+          <div><strong>{packingProgress.done}/{packingProgress.total}</strong><span>行李</span></div>
+          <div><strong>{budgetProgress || 0}%</strong><span>預算</span></div>
+        </div>
+      </section>
+
       <ModuleSection title="旅行準備">
         <ModuleButton
           icon={LayoutDashboard}
-          title="控制台"
+          title="旅程總覽"
+          description="日期、住宿與旅程摘要"
           meta={`${eventCount} 行程`}
+          tone="soft"
           onClick={() => onTabChange?.('summary')}
         />
         <ModuleButton
           icon={Plane}
-          title="住宿航班"
+          title="航班與住宿"
+          description="航班查詢、住宿地址"
           meta={getLogisticsStatus(tripDetails)}
+          tone="sky"
           onClick={() => onTabChange?.('flights')}
         />
         <ModuleButton
-          icon={BookOpen}
-          title="旅遊手冊"
-          meta="PDF"
-          onClick={onOpenHandbook}
-        />
-        <ModuleButton
           icon={CheckSquare}
-          title="行前"
+          title="行前準備"
+          description="票券、預約與提醒"
           meta={getChecklistStatus(checklists?.preTrip)}
+          tone="sand"
           onClick={() => onTabChange?.('preTrip')}
         />
         <ModuleButton
           icon={Luggage}
-          title="行李"
+          title="行李清單"
+          description="分類、數量與完成度"
           meta={getChecklistStatus(checklists?.packing, '尚未建立')}
+          tone="soft"
           onClick={() => onTabChange?.('packing')}
         />
       </ModuleSection>
 
-      <ModuleSection title="旅行中工具">
+      <ModuleSection title="共同工具">
         <ModuleButton
           icon={ReceiptText}
-          title="記帳"
+          title="支出與預算"
+          description="共同分帳、預算與匯率"
           meta={Array.isArray(expenses) && expenses.length ? `${expenses.length} 筆` : '尚未記帳'}
+          tone="coral"
           onClick={() => onTabChange?.('expenses')}
         />
         <ModuleButton
           icon={ShoppingCart}
-          title="購物"
-          meta="購物清單"
+          title="購物清單"
+          description="店家、照片與備註"
+          meta="共同清單"
+          tone="sand"
           onClick={() => onTabChange?.('shopping')}
         />
-      </ModuleSection>
-
-      <ModuleSection title="旅伴與設定">
         <ModuleButton
           icon={UsersRound}
-          title="旅伴與邀請"
+          title="旅伴與分享"
+          description="邀請碼、權限與在線狀態"
           meta={onlineCount ? `${onlineCount} 在線` : `${members?.length || 0} 位旅伴`}
+          tone="sky"
           onClick={() => onTabChange?.('companions')}
         />
         <ModuleButton
           icon={Settings}
           title="設定"
-          meta="偏好"
+          description="主題、GPS 與介面偏好"
+          meta="個人化"
+          tone="soft"
           onClick={onOpenSettings}
+        />
+      </ModuleSection>
+
+      <ModuleSection title="旅程文件">
+        <ModuleButton
+          icon={BookOpen}
+          title="旅遊手冊"
+          description="整理旅程內容並匯出 PDF"
+          meta="PDF"
+          tone="sky"
+          onClick={onOpenHandbook}
         />
       </ModuleSection>
 

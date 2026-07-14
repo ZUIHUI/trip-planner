@@ -302,8 +302,8 @@ const LoginPage = () => {
 
         <section className="tp-mobile-auth-sheet" aria-label="登入操作">
           <div className="tp-mobile-auth-heading">
-            <h2>歡迎回來</h2>
-            <p>登入後繼續規劃旅程</p>
+            <h2>下一趟旅行，從一個清楚的計畫開始。</h2>
+            <p>行程、地圖、旅伴、預算與清單，都集中在同一個地方。</p>
           </div>
 
           <label className="tp-mobile-auth-remember">
@@ -417,8 +417,8 @@ const LoginPage = () => {
               <div className="tp-icon-chip mb-4">
                 <PlaneTakeoff size={22} />
               </div>
-              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">登入 Trip Planner</h1>
-              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">繼續整理你的下一段旅程</p>
+              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">下一趟旅行，從清楚的計畫開始</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">登入後繼續整理行程、地圖、旅伴與預算。</p>
             </div>
 
             <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#e0e9e0] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">

@@ -30,6 +30,15 @@ import ShoppingTab from '../components/trip/ShoppingTab';
 import ExpensesTab from '../components/trip/ExpensesTab';
 import TripAiRecommendationPanel from '../components/trip/TripAiRecommendationPanel';
 import TripHandbookModal from '../components/trip/TripHandbookModal';
+import {
+  DesktopMapOverview,
+  DesktopPlannerPanel,
+  DesktopWorkspaceRail
+} from '../components/trip/DesktopWorkspace';
+import {
+  PermissionBanner,
+  SyncStatusBanner
+} from '../components/trip/WorkspaceStatusBanners';
 import { TripWorkspaceProvider } from '../contexts/TripWorkspaceContext';
 import { useTrip } from '../hooks/useTrip';
 import { useTripPresence } from '../hooks/useTripPresence';
@@ -1828,70 +1837,67 @@ const TripDetailPage = () => {
 
       <PageContainer className="tp-detail-page-frame tp-atlas-page-frame pb-40 lg:pb-44">
         <div className="tp-workspace-shell-content tp-mobile-detail-sheet">
-          <nav className="tp-mobile-detail-tabs" aria-label="旅程頁面導覽">
-            {MOBILE_DETAIL_TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = tab.id === 'more'
-                ? activeTab === 'more' || MORE_CHILD_TABS.has(activeTab)
-                : activeTab === tab.id;
+          <div className="tp-v4-workspace-grid">
+            <DesktopWorkspaceRail
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+            />
 
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={isActive ? 'is-active' : ''}
-                  aria-current={isActive ? 'page' : undefined}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  <Icon size={15} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+            <main className="tp-v4-workspace-main" id="trip-workspace-main">
+              <nav className="tp-mobile-detail-tabs" aria-label="旅程頁面導覽">
+                {MOBILE_DETAIL_TABS.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = tab.id === 'more'
+                    ? activeTab === 'more' || MORE_CHILD_TABS.has(activeTab)
+                    : activeTab === tab.id;
 
-          {isReadOnly && (
-            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 px-3 py-2 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200">
-              你目前只能查看這趟旅程；若要一起編輯，請主辦人重新產生可以一起編輯的邀請碼。
-            </div>
-          )}
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={isActive ? 'is-active' : ''}
+                      aria-current={isActive ? 'page' : undefined}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <Icon size={15} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
 
-          {(saveError || syncConflict) && (
-            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/90 p-3 text-sm font-semibold text-amber-900 shadow-sm dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-              <p>{syncConflict ? '另一位旅伴剛更新了旅程，請選擇要使用哪一版。' : saveError}</p>
-              {syncConflict && syncConflictSummary && (
-                <p className="mt-1 break-words text-xs text-amber-800/80 dark:text-amber-100/80">
-                  {syncConflictSummary}
-                </p>
-              )}
-              {syncConflict && (
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <Button size="sm" variant="secondary" onClick={() => resolveConflict('remote')}>
-                    使用最新內容
-                  </Button>
-                  <Button size="sm" onClick={() => resolveConflict('local')}>
-                    保留我的內容
-                  </Button>
+              <div className="tp-v4-state-stack">
+                <PermissionBanner isReadOnly={isReadOnly} />
+                <SyncStatusBanner
+                  isSaving={isSaving || isSavingTripDetails}
+                  saveError={saveError}
+                  syncConflict={Boolean(syncConflict)}
+                  syncConflictSummary={syncConflictSummary}
+                  onUseRemote={() => resolveConflict('remote')}
+                  onKeepLocal={() => resolveConflict('local')}
+                  remoteActionLabel="使用最新內容"
+                  localActionLabel="保留我的內容"
+                />
+              </div>
+
+              <DesktopMapOverview activeTab={activeTab} />
+
+              {showMoreBackButton && (
+                <div className="mx-auto mb-4 flex max-w-4xl px-5 sm:px-7 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('more')}
+                    className="touch-target inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition hover:bg-sky-50 hover:text-brand-800 active:scale-95 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    aria-label="回到更多"
+                    title="回到更多"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
                 </div>
               )}
-            </div>
-          )}
 
-          {showMoreBackButton && (
-            <div className="mx-auto mb-4 flex max-w-4xl px-5 sm:px-7 lg:hidden">
-              <button
-                type="button"
-                onClick={() => setActiveTab('more')}
-                className="touch-target inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition hover:bg-sky-50 hover:text-brand-800 active:scale-95 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-                aria-label="回到更多"
-                title="回到更多"
-              >
-                <ChevronLeft size={22} />
-              </button>
-            </div>
-          )}
-
-          <section className={`tp-mobile-detail-stage tp-mobile-detail-stage-${activeTab}`} aria-label={`${mobileDetailActiveLabel} content`}>
+              <section className={`tp-mobile-detail-stage tp-mobile-detail-stage-${activeTab}`} aria-label={`${mobileDetailActiveLabel} content`}>
             {activeTab === 'today' && (
               <TodayTab onTabChange={setActiveTab} />
             )}
@@ -1940,7 +1946,11 @@ const TripDetailPage = () => {
             {activeTab === 'expenses' && (
               <ExpensesTab />
             )}
-          </section>
+              </section>
+            </main>
+
+            <DesktopPlannerPanel activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
         </div>
       </PageContainer>
 

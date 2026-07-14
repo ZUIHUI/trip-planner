@@ -15,17 +15,17 @@ import {
 } from 'lucide-react';
 
 const mobileTabs = [
-  { id: 'today', label: '旅途', icon: Compass },
+  { id: 'today', label: '今日', icon: Compass },
   { id: 'itinerary', label: '行程', icon: Map },
-  { id: 'ideas', label: '想去', icon: Star },
+  { id: 'ideas', label: '靈感', icon: Star },
   { id: 'more', label: '更多', icon: Menu }
 ];
 
 const desktopTabs = [
-  { id: 'today', label: '旅途', icon: Compass },
+  { id: 'today', label: '今日', icon: Compass },
   { id: 'summary', label: '總覽', icon: LayoutDashboard },
   { id: 'itinerary', label: '行程', icon: Map },
-  { id: 'ideas', label: '想去', icon: Star },
+  { id: 'ideas', label: '靈感', icon: Star },
   { id: 'flights', label: '資訊', icon: Ticket },
   { id: 'preTrip', label: '行前', icon: CheckSquare },
   { id: 'packing', label: '行李', icon: Luggage },
@@ -81,7 +81,7 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
       : activeTab === tabId
   );
 
-const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item relative flex ${isActive ? 'tp-nav-active' : ''}`;
+  const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item relative flex ${isActive ? 'tp-nav-active' : ''}`;
 
   return (
     <>
@@ -91,7 +91,7 @@ const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item 
         }`}
         aria-label="主要功能導覽"
       >
-        <div className="tp-atlas-dock-track mx-auto flex h-[4.5rem] max-w-4xl items-center gap-2 px-3 lg:hidden">
+        <div className="tp-atlas-dock-track tp-bottom-nav-mobile-track mx-auto flex h-[4.5rem] max-w-4xl items-center gap-2 px-3 lg:hidden">
           {mobileTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = isMobileTabActive(tab.id);
@@ -115,7 +115,7 @@ const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item 
           })}
         </div>
 
-        <div className="tp-atlas-dock-track mx-auto hidden h-[4.5rem] max-w-7xl items-center gap-2 px-3 lg:flex">
+        <div className="tp-atlas-dock-track tp-bottom-nav-desktop-track mx-auto hidden h-[4.5rem] max-w-7xl items-center gap-2 px-3 lg:flex">
           {desktopTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -140,7 +140,7 @@ const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item 
         </div>
       </nav>
 
-      <div className="h-[calc(5.75rem+env(safe-area-inset-bottom))] lg:h-28" />
+      <div className="tp-bottom-nav-spacer h-[calc(5.75rem+env(safe-area-inset-bottom))] lg:h-28" />
     </>
   );
 };

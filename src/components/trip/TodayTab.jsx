@@ -332,6 +332,7 @@ const TodayHero = ({
   nextEvent,
   onAddEvent,
   onNavigateNext,
+  onOpenEvent,
   tripDetails,
   canEdit
 }) => {
@@ -389,7 +390,10 @@ const TodayHero = ({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-black text-brand-100">下一站在等你</p>
+          <p className="tp-v4-next-kicker text-xs font-black text-brand-100">
+            <span>NEXT</span>
+            <span>{formatEventTime(nextEvent)}</span>
+          </p>
           <h3 className="mt-1 break-words text-2xl font-black leading-tight">
             {nextEvent.title || '未命名行程'}
           </h3>
@@ -406,17 +410,6 @@ const TodayHero = ({
           </div>
         </div>
 
-        {nextLocationText && (
-          <button
-            type="button"
-            onClick={onNavigateNext}
-            className="touch-target tp-press-feedback tp-hover-icon tp-tap-ripple inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white transition hover:bg-white/30 active:scale-95"
-            aria-label="導航到下一站"
-            title="導航"
-          >
-            <Navigation size={22} />
-          </button>
-        )}
       </div>
 
       <div className="mt-5 border-t border-white/20 pt-5">
@@ -428,6 +421,25 @@ const TodayHero = ({
           firstEventLocation={nextLocationText}
           selectedEventLocation={nextLocationText}
         />
+      </div>
+
+      <div className="tp-v4-next-actions">
+        <button
+          type="button"
+          onClick={onNavigateNext}
+          disabled={!nextLocationText}
+          className="tp-v4-next-action-primary"
+        >
+          <Navigation size={17} />
+          開始導航
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenEvent?.(nextEvent, true)}
+          className="tp-v4-next-action-secondary"
+        >
+          查看詳情
+        </button>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
@@ -958,11 +970,6 @@ const TodayTab = ({ onTabChange }) => {
         onSelectDay={setSelectedDay}
       />
 
-      <AirportDayFlightCard
-        flights={airportDayFlights}
-        onEditFlights={() => onTabChange?.('flights')}
-      />
-
       <TodayHero
         currentDayData={currentDayData}
         currentDayDate={currentDayDate}
@@ -971,6 +978,7 @@ const TodayTab = ({ onTabChange }) => {
         nextEvent={nextEvent}
         onAddEvent={openAddModal}
         onNavigateNext={handleNavigateNext}
+        onOpenEvent={openEditModal}
         tripDetails={tripDetails}
         canEdit={canEdit}
       />
@@ -986,6 +994,11 @@ const TodayTab = ({ onTabChange }) => {
       />
 
       <ReminderStrip reminders={reminders} />
+
+      <AirportDayFlightCard
+        flights={airportDayFlights}
+        onEditFlights={() => onTabChange?.('flights')}
+      />
 
       <DayReadinessStrip
         events={dayEvents}

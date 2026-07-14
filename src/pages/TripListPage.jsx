@@ -1118,9 +1118,9 @@ const TripListPage = () => {
                   <PlaneTakeoff size={19} />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">旅程小基地</h1>
+                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">我的旅程</h1>
                   <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    {totalTripCount ? `已收好 ${totalTripCount} 趟旅程，${ownedTripCount} 趟由你管理` : '先把想去的地方收進來'}
+                    {totalTripCount ? `共 ${totalTripCount} 趟旅程，其中 ${ownedTripCount} 趟由你管理` : '建立旅程，開始整理日期、地點與旅伴。'}
                   </p>
                 </div>
               </div>
