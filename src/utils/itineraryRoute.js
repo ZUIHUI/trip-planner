@@ -3,6 +3,41 @@ import { getEventDestination, formatEventTime } from './tripEvents';
 
 export const getRouteEventDestination = getEventDestination;
 
+const readFiniteCoordinate = (value) => {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) ? coordinate : null;
+};
+
+export const getTripRouteOrigin = (tripDetails = {}, currentLocation = null) => {
+  const currentLocationName = normalizePlaceText(currentLocation?.locationName);
+  const currentLatitude = readFiniteCoordinate(currentLocation?.latitude);
+  const currentLongitude = readFiniteCoordinate(currentLocation?.longitude);
+  const hasCurrentCoordinates = currentLatitude !== null && currentLongitude !== null;
+  const currentLabel = currentLocationName || (hasCurrentCoordinates ? '目前位置' : '');
+
+  if (currentLocationName || hasCurrentCoordinates) {
+    return {
+      name: currentLabel,
+      address: currentLabel,
+      lat: hasCurrentCoordinates ? currentLatitude : null,
+      lng: hasCurrentCoordinates ? currentLongitude : null
+    };
+  }
+
+  const accommodation = tripDetails?.accommodation;
+  if (!accommodation) return '';
+  return accommodation.locationPlace || accommodation.location || accommodation;
+};
+
+export const getTripRouteOriginLabel = (tripDetails = {}, currentLocation = null) => {
+  const hasCurrentCoordinates = readFiniteCoordinate(currentLocation?.latitude) !== null
+    && readFiniteCoordinate(currentLocation?.longitude) !== null;
+  if (normalizePlaceText(currentLocation?.locationName) || hasCurrentCoordinates) return '目前位置';
+  if (normalizePlaceText(tripDetails?.accommodation)) return '住宿';
+  return '未設定';
+};
+
 export const buildRouteStop = (event, itineraryIndex = 0) => {
   const destination = getRouteEventDestination(event);
   const text = normalizePlaceText(destination);

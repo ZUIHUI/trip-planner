@@ -21,6 +21,9 @@ import {
 } from 'lucide-react';
 import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
+import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
+import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itineraryRoute';
+import GoogleRoutePreview from './GoogleRoutePreview';
 
 const primaryModules = [
   { id: 'today', label: '今日指揮中心', icon: Compass },
@@ -142,51 +145,57 @@ export const DesktopMapOverview = ({ activeTab }) => {
     currentDayTitle,
     selectedDay,
     tripDetails,
-    currentLocation,
-    handleOpenGoogleMaps
+    currentLocation
   } = useTripWorkspace();
   const events = useMemo(() => sortEvents(currentDayData?.events || []), [currentDayData]);
   const nextEvent = events.find((event) => readLocation(event)) || events[0];
   const destination = readLocation(nextEvent);
-  const origin = currentLocation?.locationName
-    || tripDetails?.accommodation?.address
-    || tripDetails?.accommodation?.name
-    || '';
+  const origin = useMemo(
+    () => getTripRouteOrigin(tripDetails, currentLocation),
+    [currentLocation, tripDetails]
+  );
+  const routeStops = useMemo(
+    () => buildItineraryRouteState(events, { origin }).routeStops,
+    [events, origin]
+  );
+  const routeUrl = buildGoogleMapsMultiStopDirectionsUrl(
+    origin,
+    routeStops.map((stop) => stop.destination)
+  );
 
   if (activeTab !== 'today' && activeTab !== 'itinerary') return null;
 
   return (
     <section className="tp-v4-desktop-map" aria-label="今日地圖概覽">
-      <div className="tp-v4-desktop-map-canvas" aria-hidden="true">
-        <span className="tp-v4-map-water" />
-        <span className="tp-v4-map-park" />
-        <span className="tp-v4-map-route tp-v4-map-route-a" />
-        <span className="tp-v4-map-route tp-v4-map-route-b" />
-        <span className="tp-v4-map-route tp-v4-map-route-c" />
-        {events.slice(0, 4).map((event, index) => (
-          <span key={event.id || `${event.title}-${index}`} className={`tp-v4-map-marker tp-v4-map-marker-${index + 1}`}>
-            {index + 1}
-          </span>
-        ))}
-      </div>
+      <GoogleRoutePreview
+        origin={origin}
+        routeStops={routeStops}
+        title="桌面今日指揮中心 Google Maps 路線預覽"
+        className="tp-v4-desktop-route-preview"
+        loading="eager"
+      />
 
       <div className="tp-v4-desktop-map-toolbar">
         <span>DAY {selectedDay}</span>
         <strong>{currentDayTitle || '今日路線'}</strong>
-        <Badge variant="info">{events.length} 個停靠點</Badge>
+        <Badge variant="info">Google 路線 · {routeStops.length} 站</Badge>
       </div>
 
       <div className="tp-v4-desktop-map-card">
         <span className="tp-v4-map-card-kicker">NEXT · {formatEventTime(nextEvent)}</span>
         <h2>{nextEvent?.title || '今天尚未安排行程'}</h2>
         <p>{destination || '新增第一個地點後，這裡會整理下一站與導航入口。'}</p>
-        <Button
-          onClick={() => destination && handleOpenGoogleMaps(origin, destination)}
-          disabled={!destination}
-        >
-          <Navigation size={17} />
-          在 Google Maps 開啟
-        </Button>
+        {routeUrl ? (
+          <Button as="a" href={routeUrl} target="_blank" rel="noopener noreferrer">
+            <Navigation size={17} />
+            開啟完整路線
+          </Button>
+        ) : (
+          <Button disabled>
+            <Navigation size={17} />
+            尚無可導航地點
+          </Button>
+        )}
       </div>
     </section>
   );

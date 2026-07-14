@@ -1,21 +1,14 @@
 import React, { useMemo } from 'react';
 import { AlertTriangle, CheckCircle2, Map, MapPin, Navigation } from 'lucide-react';
 import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
-import { buildItineraryRouteState } from '../../utils/itineraryRoute';
+import {
+  buildItineraryRouteState,
+  getTripRouteOrigin,
+  getTripRouteOriginLabel
+} from '../../utils/itineraryRoute';
+import { sortEventsByTime } from '../../utils/tripEvents';
 import { Button, Card } from '../ui';
-
-const readOrigin = (tripDetails, currentLocation) => (
-  currentLocation?.locationName ||
-  tripDetails?.accommodation?.address ||
-  tripDetails?.accommodation?.name ||
-  ''
-);
-
-const readOriginLabel = (tripDetails, currentLocation) => {
-  if (currentLocation?.locationName) return '目前位置';
-  if (tripDetails?.accommodation?.address || tripDetails?.accommodation?.name) return '住宿';
-  return '未設定';
-};
+import GoogleRoutePreview from './GoogleRoutePreview';
 
 const RouteMetric = ({ label, value, tone = 'slate' }) => {
   const toneClasses = {
@@ -69,9 +62,15 @@ const MissingLocationNotice = ({ missingEvents }) => {
 };
 
 const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) => {
-  const events = Array.isArray(currentDayData?.events) ? currentDayData.events : [];
-  const origin = readOrigin(tripDetails, currentLocation);
-  const originLabel = readOriginLabel(tripDetails, currentLocation);
+  const events = useMemo(
+    () => sortEventsByTime(Array.isArray(currentDayData?.events) ? currentDayData.events : []),
+    [currentDayData]
+  );
+  const origin = useMemo(
+    () => getTripRouteOrigin(tripDetails, currentLocation),
+    [currentLocation, tripDetails]
+  );
+  const originLabel = getTripRouteOriginLabel(tripDetails, currentLocation);
   const routeState = useMemo(
     () => buildItineraryRouteState(events, { origin }),
     [events, origin]
@@ -91,10 +90,6 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
     origin,
     routeStops.map((stop) => stop.destination)
   );
-  const previewQuery = routeStops[0]?.text || originText;
-  const mapPreviewUrl = previewQuery
-    ? `https://www.google.com/maps?q=${encodeURIComponent(previewQuery)}&output=embed`
-    : '';
   const routeStatusLabel = hasCompleteRoute
     ? '可完整導航'
     : routeStopCount
@@ -215,19 +210,12 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
         </div>
 
         <div className="min-h-64 border-t border-slate-200 bg-slate-100 lg:border-l lg:border-t-0 dark:border-slate-800 dark:bg-slate-950">
-          {mapPreviewUrl ? (
-            <iframe
-              title="daily-route-map-preview"
-              src={mapPreviewUrl}
-              className="h-64 w-full lg:h-full"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          ) : (
-            <div className="flex h-64 items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
-              尚無地圖預覽
-            </div>
-          )}
+          <GoogleRoutePreview
+            origin={origin}
+            routeStops={routeStops}
+            title="每日行程 Google Maps 路線預覽"
+            className="h-64 lg:h-full"
+          />
         </div>
       </div>
     </Card>

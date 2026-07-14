@@ -24,10 +24,7 @@ import { Badge, Button, Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import DayReadinessStrip from './DayReadinessStrip';
 import MobileMockupFrame from './MobileMockupFrame';
-import {
-  buildGoogleMapsMultiStopDirectionsUrl,
-  normalizePlaceText
-} from '../../services/googleMapsService';
+import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
 import {
   formatDailyCost,
   formatEventTime,
@@ -40,7 +37,9 @@ import {
   getTripDayIsoDate,
   sortEventsByTime
 } from '../../utils/tripEvents';
+import { buildRouteStop, getTripRouteOrigin } from '../../utils/itineraryRoute';
 import { getAirportDayFlights } from '../../utils/airportDayFlights';
+import GoogleRoutePreview from './GoogleRoutePreview';
 
 const emptyFlightText = '未設定';
 
@@ -56,20 +55,6 @@ const quickActionMotion = {
 const quickActionItemMotion = {
   hidden: { opacity: 0, y: 10, scale: 0.985 },
   visible: { opacity: 1, y: 0, scale: 1 }
-};
-
-const getRouteStop = (event) => {
-  const destination = getEventDestination(event);
-  const text = normalizePlaceText(destination);
-  if (!text) return null;
-
-  return {
-    id: event.id,
-    title: event.title || text,
-    time: formatEventTime(event),
-    destination,
-    text
-  };
 };
 
 const getChecklistRemaining = (items = []) => (
@@ -782,12 +767,8 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
   );
 };
 
-const TodayRouteCard = ({ routeStops, routeUrl }) => {
+const TodayRouteCard = ({ origin, routeStops, routeUrl }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const previewQuery = routeStops[0]?.text || '';
-  const mapPreviewUrl = previewQuery
-    ? `https://www.google.com/maps?q=${encodeURIComponent(previewQuery)}&output=embed`
-    : '';
 
   return (
     <Card className="overflow-hidden">
@@ -816,11 +797,20 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
             </Button>
           )}
         </div>
+      </div>
 
+      <GoogleRoutePreview
+        origin={origin}
+        routeStops={routeStops}
+        title="今日指揮中心 Google Maps 路線預覽"
+        className="h-60 border-y border-[#e0e9e0] dark:border-brand-200/20"
+      />
+
+      <div className="p-5 pt-4">
         <button
           type="button"
           onClick={() => setShowDetails((open) => !open)}
-          className="touch-target mt-4 inline-flex w-full items-center justify-between rounded-lg border border-[#e0e9e0] bg-[#f4f8f5]/80 px-3 py-2 text-sm font-black text-stone-700 transition hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/60"
+          className="touch-target inline-flex w-full items-center justify-between rounded-lg border border-[#e0e9e0] bg-[#f4f8f5]/80 px-3 py-2 text-sm font-black text-stone-700 transition hover:bg-brand-50 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/60"
           aria-expanded={showDetails}
         >
           路線細節
@@ -851,18 +841,6 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
           </div>
         )}
       </div>
-
-      {showDetails && mapPreviewUrl && (
-        <div className="h-64 border-t border-[#e0e9e0] bg-[#f4f8f5] dark:border-brand-200/20 dark:bg-brand-50">
-          <iframe
-            title="today-route-map-preview"
-            src={mapPreviewUrl}
-            className="h-full w-full"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        </div>
-      )}
     </Card>
   );
 };
@@ -903,11 +881,14 @@ const TodayTab = ({ onTabChange }) => {
     () => pickNextEvent(events, new Date(), selectedDayIsoDate),
     [events, selectedDayIsoDate]
   );
-  const routeStops = useMemo(() => dayEvents.map(getRouteStop).filter(Boolean), [dayEvents]);
-  const origin = currentLocation?.locationName ||
-    tripDetails?.accommodation?.address ||
-    tripDetails?.accommodation?.name ||
-    '';
+  const routeStops = useMemo(
+    () => events.map((event, index) => buildRouteStop(event, index)).filter(Boolean),
+    [events]
+  );
+  const origin = useMemo(
+    () => getTripRouteOrigin(tripDetails, currentLocation),
+    [currentLocation, tripDetails]
+  );
   const routeUrl = buildGoogleMapsMultiStopDirectionsUrl(
     origin,
     routeStops.map((stop) => stop.destination)
@@ -1015,7 +996,7 @@ const TodayTab = ({ onTabChange }) => {
         onOpenMaps={handleOpenGoogleMaps}
       />
 
-      <TodayRouteCard routeStops={routeStops} routeUrl={routeUrl} />
+      <TodayRouteCard origin={origin} routeStops={routeStops} routeUrl={routeUrl} />
     </MobileMockupFrame>
   );
 };

@@ -29,7 +29,16 @@ const {
   mergeRealtimeVotesIntoPlaces,
   normalizeTripRealtimeValue
 } = require('../src/utils/tripRealtime.js');
-const { buildItineraryRouteState } = require('../src/utils/itineraryRoute.js');
+const {
+  buildItineraryRouteState,
+  getTripRouteOrigin,
+  getTripRouteOriginLabel
+} = require('../src/utils/itineraryRoute.js');
+const {
+  GOOGLE_MAPS_EMBED_MAX_WAYPOINTS,
+  buildGoogleMapsEmbedRouteUrl,
+  formatGoogleMapsEmbedPlace
+} = require('../src/utils/googleMapsEmbed.js');
 const {
   getEventLocationText,
   getTripDayIsoDate,
@@ -738,6 +747,21 @@ test('builds itinerary route readiness without hiding missing locations', () => 
   assert.equal(state.hasPartialRoute, true);
 });
 
+test('ignores empty live coordinates when selecting the route origin', () => {
+  const emptyLocation = { latitude: null, longitude: null };
+  const liveLocation = { latitude: '25.033', longitude: '121.5654' };
+
+  assert.equal(getTripRouteOrigin({}, emptyLocation), '');
+  assert.equal(getTripRouteOriginLabel({}, emptyLocation), '未設定');
+  assert.deepEqual(getTripRouteOrigin({}, liveLocation), {
+    name: '目前位置',
+    address: '目前位置',
+    lat: 25.033,
+    lng: 121.5654
+  });
+  assert.equal(getTripRouteOriginLabel({}, liveLocation), '目前位置');
+});
+
 test('uses manual event locations when saved place details are empty', () => {
   const event = {
     id: 'manual-location',
@@ -753,6 +777,54 @@ test('uses manual event locations when saved place details are empty', () => {
   assert.equal(state.routeStopCount, 1);
   assert.equal(state.routeStops[0].text, 'Taipei Main Station');
   assert.equal(state.routeStops[0].time, '10:15');
+});
+
+test('builds an authenticated Google Maps Embed route in itinerary order', () => {
+  const embedUrl = buildGoogleMapsEmbedRouteUrl({
+    apiKey: 'browser-key',
+    origin: { placeId: 'origin-place', name: 'Origin' },
+    destinations: [
+      { placeId: 'stop-a', name: 'Stop A' },
+      { lat: 25.033, lng: 121.5654, name: 'Stop B' },
+      'Final stop'
+    ]
+  });
+  const parsed = new URL(embedUrl);
+
+  assert.equal(parsed.pathname, '/maps/embed/v1/directions');
+  assert.equal(parsed.searchParams.get('key'), 'browser-key');
+  assert.equal(parsed.searchParams.get('origin'), 'place_id:origin-place');
+  assert.equal(parsed.searchParams.get('destination'), 'Final stop');
+  assert.equal(parsed.searchParams.get('waypoints'), 'place_id:stop-a|25.033,121.5654');
+  assert.equal(parsed.searchParams.get('mode'), 'transit');
+  assert.equal(formatGoogleMapsEmbedPlace({ placeId: 'stable-place', lat: 1, lng: 2 }), 'place_id:stable-place');
+  assert.equal(formatGoogleMapsEmbedPlace({ address: 'Tokyo Station', lat: null, lng: null }), 'Tokyo Station');
+});
+
+test('uses the first stop as origin and caps Google Maps Embed waypoints', () => {
+  const destinations = Array.from({ length: GOOGLE_MAPS_EMBED_MAX_WAYPOINTS + 5 }, (_, index) => `Stop ${index + 1}`);
+  const parsed = new URL(buildGoogleMapsEmbedRouteUrl({
+    apiKey: 'browser-key',
+    destinations
+  }));
+  const waypoints = parsed.searchParams.get('waypoints').split('|');
+
+  assert.equal(parsed.searchParams.get('origin'), 'Stop 1');
+  assert.equal(parsed.searchParams.get('destination'), `Stop ${destinations.length}`);
+  assert.equal(waypoints.length, GOOGLE_MAPS_EMBED_MAX_WAYPOINTS);
+  assert.equal(waypoints[0], 'Stop 2');
+});
+
+test('falls back to a Google place embed for a single stop without an origin', () => {
+  const embedUrl = buildGoogleMapsEmbedRouteUrl({
+    apiKey: 'browser-key',
+    destinations: ['Tokyo Station']
+  });
+  const parsed = new URL(embedUrl);
+
+  assert.equal(parsed.pathname, '/maps/embed/v1/place');
+  assert.equal(parsed.searchParams.get('q'), 'Tokyo Station');
+  assert.equal(buildGoogleMapsEmbedRouteUrl({ apiKey: '', destinations: ['Tokyo'] }), '');
 });
 
 test('picks next event with trip-day dates instead of only wall-clock time', () => {
