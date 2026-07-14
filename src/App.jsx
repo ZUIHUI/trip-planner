@@ -6,10 +6,23 @@ import AppErrorBoundary from './components/AppErrorBoundary';
 import { FeedbackProvider } from './contexts/FeedbackContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoadingState } from './components/ui';
+import { markLazyImportReload } from './utils/lazyImportRecovery';
 
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const TripListPage = lazy(() => import('./pages/TripListPage'));
-const TripDetailPage = lazy(() => import('./pages/TripDetailPage'));
+const lazyWithReload = (loader) => lazy(async () => {
+  try {
+    return await loader();
+  } catch (error) {
+    if (typeof window !== 'undefined' && markLazyImportReload(error)) {
+      window.location.reload();
+      return new Promise(() => {});
+    }
+    throw error;
+  }
+});
+
+const LoginPage = lazyWithReload(() => import('./pages/LoginPage'));
+const TripListPage = lazyWithReload(() => import('./pages/TripListPage'));
+const TripDetailPage = lazyWithReload(() => import('./pages/TripDetailPage'));
 
 const RouteFallback = () => (
   <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 dark:bg-slate-950 dark:text-slate-100">

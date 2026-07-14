@@ -49,6 +49,11 @@ const {
 } = require('../src/utils/tripEvents.js');
 const { canMoveEventInDay, moveEventInDay, moveEventToDay } = require('../src/utils/itineraryEvents.js');
 const {
+  LAZY_IMPORT_RELOAD_COOLDOWN_MS,
+  isLazyImportError,
+  markLazyImportReload
+} = require('../src/utils/lazyImportRecovery.js');
+const {
   applyTripEventDocumentsToItinerary,
   buildTripEventDocument,
   getAppendOrderKey,
@@ -765,6 +770,34 @@ test('keeps saved itinerary order and labels route stops after midnight', () => 
   assert.deepEqual(state.routeStops.map((stop) => stop.dayOffset), [0, 0, 0, 1, 1]);
   assert.equal(formatRouteStopTime(state.routeStops[2]), '23:40');
   assert.equal(formatRouteStopTime(state.routeStops[3]), '翌日 00:10');
+});
+
+test('reloads once when a deployed lazy chunk is no longer available', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value)
+  };
+  const chunkError = new TypeError(
+    'Failed to fetch dynamically imported module: https://example.com/assets/TripDetailPage-old.js'
+  );
+
+  assert.equal(isLazyImportError(chunkError), true);
+  assert.equal(isLazyImportError(new Error('Trip data is invalid')), false);
+  assert.equal(markLazyImportReload(chunkError, { storage, now: 1_000 }), true);
+  assert.equal(markLazyImportReload(chunkError, { storage, now: 2_000 }), false);
+  assert.equal(markLazyImportReload(chunkError, {
+    storage,
+    now: 1_000 + LAZY_IMPORT_RELOAD_COOLDOWN_MS
+  }), true);
+});
+
+test('does not rewrite missing asset requests to the SPA document', () => {
+  const firebaseConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'firebase.json'), 'utf8'));
+  const rewriteSources = firebaseConfig.hosting.rewrites.map((rewrite) => rewrite.source);
+
+  assert.deepEqual(rewriteSources, ['/', '/login', '/trip/**']);
+  assert.equal(rewriteSources.includes('**'), false);
 });
 
 test('ignores empty live coordinates when selecting the route origin', () => {
