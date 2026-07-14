@@ -1170,7 +1170,7 @@ test('keeps mobile day switching and core PWA interactions stable', () => {
   assert.match(itinerarySource, /window\.scrollTo\(\{/);
   assert.match(stylesSource, /overflow-anchor:\s*none !important/);
   assert.match(stylesSource, /scroll-behavior:\s*auto !important/);
-  assert.match(buttonSource, /scale:\s*0\.988/);
+  assert.doesNotMatch(buttonSource, /whileHover|whileTap|scale:\s*0\.988/);
   assert.match(cardSource, /initial:\s*false/);
   assert.doesNotMatch(badgeSource, /motion\/react|<motion|layout|initial=/);
   assert.doesNotMatch(pageContainerSource, /motion\/react|layout/);
@@ -2458,6 +2458,21 @@ test('detects realtime-only status changes without treating structure edits as s
     ]
   );
   assert.equal(shoppingWithReorder.statusOnly, false);
+});
+
+test('keeps the DESIGN.md visual system centralized and accessible', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/uiux-v4.css'), 'utf8');
+  const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
+
+  assert.match(css, /--v4-primary:\s*#ff385c;/);
+  assert.match(css, /--v4-ink:\s*#222222;/);
+  assert.match(css, /--radius-card:\s*14px;/);
+  assert.match(css, /--v4-shadow:\s*none;/);
+  assert.match(css, /--v4-shadow-float:[^;]+0 4px 8px;/);
+  assert.match(css, /\.tp-button-primary,[\s\S]+?min-height:\s*48px;/);
+  assert.match(css, /\.tp-input,[\s\S]+?min-height:\s*56px;/);
+  assert.match(css, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
+  assert.doesNotMatch(buttonSource, /whileHover|whileTap/);
 });
 
 let failed = 0;

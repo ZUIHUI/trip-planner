@@ -33,12 +33,9 @@ const Button = forwardRef(({
   const isNativeButton = Component === 'button';
   const MotionComponent = motionElements[Component] || Component;
   const isMotionElement = Boolean(motionElements[Component]);
-  const isDisabled = Boolean(props.disabled || props['aria-disabled']);
   const motionProps = isMotionElement
     ? {
-        whileHover: isDisabled ? undefined : { y: -1, scale: 1.002 },
-        whileTap: isDisabled ? undefined : { y: 0, scale: 0.988 },
-        transition: { type: 'tween', duration: 0.1, ease: 'easeOut' }
+        transition: { type: 'tween', duration: 0.12, ease: 'easeOut' }
       }
     : {};
 
