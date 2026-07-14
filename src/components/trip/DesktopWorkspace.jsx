@@ -22,11 +22,7 @@ import {
 import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
-import {
-  buildItineraryRouteState,
-  getItineraryRouteEvents,
-  getTripRouteOrigin
-} from '../../utils/itineraryRoute';
+import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itineraryRoute';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const primaryModules = [
@@ -143,7 +139,7 @@ export const DesktopMapOverview = ({ activeTab }) => {
     currentLocation
   } = useTripWorkspace();
   const events = useMemo(
-    () => getItineraryRouteEvents(currentDayData?.events),
+    () => Array.isArray(currentDayData?.events) ? [...currentDayData.events] : [],
     [currentDayData]
   );
   const nextEvent = events.find((event) => readLocation(event)) || events[0];

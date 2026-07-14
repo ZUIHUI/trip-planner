@@ -3,8 +3,6 @@ import { AlertTriangle, CheckCircle2, Map, MapPin, Navigation } from 'lucide-rea
 import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
 import {
   buildItineraryRouteState,
-  formatRouteStopTime,
-  getItineraryRouteEvents,
   getTripRouteOrigin,
   getTripRouteOriginLabel
 } from '../../utils/itineraryRoute';
@@ -64,7 +62,7 @@ const MissingLocationNotice = ({ missingEvents }) => {
 
 const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) => {
   const events = useMemo(
-    () => getItineraryRouteEvents(currentDayData?.events),
+    () => Array.isArray(currentDayData?.events) ? [...currentDayData.events] : [],
     [currentDayData]
   );
   const origin = useMemo(
@@ -183,7 +181,7 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm font-black text-slate-900 dark:text-white">
-                        <span className="font-mono">{formatRouteStopTime(stop)}</span>
+                        <span className="font-mono">{stop.time}</span>
                         <span className="min-w-0 break-words">{stop.title}</span>
                       </span>
                       <span className="mt-0.5 flex items-start gap-1.5 break-words text-xs font-semibold text-slate-500 dark:text-slate-400">

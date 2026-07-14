@@ -31,8 +31,6 @@ const {
 } = require('../src/utils/tripRealtime.js');
 const {
   buildItineraryRouteState,
-  formatRouteStopTime,
-  getItineraryRouteEvents,
   getTripRouteOrigin,
   getTripRouteOriginLabel
 } = require('../src/utils/itineraryRoute.js');
@@ -754,7 +752,7 @@ test('builds itinerary route readiness without hiding missing locations', () => 
   assert.equal(state.hasPartialRoute, true);
 });
 
-test('keeps saved itinerary order and labels route stops after midnight', () => {
+test('keeps saved itinerary route order across midnight', () => {
   const events = [
     { id: 'airport', title: 'Airport', time: '15:30', location: 'KIX' },
     { id: 'entry', title: 'Entry', time: '22:20', location: 'KIX arrivals' },
@@ -762,14 +760,10 @@ test('keeps saved itinerary order and labels route stops after midnight', () => 
     { id: 'shop', title: 'Shop', time: '00:10', location: 'Convenience store' },
     { id: 'rest', title: 'Rest', time: '00:40', location: 'Shinsaibashi' }
   ];
-  const orderedEvents = getItineraryRouteEvents(events);
-  const state = buildItineraryRouteState(orderedEvents);
+  const state = buildItineraryRouteState(events);
 
-  assert.notEqual(orderedEvents, events);
   assert.deepEqual(state.routeStops.map((stop) => stop.id), ['airport', 'entry', 'hotel', 'shop', 'rest']);
-  assert.deepEqual(state.routeStops.map((stop) => stop.dayOffset), [0, 0, 0, 1, 1]);
-  assert.equal(formatRouteStopTime(state.routeStops[2]), '23:40');
-  assert.equal(formatRouteStopTime(state.routeStops[3]), '翌日 00:10');
+  assert.deepEqual(state.routeStops.map((stop) => stop.time), ['15:30', '22:20', '23:40', '00:10', '00:40']);
 });
 
 test('reloads once when a deployed lazy chunk is no longer available', () => {

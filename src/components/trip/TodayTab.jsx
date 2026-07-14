@@ -38,9 +38,7 @@ import {
   sortEventsByTime
 } from '../../utils/tripEvents';
 import {
-  buildItineraryRouteState,
-  formatRouteStopTime,
-  getItineraryRouteEvents,
+  buildRouteStop,
   getTripRouteOrigin
 } from '../../utils/itineraryRoute';
 import { getAirportDayFlights } from '../../utils/airportDayFlights';
@@ -830,7 +828,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-black text-slate-900 dark:text-white">
-                    {formatRouteStopTime(stop)} / {stop.title}
+                    {stop.time} / {stop.title}
                   </span>
                   <span className="mt-0.5 block break-words text-xs font-semibold text-slate-500 dark:text-slate-400">
                     {stop.text}
@@ -877,10 +875,6 @@ const TodayTab = ({ onTabChange }) => {
     () => sortEventsByTime(dayEvents),
     [dayEvents]
   );
-  const routeEvents = useMemo(
-    () => getItineraryRouteEvents(dayEvents),
-    [dayEvents]
-  );
   const selectedDayIsoDate = useMemo(
     () => getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay),
     [tripDetails?.dateRange?.start, selectedDay]
@@ -890,8 +884,8 @@ const TodayTab = ({ onTabChange }) => {
     [events, selectedDayIsoDate]
   );
   const routeStops = useMemo(
-    () => buildItineraryRouteState(routeEvents).routeStops,
-    [routeEvents]
+    () => dayEvents.map((event, index) => buildRouteStop(event, index)).filter(Boolean),
+    [dayEvents]
   );
   const origin = useMemo(
     () => getTripRouteOrigin(tripDetails, currentLocation),
