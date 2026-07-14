@@ -3,6 +3,23 @@ import { getEventDestination, formatEventTime } from './tripEvents';
 
 export const getRouteEventDestination = getEventDestination;
 
+export const getItineraryRouteEvents = (events = []) => (
+  Array.isArray(events) ? [...events] : []
+);
+
+const readEventMinuteOfDay = (event) => {
+  const match = formatEventTime(event, '').match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  return (Number(match[1]) * 60) + Number(match[2]);
+};
+
+export const formatRouteStopTime = (stop) => {
+  const time = stop?.time || '--:--';
+  const dayOffset = Math.max(0, Number(stop?.dayOffset) || 0);
+  if (!dayOffset) return time;
+  return `${dayOffset === 1 ? '翌日' : `+${dayOffset}日`} ${time}`;
+};
+
 const readFiniteCoordinate = (value) => {
   if (value === null || value === undefined || String(value).trim() === '') return null;
   const coordinate = Number(value);
@@ -61,17 +78,25 @@ export const buildMissingRouteEvent = (event, itineraryIndex = 0) => ({
 });
 
 export const buildItineraryRouteState = (events = [], { origin = '' } = {}) => {
-  const sourceEvents = Array.isArray(events) ? events : [];
+  const sourceEvents = getItineraryRouteEvents(events);
   const routeStops = [];
   const missingEvents = [];
+  let dayOffset = 0;
+  let previousMinute = null;
 
   sourceEvents.forEach((event, index) => {
+    const eventMinute = readEventMinuteOfDay(event);
+    if (eventMinute !== null) {
+      if (previousMinute !== null && eventMinute < previousMinute) dayOffset += 1;
+      previousMinute = eventMinute;
+    }
+
     const routeStop = buildRouteStop(event, index);
     if (routeStop) {
-      routeStops.push(routeStop);
+      routeStops.push({ ...routeStop, dayOffset });
       return;
     }
-    missingEvents.push(buildMissingRouteEvent(event, index));
+    missingEvents.push({ ...buildMissingRouteEvent(event, index), dayOffset });
   });
 
   const totalEvents = sourceEvents.length;

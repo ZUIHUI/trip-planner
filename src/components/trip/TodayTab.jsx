@@ -37,7 +37,12 @@ import {
   getTripDayIsoDate,
   sortEventsByTime
 } from '../../utils/tripEvents';
-import { buildRouteStop, getTripRouteOrigin } from '../../utils/itineraryRoute';
+import {
+  buildItineraryRouteState,
+  formatRouteStopTime,
+  getItineraryRouteEvents,
+  getTripRouteOrigin
+} from '../../utils/itineraryRoute';
 import { getAirportDayFlights } from '../../utils/airportDayFlights';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
@@ -825,7 +830,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-black text-slate-900 dark:text-white">
-                    {stop.time} / {stop.title}
+                    {formatRouteStopTime(stop)} / {stop.title}
                   </span>
                   <span className="mt-0.5 block break-words text-xs font-semibold text-slate-500 dark:text-slate-400">
                     {stop.text}
@@ -872,6 +877,10 @@ const TodayTab = ({ onTabChange }) => {
     () => sortEventsByTime(dayEvents),
     [dayEvents]
   );
+  const routeEvents = useMemo(
+    () => getItineraryRouteEvents(dayEvents),
+    [dayEvents]
+  );
   const selectedDayIsoDate = useMemo(
     () => getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay),
     [tripDetails?.dateRange?.start, selectedDay]
@@ -881,8 +890,8 @@ const TodayTab = ({ onTabChange }) => {
     [events, selectedDayIsoDate]
   );
   const routeStops = useMemo(
-    () => events.map((event, index) => buildRouteStop(event, index)).filter(Boolean),
-    [events]
+    () => buildItineraryRouteState(routeEvents).routeStops,
+    [routeEvents]
   );
   const origin = useMemo(
     () => getTripRouteOrigin(tripDetails, currentLocation),

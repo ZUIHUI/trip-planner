@@ -22,7 +22,11 @@ import {
 import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
-import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itineraryRoute';
+import {
+  buildItineraryRouteState,
+  getItineraryRouteEvents,
+  getTripRouteOrigin
+} from '../../utils/itineraryRoute';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const primaryModules = [
@@ -40,15 +44,6 @@ const planningModules = [
   { id: 'shopping', label: '購物清單', icon: ShoppingBag },
   { id: 'companions', label: '旅伴與分享', icon: UsersRound }
 ];
-
-const toMinutes = (value = '') => {
-  const match = String(value).match(/^(\d{1,2}):(\d{2})/);
-  if (!match) return Number.MAX_SAFE_INTEGER;
-  return (Number(match[1]) * 60) + Number(match[2]);
-};
-const sortEvents = (events = []) => [...events].sort((left, right) => (
-  toMinutes(left?.time || left?.startTime) - toMinutes(right?.time || right?.startTime)
-));
 
 const readLocation = (event) => (
   event?.locationPlace?.name
@@ -147,7 +142,10 @@ export const DesktopMapOverview = ({ activeTab }) => {
     tripDetails,
     currentLocation
   } = useTripWorkspace();
-  const events = useMemo(() => sortEvents(currentDayData?.events || []), [currentDayData]);
+  const events = useMemo(
+    () => getItineraryRouteEvents(currentDayData?.events),
+    [currentDayData]
+  );
   const nextEvent = events.find((event) => readLocation(event)) || events[0];
   const destination = readLocation(nextEvent);
   const origin = useMemo(
