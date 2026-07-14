@@ -771,6 +771,19 @@ test('keeps saved itinerary route order across midnight', () => {
   assert.deepEqual(state.routeStops.map((stop) => stop.time), ['15:30', '22:20', '23:40', '00:10', '00:40']);
 });
 
+test('keeps the desktop planner timeline in saved order without an undefined sorter', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'src/components/trip/DesktopWorkspace.jsx'),
+    'utf8'
+  );
+
+  assert.doesNotMatch(source, /\bsortEvents\s*\(/);
+  assert.match(
+    source,
+    /DesktopPlannerPanel[\s\S]+Array\.isArray\(currentDayData\?\.events\)[\s\S]+\[\.\.\.currentDayData\.events\]/
+  );
+});
+
 test('reloads once when a deployed lazy chunk is no longer available', () => {
   const values = new Map();
   const storage = {

@@ -207,7 +207,10 @@ export const DesktopPlannerPanel = ({ activeTab, onTabChange }) => {
     openAiRecommendations,
     presenceUi
   } = useTripWorkspace();
-  const events = useMemo(() => sortEvents(currentDayData?.events || []), [currentDayData]);
+  const events = useMemo(
+    () => Array.isArray(currentDayData?.events) ? [...currentDayData.events] : [],
+    [currentDayData]
+  );
 
   return (
     <aside className="tp-v4-planner-panel" aria-label="今日規劃摘要">
