@@ -34,8 +34,7 @@ import {
   getEventMemoText,
   getLocalIsoDate,
   pickNextEvent,
-  getTripDayIsoDate,
-  sortEventsByTime
+  getTripDayIsoDate
 } from '../../utils/tripEvents';
 import {
   buildRouteStop,
@@ -86,8 +85,7 @@ const buildDayStatus = ({
   const isCurrentTripDay = !dayIsoDate || dayIsoDate === getLocalIsoDate(now);
   const timedEvents = events
     .map((event) => ({ event, minutes: readEventTimeMinutes(event) }))
-    .filter((item) => item.minutes !== null)
-    .sort((a, b) => a.minutes - b.minutes);
+    .filter((item) => item.minutes !== null);
   const completedTimedEvents = isCurrentTripDay
     ? timedEvents.filter((item) => item.minutes < currentMinutes).length
     : 0;
@@ -804,7 +802,7 @@ const TodayRouteCard = ({ routeStops, routeUrl }) => {
 
       <GoogleRoutePreview
         routeStops={routeStops}
-        title="今日指揮中心 Google Maps 路線預覽"
+        title="旅程總覽 Google Maps 路線預覽"
         className="h-60 border-y border-[#e0e9e0] dark:border-brand-200/20"
       />
 
@@ -872,7 +870,7 @@ const TodayTab = ({ onTabChange }) => {
     [currentDayData]
   );
   const events = useMemo(
-    () => sortEventsByTime(dayEvents),
+    () => [...dayEvents],
     [dayEvents]
   );
   const selectedDayIsoDate = useMemo(

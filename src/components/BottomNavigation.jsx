@@ -15,16 +15,16 @@ import {
 } from 'lucide-react';
 
 const mobileTabs = [
-  { id: 'today', label: '今日', icon: Compass },
-  { id: 'itinerary', label: '行程', icon: Map },
+  { id: 'today', label: '旅程總覽', icon: Compass },
+  { id: 'itinerary', label: '行程安排', icon: Map },
   { id: 'ideas', label: '靈感', icon: Star },
   { id: 'more', label: '更多', icon: Menu }
 ];
 
 const desktopTabs = [
-  { id: 'today', label: '今日', icon: Compass },
-  { id: 'summary', label: '總覽', icon: LayoutDashboard },
-  { id: 'itinerary', label: '行程', icon: Map },
+  { id: 'today', label: '旅程總覽', icon: Compass },
+  { id: 'summary', label: '控制台', icon: LayoutDashboard },
+  { id: 'itinerary', label: '行程安排', icon: Map },
   { id: 'ideas', label: '靈感', icon: Star },
   { id: 'flights', label: '資訊', icon: Ticket },
   { id: 'preTrip', label: '行前', icon: CheckSquare },

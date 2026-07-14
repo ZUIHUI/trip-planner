@@ -940,17 +940,31 @@ test('falls back to a Google place embed for a single stop without an origin', (
   assert.equal(buildGoogleMapsEmbedRouteUrl({ apiKey: '', destinations: ['Tokyo'] }), '');
 });
 
-test('picks next event with trip-day dates instead of only wall-clock time', () => {
+test('picks the next event in saved itinerary order across midnight', () => {
   const events = [
     { id: 'late', title: 'Late stop', time: '12:00' },
     { id: 'early', title: 'Early stop', time: '10:00' }
   ];
   const now = new Date(2026, 4, 29, 11, 30);
+  const overnightEvents = [
+    { id: 'departure', time: '15:30' },
+    { id: 'hotel', time: '23:40' },
+    { id: 'shop', time: '00:10' },
+    { id: 'rest', time: '00:40' }
+  ];
 
   assert.equal(getTripDayIsoDate('2026/5/29', 3), '2026-05-31');
-  assert.equal(pickNextEvent(events, now, '2026-06-02').id, 'early');
+  assert.equal(pickNextEvent(events, now, '2026-06-02').id, 'late');
   assert.equal(pickNextEvent(events, now, '2026-05-29').id, 'late');
   assert.equal(pickNextEvent(events, now, '').id, 'late');
+  assert.equal(
+    pickNextEvent(overnightEvents, new Date(2026, 4, 29, 23, 50), '2026-05-29').id,
+    'shop'
+  );
+  assert.equal(
+    pickNextEvent(overnightEvents, new Date(2026, 4, 30, 0, 20), '2026-05-29').id,
+    'rest'
+  );
 });
 
 test('builds due trip notification candidates with timezone-aware dedupe keys', () => {
@@ -1111,13 +1125,30 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   assert.match(tripDetailSource, /size:\s*'compact'/);
 });
 
-test('passes trip-day dates into travel next-event surfaces', () => {
+test('keeps overview and itinerary pages in saved arrangement order', () => {
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
   const summarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/SummaryTab.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const placePoolSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/PlacePoolCard.jsx'), 'utf8');
+  const desktopSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/DesktopWorkspace.jsx'), 'utf8');
+  const bottomNavigationSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/BottomNavigation.jsx'), 'utf8');
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
 
   assert.match(todaySource, /getTripDayIsoDate\(tripDetails\?\.dateRange\?\.start,\s*selectedDay\)/);
   assert.match(todaySource, /pickNextEvent\(events,\s*new Date\(\),\s*selectedDayIsoDate\)/);
+  assert.match(todaySource, /\(\) => \[\.\.\.dayEvents\]/);
+  assert.doesNotMatch(todaySource, /sortEventsByTime|\.sort\s*\(/);
   assert.match(summarySource, /getSummaryNextEvent\(itinerary,\s*selectedDay,\s*tripDetails\)/);
+  assert.match(itinerarySource, /\(currentDayData\?\.events \|\| \[\]\)\.map\(\(event, index\)/);
+  assert.match(placePoolSource, /events:\s*\[\.\.\.\(day\.events \|\| \[\]\),\s*nextEvent\]/);
+  assert.doesNotMatch(placePoolSource, /normalizeEventTime\(a\.time\)\.localeCompare/);
+  assert.match(desktopSource, /id:\s*'today',\s*label:\s*'旅程總覽'/);
+  assert.match(desktopSource, /id:\s*'itinerary',\s*label:\s*'行程安排'/);
+  assert.doesNotMatch(desktopSource, /今日指揮中心|跨日行程/);
+  assert.match(bottomNavigationSource, /id:\s*'today',\s*label:\s*'旅程總覽'/);
+  assert.match(bottomNavigationSource, /id:\s*'itinerary',\s*label:\s*'行程安排'/);
+  assert.match(tripDetailSource, /id:\s*'today',\s*label:\s*'旅程總覽'/);
+  assert.match(tripDetailSource, /id:\s*'itinerary',\s*label:\s*'行程安排'/);
 });
 
 test('keeps mobile day switching and core PWA interactions stable', () => {

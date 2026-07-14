@@ -184,7 +184,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
       <ModuleSection title="旅行準備">
         <ModuleButton
           icon={LayoutDashboard}
-          title="旅程總覽"
+          title="旅程控制台"
           description="日期、住宿與旅程摘要"
           meta={`${eventCount} 行程`}
           tone="soft"

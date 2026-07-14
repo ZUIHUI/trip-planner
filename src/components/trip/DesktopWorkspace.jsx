@@ -26,13 +26,13 @@ import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itiner
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const primaryModules = [
-  { id: 'today', label: '今日指揮中心', icon: Compass },
-  { id: 'itinerary', label: '跨日行程', icon: Map },
+  { id: 'today', label: '旅程總覽', icon: Compass },
+  { id: 'itinerary', label: '行程安排', icon: Map },
   { id: 'ideas', label: '靈感與地點', icon: Lightbulb }
 ];
 
 const planningModules = [
-  { id: 'summary', label: '旅程總覽', icon: LayoutDashboard },
+  { id: 'summary', label: '旅程控制台', icon: LayoutDashboard },
   { id: 'flights', label: '航班與住宿', icon: Plane },
   { id: 'preTrip', label: '行前準備', icon: CheckSquare },
   { id: 'packing', label: '行李清單', icon: Luggage },
@@ -163,7 +163,7 @@ export const DesktopMapOverview = ({ activeTab }) => {
     <section className="tp-v4-desktop-map" aria-label="今日地圖概覽">
       <GoogleRoutePreview
         routeStops={routeStops}
-        title="桌面今日指揮中心 Google Maps 路線預覽"
+        title="桌面旅程總覽 Google Maps 路線預覽"
         className="tp-v4-desktop-route-preview"
         loading="eager"
       />
@@ -277,7 +277,7 @@ export const DesktopPlannerPanel = ({ activeTab, onTabChange }) => {
         <BookOpen size={18} />
         <div>
           <strong>規劃提醒</strong>
-          <p>桌面適合跨日調整與資料檢查；旅途中可回到「今日」快速查看下一站。</p>
+          <p>桌面適合跨日調整與資料檢查；旅途中可回到「旅程總覽」快速查看下一站。</p>
         </div>
       </section>
     </aside>

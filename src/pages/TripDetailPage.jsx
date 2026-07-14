@@ -109,8 +109,8 @@ const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
 const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping', 'companions']);
 const MOBILE_DETAIL_TABS = [
-  { id: 'today', label: '今日', icon: CalendarDays },
-  { id: 'itinerary', label: '行程', icon: MapIcon },
+  { id: 'today', label: '旅程總覽', icon: CalendarDays },
+  { id: 'itinerary', label: '行程安排', icon: MapIcon },
   { id: 'ideas', label: '靈感', icon: Lightbulb },
   { id: 'more', label: '更多', icon: MenuIcon }
 ];

@@ -5,7 +5,6 @@ import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { togglePlaceVote } from '../../services/tripService';
 import { mergeRealtimeVotesIntoPlaces } from '../../utils/tripRealtime';
-import { normalizeEventTime } from '../../utils/tripEvents';
 import { Badge, Button, Card, Field, Select } from '../ui';
 import EditingNotice from './EditingNotice';
 
@@ -342,7 +341,7 @@ const PlacePoolCard = ({
         if (Number(day.day) !== Number(targetDay)) return day;
         return {
           ...day,
-          events: [...(day.events || []), nextEvent].sort((a, b) => normalizeEventTime(a.time).localeCompare(normalizeEventTime(b.time)))
+          events: [...(day.events || []), nextEvent]
         };
       }));
     }

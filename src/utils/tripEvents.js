@@ -58,16 +58,35 @@ export const getTripDayIsoDate = (startDate = '', selectedDay = 1) => {
 };
 
 export const pickNextEvent = (events = [], now = new Date(), eventDate = '') => {
-  const sortedEvents = sortEventsByTime(events);
-  if (!sortedEvents.length) return null;
+  const orderedEvents = Array.isArray(events) ? events : [];
+  if (!orderedEvents.length) return null;
 
   const normalizedEventDate = normalizeIsoDate(eventDate);
-  if (normalizedEventDate && normalizedEventDate !== getLocalIsoDate(now)) {
-    return sortedEvents[0];
+  const dateMatch = normalizedEventDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!dateMatch) return orderedEvents[0];
+
+  let dayOffset = 0;
+  let previousMinutes = null;
+
+  for (const event of orderedEvents) {
+    const timeMatch = normalizeEventTime(event?.time).match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    if (!timeMatch) return event;
+
+    const minutes = Number(timeMatch[1]) * 60 + Number(timeMatch[2]);
+    if (previousMinutes !== null && minutes < previousMinutes) dayOffset += 1;
+    previousMinutes = minutes;
+
+    const scheduledAt = new Date(
+      Number(dateMatch[1]),
+      Number(dateMatch[2]) - 1,
+      Number(dateMatch[3]) + dayOffset,
+      Number(timeMatch[1]),
+      Number(timeMatch[2])
+    );
+    if (scheduledAt.getTime() > now.getTime()) return event;
   }
 
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  return sortedEvents.find((event) => normalizeEventTime(event.time) > currentTime) || sortedEvents[0];
+  return orderedEvents[0];
 };
 
 export const readEventCost = (event) => {
