@@ -13,7 +13,8 @@ const {
 const {
   getTripDayDisplayLabel,
   getTripDayDisplayTitle,
-  getTripDayLabelByNumber
+  getTripDayLabelByNumber,
+  getTripDisplayDates
 } = require('../src/utils/tripDates.js');
 const {
   buildTripDocumentFromAppState,
@@ -2469,17 +2470,22 @@ test('detects realtime-only status changes without treating structure edits as s
 test('keeps the DESIGN.md visual system centralized and accessible', () => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/uiux-v4.css'), 'utf8');
   const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
+  const agentInstructions = fs.readFileSync(path.join(__dirname, '..', 'AGENTS.md'), 'utf8');
 
-  assert.match(css, /--v4-primary:\s*#111111;/);
-  assert.match(css, /--v4-ink:\s*#111111;/);
-  assert.match(css, /--v4-surface-card:\s*#f5f5f5;/);
-  assert.match(css, /--v4-accent:\s*#3b82f6;/);
+  assert.match(css, /--v4-primary:\s*#0a0a0a;/);
+  assert.match(css, /--v4-ink:\s*#0a0a0a;/);
+  assert.match(css, /--v4-surface-card:\s*#f7f7f7;/);
+  assert.match(css, /--v4-accent:\s*#00d4a4;/);
   assert.match(css, /--radius-card:\s*12px;/);
   assert.match(css, /--v4-shadow:\s*none;/);
   assert.match(css, /--v4-shadow-float:[^;]+0 4px 12px/);
   assert.match(css, /\.tp-button-primary,[\s\S]+?min-height:\s*40px;/);
+  assert.match(css, /\.tp-button-primary,[\s\S]+?border-radius:\s*9999px\s*!important;/);
   assert.match(css, /\.tp-input,[\s\S]+?min-height:\s*40px;/);
   assert.match(css, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
+  assert.match(css, /\.tp-v4-rail-section button,[\s\S]+?font-size:\s*14px;/);
+  assert.match(css, /\.tp-app-header-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(agentInstructions, /read the root `DESIGN\.md` completely/i);
   assert.doesNotMatch(css, /#ff385c|#e00b41|#ffd1da/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap/);
 });
@@ -2492,18 +2498,31 @@ test('formats itinerary days as date plus abbreviated weekday without generic Da
   const tripDetails = { dateRange: { start: '2026-07-15' } };
 
   assert.equal(getTripDayDisplayLabel(itinerary[0]), '10/25 Wed.');
+  assert.equal(
+    getTripDayDisplayLabel({ day: 1, date: '10/25', weekday: '' }, { dateRange: { start: '2023-10-25' } }),
+    '10/25 Wed.'
+  );
   assert.equal(getTripDayLabelByNumber(itinerary, 2, tripDetails), '7/16 Thu.');
   assert.equal(getTripDayDisplayTitle(itinerary[0]), '當日行程');
   assert.equal(getTripDayDisplayTitle(itinerary[1]), '市場散步');
+  assert.equal(
+    getTripDisplayDates({ dateRange: { start: '2023-10-25', end: '2023-10-27' } }),
+    '2023/10/25 Wed. - 2023/10/27 Fri.'
+  );
 
   const daySelectorSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/DaySelector.jsx'), 'utf8');
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+  const tripSyncSource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/tripSync.js'), 'utf8');
+  const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions/index.js'), 'utf8');
   const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
   const topNavigationActiveRule = stylesSource.match(/\.tp-mobile-detail-tabs button\.is-active \{[\s\S]*?\}/)?.[0] || '';
 
   assert.match(daySelectorSource, /getTripDayDisplayLabel/);
   assert.doesNotMatch([daySelectorSource, itinerarySource, todaySource].join('\n'), /\bDAY\s+\{|\bDay\s+\{|第\s+\{[^}]+\}\s+天/);
+  assert.doesNotMatch(tripSyncSource, /Day 資訊/);
+  assert.match(functionsSource, /isGenericDayText/);
+  assert.match(functionsSource, /isDuplicateDayTitle/);
   assert.match(topNavigationActiveRule, /background:\s*var\(--v4-ink\)/);
   assert.doesNotMatch(topNavigationActiveRule, /linear-gradient/);
 });

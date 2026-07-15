@@ -30,6 +30,7 @@ const ExpensesTab = () => {
     tripId,
     expenseTrackerRef,
     itinerary,
+    tripDetails,
     expenses,
     applyExpensesPatch,
     setExpenses,
@@ -176,6 +177,7 @@ const ExpensesTab = () => {
       <ExpenseTracker
         ref={expenseTrackerRef}
         itinerary={itinerary}
+        tripDetails={tripDetails}
         expenses={expenses}
         setExpenses={handleExpensesChange}
         travelers={memberTravelers || []}

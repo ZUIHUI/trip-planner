@@ -1,3 +1,5 @@
+import { formatDateTimeWithWeekday } from './tripDates';
+
 export const PLACE_VOTE_OPERATION = 'place-vote';
 
 export const TRIP_DOCUMENT_TOUCH_OPERATIONS = Object.freeze({
@@ -14,7 +16,7 @@ const TRIP_DOCUMENT_TOUCH_OPERATION_VALUES = Object.freeze(Object.values(TRIP_DO
 const TRIP_SYNC_OPERATION_LABELS = Object.freeze({
   'trip-details': '旅程資訊',
   'trip-collaboration': '協作設定',
-  'trip-day': 'Day 資訊',
+  'trip-day': '日期資訊',
   [PLACE_VOTE_OPERATION]: '想去回應',
   [TRIP_DOCUMENT_TOUCH_OPERATIONS.event]: '行程',
   [TRIP_DOCUMENT_TOUCH_OPERATIONS.checklistItem]: '清單',
@@ -81,15 +83,7 @@ const getMemberNameByUid = (members = [], uid = '') => {
 
 const formatSyncUpdatedAt = (value = '') => {
   if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleString('zh-TW', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
+  return formatDateTimeWithWeekday(value, { includeYear: false });
 };
 
 export const buildSyncConflictSummary = ({

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Clock3 } from 'lucide-react';
 import { Badge } from '../ui';
+import { formatDateTimeWithWeekday } from '../../utils/tripDates';
 
 const readActivityTime = (activity = {}) => {
   const raw = activity.updatedAt || activity.createdAt || activity.timestamp || '';
@@ -23,12 +24,7 @@ const formatRelativeTime = (activity = {}) => {
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) return `${diffHours} 小時前`;
 
-  return new Intl.DateTimeFormat('zh-TW', {
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(time));
+  return formatDateTimeWithWeekday(time, { includeYear: false });
 };
 
 const LEGACY_PACKING_CLOTHING_TITLES = new Set([

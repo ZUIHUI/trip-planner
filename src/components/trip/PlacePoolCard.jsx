@@ -117,6 +117,7 @@ const PlacePoolItem = ({
   place,
   selectedDay,
   itinerary,
+  tripDetails,
   onSchedule,
   onDelete,
   onVote,
@@ -132,9 +133,9 @@ const PlacePoolItem = ({
   const address = readPlaceAddress(place);
   const mapsUrl = buildGoogleMapsSearchUrl(place);
   const isPlannedForCurrentDay = Number(place.plannedDay) === Number(selectedDay);
-  const selectedDayLabel = getTripDayLabelByNumber(itinerary, selectedDay);
+  const selectedDayLabel = getTripDayLabelByNumber(itinerary, selectedDay, tripDetails);
   const plannedDayLabel = place.plannedDay
-    ? getTripDayLabelByNumber(itinerary, place.plannedDay)
+    ? getTripDayLabelByNumber(itinerary, place.plannedDay, tripDetails)
     : '';
   const votes = Array.isArray(place.votes) ? place.votes : [];
   const voteStats = getVoteStats(votes);
@@ -272,6 +273,7 @@ const PlacePoolCard = ({
   placePool = [],
   setPlacePool,
   itinerary = [],
+  tripDetails = {},
   setItinerary,
   selectedDay = 1,
   onAddEvent,
@@ -314,7 +316,7 @@ const PlacePoolCard = ({
       : (dayOptions[0] || 1);
     setTargetDay(nextDay);
   }, [dayOptions, normalizedSelectedDay]);
-  const targetDayLabel = getTripDayLabelByNumber(itinerary, targetDay);
+  const targetDayLabel = getTripDayLabelByNumber(itinerary, targetDay, tripDetails);
 
   const visiblePlaces = useMemo(() => safePlacePool
     .slice()
@@ -424,7 +426,7 @@ const PlacePoolCard = ({
               onChange={(event) => setTargetDay(Number(event.target.value))}
             >
               {dayOptions.map((dayNumber) => (
-                <option key={dayNumber} value={dayNumber}>{getTripDayLabelByNumber(itinerary, dayNumber)}</option>
+                <option key={dayNumber} value={dayNumber}>{getTripDayLabelByNumber(itinerary, dayNumber, tripDetails)}</option>
               ))}
             </Select>
           </div>
@@ -481,6 +483,7 @@ const PlacePoolCard = ({
               place={place}
               selectedDay={targetDay}
               itinerary={itinerary}
+              tripDetails={tripDetails}
               onSchedule={handleSchedulePlace}
               onDelete={handleDeletePlace}
               onVote={handleVotePlace}

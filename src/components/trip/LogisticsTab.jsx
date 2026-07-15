@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
-import { formatDateRangeText, normalizeTripDateFields } from '../../utils/tripDates';
+import { formatDateRangeText, getTripDisplayDates, normalizeTripDateFields } from '../../utils/tripDates';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { getFlightLookupAvailability } from '../../services/flightService';
 import { dateInputProps, moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
@@ -255,6 +255,7 @@ const TripInfoCard = ({
 }) => {
   const startDate = tripDetails?.dateRange?.start || '';
   const endDate = tripDetails?.dateRange?.end || '';
+  const displayDates = getTripDisplayDates(tripDetails);
   const invalidDateRange = Boolean(startDate && endDate && new Date(endDate) < new Date(startDate));
   const getEditingHandlers = (target) => ({
     onFocus: () => onEditingFocus?.(target),
@@ -268,9 +269,9 @@ const TripInfoCard = ({
       <SectionHeading
         icon={Info}
         title="旅程資訊"
-        aside={tripDetails?.dates && (
+        aside={displayDates && (
           <Badge variant="info" className="self-start">
-            {tripDetails.dates}
+            {displayDates}
           </Badge>
         )}
       />
@@ -1133,7 +1134,7 @@ const LogisticsTab = () => {
   const tripSnapshot = useMemo(() => {
     const budget = Number(tripDetails?.budget?.total || 0);
     return {
-      dates: formatDateRangeText(tripDetails?.dateRange?.start, tripDetails?.dateRange?.end) || tripDetails?.dates || '未設定日期',
+      dates: getTripDisplayDates(tripDetails) || '未設定日期',
       budget: budget > 0 ? `${budget.toLocaleString()} 元` : '未設定預算',
       hotel: tripDetails?.accommodation?.name || '尚未設定住宿',
       airport: tripDetails?.flights?.outbound?.dep && tripDetails?.flights?.inbound?.arr

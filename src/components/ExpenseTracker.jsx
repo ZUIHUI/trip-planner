@@ -212,6 +212,7 @@ const ExpenseSummary = ({ stats, exchangeRate, settlementCount, onOpenSettlement
 
 const ExpenseFilters = ({
   itinerary,
+  tripDetails,
   selectedDay,
   onSelectDay,
   statusFilter,
@@ -278,7 +279,7 @@ const ExpenseFilters = ({
             }`}
             aria-pressed={String(selectedDay) === String(day.day)}
           >
-            {getTripDayDisplayLabel(day)}
+            {getTripDayDisplayLabel(day, tripDetails)}
           </button>
         ))}
       </div>
@@ -461,6 +462,7 @@ const ExpenseFormModal = ({
   formData,
   setFormData,
   itinerary,
+  tripDetails,
   payerOptions,
   errors,
   onSubmit,
@@ -568,7 +570,7 @@ const ExpenseFormModal = ({
                 {itinerary.length === 0 && <option value="">未設定日期</option>}
                 {itinerary.map((day) => (
                   <option key={day.day} value={day.date}>
-                    {getTripDayDisplayLabel(day)}
+                    {getTripDayDisplayLabel(day, tripDetails)}
                   </option>
                 ))}
               </Select>
@@ -773,6 +775,7 @@ const ConfirmDialog = ({ target, onCancel, onConfirm }) => {
 
 const ExpenseTracker = forwardRef(({
   itinerary = [],
+  tripDetails = {},
   expenses = [],
   setExpenses,
   exchangeRate = 0.215,
@@ -1038,6 +1041,7 @@ const ExpenseTracker = forwardRef(({
 
       <ExpenseFilters
         itinerary={itinerary}
+        tripDetails={tripDetails}
         selectedDay={selectedDay}
         onSelectDay={setSelectedDay}
         statusFilter={statusFilter}
@@ -1068,6 +1072,7 @@ const ExpenseTracker = forwardRef(({
           formData={formData}
           setFormData={setFormData}
           itinerary={itinerary}
+          tripDetails={tripDetails}
           payerOptions={payerOptions}
           errors={formErrors}
           onSubmit={handleSubmit}

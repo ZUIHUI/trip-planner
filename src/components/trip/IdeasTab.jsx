@@ -32,6 +32,7 @@ const IdeasTab = () => {
     applyPlacePoolPatch,
     setPlacePool,
     itinerary,
+    tripDetails,
     setItinerary,
     selectedDay,
     collaboration,
@@ -163,6 +164,7 @@ const IdeasTab = () => {
         placePool={placePool}
         setPlacePool={handlePlacePoolChange}
         itinerary={itinerary}
+        tripDetails={tripDetails}
         setItinerary={setItinerary}
         selectedDay={selectedDay}
         onAddEvent={openAddModal}

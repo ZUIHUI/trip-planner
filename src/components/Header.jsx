@@ -66,7 +66,7 @@ const Header = forwardRef(({
 
   const headerStyle = shouldShowCoverBackground
     ? {
-        backgroundImage: `linear-gradient(120deg, rgba(37, 55, 45, 0.72), rgba(14, 165, 233, 0.24)), url(${coverImageUrl})`,
+        backgroundImage: `linear-gradient(180deg, rgba(10, 10, 10, 0.28) 0%, rgba(10, 10, 10, 0.62) 58%, rgba(10, 10, 10, 0.88) 100%), url(${coverImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'

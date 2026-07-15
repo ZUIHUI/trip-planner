@@ -35,6 +35,20 @@ const WEEKDAY_IN_TEXT_PATTERN = /(?:週|周|星期)[日一二三四五六天]|\b
 
 const pad = (value) => String(value).padStart(2, '0');
 
+const toIsoDateText = (date) => (
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+);
+
+const createValidLocalDate = (year, month, day) => {
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year
+    || date.getMonth() !== month - 1
+    || date.getDate() !== day
+  ) return null;
+  return date;
+};
+
 export const toDateInputValue = (dateText) => {
   if (typeof dateText !== 'string') return '';
   const trimmed = dateText.trim();
@@ -79,7 +93,8 @@ const formatMonthDayText = (dateInput) => {
 };
 
 const getDerivedTripDayIsoDate = (day = {}, tripDetails = {}) => {
-  const explicitDate = toDateInputValue(day?.isoDate || day?.date || '');
+  const rawDate = String(day?.isoDate || day?.date || '').trim();
+  const explicitDate = toDateInputValue(rawDate);
   if (explicitDate) return explicitDate;
 
   const startDate = toDateInputValue(tripDetails?.dateRange?.start || '');
@@ -90,7 +105,22 @@ const getDerivedTripDayIsoDate = (day = {}, tripDetails = {}) => {
   const derivedDate = new Date(year, month - 1, date);
   derivedDate.setDate(derivedDate.getDate() + dayNumber - 1);
 
-  return `${derivedDate.getFullYear()}-${pad(derivedDate.getMonth() + 1)}-${pad(derivedDate.getDate())}`;
+  const monthDayMatch = rawDate.match(/^(\d{1,2})[/.](\d{1,2})$/);
+  if (monthDayMatch) {
+    const explicitMonth = Number(monthDayMatch[1]);
+    const explicitDay = Number(monthDayMatch[2]);
+    const candidates = [
+      createValidLocalDate(derivedDate.getFullYear() - 1, explicitMonth, explicitDay),
+      createValidLocalDate(derivedDate.getFullYear(), explicitMonth, explicitDay),
+      createValidLocalDate(derivedDate.getFullYear() + 1, explicitMonth, explicitDay)
+    ].filter(Boolean);
+    const closestDate = candidates.sort(
+      (left, right) => Math.abs(left - derivedDate) - Math.abs(right - derivedDate)
+    )[0];
+    if (closestDate) return toIsoDateText(closestDate);
+  }
+
+  return toIsoDateText(derivedDate);
 };
 
 export const normalizeTripWeekday = (weekday) => {
@@ -155,6 +185,36 @@ export const formatDateRangeText = (startDate, endDate) => {
   return start || end || '';
 };
 
+export const formatDateWithWeekday = (dateInput) => {
+  const normalized = toDateInputValue(dateInput);
+  if (!normalized) return '';
+  const [year, month, day] = normalized.split('-').map(Number);
+  const date = createValidLocalDate(year, month, day);
+  if (!date) return '';
+  return `${formatDateText(normalized)} ${WEEKDAY_NAMES[date.getDay()]}`;
+};
+
+export const formatDateTimeWithWeekday = (value, { includeYear = true } = {}) => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const dateText = includeYear
+    ? `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`
+    : `${date.getMonth() + 1}/${date.getDate()}`;
+  const timeText = date.toLocaleTimeString('zh-TW', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  return `${dateText} ${WEEKDAY_NAMES[date.getDay()]} ${timeText}`;
+};
+
+export const formatDisplayDateRangeText = (startDate, endDate) => {
+  const start = formatDateWithWeekday(startDate);
+  const end = formatDateWithWeekday(endDate);
+  if (start && end) return `${start} - ${end}`;
+  return start || end || '';
+};
+
 const splitDateRangeText = (datesText) => {
   if (typeof datesText !== 'string') return ['', ''];
 
@@ -198,5 +258,11 @@ export const normalizeTripDateFields = (tripDetails = {}) => {
 
 export const getTripDisplayDates = (tripDetails) => {
   const range = tripDetails?.dateRange || {};
-  return formatDateRangeText(range.start, range.end) || tripDetails?.dates || '';
+  const rangeText = formatDisplayDateRangeText(range.start, range.end);
+  if (rangeText) return rangeText;
+
+  const legacyDates = String(tripDetails?.dates || '').trim();
+  if (!legacyDates) return '';
+  const [legacyStart, legacyEnd] = splitDateRangeText(legacyDates);
+  return formatDisplayDateRangeText(legacyStart, legacyEnd) || legacyDates;
 };

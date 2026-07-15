@@ -23,7 +23,7 @@ import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
 import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itineraryRoute';
-import { getTripDayDisplayLabel, getTripDayDisplayTitle } from '../../utils/tripDates';
+import { getTripDayDisplayLabel, getTripDayDisplayTitle, getTripDisplayDates } from '../../utils/tripDates';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const primaryModules = [
@@ -92,7 +92,7 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
       <div className="tp-v4-rail-trip">
         <span>TRIP WORKSPACE</span>
         <strong>{tripDetails?.title || '我的旅程'}</strong>
-        <small>{tripDetails?.dateRange?.start || '日期待設定'}</small>
+        <small>{getTripDisplayDates(tripDetails) || '日期待設定'}</small>
       </div>
 
       <NavigationGroup label="旅途中" items={primaryModules} activeTab={activeTab} onTabChange={onTabChange} />

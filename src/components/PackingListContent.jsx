@@ -138,7 +138,7 @@ const createPackingItem = ({ text, activeCategory, selectedDay, assignedTo }) =>
   day: activeCategory === 'clothing' ? selectedDay : null
 });
 
-const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [], readOnly = false }) => {
+const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = [], tripDetails = {}, readOnly = false }) => {
   const [activeCategory, setActiveCategory] = useState('suitcase');
   const [selectedDay, setSelectedDay] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -190,7 +190,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   }, [items, activeCategory, selectedDay]);
 
   const progressLabel = `${stats.categoryPacked}/${stats.categoryTotal}`;
-  const selectedDayLabel = getTripDayLabelByNumber(itinerary, selectedDay);
+  const selectedDayLabel = getTripDayLabelByNumber(itinerary, selectedDay, tripDetails);
 
   const handleAddItem = (text, assignedTo = newItemAssignedTo) => {
     if (readOnly) return;

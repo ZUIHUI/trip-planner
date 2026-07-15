@@ -28,6 +28,7 @@ const PackingTab = () => {
     canEdit,
     memberTravelers,
     itinerary,
+    tripDetails,
     editingByTarget,
     checklistStatusByListId,
     updatePresenceEditingTarget,
@@ -202,6 +203,7 @@ const PackingTab = () => {
           onUpdate={handleUpdate}
           travelers={memberTravelers || []}
           itinerary={itinerary}
+          tripDetails={tripDetails}
           readOnly={!canEdit}
         />
       </Card>
