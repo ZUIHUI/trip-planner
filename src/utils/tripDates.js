@@ -79,16 +79,40 @@ const formatMonthDayText = (dateInput) => {
 };
 
 const getDerivedTripDayIsoDate = (day = {}, tripDetails = {}) => {
-  const explicitDate = toDateInputValue(day?.isoDate || day?.date || '');
+  const rawDate = String(day?.isoDate || day?.date || '').trim();
+  const explicitDate = toDateInputValue(rawDate);
   if (explicitDate) return explicitDate;
 
   const startDate = toDateInputValue(tripDetails?.dateRange?.start || '');
   const dayNumber = Number(day?.day ?? day?.dayNumber);
-  if (!startDate || !Number.isInteger(dayNumber) || dayNumber < 1) return '';
+  if (!startDate) return '';
 
   const [year, month, date] = startDate.split('-').map(Number);
   const derivedDate = new Date(year, month - 1, date);
-  derivedDate.setDate(derivedDate.getDate() + dayNumber - 1);
+  if (Number.isInteger(dayNumber) && dayNumber >= 1) {
+    derivedDate.setDate(derivedDate.getDate() + dayNumber - 1);
+  }
+
+  const partialDateMatch = rawDate.match(/^(\d{1,2})[/.](\d{1,2})$/);
+  if (partialDateMatch) {
+    const partialMonth = Number(partialDateMatch[1]);
+    const partialDay = Number(partialDateMatch[2]);
+    const derivedYear = derivedDate.getFullYear();
+    const candidates = [derivedYear - 1, derivedYear, derivedYear + 1]
+      .map((candidateYear) => new Date(candidateYear, partialMonth - 1, partialDay))
+      .filter((candidate) => (
+        candidate.getMonth() === partialMonth - 1 && candidate.getDate() === partialDay
+      ))
+      .sort((left, right) => (
+        Math.abs(left.getTime() - derivedDate.getTime())
+        - Math.abs(right.getTime() - derivedDate.getTime())
+      ));
+
+    if (candidates[0]) {
+      const candidate = candidates[0];
+      return `${candidate.getFullYear()}-${pad(candidate.getMonth() + 1)}-${pad(candidate.getDate())}`;
+    }
+  }
 
   return `${derivedDate.getFullYear()}-${pad(derivedDate.getMonth() + 1)}-${pad(derivedDate.getDate())}`;
 };

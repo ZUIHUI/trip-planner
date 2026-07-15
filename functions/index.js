@@ -1409,14 +1409,22 @@ const getCollaborationCollectionConfig = ({ collectionId, data = {}, documentId 
 };
 
 const getCollaborationDayLabel = (data = {}) => {
-  const rawDate = cleanPushString(data.date || data.isoDate, 40);
+  const rawDateValue = cleanPushString(data.date || data.isoDate, 40);
+  const rawDate = /^(?:day\s*\d+|第\s*\d+\s*天)$/i.test(rawDateValue) ? '' : rawDateValue;
   const dateMatch = rawDate.match(/^(?:\d{4}[-/.])?(\d{1,2})[-/.](\d{1,2})$/);
   const dateText = dateMatch ? `${Number(dateMatch[1])}/${Number(dateMatch[2])}` : rawDate;
   const weekdayAliases = {
     sun: 'Sun.', sunday: 'Sun.', mon: 'Mon.', monday: 'Mon.',
     tue: 'Tue.', tues: 'Tue.', tuesday: 'Tue.', wed: 'Wed.', wednesday: 'Wed.',
     thu: 'Thu.', thur: 'Thu.', thurs: 'Thu.', thursday: 'Thu.',
-    fri: 'Fri.', friday: 'Fri.', sat: 'Sat.', saturday: 'Sat.'
+    fri: 'Fri.', friday: 'Fri.', sat: 'Sat.', saturday: 'Sat.',
+    '週日': 'Sun.', '周日': 'Sun.', '星期日': 'Sun.', '星期天': 'Sun.',
+    '週一': 'Mon.', '周一': 'Mon.', '星期一': 'Mon.',
+    '週二': 'Tue.', '周二': 'Tue.', '星期二': 'Tue.',
+    '週三': 'Wed.', '周三': 'Wed.', '星期三': 'Wed.',
+    '週四': 'Thu.', '周四': 'Thu.', '星期四': 'Thu.',
+    '週五': 'Fri.', '周五': 'Fri.', '星期五': 'Fri.',
+    '週六': 'Sat.', '周六': 'Sat.', '星期六': 'Sat.'
   };
   const weekdayKey = cleanPushString(data.weekday, 20).toLowerCase().replace(/\./g, '');
   const weekdayText = weekdayAliases[weekdayKey] || '';
@@ -1463,7 +1471,14 @@ const getCollaborationEntityTitle = ({ collectionId, documentId, data }) => {
 
   if (collectionId === 'days') {
     const dayLabel = getCollaborationDayLabel(data);
-    const dayTitle = cleanPushString(data.title || data.date, 100);
+    const rawDayTitle = cleanPushString(data.title, 100);
+    const rawDayDate = cleanPushString(data.date || data.isoDate, 100);
+    const dayTitle = (
+      /^(?:day\s*\d+|第\s*\d+\s*天)$/i.test(rawDayTitle)
+      || rawDayTitle === rawDayDate
+      || dayLabel === rawDayTitle
+      || dayLabel.startsWith(`${rawDayTitle} `)
+    ) ? '' : rawDayTitle;
     const eventTitle = [dayLabel, dayTitle].filter(Boolean).join(' · ');
     if (eventTitle) return eventTitle;
   }

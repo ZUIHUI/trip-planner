@@ -2493,6 +2493,10 @@ test('formats itinerary days as date plus abbreviated weekday without generic Da
 
   assert.equal(getTripDayDisplayLabel(itinerary[0]), '10/25 Wed.');
   assert.equal(getTripDayLabelByNumber(itinerary, 2, tripDetails), '7/16 Thu.');
+  assert.equal(
+    getTripDayDisplayLabel({ day: 1, date: '10/25', weekday: '' }, { dateRange: { start: '2023-10-25' } }),
+    '10/25 Wed.'
+  );
   assert.equal(getTripDayDisplayTitle(itinerary[0]), '當日行程');
   assert.equal(getTripDayDisplayTitle(itinerary[1]), '市場散步');
 
@@ -2500,10 +2504,15 @@ test('formats itinerary days as date plus abbreviated weekday without generic Da
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
   const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
+  const tripSyncSource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/tripSync.js'), 'utf8');
+  const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions/index.js'), 'utf8');
   const topNavigationActiveRule = stylesSource.match(/\.tp-mobile-detail-tabs button\.is-active \{[\s\S]*?\}/)?.[0] || '';
 
   assert.match(daySelectorSource, /getTripDayDisplayLabel/);
   assert.doesNotMatch([daySelectorSource, itinerarySource, todaySource].join('\n'), /\bDAY\s+\{|\bDay\s+\{|第\s+\{[^}]+\}\s+天/);
+  assert.doesNotMatch(tripSyncSource, /Day 資訊/);
+  assert.match(functionsSource, /rawDayTitle === rawDayDate/);
+  assert.match(functionsSource, /\^\(\?:day\\s\*\\d\+\|第\\s\*\\d\+\\s\*天\)\$/i);
   assert.match(topNavigationActiveRule, /background:\s*var\(--v4-ink\)/);
   assert.doesNotMatch(topNavigationActiveRule, /linear-gradient/);
 });

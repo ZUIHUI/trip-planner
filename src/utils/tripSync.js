@@ -14,7 +14,7 @@ const TRIP_DOCUMENT_TOUCH_OPERATION_VALUES = Object.freeze(Object.values(TRIP_DO
 const TRIP_SYNC_OPERATION_LABELS = Object.freeze({
   'trip-details': '旅程資訊',
   'trip-collaboration': '協作設定',
-  'trip-day': 'Day 資訊',
+  'trip-day': '日期資訊',
   [PLACE_VOTE_OPERATION]: '想去回應',
   [TRIP_DOCUMENT_TOUCH_OPERATIONS.event]: '行程',
   [TRIP_DOCUMENT_TOUCH_OPERATIONS.checklistItem]: '清單',
