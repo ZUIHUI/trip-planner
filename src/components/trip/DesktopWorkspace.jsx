@@ -23,6 +23,7 @@ import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
 import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itineraryRoute';
+import { getTripDayDisplayLabel, getTripDayDisplayTitle } from '../../utils/tripDates';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const primaryModules = [
@@ -101,6 +102,8 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
         <div>
           {(Array.isArray(itinerary) ? itinerary : []).map((day) => {
             const isActive = String(day.day) === String(selectedDay);
+            const dayLabel = getTripDayDisplayLabel(day, tripDetails);
+            const dayTitle = getTripDayDisplayTitle(day, '');
             return (
               <button
                 key={day.day}
@@ -109,10 +112,9 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
                 onClick={() => handleDayChange(day.day)}
                 aria-current={isActive ? 'date' : undefined}
               >
-                <span className="tp-v4-rail-day-number">{day.day}</span>
                 <span className="tp-v4-rail-day-copy">
-                  <strong>{day.title?.trim() || `第 ${day.day} 天`}</strong>
-                  <small>{day.date?.trim() || '日期待設定'}</small>
+                  <strong>{dayLabel}</strong>
+                  {dayTitle && <small>{dayTitle}</small>}
                 </span>
               </button>
             );
@@ -133,8 +135,8 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
 export const DesktopMapOverview = ({ activeTab }) => {
   const {
     currentDayData,
-    currentDayTitle,
-    selectedDay,
+    currentDayDisplayTitle,
+    currentDayLabel,
     tripDetails,
     currentLocation
   } = useTripWorkspace();
@@ -169,8 +171,8 @@ export const DesktopMapOverview = ({ activeTab }) => {
       />
 
       <div className="tp-v4-desktop-map-toolbar">
-        <span>DAY {selectedDay}</span>
-        <strong>{currentDayTitle || '今日路線'}</strong>
+        <span>{currentDayLabel}</span>
+        <strong>{currentDayDisplayTitle}</strong>
         <Badge variant="info">Google 路線 · {routeStops.length} 站</Badge>
       </div>
 
@@ -196,10 +198,9 @@ export const DesktopMapOverview = ({ activeTab }) => {
 
 export const DesktopPlannerPanel = ({ activeTab, onTabChange }) => {
   const {
-    selectedDay,
     currentDayData,
-    currentDayTitle,
-    currentDayDate,
+    currentDayDisplayTitle,
+    currentDayLabel,
     remainingBudget,
     budgetProgress,
     canEdit,
@@ -215,9 +216,9 @@ export const DesktopPlannerPanel = ({ activeTab, onTabChange }) => {
   return (
     <aside className="tp-v4-planner-panel" aria-label="今日規劃摘要">
       <div className="tp-v4-planner-heading">
-        <span>DAY {selectedDay} · PLAN</span>
-        <h2>{currentDayTitle || '今日計畫'}</h2>
-        <p>{currentDayDate || '日期待設定'} · {presenceUi?.summaryText || '已同步'}</p>
+        <span>{currentDayLabel}</span>
+        <h2>{currentDayDisplayTitle}</h2>
+        <p>{presenceUi?.summaryText || '已同步'}</p>
       </div>
 
       <div className="tp-v4-planner-actions">

@@ -62,7 +62,7 @@ const editingTargetLabels = {
 export const getEditingTargetLabel = (target = '') => {
   if (!target) return '';
   if (editingTargetLabels[target]) return editingTargetLabels[target];
-  if (target.startsWith('day:')) return '正在編輯 Day 資訊';
+  if (target.startsWith('day:')) return '正在編輯日期資訊';
   if (target === 'event:new') return '正在新增行程';
   if (target.startsWith('event:')) return '正在編輯行程';
   if (target.startsWith('place:')) return '正在編輯想去地點';

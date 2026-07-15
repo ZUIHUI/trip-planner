@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button } from '../ui';
 import pixelNaviBunAtlas from '../../assets/ai/pixel-navibun-atlas.png';
+import { getTripDayLabelByNumber } from '../../utils/tripDates';
 
 const modeOptions = [
   { id: 'dayPlan', label: '今日行程', icon: CalendarPlus }
@@ -193,6 +194,7 @@ const getRecommendationKey = (recommendation, target) => `${recommendation.id}:$
 
 const RecommendationCard = ({
   recommendation,
+  dayLabel,
   canEdit,
   onApplyPlace,
   onApplyEvent,
@@ -238,7 +240,7 @@ const RecommendationCard = ({
       </div>
 
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Badge variant="muted">第 {recommendation.suggestedDay} 天</Badge>
+        <Badge variant="muted">{dayLabel}</Badge>
         {recommendation.time && <Badge variant="muted">{recommendation.time}</Badge>}
         {recommendation.durationMinutes > 0 && (
           <Badge variant="muted">{recommendation.durationMinutes} 分鐘</Badge>
@@ -279,7 +281,7 @@ const RecommendationCard = ({
           className="w-full justify-center"
         >
           {eventApplied ? <CheckCircle2 size={14} /> : <CalendarPlus size={14} />}
-          {eventApplied ? '已排入行程' : (isApplying === 'event' ? '排入中...' : `排進第 ${recommendation.suggestedDay} 天`)}
+          {eventApplied ? '已排入行程' : (isApplying === 'event' ? '排入中...' : `排進 ${dayLabel}`)}
         </Button>
       </div>
     </article>
@@ -293,6 +295,8 @@ const TripAiRecommendationPanel = ({
   isLoading,
   error,
   canEdit,
+  itinerary = [],
+  tripDetails = {},
   isHidden = false,
   isCompanionHidden = false,
   onOpen,
@@ -574,6 +578,7 @@ const TripAiRecommendationPanel = ({
                 <RecommendationCard
                   key={recommendation.id}
                   recommendation={recommendation}
+                  dayLabel={getTripDayLabelByNumber(itinerary, recommendation.suggestedDay, tripDetails)}
                   canEdit={canEdit}
                   onApplyPlace={handleApplyPlace}
                   onApplyEvent={handleApplyEvent}

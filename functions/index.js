@@ -1409,8 +1409,20 @@ const getCollaborationCollectionConfig = ({ collectionId, data = {}, documentId 
 };
 
 const getCollaborationDayLabel = (data = {}) => {
-  const dayNumber = Number(data.dayNumber || data.day);
-  return Number.isFinite(dayNumber) && dayNumber > 0 ? `第 ${dayNumber} 天` : '';
+  const rawDate = cleanPushString(data.date || data.isoDate, 40);
+  const dateMatch = rawDate.match(/^(?:\d{4}[-/.])?(\d{1,2})[-/.](\d{1,2})$/);
+  const dateText = dateMatch ? `${Number(dateMatch[1])}/${Number(dateMatch[2])}` : rawDate;
+  const weekdayAliases = {
+    sun: 'Sun.', sunday: 'Sun.', mon: 'Mon.', monday: 'Mon.',
+    tue: 'Tue.', tues: 'Tue.', tuesday: 'Tue.', wed: 'Wed.', wednesday: 'Wed.',
+    thu: 'Thu.', thur: 'Thu.', thurs: 'Thu.', thursday: 'Thu.',
+    fri: 'Fri.', friday: 'Fri.', sat: 'Sat.', saturday: 'Sat.'
+  };
+  const weekdayKey = cleanPushString(data.weekday, 20).toLowerCase().replace(/\./g, '');
+  const weekdayText = weekdayAliases[weekdayKey] || '';
+
+  if (/\b(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\.?\b/i.test(dateText)) return dateText;
+  return [dateText, weekdayText].filter(Boolean).join(' ');
 };
 
 const getCollaborationActorUid = (beforeData, afterData) => cleanPushString(

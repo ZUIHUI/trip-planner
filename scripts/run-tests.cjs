@@ -11,6 +11,11 @@ const {
   validateRequiredText
 } = require('../src/utils/validation.js');
 const {
+  getTripDayDisplayLabel,
+  getTripDayDisplayTitle,
+  getTripDayLabelByNumber
+} = require('../src/utils/tripDates.js');
+const {
   buildTripDocumentFromAppState,
   createTripAppData,
   normalizeTripDocumentForApp
@@ -727,7 +732,7 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
   assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
   assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
-  assert.match(todaySource, /幫我排第/);
+  assert.match(todaySource, /幫我排 \$\{selectedDayLabel\}/);
   assert.doesNotMatch(todaySource, /AI 旅伴幫我排/);
   assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);
@@ -1105,7 +1110,8 @@ test('routes collaboration updates to in-app realtime notifications', () => {
   assert.match(functionsSource, /appendRealtimeActivity/);
   assert.match(functionsSource, /publishTripCollaborationActivity/);
   assert.match(functionsSource, /getCollaborationDayLabel/);
-  assert.match(functionsSource, /`第 \$\{dayNumber\} 天`/);
+  assert.match(functionsSource, /cleanPushString\(data\.date \|\| data\.isoDate/);
+  assert.doesNotMatch(functionsSource, /`第 \$\{dayNumber\} 天`/);
   assert.match(functionsSource, /eventSummary/);
   assert.doesNotMatch(functionsSource, /category:\s*'collaboration'/);
   assert.doesNotMatch(functionsSource, /isCollaborationNotificationEnabled/);
@@ -1649,10 +1655,10 @@ test('detects trip detail patch sections for field-level saves', () => {
 
 test('saves split trip detail documents before best-effort root mirrors', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'src/services/tripService.js'), 'utf8');
-  const metaBody = source.match(/export const updateTripMetaFields[\s\S]*?return meta;\n};/)?.[0] || '';
-  const accommodationBody = source.match(/export const updateTripAccommodationFields[\s\S]*?return nextAccommodation;\n};/)?.[0] || '';
-  const flightsBody = source.match(/export const updateTripFlightsFields[\s\S]*?return nextFlights;\n};/)?.[0] || '';
-  const budgetBody = source.match(/export const updateTripBudgetFields[\s\S]*?return nextBudget;\n};/)?.[0] || '';
+  const metaBody = source.match(/export const updateTripMetaFields[\s\S]*?return meta;\r?\n};/)?.[0] || '';
+  const accommodationBody = source.match(/export const updateTripAccommodationFields[\s\S]*?return nextAccommodation;\r?\n};/)?.[0] || '';
+  const flightsBody = source.match(/export const updateTripFlightsFields[\s\S]*?return nextFlights;\r?\n};/)?.[0] || '';
+  const budgetBody = source.match(/export const updateTripBudgetFields[\s\S]*?return nextBudget;\r?\n};/)?.[0] || '';
 
   assert.match(source, /const updateTripRootMirrorFields = async/);
   assert.match(metaBody, /await setDoc\(detailRef/);
@@ -2347,7 +2353,7 @@ test('labels supported editing targets', () => {
   assert.equal(getEditingTargetLabel('trip-details:budget'), '正在編輯旅程預算');
   assert.equal(getEditingTargetLabel('trip-details:flights:outbound'), '正在編輯去程航班');
   assert.equal(getEditingTargetLabel('trip-details:flights:inbound'), '正在編輯回程航班');
-  assert.equal(getEditingTargetLabel('day:2'), '正在編輯 Day 資訊');
+  assert.equal(getEditingTargetLabel('day:2'), '正在編輯日期資訊');
   assert.equal(getEditingTargetLabel('event:new'), '正在新增行程');
   assert.equal(getEditingTargetLabel('event:event-1'), '正在編輯行程');
   assert.equal(getEditingTargetLabel('ideas:list'), '正在編輯想去地點');
@@ -2476,6 +2482,30 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
   assert.doesNotMatch(css, /#ff385c|#e00b41|#ffd1da/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap/);
+});
+
+test('formats itinerary days as date plus abbreviated weekday without generic Day labels', () => {
+  const itinerary = [
+    { day: 1, date: '10/25', weekday: 'Wed', title: 'Day 1' },
+    { day: 2, date: 'Day 2', weekday: '', title: '市場散步' }
+  ];
+  const tripDetails = { dateRange: { start: '2026-07-15' } };
+
+  assert.equal(getTripDayDisplayLabel(itinerary[0]), '10/25 Wed.');
+  assert.equal(getTripDayLabelByNumber(itinerary, 2, tripDetails), '7/16 Thu.');
+  assert.equal(getTripDayDisplayTitle(itinerary[0]), '當日行程');
+  assert.equal(getTripDayDisplayTitle(itinerary[1]), '市場散步');
+
+  const daySelectorSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/DaySelector.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+  const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
+  const topNavigationActiveRule = stylesSource.match(/\.tp-mobile-detail-tabs button\.is-active \{[\s\S]*?\}/)?.[0] || '';
+
+  assert.match(daySelectorSource, /getTripDayDisplayLabel/);
+  assert.doesNotMatch([daySelectorSource, itinerarySource, todaySource].join('\n'), /\bDAY\s+\{|\bDay\s+\{|第\s+\{[^}]+\}\s+天/);
+  assert.match(topNavigationActiveRule, /background:\s*var\(--v4-ink\)/);
+  assert.doesNotMatch(topNavigationActiveRule, /linear-gradient/);
 });
 
 let failed = 0;

@@ -78,7 +78,8 @@ export const useTripHandbook = ({
 
   const exportPdf = useCallback(async ({
     coverImage = '',
-    tripTitle = ''
+    tripTitle = '',
+    tripDetails = {}
   } = {}) => {
     if (!response) return null;
 
@@ -91,6 +92,7 @@ export const useTripHandbook = ({
       const result = await exportTripHandbookPdf({
         handbook: response,
         coverImage: handbookCoverImage,
+        tripDetails,
         filename: `${tripTitle || response.cover?.title || '旅遊手冊'}-旅遊手冊`
       });
       toast?.({ variant: 'success', title: 'PDF 已匯出', description: result.filename });

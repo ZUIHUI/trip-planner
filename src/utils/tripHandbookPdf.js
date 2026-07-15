@@ -1,5 +1,6 @@
 import { normalizeCoverImageUrl } from './coverImage';
 import { cleanHandbookText, formatHandbookMoney } from './tripHandbook';
+import { getTripDayDisplayLabel, getTripDayDisplayTitle } from './tripDates';
 
 const PAGE_WIDTH = 1240;
 const PAGE_HEIGHT = 1754;
@@ -493,16 +494,16 @@ const renderOverviewPage = (handbook, coverImage) => {
   return canvas;
 };
 
-const renderDayPage = (day) => {
+const renderDayPage = (day, tripDetails) => {
   const canvas = makeCanvas();
   const ctx = canvas.getContext('2d');
   preparePage(ctx);
   drawDoodleCluster(ctx, day.day % 2 ? 'camera' : 'cover', PAGE_WIDTH - MARGIN - 250, PAGE_HEIGHT - 300, 0.7, 0.16);
 
   let y = 110;
-  drawPill(ctx, `Day ${day.day}${day.date ? ` · ${day.date}` : ''}`, MARGIN, y, COLORS.sky);
+  drawPill(ctx, getTripDayDisplayLabel(day, tripDetails), MARGIN, y, COLORS.sky);
   y += 78;
-  y = drawText(ctx, day.title, MARGIN, y, PAGE_WIDTH - (MARGIN * 2), {
+  y = drawText(ctx, getTripDayDisplayTitle(day), MARGIN, y, PAGE_WIDTH - (MARGIN * 2), {
     size: 54,
     weight: 900,
     lineHeight: 66,
@@ -716,10 +717,10 @@ const sanitizeFilename = (value) => cleanHandbookText(value, 80)
   .replace(/-+/g, '-')
   .replace(/^-|-$/g, '') || 'travel-handbook';
 
-const renderCanvases = (handbook, coverImage) => [
+const renderCanvases = (handbook, coverImage, tripDetails) => [
   renderCoverPage({ handbook, coverImage }),
   renderOverviewPage(handbook, coverImage),
-  ...asArray(handbook.days).map(renderDayPage),
+  ...asArray(handbook.days).map((day) => renderDayPage(day, tripDetails)),
   renderLogisticsPage(handbook),
   renderListsPage(handbook)
 ];
@@ -733,6 +734,7 @@ const canvasesToJpegs = (canvases) => canvases.map((canvas) => ({
 export const exportTripHandbookPdf = async ({
   handbook,
   coverImage = '',
+  tripDetails = {},
   filename = ''
 } = {}) => {
   if (!handbook) {
@@ -747,9 +749,9 @@ export const exportTripHandbookPdf = async ({
   let images = [];
 
   try {
-    images = canvasesToJpegs(renderCanvases(handbook, cover));
+    images = canvasesToJpegs(renderCanvases(handbook, cover, tripDetails));
   } catch (error) {
-    images = canvasesToJpegs(renderCanvases(handbook, null));
+    images = canvasesToJpegs(renderCanvases(handbook, null, tripDetails));
   }
 
   const pdfBlob = buildPdfFromJpegs(images);

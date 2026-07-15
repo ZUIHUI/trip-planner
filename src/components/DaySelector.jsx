@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react';
+import { getTripDayDisplayLabel } from '../utils/tripDates';
 
 const VISIBLE_EDGE_PADDING = 10;
 const DAY_SELECTOR_SCROLL_DURATION_MS = 220;
@@ -27,7 +28,7 @@ const getTargetScrollLeft = (container, selectedTab) => {
   return container.scrollLeft;
 };
 
-const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
+const DaySelector = ({ itinerary, selectedDay, onSelectDay, tripDetails = {} }) => {
   const scrollContainerRef = useRef(null);
   const dayButtonRefs = useRef(new Map());
   const animationRef = useRef(0);
@@ -95,6 +96,7 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
       >
         {itinerary.map((item) => {
           const isSelected = String(selectedDay) === String(item.day);
+          const dayLabel = getTripDayDisplayLabel(item, tripDetails);
 
           return (
             <button
@@ -110,14 +112,14 @@ const DaySelector = ({ itinerary, selectedDay, onSelectDay }) => {
               type="button"
               onClick={() => onSelectDay(item.day)}
               aria-pressed={isSelected}
-              aria-label={`切換到第 ${item.day} 天`}
-              className={`touch-target tp-day-selector-chip min-w-[4.25rem] rounded-lg px-3 py-2.5 text-center transition sm:min-w-[5rem] sm:px-4 ${
+              aria-label={`切換到 ${dayLabel}`}
+              className={`touch-target tp-day-selector-chip min-w-[5.75rem] rounded-lg px-3 py-2.5 text-center transition sm:min-w-[6.25rem] sm:px-4 ${
                 isSelected
                   ? 'bg-brand-700 text-white shadow-sm dark:bg-brand-800 dark:text-brand-50'
                   : 'bg-white/75 text-stone-600 hover:bg-sky-50 hover:text-brand-800 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:bg-brand-100/65'
               }`}
             >
-              <span className="block whitespace-nowrap text-sm font-black leading-none">第 {item.day} 天</span>
+              <span className="block whitespace-nowrap text-sm font-black leading-none">{dayLabel}</span>
             </button>
           );
         })}

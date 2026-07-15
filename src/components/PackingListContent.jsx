@@ -21,6 +21,7 @@ import {
 import DaySelector from './DaySelector';
 import { Button, EmptyState, Input, Select } from './ui';
 import { plainTextInputProps } from '../utils/mobileInputProps';
+import { getTripDayLabelByNumber } from '../utils/tripDates';
 
 const CATEGORIES = [
   {
@@ -189,6 +190,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
   }, [items, activeCategory, selectedDay]);
 
   const progressLabel = `${stats.categoryPacked}/${stats.categoryTotal}`;
+  const selectedDayLabel = getTripDayLabelByNumber(itinerary, selectedDay);
 
   const handleAddItem = (text, assignedTo = newItemAssignedTo) => {
     if (readOnly) return;
@@ -432,7 +434,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
                 <span className="mt-0.5 flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                   {item.done ? <CheckCircle2 size={13} /> : <Circle size={13} />}
                   {item.done ? '已打包' : '未打包'}
-                  {activeCategory === 'clothing' && <span>Day {selectedDay}</span>}
+                  {activeCategory === 'clothing' && <span>{selectedDayLabel}</span>}
                 </span>
               </span>
             </label>
@@ -477,7 +479,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
               </p>
               <h3 className="mt-1 text-lg font-black text-slate-900 dark:text-white">
                 {currentCategory.fullName}
-                {activeCategory === 'clothing' && ` Day ${selectedDay}`}
+                {activeCategory === 'clothing' && ` · ${selectedDayLabel}`}
               </h3>
             </div>
           </div>
@@ -584,7 +586,7 @@ const PackingListContent = ({ items = [], onUpdate, travelers = [], itinerary = 
           <div>
             <h3 className="text-sm font-black text-slate-900 dark:text-white">快速新增物品</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {activeCategory === 'clothing' ? `Day ${selectedDay}` : '目前分類'}
+              {activeCategory === 'clothing' ? selectedDayLabel : '目前分類'}
             </p>
           </div>
           <Button

@@ -36,6 +36,7 @@ import {
   pickNextEvent,
   getTripDayIsoDate
 } from '../../utils/tripEvents';
+import { getTripDayDisplayLabel } from '../../utils/tripDates';
 import {
   buildRouteStop,
   getTripRouteOrigin
@@ -176,7 +177,7 @@ const reminderClasses = {
   warning: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100'
 };
 
-const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, onSelectDay }) => {
+const DaySwitcher = ({ itinerary, selectedDay, currentDayDisplayTitle, currentDayLabel, tripDetails, onSelectDay }) => {
   const currentIndex = itinerary.findIndex((day) => day.day === selectedDay);
   const hasMultipleDays = itinerary.length > 1;
   const previousDay = hasMultipleDays
@@ -193,18 +194,17 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
         onClick={() => previousDay && onSelectDay(previousDay.day)}
         disabled={!previousDay}
         className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-        aria-label="前一天"
-        title="前一天"
+        aria-label={previousDay ? `前往 ${getTripDayDisplayLabel(previousDay, tripDetails)}` : '前一天'}
+        title={previousDay ? getTripDayDisplayLabel(previousDay, tripDetails) : '前一天'}
       >
         <ChevronLeft size={19} />
       </button>
 
       <div className="min-w-0 px-2 text-center">
         <p className="text-xs font-black uppercase text-brand-700 dark:text-brand-300">
-          第 {selectedDay} 天
+          {currentDayLabel}
         </p>
-        <h2 className="truncate text-lg font-black text-stone-800 dark:text-brand-900">{currentDayTitle}</h2>
-        <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">{currentDayDate}</p>
+        <h2 className="truncate text-lg font-black text-stone-800 dark:text-brand-900">{currentDayDisplayTitle}</h2>
       </div>
 
       <button
@@ -212,8 +212,8 @@ const DaySwitcher = ({ itinerary, selectedDay, currentDayTitle, currentDayDate, 
         onClick={() => nextDay && onSelectDay(nextDay.day)}
         disabled={!nextDay}
         className="touch-target inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-        aria-label="下一天"
-        title="下一天"
+        aria-label={nextDay ? `前往 ${getTripDayDisplayLabel(nextDay, tripDetails)}` : '下一天'}
+        title={nextDay ? getTripDayDisplayLabel(nextDay, tripDetails) : '下一天'}
       >
         <ChevronRight size={19} />
       </button>
@@ -459,7 +459,7 @@ const QuickActions = ({
   canEdit,
   nextEvent,
   routeUrl,
-  selectedDay,
+  selectedDayLabel,
   onAddEvent,
   onNavigateNext,
   onOpenAiRecommendations
@@ -517,8 +517,8 @@ const QuickActions = ({
           onClick={onOpenAiRecommendations}
           disabled={!canEdit}
           className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
-          aria-label={`幫我排第 ${selectedDay} 天`}
-          title={`幫我排第 ${selectedDay} 天`}
+          aria-label={`幫我排 ${selectedDayLabel}`}
+          title={`幫我排 ${selectedDayLabel}`}
         >
           <Sparkles size={16} />
           幫排
@@ -853,6 +853,8 @@ const TodayTab = ({ onTabChange }) => {
     currentDayData,
     currentDayTitle,
     currentDayDate,
+    currentDayDisplayTitle,
+    currentDayLabel,
     tripDetails,
     currentLocation,
     checklists,
@@ -932,9 +934,8 @@ const TodayTab = ({ onTabChange }) => {
   return (
     <MobileMockupFrame
       icon={CalendarDays}
-      eyebrow={`第 ${selectedDay} 天`}
-      title={currentDayTitle || '今日行程'}
-      subtitle={currentDayDate}
+      eyebrow={currentDayLabel}
+      title={currentDayDisplayTitle}
       stats={[
         { value: events.length, label: '行程' },
         { value: routeStops.length, label: '停靠點' },
@@ -946,8 +947,9 @@ const TodayTab = ({ onTabChange }) => {
       <DaySwitcher
         itinerary={itinerary}
         selectedDay={selectedDay}
-        currentDayTitle={currentDayTitle}
-        currentDayDate={currentDayDate}
+        currentDayDisplayTitle={currentDayDisplayTitle}
+        currentDayLabel={currentDayLabel}
+        tripDetails={tripDetails}
         onSelectDay={setSelectedDay}
       />
 
@@ -968,7 +970,7 @@ const TodayTab = ({ onTabChange }) => {
         canEdit={canEdit}
         nextEvent={nextEvent}
         routeUrl={routeUrl}
-        selectedDay={selectedDay}
+        selectedDayLabel={currentDayLabel}
         onAddEvent={openAddModal}
         onNavigateNext={handleNavigateNext}
         onOpenAiRecommendations={handleOpenDayPlanAi}

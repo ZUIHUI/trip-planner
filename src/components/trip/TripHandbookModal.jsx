@@ -19,6 +19,7 @@ import Modal from '../Modal';
 import { Button, Card, ErrorState, LoadingState } from '../ui';
 import { formatHandbookMoney } from '../../utils/tripHandbook';
 import { normalizeCoverImageUrl } from '../../utils/coverImage';
+import { getTripDayDisplayLabel, getTripDayDisplayTitle } from '../../utils/tripDates';
 
 const SectionHeading = ({ icon: Icon, title, kicker }) => (
   <div className="mb-4 flex min-w-0 items-center gap-3">
@@ -160,14 +161,13 @@ const OverviewPage = ({ handbook }) => (
   </section>
 );
 
-const DayPage = ({ day }) => (
+const DayPage = ({ day, tripDetails }) => (
   <section className="trip-handbook-page">
     <div className="mb-5 flex flex-col gap-2 border-b border-slate-200 pb-4 print:border-slate-300 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <p className="text-sm font-black text-sky-700 print:text-slate-500 dark:text-sky-300">第 {day.day} 天</p>
-        <h3 className="break-words text-2xl font-black text-slate-950 print:text-slate-950 dark:text-white">{day.title}</h3>
+        <p className="text-sm font-black text-sky-700 print:text-slate-500 dark:text-sky-300">{getTripDayDisplayLabel(day, tripDetails)}</p>
+        <h3 className="break-words text-2xl font-black text-slate-950 print:text-slate-950 dark:text-white">{getTripDayDisplayTitle(day)}</h3>
       </div>
-      {day.date && <p className="text-sm font-black text-slate-500 print:text-slate-600 dark:text-slate-300">{day.date}</p>}
     </div>
     {day.intro && (
       <p className="mb-5 break-words rounded-lg bg-sky-50 p-4 text-sm font-semibold leading-7 text-slate-700 print:border print:border-slate-200 print:bg-white print:text-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
@@ -249,6 +249,7 @@ const ListsPage = ({ handbook }) => (
 
 export const TripHandbookDocument = ({
   handbook,
+  tripDetails = {},
   coverImage = '',
   className = ''
 }) => {
@@ -260,7 +261,7 @@ export const TripHandbookDocument = ({
       <HandbookCover handbook={handbook} coverImage={effectiveCoverImage} />
       <OverviewPage handbook={handbook} />
       {handbook.days.map((day) => (
-        <DayPage key={`${day.day}-${day.title}`} day={day} />
+        <DayPage key={`${day.day}-${day.title}`} day={day} tripDetails={tripDetails} />
       ))}
       <LogisticsPage handbook={handbook} />
       <ListsPage handbook={handbook} />
@@ -273,6 +274,7 @@ const TripHandbookModal = ({
   onClose,
   canEdit,
   handbook,
+  tripDetails = {},
   coverImage = '',
   isLoading,
   isLoadingSaved,
@@ -339,6 +341,7 @@ const TripHandbookModal = ({
       {!isLoading && handbook && (
         <TripHandbookDocument
           handbook={handbook}
+          tripDetails={tripDetails}
           coverImage={coverImage}
           className="trip-handbook-screen-document"
         />

@@ -5,6 +5,7 @@ import GooglePlaceInput from '../GooglePlaceInput';
 import { buildGoogleMapsSearchUrl } from '../../services/googleMapsService';
 import { togglePlaceVote } from '../../services/tripService';
 import { mergeRealtimeVotesIntoPlaces } from '../../utils/tripRealtime';
+import { getTripDayLabelByNumber } from '../../utils/tripDates';
 import { Badge, Button, Card, Field, Select } from '../ui';
 import EditingNotice from './EditingNotice';
 
@@ -115,6 +116,7 @@ const createEventFromPlace = (place) => {
 const PlacePoolItem = ({
   place,
   selectedDay,
+  itinerary,
   onSchedule,
   onDelete,
   onVote,
@@ -130,6 +132,10 @@ const PlacePoolItem = ({
   const address = readPlaceAddress(place);
   const mapsUrl = buildGoogleMapsSearchUrl(place);
   const isPlannedForCurrentDay = Number(place.plannedDay) === Number(selectedDay);
+  const selectedDayLabel = getTripDayLabelByNumber(itinerary, selectedDay);
+  const plannedDayLabel = place.plannedDay
+    ? getTripDayLabelByNumber(itinerary, place.plannedDay)
+    : '';
   const votes = Array.isArray(place.votes) ? place.votes : [];
   const voteStats = getVoteStats(votes);
   const voteScore = voteStats.score;
@@ -153,7 +159,7 @@ const PlacePoolItem = ({
             {place.plannedDay && (
               <Badge variant="success">
                 <CheckCircle2 size={12} />
-                Day {place.plannedDay}
+                {plannedDayLabel}
               </Badge>
             )}
             {voteStats.total > 0 && (
@@ -239,7 +245,7 @@ const PlacePoolItem = ({
             className="tp-press-feedback w-full justify-center"
           >
             <CalendarPlus size={14} />
-            {isPlannedForCurrentDay ? `已排入 Day ${selectedDay}` : `排入 Day ${selectedDay}`}
+            {isPlannedForCurrentDay ? `已排入 ${selectedDayLabel}` : `排入 ${selectedDayLabel}`}
           </Button>
         )}
         {mapsUrl && (
@@ -308,6 +314,7 @@ const PlacePoolCard = ({
       : (dayOptions[0] || 1);
     setTargetDay(nextDay);
   }, [dayOptions, normalizedSelectedDay]);
+  const targetDayLabel = getTripDayLabelByNumber(itinerary, targetDay);
 
   const visiblePlaces = useMemo(() => safePlacePool
     .slice()
@@ -407,7 +414,7 @@ const PlacePoolCard = ({
         <div className="mb-3 flex min-w-0 flex-col gap-2 rounded-lg border border-sky-100 bg-sky-50/70 p-3 dark:border-sky-900/60 dark:bg-sky-950/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-2 text-sm font-black text-sky-800 dark:text-sky-200">
             <CalendarPlus size={16} className="shrink-0" />
-            <span className="min-w-0 truncate">目前排入：Day {targetDay}</span>
+            <span className="min-w-0 truncate">目前排入：{targetDayLabel}</span>
           </div>
           <div className="min-w-0 sm:w-36">
             <label className="sr-only" htmlFor="place-pool-target-day">選擇排入日期</label>
@@ -417,7 +424,7 @@ const PlacePoolCard = ({
               onChange={(event) => setTargetDay(Number(event.target.value))}
             >
               {dayOptions.map((dayNumber) => (
-                <option key={dayNumber} value={dayNumber}>Day {dayNumber}</option>
+                <option key={dayNumber} value={dayNumber}>{getTripDayLabelByNumber(itinerary, dayNumber)}</option>
               ))}
             </Select>
           </div>
@@ -473,6 +480,7 @@ const PlacePoolCard = ({
               key={place.id}
               place={place}
               selectedDay={targetDay}
+              itinerary={itinerary}
               onSchedule={handleSchedulePlace}
               onDelete={handleDeletePlace}
               onVote={handleVotePlace}

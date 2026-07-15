@@ -120,14 +120,14 @@ export const normalizeAiRecommendationResponse = (payload = {}) => {
 export const makeAiPlaceId = () => `ai-place-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 export const makeAiEventId = () => `ai-event-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const buildNoteText = (recommendation) => [
+const buildNoteText = (recommendation, dayLabel = '') => [
   recommendation.reason ? `可以這樣排：${recommendation.reason}` : '',
   recommendation.caution ? `提醒：${recommendation.caution}` : '',
-  recommendation.suggestedDay ? `建議 Day ${recommendation.suggestedDay}` : '',
+  dayLabel ? `建議日期：${dayLabel}` : '',
   recommendation.tags?.length ? `標籤：${recommendation.tags.join('、')}` : ''
 ].filter(Boolean).join('\n');
 
-export const createPlaceFromAiRecommendation = (recommendation = {}) => {
+export const createPlaceFromAiRecommendation = (recommendation = {}, dayLabel = '') => {
   const normalized = normalizeAiRecommendation(recommendation) || {};
   const googlePlace = normalized.googlePlace || {};
   const name = cleanAiText(googlePlace.name || normalized.placeDraft?.name || normalized.title || normalized.locationText, 120);
@@ -140,7 +140,7 @@ export const createPlaceFromAiRecommendation = (recommendation = {}) => {
     placeId: cleanAiText(googlePlace.placeId, 180),
     lat: normalizeCoordinate(googlePlace.lat, 90),
     lng: normalizeCoordinate(googlePlace.lng, 180),
-    note: buildNoteText(normalized),
+    note: buildNoteText(normalized, dayLabel),
     status: 'idea',
     plannedDay: null,
     addedAt: new Date().toISOString(),

@@ -74,7 +74,13 @@ import {
   updateTripMetaFields
 } from '../services/tripService';
 import { createEmptyItinerary } from '../domain/tripSchema';
-import { getTripDisplayDates } from '../utils/tripDates';
+import {
+  getTripDayDisplayLabel,
+  getTripDayDisplayTitle,
+  getTripDayLabelByNumber,
+  getTripDisplayDates,
+  isGenericTripDayTitle
+} from '../utils/tripDates';
 import { getTripDetailsPatchSections } from '../utils/tripDetailsPatch';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
@@ -920,8 +926,14 @@ const TripDetailPage = () => {
   };
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
-  const currentDayTitle = currentDayData?.title?.trim() || `Day ${selectedDay}`;
-  const currentDayDate = currentDayData?.date?.trim() || `Day ${selectedDay}`;
+  const currentDayTitle = isGenericTripDayTitle(currentDayData?.title)
+    ? ''
+    : String(currentDayData?.title || '').trim();
+  const currentDayDate = isGenericTripDayTitle(currentDayData?.date)
+    ? ''
+    : String(currentDayData?.date || '').trim();
+  const currentDayDisplayTitle = getTripDayDisplayTitle(currentDayData);
+  const currentDayLabel = getTripDayDisplayLabel(currentDayData, tripDetails);
   const tripDisplayDates = getTripDisplayDates(tripDetails);
   const budgetTarget = Number(tripDetails?.budget?.total || 0);
   const remainingBudget = budgetTarget - budgetInfo.totalCost;
@@ -1142,7 +1154,7 @@ const TripDetailPage = () => {
 
     const shouldDelete = await confirm({
       title: '刪除行程？',
-      description: `「${targetEvent.title || '未命名行程'}」會從 Day ${selectedDay} 移除。`,
+      description: `「${targetEvent.title || '未命名行程'}」會從 ${currentDayLabel} 移除。`,
       confirmLabel: '刪除行程',
       variant: 'danger'
     });
@@ -1279,7 +1291,7 @@ const TripDetailPage = () => {
 
     toast({
       variant: 'success',
-      title: `已移到 Day ${targetDay.day}`,
+      title: `已移到 ${getTripDayDisplayLabel(targetDay, tripDetails)}`,
       description: targetEvent.title || '未命名行程',
       actionLabel: '復原',
       duration: 7000,
@@ -1344,7 +1356,7 @@ const TripDetailPage = () => {
     }).catch((error) => {
       if (isPermissionDeniedError(error)) {
         handleDocumentPersistenceError(error, {
-          label: 'Day 資訊更新',
+          label: '日期資訊更新',
           deniedLogMessage: 'Trip day document update denied; skipping root trip autosave fallback.'
         });
         return;
@@ -1374,8 +1386,8 @@ const TripDetailPage = () => {
   const saveDayMeta = () => {
     if (!canEdit) return;
     handleUpdateDayMeta(selectedDay, {
-      title: dayMetaDraft.title.trim() || `Day ${selectedDay}`,
-      date: dayMetaDraft.date.trim() || `Day ${selectedDay}`
+      title: dayMetaDraft.title.trim() || '當日行程',
+      date: dayMetaDraft.date.trim() || currentDayDate
     });
     setIsEditingDayMeta(false);
   };
@@ -1452,7 +1464,10 @@ const TripDetailPage = () => {
     const currentPlaces = Array.isArray(placePool) ? placePool : [];
     const orderKey = getItemOrderKeyBetween(null, currentPlaces[0] || null, 0);
     const nextPlace = {
-      ...createPlaceFromAiRecommendation(recommendation),
+      ...createPlaceFromAiRecommendation(
+        recommendation,
+        getTripDayLabelByNumber(itinerary, recommendation?.suggestedDay, tripDetails)
+      ),
       orderKey
     };
     const nextPlaces = [nextPlace, ...currentPlaces];
@@ -1520,7 +1535,7 @@ const TripDetailPage = () => {
     if (nextEvent) {
       toast({
         variant: 'success',
-        title: `已排入 Day ${targetDay}`,
+        title: `已排入 ${getTripDayLabelByNumber(itinerary, targetDay, tripDetails)}`,
         description: nextEvent.title || '推薦行程'
       });
     }
@@ -1627,6 +1642,8 @@ const TripDetailPage = () => {
     currentDayData,
     currentDayTitle,
     currentDayDate,
+    currentDayDisplayTitle,
+    currentDayLabel,
     tripDisplayDates,
     budgetInfo,
     budgetTarget,
@@ -1703,6 +1720,8 @@ const TripDetailPage = () => {
     currentDayData,
     currentDayTitle,
     currentDayDate,
+    currentDayDisplayTitle,
+    currentDayLabel,
     tripDisplayDates,
     budgetInfo,
     budgetTarget,
@@ -2024,6 +2043,7 @@ const TripDetailPage = () => {
         onClose={tripHandbook.closePanel}
         canEdit={canEdit}
         handbook={tripHandbook.response}
+        tripDetails={tripDetails}
         coverImage={tripDetails?.coverImage || ''}
         isLoading={tripHandbook.isLoading}
         isLoadingSaved={tripHandbook.isLoadingSaved}
@@ -2032,7 +2052,8 @@ const TripDetailPage = () => {
         onGenerate={tripHandbook.generate}
         onExportPdf={() => tripHandbook.exportPdf({
           coverImage: tripDetails?.coverImage || '',
-          tripTitle: tripDetails?.title || ''
+          tripTitle: tripDetails?.title || '',
+          tripDetails
         })}
       />
 
@@ -2119,6 +2140,8 @@ const TripDetailPage = () => {
         isLoading={tripAi.isLoading}
         error={tripAi.error}
         canEdit={canEdit}
+        itinerary={itinerary}
+        tripDetails={tripDetails}
         isHidden={isAnyModalOpen}
         isCompanionHidden={tripAi.isCompanionHidden}
         onOpen={tripAi.openPanel}

@@ -9,6 +9,7 @@ import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { plainTextInputProps } from '../../utils/mobileInputProps';
+import { getTripDayDisplayLabel } from '../../utils/tripDates';
 import EditingNotice from './EditingNotice';
 import MobileMockupFrame from './MobileMockupFrame';
 
@@ -44,6 +45,8 @@ const ItineraryTab = () => {
     currentDayData,
     currentDayTitle,
     currentDayDate,
+    currentDayDisplayTitle,
+    currentDayLabel,
     tripDetails,
     currentLocation,
     canEdit,
@@ -129,9 +132,8 @@ const ItineraryTab = () => {
   return (
     <MobileMockupFrame
       icon={CalendarDays}
-      eyebrow={`第 ${selectedDay} 天`}
-      title={currentDayTitle || '行程'}
-      subtitle={currentDayDate}
+      eyebrow={currentDayLabel}
+      title={currentDayDisplayTitle}
       stats={[
         { value: currentDayData?.events?.length || 0, label: '行程' },
         { value: todayCostEventCount, label: '含費用' },
@@ -139,7 +141,7 @@ const ItineraryTab = () => {
       ]}
       tone="teal"
     >
-      <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} />
+      <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} tripDetails={tripDetails} />
       {nextDayItem && (
         <div className="mt-3 px-5 sm:hidden">
           <Button
@@ -147,10 +149,10 @@ const ItineraryTab = () => {
             size="sm"
             onClick={handleSelectNextDay}
             className="w-full justify-center"
-            aria-label={`前往第 ${nextDayItem.day} 天`}
+            aria-label={`前往 ${getTripDayDisplayLabel(nextDayItem, tripDetails)}`}
           >
             下一天
-            <span className="font-black">第 {nextDayItem.day} 天</span>
+            <span className="font-black">{getTripDayDisplayLabel(nextDayItem, tripDetails)}</span>
             <ChevronRight size={16} />
           </Button>
         </div>
@@ -182,7 +184,7 @@ const ItineraryTab = () => {
                       {...plainTextInputProps}
                       value={dayMetaDraft.title}
                       onChange={(event) => setDayMetaDraft({ ...dayMetaDraft, title: event.target.value })}
-                      placeholder={`第 ${selectedDay} 天`}
+                      placeholder="當日行程"
                       enterKeyHint="next"
                     />
                   </div>
@@ -193,7 +195,7 @@ const ItineraryTab = () => {
                       {...plainTextInputProps}
                       value={dayMetaDraft.date}
                       onChange={(event) => setDayMetaDraft({ ...dayMetaDraft, date: event.target.value })}
-                      placeholder={`第 ${selectedDay} 天`}
+                      placeholder={currentDayLabel}
                       enterKeyHint="done"
                     />
                   </div>
@@ -204,12 +206,8 @@ const ItineraryTab = () => {
                 </div>
               ) : (
                 <>
-                  <p className="text-xs font-bold tracking-wide text-brand-700 dark:text-brand-300">第 {selectedDay} 天</p>
-                  <h2 className="mt-1 truncate text-2xl font-black text-slate-950 dark:text-white">{currentDayTitle}</h2>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                    <CalendarDays size={15} />
-                    {currentDayDate}
-                  </p>
+                  <p className="text-xs font-bold tracking-wide text-brand-700 dark:text-brand-300">{currentDayLabel}</p>
+                  <h2 className="mt-1 truncate text-2xl font-black text-slate-950 dark:text-white">{currentDayDisplayTitle}</h2>
                 </>
               )
             ) : (
@@ -273,8 +271,8 @@ const ItineraryTab = () => {
                   canMoveDown={index < currentDayData.events.length - 1}
                   canMoveToPreviousDay={Boolean(previousDayItem)}
                   canMoveToNextDay={Boolean(nextMoveDayItem)}
-                  previousDayLabel={previousDayItem ? `第 ${previousDayItem.day} 天` : ''}
-                  nextDayLabel={nextMoveDayItem ? `第 ${nextMoveDayItem.day} 天` : ''}
+                  previousDayLabel={previousDayItem ? getTripDayDisplayLabel(previousDayItem, tripDetails) : ''}
+                  nextDayLabel={nextMoveDayItem ? getTripDayDisplayLabel(nextMoveDayItem, tripDetails) : ''}
                   canEdit={canEdit}
                   onOpenGoogleMaps={handleOpenGoogleMaps}
                   editingMembers={editingByEventId?.[event.id] || []}

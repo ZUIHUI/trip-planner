@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, Field, Input, Select, Textarea } from './ui';
 import { moneyInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
+import { getTripDayDisplayLabel } from '../utils/tripDates';
 
 const EXPENSE_CATEGORIES = [
   { id: 'food', label: '餐飲', className: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-900/70' },
@@ -277,7 +278,7 @@ const ExpenseFilters = ({
             }`}
             aria-pressed={String(selectedDay) === String(day.day)}
           >
-            Day {day.day}
+            {getTripDayDisplayLabel(day)}
           </button>
         ))}
       </div>
@@ -567,7 +568,7 @@ const ExpenseFormModal = ({
                 {itinerary.length === 0 && <option value="">未設定日期</option>}
                 {itinerary.map((day) => (
                   <option key={day.day} value={day.date}>
-                    Day {day.day} ({day.date})
+                    {getTripDayDisplayLabel(day)}
                   </option>
                 ))}
               </Select>

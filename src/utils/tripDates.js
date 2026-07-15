@@ -1,5 +1,38 @@
 const DATE_SEPARATORS = [' - ', '～', '~', '至', '到'];
 
+const WEEKDAY_NAMES = ['Sun.', 'Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.'];
+const WEEKDAY_ALIASES = {
+  sun: 'Sun.',
+  sunday: 'Sun.',
+  mon: 'Mon.',
+  monday: 'Mon.',
+  tue: 'Tue.',
+  tues: 'Tue.',
+  tuesday: 'Tue.',
+  wed: 'Wed.',
+  wednesday: 'Wed.',
+  thu: 'Thu.',
+  thur: 'Thu.',
+  thurs: 'Thu.',
+  thursday: 'Thu.',
+  fri: 'Fri.',
+  friday: 'Fri.',
+  sat: 'Sat.',
+  saturday: 'Sat.'
+};
+const CHINESE_WEEKDAY_ALIASES = {
+  日: 'Sun.',
+  天: 'Sun.',
+  一: 'Mon.',
+  二: 'Tue.',
+  三: 'Wed.',
+  四: 'Thu.',
+  五: 'Fri.',
+  六: 'Sat.'
+};
+const GENERIC_DAY_TITLE_PATTERN = /^(?:day\s*\d+|第\s*\d+\s*天)$/i;
+const WEEKDAY_IN_TEXT_PATTERN = /(?:週|周|星期)[日一二三四五六天]|\b(?:sun(?:day)?|mon(?:day)?|tue(?:sday|s)?|wed(?:nesday)?|thu(?:rsday|rs|r)?|fri(?:day)?|sat(?:urday)?)\b/i;
+
 const pad = (value) => String(value).padStart(2, '0');
 
 export const toDateInputValue = (dateText) => {
@@ -26,6 +59,94 @@ export const formatDateText = (dateInput) => {
   if (!normalized) return '';
   return normalized.replace(/-/g, '/');
 };
+
+const formatMonthDayText = (dateInput) => {
+  const text = String(dateInput || '').trim();
+  if (!text || GENERIC_DAY_TITLE_PATTERN.test(text)) return '';
+
+  const normalized = toDateInputValue(text);
+  if (normalized) {
+    const [, month, day] = normalized.split('-');
+    return `${Number(month)}/${Number(day)}`;
+  }
+
+  const monthDayMatch = text.match(/^(\d{1,2})[/.](\d{1,2})$/);
+  if (monthDayMatch) {
+    return `${Number(monthDayMatch[1])}/${Number(monthDayMatch[2])}`;
+  }
+
+  return text;
+};
+
+const getDerivedTripDayIsoDate = (day = {}, tripDetails = {}) => {
+  const explicitDate = toDateInputValue(day?.isoDate || day?.date || '');
+  if (explicitDate) return explicitDate;
+
+  const startDate = toDateInputValue(tripDetails?.dateRange?.start || '');
+  const dayNumber = Number(day?.day ?? day?.dayNumber);
+  if (!startDate || !Number.isInteger(dayNumber) || dayNumber < 1) return '';
+
+  const [year, month, date] = startDate.split('-').map(Number);
+  const derivedDate = new Date(year, month - 1, date);
+  derivedDate.setDate(derivedDate.getDate() + dayNumber - 1);
+
+  return `${derivedDate.getFullYear()}-${pad(derivedDate.getMonth() + 1)}-${pad(derivedDate.getDate())}`;
+};
+
+export const normalizeTripWeekday = (weekday) => {
+  const text = String(weekday || '').trim();
+  if (!text) return '';
+
+  const chineseMatch = text.match(/^(?:週|周|星期)([日一二三四五六天])$/);
+  if (chineseMatch) return CHINESE_WEEKDAY_ALIASES[chineseMatch[1]] || '';
+
+  const normalized = text.toLowerCase().replace(/\./g, '');
+  return WEEKDAY_ALIASES[normalized] || '';
+};
+
+export const isGenericTripDayTitle = (title) => (
+  GENERIC_DAY_TITLE_PATTERN.test(String(title || '').trim())
+);
+
+export const getTripDayDisplayTitle = (day = {}, fallback = '當日行程') => {
+  const title = String(day?.title || '').trim();
+  return title && !isGenericTripDayTitle(title) ? title : fallback;
+};
+
+export const getTripDayDisplayLabel = (
+  day = {},
+  tripDetails = {},
+  fallback = '日期未設定'
+) => {
+  const derivedIsoDate = getDerivedTripDayIsoDate(day, tripDetails);
+  const dateText = formatMonthDayText(day?.date || day?.isoDate)
+    || formatMonthDayText(derivedIsoDate);
+  const weekdayText = normalizeTripWeekday(day?.weekday) || (() => {
+    if (!derivedIsoDate) return '';
+    const [year, month, date] = derivedIsoDate.split('-').map(Number);
+    return WEEKDAY_NAMES[new Date(year, month - 1, date).getDay()];
+  })();
+
+  if (dateText && WEEKDAY_IN_TEXT_PATTERN.test(dateText)) return dateText;
+  return [dateText, weekdayText].filter(Boolean).join(' ') || fallback;
+};
+
+export const getTripDayByNumber = (itinerary = [], dayNumber) => (
+  (Array.isArray(itinerary) ? itinerary : []).find(
+    (day) => String(day?.day ?? day?.dayNumber) === String(dayNumber)
+  ) || null
+);
+
+export const getTripDayLabelByNumber = (
+  itinerary = [],
+  dayNumber,
+  tripDetails = {},
+  fallback = '日期未設定'
+) => getTripDayDisplayLabel(
+  getTripDayByNumber(itinerary, dayNumber) || { day: dayNumber },
+  tripDetails,
+  fallback
+);
 
 export const formatDateRangeText = (startDate, endDate) => {
   const start = formatDateText(startDate);
