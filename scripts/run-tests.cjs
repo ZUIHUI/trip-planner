@@ -2464,14 +2464,17 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/uiux-v4.css'), 'utf8');
   const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
 
-  assert.match(css, /--v4-primary:\s*#ff385c;/);
-  assert.match(css, /--v4-ink:\s*#222222;/);
-  assert.match(css, /--radius-card:\s*14px;/);
+  assert.match(css, /--v4-primary:\s*#111111;/);
+  assert.match(css, /--v4-ink:\s*#111111;/);
+  assert.match(css, /--v4-surface-card:\s*#f5f5f5;/);
+  assert.match(css, /--v4-accent:\s*#3b82f6;/);
+  assert.match(css, /--radius-card:\s*12px;/);
   assert.match(css, /--v4-shadow:\s*none;/);
-  assert.match(css, /--v4-shadow-float:[^;]+0 4px 8px;/);
-  assert.match(css, /\.tp-button-primary,[\s\S]+?min-height:\s*48px;/);
-  assert.match(css, /\.tp-input,[\s\S]+?min-height:\s*56px;/);
+  assert.match(css, /--v4-shadow-float:[^;]+0 4px 12px/);
+  assert.match(css, /\.tp-button-primary,[\s\S]+?min-height:\s*40px;/);
+  assert.match(css, /\.tp-input,[\s\S]+?min-height:\s*40px;/);
   assert.match(css, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
+  assert.doesNotMatch(css, /#ff385c|#e00b41|#ffd1da/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap/);
 });
 
