@@ -2470,6 +2470,7 @@ test('detects realtime-only status changes without treating structure edits as s
 test('keeps the DESIGN.md visual system centralized and accessible', () => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/uiux-v4.css'), 'utf8');
   const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
+  const moreTabSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
   const agentInstructions = fs.readFileSync(path.join(__dirname, '..', 'AGENTS.md'), 'utf8');
 
   assert.match(css, /--v4-primary:\s*#0a0a0a;/);
@@ -2488,6 +2489,8 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
   assert.match(css, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?rgba\(10,\s*10,\s*10,\s*0\.7\)/);
   assert.match(css, /\.tp-mobile-detail-shell\.has-cover \.tp-mobile-detail-copy h1[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(css, /\.tp-mobile-feature-accent \.tp-mobile-feature-icon[\s\S]+?background:\s*var\(--v4-accent\)\s*!important;/);
+  assert.match(moreTabSource, /icon=\{Settings\}[\s\S]+?tone="accent"/);
   assert.match(agentInstructions, /read the root `DESIGN\.md` completely/i);
   assert.doesNotMatch(css, /#ff385c|#e00b41|#ffd1da/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap/);

@@ -2130,4 +2130,8 @@ textarea.tp-input:focus {
     color: #ffffff !important;
     text-shadow: 0 2px 8px rgba(10, 10, 10, 0.88) !important;
   }
+
+  .tp-mobile-feature-accent .tp-mobile-feature-icon {
+    background: var(--v4-accent) !important;
+  }
 }

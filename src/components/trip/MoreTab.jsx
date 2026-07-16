@@ -165,7 +165,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
         { value: members?.length || 0, label: '成員' },
         { value: onlineCount, label: '在線' }
       ]}
-      tone="coral"
+      tone="accent"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
     >
       <section className="tp-v4-module-summary" aria-label="旅程管理摘要">
