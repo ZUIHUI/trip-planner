@@ -2485,6 +2485,8 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
   assert.match(css, /\.tp-v4-rail-section button,[\s\S]+?font-size:\s*14px;/);
   assert.match(css, /\.tp-app-header-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(css, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(css, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?rgba\(10,\s*10,\s*10,\s*0\.7\)/);
   assert.match(agentInstructions, /read the root `DESIGN\.md` completely/i);
   assert.doesNotMatch(css, /#ff385c|#e00b41|#ffd1da/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap/);
