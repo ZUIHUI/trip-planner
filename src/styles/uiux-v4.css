@@ -2124,3 +2124,10 @@ textarea.tp-input:focus {
     background: rgba(10, 10, 10, 0.64) !important;
   }
 }
+
+@media (max-width: 767px) {
+  .tp-mobile-detail-shell.has-cover .tp-mobile-detail-copy h1 {
+    color: #ffffff !important;
+    text-shadow: 0 2px 8px rgba(10, 10, 10, 0.88) !important;
+  }
+}
