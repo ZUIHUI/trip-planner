@@ -872,12 +872,13 @@ textarea.tp-input:focus {
   .tp-mobile-detail-hero,
   .tp-mobile-detail-shell,
   .tp-mobile-detail-photo {
-    min-height: 16rem !important;
+    min-height: 15rem !important;
   }
 
   .tp-mobile-detail-copy {
     bottom: auto !important;
-    top: calc(5.25rem + env(safe-area-inset-top)) !important;
+    top: calc(50% + 0.75rem) !important;
+    transform: translateY(-50%) !important;
   }
 
   .tp-page-shell.tp-workspace-shell .tp-mobile-detail-tabs {
