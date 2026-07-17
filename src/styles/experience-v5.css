@@ -875,26 +875,37 @@ textarea.tp-input:focus {
     min-height: 20rem !important;
   }
 
+  .tp-mobile-detail-copy {
+    bottom: auto !important;
+    top: calc(5.25rem + env(safe-area-inset-top)) !important;
+  }
+
   .tp-page-shell.tp-workspace-shell .tp-mobile-detail-tabs {
     background: var(--story-surface) !important;
     border-color: var(--story-border) !important;
     border-radius: 12px !important;
-    display: grid !important;
-    gap: 2px !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    overflow-x: hidden !important;
+    display: flex !important;
+    gap: 4px !important;
+    grid-template-columns: none !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
     padding: 4px !important;
+    scroll-padding-inline: 4px !important;
+    scroll-snap-type: x proximity !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .tp-mobile-detail-tabs button {
     border-radius: 8px !important;
-    flex: initial !important;
-    font-size: clamp(10px, 2.8vw, 11px) !important;
-    gap: 2px !important;
+    flex: 1 0 auto !important;
+    font-size: 11px !important;
+    gap: 4px !important;
     min-height: 44px;
-    min-width: 0 !important;
-    padding: 0 2px !important;
-    width: 100%;
+    min-width: max-content !important;
+    padding: 0 10px !important;
+    scroll-snap-align: start !important;
+    width: auto !important;
   }
 
   .tp-mobile-detail-tabs button.is-active {
