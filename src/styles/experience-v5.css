@@ -872,20 +872,29 @@ textarea.tp-input:focus {
   .tp-mobile-detail-hero,
   .tp-mobile-detail-shell,
   .tp-mobile-detail-photo {
-    min-height: 18rem !important;
+    min-height: 20rem !important;
   }
 
-  .tp-mobile-detail-tabs {
+  .tp-page-shell.tp-workspace-shell .tp-mobile-detail-tabs {
     background: var(--story-surface) !important;
     border-color: var(--story-border) !important;
     border-radius: 12px !important;
+    display: grid !important;
+    gap: 2px !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    overflow-x: hidden !important;
     padding: 4px !important;
   }
 
   .tp-mobile-detail-tabs button {
     border-radius: 8px !important;
-    font-size: 11px !important;
+    flex: initial !important;
+    font-size: clamp(10px, 2.8vw, 11px) !important;
+    gap: 2px !important;
     min-height: 44px;
+    min-width: 0 !important;
+    padding: 0 2px !important;
+    width: 100%;
   }
 
   .tp-mobile-detail-tabs button.is-active {

@@ -2570,6 +2570,17 @@ test('formats itinerary days as date plus abbreviated weekday without generic Da
   assert.doesNotMatch(topNavigationActiveRule, /linear-gradient/);
 });
 
+test('keeps the mobile trip hero spacious and its section navigation on one row', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
+  const heroHeightRule = css.match(/\.tp-mobile-detail-hero,\s*\.tp-mobile-detail-shell,\s*\.tp-mobile-detail-photo\s*\{[\s\S]*?\}/)?.[0] || '';
+  const navigationRule = css.match(/\.tp-page-shell\.tp-workspace-shell \.tp-mobile-detail-tabs\s*\{[\s\S]*?\}/)?.[0] || '';
+
+  assert.match(heroHeightRule, /min-height:\s*20rem\s*!important/);
+  assert.match(navigationRule, /display:\s*grid\s*!important/);
+  assert.match(navigationRule, /grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)\s*!important/);
+  assert.match(navigationRule, /overflow-x:\s*hidden\s*!important/);
+});
+
 let failed = 0;
 tests.forEach(({ name, fn }) => {
   try {
