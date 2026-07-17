@@ -2577,7 +2577,7 @@ test('vertically centers the compact mobile trip hero details and keeps the sect
   const navigationRule = css.match(/\.tp-page-shell\.tp-workspace-shell \.tp-mobile-detail-tabs\s*\{[\s\S]*?\}/)?.[0] || '';
   const navigationButtonRule = css.match(/\.tp-mobile-detail-tabs button\s*\{[\s\S]*?\}/)?.[0] || '';
 
-  assert.match(heroHeightRule, /min-height:\s*15rem\s*!important/);
+  assert.match(heroHeightRule, /min-height:\s*16rem\s*!important/);
   assert.match(heroCopyRule, /bottom:\s*auto\s*!important/);
   assert.match(heroCopyRule, /top:\s*calc\(50%\s*\+\s*0\.75rem\)\s*!important/);
   assert.match(heroCopyRule, /transform:\s*translateY\(-50%\)\s*!important/);
