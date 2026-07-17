@@ -2581,6 +2581,17 @@ test('keeps the mobile trip hero spacious and its section navigation on one row'
   assert.match(navigationRule, /overflow-x:\s*hidden\s*!important/);
 });
 
+test('uses the same sea-glass icon tone across the primary mobile trip sections', () => {
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const ideasSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/IdeasTab.jsx'), 'utf8');
+  const moreSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
+
+  [todaySource, itinerarySource, ideasSource, moreSource].forEach((source) => {
+    assert.match(source, /<MobileMockupFrame[\s\S]*?tone="accent"/);
+  });
+});
+
 let failed = 0;
 tests.forEach(({ name, fn }) => {
   try {

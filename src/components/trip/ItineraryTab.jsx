@@ -139,7 +139,7 @@ const ItineraryTab = () => {
         { value: todayCostEventCount, label: '含費用' },
         { value: itinerary.length || 0, label: '天數' }
       ]}
-      tone="teal"
+      tone="accent"
     >
       <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} tripDetails={tripDetails} />
       {nextDayItem && (

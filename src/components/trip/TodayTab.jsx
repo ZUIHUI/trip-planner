@@ -941,7 +941,7 @@ const TodayTab = ({ onTabChange }) => {
         { value: routeStops.length, label: '停靠點' },
         { value: reminders.length, label: '提醒' }
       ]}
-      tone="teal"
+      tone="accent"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
     >
       <DaySwitcher
