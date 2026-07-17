@@ -1,41 +1,41 @@
 ---
 version: alpha
 name: Trip-Planner-design-system
-description: Trip Planner pairs cinematic travel photography with dense, dependable planning surfaces. Its Neutral Harmony Bliss palette uses deep indigo for structure, sage for calm confirmation states, ivory for readable work areas, and restrained terracotta or sand accents for warmth. Inter remains the primary UI face, dark-pill actions anchor the hierarchy, and white-on-dark inversions keep photo-backed entry surfaces legible.
+description: Trip Planner pairs cinematic travel photography with dense, dependable planning surfaces. Its Ocean Pearl Delight palette uses deep ocean teal for structure, sea-glass for calm confirmation states, pearl white for readable work areas, and restrained shell or clay accents for warmth. Inter remains the primary UI face, deep-teal pill actions anchor the hierarchy, and white-on-dark inversions keep photo-backed entry surfaces legible.
 
 colors:
-  primary: "#3d405b"
+  primary: "#006d77"
   on-primary: "#ffffff"
-  brand-green: "#81b29a"
-  brand-green-deep: "#446c5d"
-  brand-green-soft: "#e0ebe4"
-  brand-tag: "#3d405b"
-  brand-warn: "#9d6b2c"
-  brand-annotate: "#446c5d"
-  brand-error: "#a04b3a"
-  brand-cursor: "#85879a"
-  hero-sky-from: "#81b29a"
-  hero-sky-to: "#f4f1de"
-  hero-dark-from: "#3d405b"
-  hero-dark-to: "#59627a"
-  testimonial-orange: "#e07a5f"
-  testimonial-orange-deep: "#a04b3a"
-  canvas: "#fbfaf3"
-  canvas-dark: "#20212e"
-  surface: "#f4f1de"
-  surface-soft: "#f8f6ea"
-  surface-code: "#20212e"
-  hairline: "#d9d5c3"
-  hairline-soft: "#e7e2d2"
-  hairline-dark: "#51556d"
-  ink: "#303247"
-  charcoal: "#3d405b"
-  slate: "#51546e"
-  steel: "#6b6e82"
-  stone: "#85879a"
-  muted: "#a0a1af"
+  brand-green: "#83c5be"
+  brand-green-deep: "#356e6b"
+  brand-green-soft: "#d7ecea"
+  brand-tag: "#006d77"
+  brand-warn: "#945f30"
+  brand-annotate: "#356e6b"
+  brand-error: "#9f4f39"
+  brand-cursor: "#71898c"
+  hero-sky-from: "#83c5be"
+  hero-sky-to: "#edf6f9"
+  hero-dark-from: "#006d77"
+  hero-dark-to: "#3d7774"
+  testimonial-orange: "#e29578"
+  testimonial-orange-deep: "#9f4f39"
+  canvas: "#fafcfc"
+  canvas-dark: "#102f33"
+  surface: "#edf6f9"
+  surface-soft: "#f5fafb"
+  surface-code: "#102f33"
+  hairline: "#cadde1"
+  hairline-soft: "#dde9ec"
+  hairline-dark: "#35636a"
+  ink: "#173f43"
+  charcoal: "#006d77"
+  slate: "#3e6165"
+  steel: "#577579"
+  stone: "#71898c"
+  muted: "#8aa0a3"
   on-dark: "#ffffff"
-  on-dark-muted: "#d9d5c3"
+  on-dark-muted: "#d5e8ea"
 
 typography:
   hero-display:
@@ -182,7 +182,7 @@ components:
     textColor: "{colors.muted}"
   button-accent-green:
     backgroundColor: "{colors.brand-green}"
-    textColor: "{colors.primary}"
+    textColor: "{colors.ink}"
     typography: "{typography.button-md}"
     rounded: "{rounded.full}"
     padding: "10px 20px"
@@ -245,10 +245,10 @@ components:
     rounded: "{rounded.lg}"
     padding: "{spacing.xxl}"
     border: "2px solid {colors.brand-green}"
-    shadow: "rgba(129, 178, 154, 0.12) 0px 8px 24px"
+    shadow: "rgba(131, 197, 190, 0.16) 0px 8px 24px"
   testimonial-card-feature:
     backgroundColor: "{colors.testimonial-orange}"
-    textColor: "{colors.on-dark}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.lg}"
     padding: "{spacing.section}"
   testimonial-card-quote:
@@ -307,7 +307,7 @@ components:
     padding: "4px"
   badge-discount:
     backgroundColor: "{colors.brand-green}"
-    textColor: "{colors.primary}"
+    textColor: "{colors.ink}"
     typography: "{typography.caption-bold}"
     rounded: "{rounded.full}"
     padding: "2px 8px"
@@ -403,7 +403,7 @@ components:
     border: "1px solid {colors.hairline-dark}"
   hero-band-sky:
     backgroundColor: "{colors.hero-sky-from}"
-    textColor: "{colors.on-dark}"
+    textColor: "{colors.ink}"
     rounded: "0"
     padding: "{spacing.hero}"
   hero-band-dark:
@@ -445,42 +445,42 @@ components:
     border: "1px solid {colors.hairline}"
   founder-quote-card:
     backgroundColor: "{colors.testimonial-orange}"
-    textColor: "{colors.on-dark}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.lg}"
     padding: "{spacing.xxl}"
 ---
 
 ## Overview
 
-Trip Planner uses a polished, story-led entry experience before collapsing into dense, high-information planning tools. Login, trip covers, trip overview, and sharing may use cinematic photo-backed heroes; itinerary editing, lists, forms, and dashboards stay calm and highly readable. Neutral Harmony Bliss supplies the color system: deep indigo anchors navigation and primary actions, ivory supports long planning sessions, sage carries calm confirmation states, and terracotta or sand appear only as restrained warmth.
+Trip Planner uses a polished, story-led entry experience before collapsing into dense, high-information planning tools. Login, trip covers, trip overview, and sharing may use cinematic photo-backed heroes; itinerary editing, lists, forms, and dashboards stay calm and highly readable. Ocean Pearl Delight supplies the color system: deep ocean teal anchors navigation and primary actions, pearl white supports long planning sessions, sea-glass carries calm confirmation states, and shell or clay appear only as restrained warmth.
 
-Sage ({colors.brand-green}) appears sparingly but decisively on confirmations, selected secondary states, and supportive highlights. Deep indigo ({colors.primary}) dominates primary actions and active navigation; white-on-dark inversions appear on dark photo scrims. Terracotta ({colors.testimonial-orange}) is reserved for destructive or attention-worthy accents and never becomes a competing large surface.
+Sea-glass ({colors.brand-green}) appears sparingly but decisively on confirmations, selected secondary states, and supportive highlights. Deep ocean teal ({colors.primary}) dominates primary actions and active navigation; white-on-dark inversions appear on dark photo scrims. Clay ({colors.testimonial-orange}) is reserved for attention-worthy accents and never becomes a competing large surface.
 
 **Key Characteristics:**
-- Atmospheric photo-backed hero bands with indigo-to-sage fallbacks provide cinematic travel presentation
-- Sage ({colors.brand-green}) is reserved for supportive highlights and confirmations
-- Deep-indigo pill buttons ({colors.primary} + `{rounded.full}`) anchor primary actions
+- Atmospheric photo-backed hero bands with ocean-teal-to-sea-glass fallbacks provide cinematic travel presentation
+- Sea-glass ({colors.brand-green}) is reserved for supportive highlights and confirmations
+- Deep-teal pill buttons ({colors.primary} + `{rounded.full}`) anchor primary actions
 - Inter for all UI prose; Geist Mono for code blocks, inline code, and type/property signatures
 - 3-column documentation layout (sidebar / prose / TOC) with dense 14px body type for long-form developer reading
 - Tightly-controlled radius scale: marketing uses `{rounded.lg}` (12px), pill buttons use `{rounded.full}` — no in-between corner softening
-- Restrained terracotta (`{colors.testimonial-orange}`) breaks color rhythm only for attention-worthy moments
+- Restrained clay (`{colors.testimonial-orange}`) breaks color rhythm only for attention-worthy moments
 
 ## Colors
 
-> Structural reference: Mintlify-style story entry plus dense workspace. Palette source: Coolors “Neutral Harmony Bliss” (`#F4F1DE`, `#E07A5F`, `#3D405B`, `#81B29A`, `#F2CC8F`).
+> Structural reference: Mintlify-style story entry plus dense workspace. Palette source: Coolors “Ocean Pearl Delight” (`#006D77`, `#83C5BE`, `#EDF6F9`, `#FFDDD2`, `#E29578`).
 
 ### Brand & Accent
-- **Sage** ({colors.brand-green}): Calm supportive accent for confirmations, selected secondary states, and small feature highlights.
-- **Deep Sage** ({colors.brand-green-deep}): Accessible text, icon, pressed, and focus variant of sage.
-- **Soft Sage** ({colors.brand-green-soft}): Background tint for success states and confirmation surfaces.
-- **Indigo Tag** ({colors.brand-tag}): Reference, label, and informational tag color.
-- **Sage Annotation** ({colors.brand-annotate}): Inline positive annotation color.
-- **Sand Warn** ({colors.brand-warn}): Caution and warning emphasis.
-- **Terracotta Error** ({colors.brand-error}): Required-field, destructive, and validation messaging.
-- **Terracotta Accent** ({colors.testimonial-orange}): Restrained warm accent for highlights; do not use as a large default surface.
+- **Sea Glass** ({colors.brand-green}): Calm supportive accent for confirmations, selected secondary states, and small feature highlights.
+- **Deep Sea Glass** ({colors.brand-green-deep}): Accessible text, icon, pressed, and focus variant of sea-glass.
+- **Soft Sea Glass** ({colors.brand-green-soft}): Background tint for success states and confirmation surfaces.
+- **Ocean Tag** ({colors.brand-tag}): Reference, label, and informational tag color.
+- **Sea-glass Annotation** ({colors.brand-annotate}): Inline positive annotation color.
+- **Shell Warn** ({colors.brand-warn}): Caution and warning emphasis.
+- **Deep Clay Error** ({colors.brand-error}): Required-field, destructive, and validation messaging.
+- **Clay Accent** ({colors.testimonial-orange}): Restrained warm accent for highlights; do not use as a large default surface.
 
 ### Surface
-- **Canvas Ivory** ({colors.canvas}): Primary page and card background.
+- **Canvas Pearl** ({colors.canvas}): Primary page and card background.
 - **Canvas Dark** ({colors.canvas-dark}): Promo banner, dark inversion surfaces, code editor wrapper.
 - **Surface** ({colors.surface}): Subtle section backgrounds, search-pill rest, code-inline background, sidebar active state.
 - **Surface Soft** ({colors.surface-soft}): Quieter section backgrounds and FAQ accordion.
@@ -489,8 +489,8 @@ Sage ({colors.brand-green}) appears sparingly but decisively on confirmations, s
 - **Hairline Soft** ({colors.hairline-soft}): Quieter table-row dividers and secondary section breaks.
 
 ### Hero Atmospheric
-- **Hero Sage From / Ivory To** ({colors.hero-sky-from}, {colors.hero-sky-to}): Calm fallback gradient when a travel photo is unavailable.
-- **Hero Indigo From / Slate To** ({colors.hero-dark-from}, {colors.hero-dark-to}): Dark fallback gradient behind white hero text.
+- **Hero Sea Glass From / Pearl To** ({colors.hero-sky-from}, {colors.hero-sky-to}): Calm fallback gradient when a travel photo is unavailable.
+- **Hero Ocean From / Deep Sea Glass To** ({colors.hero-dark-from}, {colors.hero-dark-to}): Dark fallback gradient behind white hero text.
 
 ### Text
 - **Ink** ({colors.ink}): Primary headlines and CTA text.
@@ -574,7 +574,7 @@ The system runs predominantly flat with strategic atmospheric depth.
 | 1 (subtle) | `rgba(0, 0, 0, 0.04) 0px 1px 2px 0px` | Hover-elevated tiles, subtle highlights |
 | 2 (card) | `rgba(0, 0, 0, 0.08) 0px 4px 12px 0px` | Standard feature cards |
 | 3 (mockup) | `rgba(0, 0, 0, 0.12) 0px 24px 48px -8px` | Hero product mockup framing — the deep diffuse drop on the homepage hero docs preview |
-| 4 (brand-tinted) | `rgba(129, 178, 154, 0.12) 0px 8px 24px` | Selected planning module glow |
+| 4 (brand-tinted) | `rgba(131, 197, 190, 0.16) 0px 8px 24px` | Selected planning module glow |
 
 ### Decorative Depth
 - The homepage hero uses an atmospheric photographic backdrop (cloud illustration on sky-gradient) for depth — no shadow needed; the imagery does the work
@@ -609,13 +609,13 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 
 ### Buttons
 
-**`button-primary`** — Black pill primary CTA, the dominant action across all surfaces.
+**`button-primary`** — Deep-teal pill primary CTA, the dominant action across all surfaces.
 - Background `{colors.primary}`, text `{colors.on-primary}`, typography `{typography.button-md}`, padding `10px 20px`, rounded `{rounded.full}`.
 - Pressed state `button-primary-pressed` lifts to `{colors.charcoal}`.
 - Disabled state `button-primary-disabled` uses `{colors.hairline}` background and `{colors.muted}` text.
 
-**`button-accent-green`** — Mint green pill for brand-emphasis CTAs (hero "Get started", featured pricing CTA).
-- Background `{colors.brand-green}`, text `{colors.primary}`, typography `{typography.button-md}`, padding `10px 20px`, rounded `{rounded.full}`.
+**`button-accent-green`** — Sea-glass pill for brand-emphasis CTAs (hero "Get started", featured pricing CTA).
+- Background `{colors.brand-green}`, text `{colors.ink}`, typography `{typography.button-md}`, padding `10px 20px`, rounded `{rounded.full}`.
 
 **`button-on-dark`** — White pill for use on dark hero bands (startups page "Get started").
 - Background `{colors.on-dark}`, text `{colors.primary}`, typography `{typography.button-md}`, padding `10px 20px`, rounded `{rounded.full}`.
@@ -648,19 +648,19 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 
 **`pricing-card`** — Standard pricing tier card.
 - Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `1px solid {colors.hairline}`.
-- Title `{typography.heading-3}`, price `{typography.display-lg}`, feature list `{typography.body-sm}` with green checkmark icons.
+- Title `{typography.heading-3}`, price `{typography.display-lg}`, feature list `{typography.body-sm}` with sea-glass checkmark icons.
 
 **`pricing-card-featured`** — Highlighted pricing tier (Lift Off / featured plan).
-- Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `2px solid {colors.brand-green}`, soft brand-tinted shadow `rgba(129, 178, 154, 0.12) 0px 8px 24px`.
+- Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `2px solid {colors.brand-green}`, soft brand-tinted shadow `rgba(131, 197, 190, 0.16) 0px 8px 24px`.
 
-**`testimonial-card-feature`** — Bright orange large testimonial card with photo + quote ("Cursor — Every YC batch we consistently see the top performing startups use Mintlify to build their docs.").
-- Background `{colors.testimonial-orange}`, text `{colors.on-dark}`, rounded `{rounded.lg}`, padding `{spacing.section}`. Photo on right, large quote in `{typography.heading-3}` left, attribution below in `{typography.body-sm-medium}`.
+**`testimonial-card-feature`** — Restrained clay testimonial card with photo + quote ("Cursor — Every YC batch we consistently see the top performing startups use Mintlify to build their docs.").
+- Background `{colors.testimonial-orange}`, text `{colors.ink}`, rounded `{rounded.lg}`, padding `{spacing.section}`. Photo on right, large quote in `{typography.heading-3}` left, attribution below in `{typography.body-sm-medium}`.
 
 **`testimonial-card-quote`** — Smaller white testimonial card on the startups page.
 - Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `1px solid {colors.hairline}`.
 
-**`founder-quote-card`** — Cursor founder testimonial card variant on the orange surface.
-- Background `{colors.testimonial-orange}`, text `{colors.on-dark}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`. Carries the specific founder portrait + quote treatment.
+**`founder-quote-card`** — Cursor founder testimonial card variant on the clay surface.
+- Background `{colors.testimonial-orange}`, text `{colors.ink}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`. Carries the specific founder portrait + quote treatment.
 
 **`startup-program-card`** — Larger application/program card containing perks grid + apply CTA.
 - Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `1px solid {colors.hairline}`.
@@ -671,7 +671,7 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 - Background `{colors.canvas}`, text `{colors.ink}`, border `1px solid {colors.hairline}`, rounded `{rounded.md}`, padding `{spacing.sm} {spacing.md}`, height 40px.
 
 **`text-input-focused`** — Activated state.
-- Border switches to `2px solid {colors.brand-green}` — focus uses the brand mint as the activation signal.
+- Border switches to `2px solid {colors.brand-green}` — focus uses sea-glass as the activation signal.
 
 **`search-pill`** — Documentation top-bar search.
 - Background `{colors.surface}`, text `{colors.steel}`, typography `{typography.body-sm}`, rounded `{rounded.md}`, height 36px, border `1px solid {colors.hairline}`.
@@ -690,8 +690,8 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 
 ### Badges & Status
 
-**`badge-discount`** — Small green "Save 20%" badge attached to annual toggle.
-- Background `{colors.brand-green}`, text `{colors.primary}`, typography `{typography.caption-bold}`, rounded `{rounded.full}`, padding `2px 8px`.
+**`badge-discount`** — Small sea-glass "Save 20%" badge attached to annual toggle.
+- Background `{colors.brand-green}`, text `{colors.ink}`, typography `{typography.caption-bold}`, rounded `{rounded.full}`, padding `2px 8px`.
 
 **`badge-required`** — Red "REQUIRED" label on documentation property rows.
 - Background `{colors.brand-error}`, text `{colors.on-dark}`, typography `{typography.micro-uppercase}`, rounded `{rounded.sm}`, padding `2px 6px`.
@@ -747,18 +747,18 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 **Top Navigation (Marketing)** — Sticky white bar with logo, link list, and right-side CTAs.
 - Background `{colors.canvas}`, height ~64px, bottom border `1px solid {colors.hairline-soft}`.
 - Left: Mintlify wordmark + horizontal link list (Solutions, Pricing, Customers, Documentation, Changelog).
-- Right: secondary "Talk to sales" + black-pill "Get Started".
+- Right: secondary "Talk to sales" + deep-teal-pill "Get Started".
 
 **Top Navigation (Documentation)** — Compressed nav with center search-pill and right-side account/upgrade CTAs.
-- Background `{colors.canvas}`, height ~56px. Search-pill at center, "Documentation / Guides / API Reference / Changelog" links + "Talk to us" + green "Get started" right.
+- Background `{colors.canvas}`, height ~56px. Search-pill at center, "Documentation / Guides / API Reference / Changelog" links + "Talk to us" + sea-glass "Get started" right.
 
 ### Signature Components
 
 **`hero-band-sky`** — Homepage hero with atmospheric sky-blue to cream gradient and cloud illustrations.
-- Background gradient `linear-gradient(180deg, {colors.hero-sky-from} 0%, {colors.hero-sky-to} 100%)`, text `{colors.on-dark}` (early portion of gradient) shifting to `{colors.ink}` further down, padding `{spacing.hero}`.
+- Background gradient `linear-gradient(180deg, {colors.hero-sky-from} 0%, {colors.hero-sky-to} 100%)`, text `{colors.ink}`, padding `{spacing.hero}`.
 - Layout: centered hero headline in `{typography.hero-display}`, centered subtitle in `{typography.subtitle}`, centered button row (`button-accent-green` "Get started" + `button-secondary` "Talk to us"), product mockup below the buttons.
 
-**`hero-band-dark`** — Startups hero with dark teal-to-mint gradient and rocket launch illustration.
+**`hero-band-dark`** — Startups hero with deep-ocean-to-sea-glass gradient and rocket launch illustration.
 - Background gradient `linear-gradient(135deg, {colors.hero-dark-from} 0%, {colors.hero-dark-to} 100%)`, text `{colors.on-dark}`, padding `{spacing.hero}`.
 - Layout: hero headline left in `{typography.hero-display}` `{colors.on-dark}`, illustration right (rocket cutting across the gradient), button row uses `button-on-dark` (white pill) + ghost link.
 
@@ -785,8 +785,8 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 ## Do's and Don'ts
 
 ### Do
-- Reserve `{colors.brand-green}` (sage) for supportive highlights and confirmations; deep indigo remains the primary action color
-- Use `{colors.primary}` (deep indigo) as the dominant CTA on light backgrounds; switch to `button-on-dark` (white pill) on dark hero bands
+- Reserve `{colors.brand-green}` (sea-glass) for supportive highlights and confirmations; deep ocean teal remains the primary action color
+- Use `{colors.primary}` (deep ocean teal) as the dominant CTA on light backgrounds; switch to `button-on-dark` (white pill) on dark hero bands
 - Apply `{rounded.full}` to every button and pill; never soften pill corners
 - Pair Inter (UI prose) with Geist Mono (code) — never introduce a third typeface
 - Use atmospheric photo or fallback-gradient hero bands only on login, trip covers, overview, and sharing; keep planning surfaces flat and dense
@@ -795,10 +795,10 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 
 ### Don't
 - Don't use `{colors.brand-green}` on body text or large surfaces — it loses signal
-- Don't introduce additional accent colors beyond sage, indigo, sand, and restrained terracotta
+- Don't introduce additional accent colors beyond ocean teal, sea-glass, shell, and restrained clay
 - Don't apply heavy shadows on flat planning cards; reserve elevation for story-led hero surfaces
 - Don't reduce planning copy line-height below 1.50 — long-form readability suffers
-- Don't combine atmospheric gradients with multiple competing accents in the same hero — indigo and sage set the mood; let the travel photo breathe
+- Don't combine atmospheric gradients with multiple competing accents in the same hero — ocean teal and sea-glass set the mood; let the travel photo breathe
 - Don't use Inter for code or Geist Mono for prose — the typeface assignment IS the brand voice
 
 ## Responsive Behavior
@@ -848,5 +848,5 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 
 - Specific dark-mode token values for canvas, surface, ink, and hairline are not surfaced on these pages; the brand has not yet shipped a published dark-mode palette
 - Animation/transition timings are not extracted; recommend 150–200ms ease for hover/focus state transitions
-- Form validation success state is not explicitly captured beyond defaults — implement following standard green-border + success badge patterns
+- Form validation success state is not explicitly captured beyond defaults — implement following sea-glass-border + success badge patterns
 - Code syntax highlighting palette inside docs is not formalized; documentation samples carry their own twoslash-style annotation system tokens (e.g. `{colors.brand-tag}`, `{colors.brand-annotate}`, `{colors.brand-warn}`) but the full highlight scheme is not enumerated
