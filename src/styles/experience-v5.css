@@ -5,96 +5,162 @@
  */
 
 :root {
-  --story-ink: #142a3a;
-  --story-charcoal: #083b49;
-  --story-slate: #374443;
-  --story-steel: #5b7484;
-  --story-muted: #60706c;
-  --story-canvas: #f7fcfa;
-  --story-surface: #eff8f4;
-  --story-surface-soft: #fcfaf4;
-  --story-border: #bfdad8;
-  --story-border-soft: #dcefea;
-  --story-mint: #38ab89;
-  --story-mint-deep: #238b6d;
-  --story-mint-soft: #e1f6eb;
-  --story-sky: #caecf2;
-  --story-cream: #fcfaf4;
-  --story-teal: #083b49;
-  --story-teal-soft: #124357;
-  --story-coral: #ef5b48;
-  --story-shadow-card: 0 4px 12px rgba(8, 59, 73, 0.12);
-  --story-shadow-hero: 0 24px 48px -8px rgba(8, 59, 73, 0.28);
+  --story-ink: #303247;
+  --story-charcoal: #3d405b;
+  --story-slate: #51546e;
+  --story-steel: #6b6e82;
+  --story-muted: #85879a;
+  --story-canvas: #fbfaf3;
+  --story-surface: #f4f1de;
+  --story-surface-soft: #f8f6ea;
+  --story-border: #d9d5c3;
+  --story-border-soft: #e7e2d2;
+  --story-mint: #81b29a;
+  --story-mint-deep: #446c5d;
+  --story-mint-soft: #e0ebe4;
+  --story-sky: #f2cc8f;
+  --story-cream: #f4f1de;
+  --story-teal: #3d405b;
+  --story-teal-soft: #59627a;
+  --story-coral: #e07a5f;
+  --story-shadow-card: 0 4px 12px rgba(61, 64, 91, 0.1);
+  --story-shadow-hero: 0 24px 48px -8px rgba(48, 50, 71, 0.24);
 
-  --v4-canvas: #ffffff;
-  --v4-paper: #ffffff;
-  --v4-ink: #0a0a0a;
-  --v4-body: #3a3a3c;
-  --v4-muted: #5a5a5c;
-  --v4-primary: #0a0a0a;
-  --v4-primary-strong: #1c1c1e;
-  --v4-primary-soft: #f7f7f7;
-  --v4-accent: #00d4a4;
-  --v4-accent-strong: #00b48a;
-  --v4-accent-soft: #e8fbf6;
-  --v4-sky: #fafafa;
-  --v4-sand: #f7f7f7;
-  --v4-border: #e5e5e5;
-  --v4-border-strong: #d7d7d7;
-  --v4-surface-soft: #fafafa;
-  --v4-surface-card: #f7f7f7;
+  --v4-canvas: var(--story-canvas);
+  --v4-paper: var(--story-canvas);
+  --v4-ink: var(--story-ink);
+  --v4-body: var(--story-slate);
+  --v4-muted: var(--story-steel);
+  --v4-primary: var(--story-ink);
+  --v4-primary-strong: var(--story-charcoal);
+  --v4-primary-soft: var(--story-surface);
+  --v4-accent: var(--story-mint);
+  --v4-accent-strong: var(--story-mint-deep);
+  --v4-accent-soft: var(--story-mint-soft);
+  --v4-sky: #e0ebe4;
+  --v4-sand: #f2cc8f;
+  --v4-border: var(--story-border);
+  --v4-border-strong: #b9b4a2;
+  --v4-surface-soft: var(--story-surface-soft);
+  --v4-surface-card: var(--story-surface);
   --v4-shadow: none;
   --v4-shadow-float: var(--story-shadow-card);
+
+  --color-brand-50: 244 245 248;
+  --color-brand-100: 229 230 238;
+  --color-brand-200: 202 204 219;
+  --color-brand-300: 165 168 193;
+  --color-brand-400: 123 127 163;
+  --color-brand-500: 88 92 132;
+  --color-brand-600: 72 75 112;
+  --color-brand-700: 61 64 91;
+  --color-brand-800: 48 50 71;
+  --color-brand-900: 39 41 59;
+  --color-brand-950: 30 31 45;
+  --ink-strong: 48 50 71;
+  --ink-body: 81 84 110;
+  --ink-muted: 107 110 130;
+  --accent-petal: 246 218 209;
+  --accent-petal-strong: 160 75 58;
+  --accent-sun: 248 225 188;
+  --accent-sun-strong: 157 107 44;
+  --accent-coral: 246 218 209;
+  --accent-coral-strong: 224 122 95;
+  --accent-lilac: 224 225 234;
+  --accent-lilac-strong: 88 92 132;
+  --accent-sky: 224 235 228;
+  --accent-sky-strong: 81 121 101;
+  --accent-mint: 168 200 184;
+  --accent-mint-strong: 68 108 93;
+  --surface-page: 244 241 222;
+  --surface-card: 251 250 243;
+  --surface-muted: 248 246 234;
+  --surface-strong: 224 235 228;
+  --border-soft: 217 213 195;
+  --atlas-ocean: 61 64 91;
+  --atlas-ocean-deep: 48 50 71;
+  --atlas-water: 224 235 228;
+  --atlas-paper: 244 241 222;
+  --atlas-ink: 48 50 71;
+  --atlas-muted: 107 110 130;
+  --atlas-coral: 224 122 95;
+  --atlas-amber: 181 133 71;
+  --atlas-mint: 129 178 154;
+  --atlas-line: 81 84 110;
 }
 
 .dark {
-  --story-ink: #e5f3f1;
-  --story-charcoal: #f7feff;
-  --story-slate: #c0d3cf;
-  --story-steel: #91a6a2;
-  --story-muted: #809691;
-  --story-canvas: #0a1518;
-  --story-surface: #111f22;
-  --story-surface-soft: #172a2e;
-  --story-border: #335255;
-  --story-border-soft: #203d42;
-  --story-mint: #79dbb8;
-  --story-mint-deep: #79dbb8;
-  --story-mint-soft: #14362b;
-  --story-sky: #0f313c;
-  --story-cream: #3d3015;
-  --story-teal: #082937;
-  --story-teal-soft: #124357;
-  --story-coral: #fb8e64;
+  --story-ink: #f4f1de;
+  --story-charcoal: #fbfaf3;
+  --story-slate: #d9d5c3;
+  --story-steel: #b8b4a4;
+  --story-muted: #94917f;
+  --story-canvas: #20212e;
+  --story-surface: #2b2d3d;
+  --story-surface-soft: #34364a;
+  --story-border: #51556d;
+  --story-border-soft: #3d405b;
+  --story-mint: #81b29a;
+  --story-mint-deep: #a8cbb9;
+  --story-mint-soft: #29483e;
+  --story-sky: #3d405b;
+  --story-cream: #453a31;
+  --story-teal: #303247;
+  --story-teal-soft: #48506a;
+  --story-coral: #e07a5f;
   --story-shadow-card: 0 4px 14px rgba(0, 0, 0, 0.42);
   --story-shadow-hero: 0 24px 52px -10px rgba(0, 0, 0, 0.58);
 
-  --v4-canvas: #101010;
-  --v4-paper: #1a1a1a;
-  --v4-ink: #f9fafb;
-  --v4-body: #d1d5db;
-  --v4-muted: #9ca3af;
-  --v4-primary: #f9fafb;
-  --v4-primary-strong: #ffffff;
-  --v4-primary-soft: #242424;
-  --v4-accent: #7cebcb;
-  --v4-accent-strong: #00d4a4;
-  --v4-accent-soft: #123a31;
-  --v4-sky: #181818;
-  --v4-sand: #202020;
-  --v4-border: #2f2f2f;
-  --v4-border-strong: #4b5563;
-  --v4-surface-soft: #181818;
-  --v4-surface-card: #202020;
+  --color-brand-50: 30 31 45;
+  --color-brand-100: 39 41 59;
+  --color-brand-200: 48 50 71;
+  --color-brand-300: 61 64 91;
+  --color-brand-400: 72 75 112;
+  --color-brand-500: 88 92 132;
+  --color-brand-600: 123 127 163;
+  --color-brand-700: 165 168 193;
+  --color-brand-800: 202 204 219;
+  --color-brand-900: 229 230 238;
+  --color-brand-950: 244 245 248;
+  --ink-strong: 244 241 222;
+  --ink-body: 217 213 195;
+  --ink-muted: 184 180 164;
+  --accent-petal: 75 49 47;
+  --accent-petal-strong: 238 161 139;
+  --accent-sun: 71 59 43;
+  --accent-sun-strong: 242 204 143;
+  --accent-coral: 75 49 47;
+  --accent-coral-strong: 224 122 95;
+  --accent-lilac: 52 54 74;
+  --accent-lilac-strong: 165 168 193;
+  --accent-sky: 41 72 62;
+  --accent-sky-strong: 168 200 184;
+  --accent-mint: 41 72 62;
+  --accent-mint-strong: 168 200 184;
+  --surface-page: 32 33 46;
+  --surface-card: 43 45 61;
+  --surface-muted: 52 54 74;
+  --surface-strong: 61 64 91;
+  --border-soft: 81 85 109;
+  --atlas-ocean: 48 50 71;
+  --atlas-ocean-deep: 30 31 45;
+  --atlas-water: 41 72 62;
+  --atlas-paper: 43 45 61;
+  --atlas-ink: 244 241 222;
+  --atlas-muted: 184 180 164;
+  --atlas-coral: 224 122 95;
+  --atlas-amber: 242 204 143;
+  --atlas-mint: 129 178 154;
+  --atlas-line: 165 168 193;
 }
 
 html {
-  background: var(--v4-canvas);
+  background: var(--story-canvas);
 }
 
 body {
-  background: var(--v4-canvas);
-  color: var(--v4-ink);
+  background: var(--story-canvas);
+  color: var(--story-ink);
   font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
 }
 
@@ -123,8 +189,10 @@ body {
 
 .tp-page-shell,
 .tp-page-shell.tp-workspace-shell {
-  background-color: var(--v4-canvas) !important;
-  background-image: none !important;
+  background-color: var(--story-canvas) !important;
+  background-image:
+    radial-gradient(circle at 3% 0%, color-mix(in srgb, var(--story-sky) 18%, transparent), transparent 30rem),
+    radial-gradient(circle at 100% 10%, color-mix(in srgb, var(--story-cream) 32%, transparent), transparent 28rem) !important;
 }
 
 .tp-page-container {
@@ -136,15 +204,15 @@ body {
 .tp-auth-card,
 .tp-modal-surface,
 .tp-confirm-surface {
-  background: var(--v4-paper) !important;
-  border-color: var(--v4-border) !important;
+  background: var(--story-canvas) !important;
+  border-color: var(--story-border) !important;
   border-radius: 12px !important;
   box-shadow: none !important;
 }
 
 .tp-card[data-interactive="true"]:hover,
 .tp-card[data-interactive="true"]:focus-within {
-  border-color: color-mix(in srgb, var(--v4-ink) 20%, var(--v4-border)) !important;
+  border-color: color-mix(in srgb, var(--story-ink) 20%, var(--story-border)) !important;
   box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04) !important;
   transform: translateY(-1px) !important;
 }
@@ -162,51 +230,51 @@ body {
 }
 
 .tp-button-primary {
-  background: var(--v4-primary) !important;
-  border-color: var(--v4-primary) !important;
-  color: #ffffff !important;
+  background: var(--story-ink) !important;
+  border-color: var(--story-ink) !important;
+  color: var(--story-canvas) !important;
 }
 
 .tp-button-primary:hover:not(:disabled),
 .tp-button-primary:active:not(:disabled) {
-  background: var(--v4-primary-strong) !important;
-  border-color: var(--v4-primary-strong) !important;
+  background: var(--story-charcoal) !important;
+  border-color: var(--story-charcoal) !important;
 }
 
 .tp-button-secondary {
-  background: var(--v4-paper) !important;
-  border-color: var(--v4-border) !important;
-  color: var(--v4-ink) !important;
+  background: var(--story-canvas) !important;
+  border-color: var(--story-border) !important;
+  color: var(--story-ink) !important;
 }
 
 .tp-button-secondary:hover:not(:disabled) {
-  background: var(--v4-paper) !important;
-  border-color: var(--v4-border) !important;
+  background: var(--story-surface) !important;
+  border-color: var(--story-border) !important;
 }
 
 .tp-button-ghost:hover:not(:disabled) {
-  background: var(--v4-surface-soft) !important;
+  background: var(--story-surface) !important;
 }
 
 .tp-input,
 .tp-select,
 textarea.tp-input {
-  background: var(--v4-paper) !important;
+  background: var(--story-canvas) !important;
   border-color: var(--v4-border-strong) !important;
   border-radius: 8px !important;
-  color: var(--v4-ink) !important;
+  color: var(--story-ink) !important;
   min-height: 40px;
 }
 
 .tp-input:focus,
 .tp-select:focus,
 textarea.tp-input:focus {
-  border-color: var(--v4-ink) !important;
-  box-shadow: 0 0 0 1px var(--v4-ink) !important;
+  border-color: var(--story-mint-deep) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--story-mint) 24%, transparent) !important;
 }
 
 :where(button, a, input, select, textarea):focus-visible {
-  outline: 2px solid var(--v4-ink) !important;
+  outline: 3px solid color-mix(in srgb, var(--story-mint) 52%, transparent) !important;
   outline-offset: 2px;
 }
 
@@ -217,15 +285,15 @@ textarea.tp-input:focus {
 }
 
 .tp-icon-chip {
-  background: var(--v4-surface-soft) !important;
-  border: 1px solid var(--v4-border) !important;
+  background: var(--story-surface) !important;
+  border: 1px solid var(--story-border) !important;
   border-radius: 8px !important;
-  color: var(--v4-ink) !important;
+  color: var(--story-ink) !important;
 }
 
 .tp-story-eyebrow,
 .tp-auth-story-kicker {
-  color: var(--story-coral);
+  color: var(--story-mint-deep);
   display: block;
   font-size: 11px;
   font-weight: 600;
@@ -245,9 +313,9 @@ textarea.tp-input:focus {
 
 .tp-auth-story-preview.tp-auth-atlas-preview {
   background:
-    radial-gradient(circle at 80% 15%, rgba(202, 236, 242, 0.48), transparent 16rem),
-    radial-gradient(circle at 18% 82%, rgba(56, 171, 137, 0.16), transparent 16rem),
-    linear-gradient(135deg, var(--story-teal) 0%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 80% 15%, rgba(129, 178, 154, 0.5), transparent 16rem),
+    radial-gradient(circle at 18% 82%, rgba(224, 122, 95, 0.18), transparent 16rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #4a506a 52%, var(--story-teal-soft) 100%) !important;
   border: 0 !important;
   border-radius: 12px !important;
   box-shadow: var(--story-shadow-hero) !important;
@@ -259,7 +327,7 @@ textarea.tp-input:focus {
     radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.98) 0 0.28rem, transparent 0.33rem),
     radial-gradient(circle at 52% 38%, rgba(255, 255, 255, 0.78) 0 0.24rem, transparent 0.29rem),
     radial-gradient(circle at 84% 18%, var(--story-mint) 0 0.38rem, transparent 0.44rem),
-    linear-gradient(128deg, transparent 0 33%, rgba(56, 171, 137, 0.5) 33.08% 33.4%, transparent 33.58% 100%) !important;
+    linear-gradient(128deg, transparent 0 33%, rgba(242, 204, 143, 0.52) 33.08% 33.4%, transparent 33.58% 100%) !important;
   opacity: 1 !important;
 }
 
@@ -299,9 +367,9 @@ textarea.tp-input:focus {
 /* Trip library: immersive cover at the doorway, efficient controls below. */
 .tp-story-command-hero {
   background:
-    radial-gradient(circle at 82% 0%, rgba(202, 236, 242, 0.65), transparent 24rem),
-    radial-gradient(circle at 12% 110%, rgba(56, 171, 137, 0.14), transparent 22rem),
-    linear-gradient(135deg, var(--story-teal) 0%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 82% 0%, rgba(129, 178, 154, 0.58), transparent 24rem),
+    radial-gradient(circle at 12% 110%, rgba(224, 122, 95, 0.16), transparent 22rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #4a506a 56%, var(--story-teal-soft) 100%) !important;
   border: 0 !important;
   box-shadow: var(--story-shadow-hero) !important;
   color: #ffffff !important;
@@ -341,9 +409,9 @@ textarea.tp-input:focus {
 
 .tp-story-command-hero .tp-atlas-map-strip {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(252, 250, 244, 0.82)),
-    linear-gradient(90deg, rgba(26, 61, 74, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(26, 61, 74, 0.08) 1px, transparent 1px) !important;
+    linear-gradient(180deg, rgba(251, 250, 243, 0.94), rgba(244, 241, 222, 0.86)),
+    linear-gradient(90deg, rgba(61, 64, 91, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(61, 64, 91, 0.08) 1px, transparent 1px) !important;
   background-size: auto, 28px 28px, 28px 28px !important;
   border-color: rgba(255, 255, 255, 0.42) !important;
 }
@@ -376,9 +444,9 @@ textarea.tp-input:focus {
 
 .tp-app-header-surface {
   background:
-    radial-gradient(circle at 78% 8%, rgba(202, 236, 242, 0.62), transparent 22rem),
-    radial-gradient(circle at 16% 110%, rgba(56, 171, 137, 0.14), transparent 20rem),
-    linear-gradient(135deg, var(--story-teal) 0%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 78% 8%, rgba(129, 178, 154, 0.56), transparent 22rem),
+    radial-gradient(circle at 16% 110%, rgba(224, 122, 95, 0.16), transparent 20rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #4a506a 58%, var(--story-teal-soft) 100%) !important;
 }
 
 .tp-app-header-cover {
@@ -481,8 +549,8 @@ textarea.tp-input:focus {
 
 .tp-journey-hero {
   background:
-    radial-gradient(circle at 84% 8%, rgba(202, 236, 242, 0.58), transparent 15rem),
-    linear-gradient(135deg, var(--story-teal) 0%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 84% 8%, rgba(129, 178, 154, 0.52), transparent 15rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #4a506a 58%, var(--story-teal-soft) 100%) !important;
   border: 0 !important;
   border-radius: 12px !important;
   box-shadow: var(--story-shadow-hero) !important;
@@ -527,7 +595,7 @@ textarea.tp-input:focus {
 
 .tp-command-center {
   background:
-    radial-gradient(circle at 92% 0%, rgba(202, 236, 242, 0.32), transparent 15rem),
+    radial-gradient(circle at 92% 0%, rgba(129, 178, 154, 0.34), transparent 15rem),
     linear-gradient(135deg, color-mix(in srgb, var(--story-cream) 52%, var(--story-canvas)), var(--story-canvas)) !important;
   border-color: color-mix(in srgb, var(--story-sky) 32%, var(--story-border)) !important;
 }
@@ -539,7 +607,7 @@ textarea.tp-input:focus {
 
 .tp-share-story-card > div:first-child {
   background:
-    radial-gradient(circle at 88% 0%, rgba(202, 236, 242, 0.52), transparent 14rem),
+    radial-gradient(circle at 88% 0%, rgba(129, 178, 154, 0.5), transparent 14rem),
     linear-gradient(135deg, var(--story-teal), var(--story-teal-soft));
   border-radius: 12px 12px 0 0;
   margin: -16px -16px 18px;
@@ -572,9 +640,9 @@ textarea.tp-input:focus {
 .tp-bottom-nav,
 .tp-atlas-dock,
 .tp-mobile-trips-dock {
-  background: color-mix(in srgb, var(--v4-paper) 94%, transparent) !important;
-  border-color: var(--v4-border) !important;
-  box-shadow: 0 -12px 32px -28px rgba(8, 59, 73, 0.42) !important;
+  background: color-mix(in srgb, var(--story-canvas) 94%, transparent) !important;
+  border-color: var(--story-border) !important;
+  box-shadow: 0 -12px 32px -28px rgba(10, 10, 10, 0.42) !important;
   backdrop-filter: blur(16px);
 }
 
@@ -582,22 +650,26 @@ textarea.tp-input:focus {
 .tp-bottom-nav .tp-nav-active,
 .tp-atlas-dock .tp-nav-active,
 .tp-mobile-trips-dock .is-active {
-  background: linear-gradient(135deg, #ff6f61, var(--story-coral)) !important;
-  color: #ffffff !important;
+  background: var(--story-ink) !important;
+  color: var(--story-canvas) !important;
 }
 
 .tp-nav-active svg,
 .tp-nav-active .tp-nav-label,
+.tp-bottom-nav .tp-nav-item.tp-nav-active svg,
+.tp-bottom-nav .tp-nav-item.tp-nav-active .tp-nav-label,
+.tp-atlas-dock .tp-nav-item.tp-nav-active svg,
+.tp-atlas-dock .tp-nav-item.tp-nav-active .tp-nav-label,
 .tp-mobile-trips-dock .is-active svg,
 .tp-mobile-trips-dock .is-active span {
-  color: #ffffff !important;
+  color: var(--story-canvas) !important;
 }
 
 @media (min-width: 768px) {
   .tp-auth-shell {
     background:
-      radial-gradient(circle at 12% 12%, rgba(202, 236, 242, 0.28), transparent 28rem),
-      radial-gradient(circle at 96% 90%, rgba(252, 250, 244, 0.34), transparent 30rem),
+      radial-gradient(circle at 12% 12%, rgba(129, 178, 154, 0.28), transparent 28rem),
+      radial-gradient(circle at 96% 90%, rgba(242, 204, 143, 0.34), transparent 30rem),
       var(--story-surface-soft) !important;
   }
 
@@ -662,9 +734,9 @@ textarea.tp-input:focus {
 
   .tp-mobile-auth-hero {
     background:
-      radial-gradient(circle at 82% 14%, rgba(202, 236, 242, 0.68), transparent 12rem),
-      radial-gradient(circle at 10% 100%, rgba(56, 171, 137, 0.16), transparent 12rem),
-      linear-gradient(145deg, var(--story-teal) 0%, var(--story-teal-soft) 100%) !important;
+      radial-gradient(circle at 82% 14%, rgba(129, 178, 154, 0.6), transparent 12rem),
+      radial-gradient(circle at 10% 100%, rgba(224, 122, 95, 0.16), transparent 12rem),
+      linear-gradient(145deg, var(--story-teal) 0%, #4a506a 58%, var(--story-teal-soft) 100%) !important;
     color: #ffffff !important;
     min-height: 18.5rem !important;
     padding-bottom: 4rem !important;
@@ -708,8 +780,8 @@ textarea.tp-input:focus {
   .tp-mobile-trips-hero,
   .tp-mobile-detail-hero {
     background:
-      radial-gradient(circle at 82% 12%, rgba(202, 236, 242, 0.58), transparent 12rem),
-      linear-gradient(145deg, var(--story-teal) 0%, var(--story-teal-soft) 100%) !important;
+      radial-gradient(circle at 82% 12%, rgba(129, 178, 154, 0.52), transparent 12rem),
+      linear-gradient(145deg, var(--story-teal) 0%, #4a506a 58%, var(--story-teal-soft) 100%) !important;
     color: #ffffff !important;
   }
 
@@ -746,10 +818,55 @@ textarea.tp-input:focus {
     border-radius: 12px !important;
   }
 
+  .tp-mobile-trips-continue-cover {
+    background-color: var(--story-surface-soft) !important;
+    color: var(--story-teal) !important;
+  }
+
+  .tp-mobile-trips-continue-cover:not([style*="background-image"]),
+  .tp-mobile-trip-row-cover {
+    background-color: var(--story-surface-soft) !important;
+    background-image:
+      linear-gradient(135deg, rgba(224, 122, 95, 0.16), rgba(129, 178, 154, 0.42)) !important;
+    color: var(--story-teal) !important;
+  }
+
+  .tp-mobile-trips-continue-count {
+    background: rgba(129, 178, 154, 0.18) !important;
+  }
+
+  .tp-mobile-trips-continue-count strong,
+  .tp-mobile-trips-shell .tp-mobile-trips-list-panel .tp-mobile-trips-list-heading span {
+    color: var(--story-mint-deep) !important;
+  }
+
+  .tp-mobile-trips-list-heading > strong {
+    background: var(--story-mint-soft) !important;
+    color: var(--story-teal) !important;
+  }
+
+  .tp-mobile-action-tabs,
+  .tp-command-action-switch {
+    background: var(--story-surface) !important;
+    border-color: var(--story-border) !important;
+  }
+
   .tp-mobile-action-tabs button.is-active,
-  .tp-mobile-trip-filters button[aria-pressed="true"] {
-    background: linear-gradient(135deg, #ff6f61, var(--story-coral)) !important;
-    color: #ffffff !important;
+  .tp-mobile-trip-filters button[aria-pressed="true"],
+  .tp-mobile-trips-search-panel .tp-mobile-trip-filters .tp-filter-chip[aria-pressed="true"] {
+    background: var(--story-teal) !important;
+    border-color: var(--story-teal) !important;
+    color: var(--story-canvas) !important;
+  }
+
+  .tp-mobile-trip-row-delete {
+    background: rgba(224, 122, 95, 0.12) !important;
+    border-left-color: rgba(160, 75, 58, 0.2) !important;
+    color: #a04b3a !important;
+  }
+
+  .tp-mobile-trip-row-delete svg {
+    color: #a04b3a !important;
   }
 
   .tp-mobile-detail-hero,
@@ -772,8 +889,8 @@ textarea.tp-input:focus {
   }
 
   .tp-mobile-detail-tabs button.is-active {
-    background: linear-gradient(135deg, #ff6f61, var(--story-coral)) !important;
-    color: #ffffff !important;
+    background: var(--story-ink) !important;
+    color: var(--story-canvas) !important;
   }
 
   .tp-mobile-feature-header {
@@ -795,6 +912,13 @@ textarea.tp-input:focus {
   .tp-atlas-dock,
   .tp-mobile-trips-dock {
     border-radius: 16px 16px 0 0 !important;
+  }
+
+  .tp-mobile-trips-dock button.is-active {
+    background: var(--story-teal) !important;
+    border-color: var(--story-teal) !important;
+    box-shadow: 0 16px 30px -24px rgba(61, 64, 91, 0.68) !important;
+    color: var(--story-canvas) !important;
   }
 }
 

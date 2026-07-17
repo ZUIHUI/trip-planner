@@ -1,41 +1,41 @@
 ---
 version: alpha
-name: Mintlify-design-analysis
-description: Mintlify presents documentation infrastructure with a dual-mode aesthetic — atmospheric sky-gradient marketing heroes (cloud illustration backdrops, soft cream-to-blue washes) paired with dense developer-grade documentation surfaces. The system uses Inter for UI prose, Geist Mono for code, and a signature Mintlify green ({colors.brand-green}) reserved for accent CTAs and active states. Black-pill primary buttons dominate marketing, white-on-dark inversions appear on dark hero bands, and a 3-column documentation layout (sidebar / prose / TOC) anchors the developer experience. Coverage spans homepage, startups program, pricing comparison, and the live tabs documentation page.
+name: Trip-Planner-design-system
+description: Trip Planner pairs cinematic travel photography with dense, dependable planning surfaces. Its Neutral Harmony Bliss palette uses deep indigo for structure, sage for calm confirmation states, ivory for readable work areas, and restrained terracotta or sand accents for warmth. Inter remains the primary UI face, dark-pill actions anchor the hierarchy, and white-on-dark inversions keep photo-backed entry surfaces legible.
 
 colors:
-  primary: "#0a0a0a"
+  primary: "#3d405b"
   on-primary: "#ffffff"
-  brand-green: "#00d4a4"
-  brand-green-deep: "#00b48a"
-  brand-green-soft: "#7cebcb"
-  brand-tag: "#3772cf"
-  brand-warn: "#c37d0d"
-  brand-annotate: "#1ba673"
-  brand-error: "#d45656"
-  brand-cursor: "#888888"
-  hero-sky-from: "#87a8c8"
-  hero-sky-to: "#f5e9d8"
-  hero-dark-from: "#1a3d4a"
-  hero-dark-to: "#2d5a4f"
-  testimonial-orange: "#f55a3c"
-  testimonial-orange-deep: "#cc3a1f"
-  canvas: "#ffffff"
-  canvas-dark: "#0a0a0a"
-  surface: "#f7f7f7"
-  surface-soft: "#fafafa"
-  surface-code: "#1c1c1e"
-  hairline: "#e5e5e5"
-  hairline-soft: "#ededed"
-  hairline-dark: "#1f1f1f"
-  ink: "#0a0a0a"
-  charcoal: "#1c1c1e"
-  slate: "#3a3a3c"
-  steel: "#5a5a5c"
-  stone: "#888888"
-  muted: "#a8a8aa"
+  brand-green: "#81b29a"
+  brand-green-deep: "#446c5d"
+  brand-green-soft: "#e0ebe4"
+  brand-tag: "#3d405b"
+  brand-warn: "#9d6b2c"
+  brand-annotate: "#446c5d"
+  brand-error: "#a04b3a"
+  brand-cursor: "#85879a"
+  hero-sky-from: "#81b29a"
+  hero-sky-to: "#f4f1de"
+  hero-dark-from: "#3d405b"
+  hero-dark-to: "#59627a"
+  testimonial-orange: "#e07a5f"
+  testimonial-orange-deep: "#a04b3a"
+  canvas: "#fbfaf3"
+  canvas-dark: "#20212e"
+  surface: "#f4f1de"
+  surface-soft: "#f8f6ea"
+  surface-code: "#20212e"
+  hairline: "#d9d5c3"
+  hairline-soft: "#e7e2d2"
+  hairline-dark: "#51556d"
+  ink: "#303247"
+  charcoal: "#3d405b"
+  slate: "#51546e"
+  steel: "#6b6e82"
+  stone: "#85879a"
+  muted: "#a0a1af"
   on-dark: "#ffffff"
-  on-dark-muted: "#b3b3b3"
+  on-dark-muted: "#d9d5c3"
 
 typography:
   hero-display:
@@ -245,7 +245,7 @@ components:
     rounded: "{rounded.lg}"
     padding: "{spacing.xxl}"
     border: "2px solid {colors.brand-green}"
-    shadow: "rgba(0, 212, 164, 0.08) 0px 8px 24px"
+    shadow: "rgba(129, 178, 154, 0.12) 0px 8px 24px"
   testimonial-card-feature:
     backgroundColor: "{colors.testimonial-orange}"
     textColor: "{colors.on-dark}"
@@ -452,35 +452,35 @@ components:
 
 ## Overview
 
-Mintlify positions itself at the intersection of polished marketing presentation and developer-grade documentation density. The home and startups pages open with cinematic atmospheric heroes — soft sky-gradient backdrops with cloud illustrations on the homepage, dark teal-to-mint gradients with a rocket launch on the startups page — that feel more like a SaaS landing aesthetic than a developer tool. Then the deeper surfaces (pricing comparison, live documentation pages) collapse into dense, high-information layouts where Inter body type carries 14–16px copy across long-form prose, syntax-highlighted code blocks, and 3-column documentation grids.
+Trip Planner uses a polished, story-led entry experience before collapsing into dense, high-information planning tools. Login, trip covers, trip overview, and sharing may use cinematic photo-backed heroes; itinerary editing, lists, forms, and dashboards stay calm and highly readable. Neutral Harmony Bliss supplies the color system: deep indigo anchors navigation and primary actions, ivory supports long planning sessions, sage carries calm confirmation states, and terracotta or sand appear only as restrained warmth.
 
-The brand's signature mint green ({colors.brand-green}) appears sparingly but decisively — on the hero "Get started" pill button, the green checkmark icons inside feature lists, the "Featured" pricing tier border, and active state indicators inside docs UI. Black-pill primary buttons dominate the marketing flow; white-on-dark inversions appear on dark hero bands. The signature pairing of Inter (body, headings) with Geist Mono (code blocks, inline references, type signatures) reinforces the developer-tool DNA without requiring a third typeface.
+Sage ({colors.brand-green}) appears sparingly but decisively on confirmations, selected secondary states, and supportive highlights. Deep indigo ({colors.primary}) dominates primary actions and active navigation; white-on-dark inversions appear on dark photo scrims. Terracotta ({colors.testimonial-orange}) is reserved for destructive or attention-worthy accents and never becomes a competing large surface.
 
 **Key Characteristics:**
-- Atmospheric gradient hero bands (sky-blue to cream on homepage; teal-to-mint on startups) provide cinematic marketing presentation
-- Signature Mintlify mint green ({colors.brand-green}) reserved for accent CTAs, active states, and feature confirmations
-- Black-pill primary buttons ({colors.primary} + `{rounded.full}`) for marketing CTAs
+- Atmospheric photo-backed hero bands with indigo-to-sage fallbacks provide cinematic travel presentation
+- Sage ({colors.brand-green}) is reserved for supportive highlights and confirmations
+- Deep-indigo pill buttons ({colors.primary} + `{rounded.full}`) anchor primary actions
 - Inter for all UI prose; Geist Mono for code blocks, inline code, and type/property signatures
 - 3-column documentation layout (sidebar / prose / TOC) with dense 14px body type for long-form developer reading
 - Tightly-controlled radius scale: marketing uses `{rounded.lg}` (12px), pill buttons use `{rounded.full}` — no in-between corner softening
-- Vibrant testimonial card (`{colors.testimonial-orange}`) breaks color rhythm intentionally for emotional impact
+- Restrained terracotta (`{colors.testimonial-orange}`) breaks color rhythm only for attention-worthy moments
 
 ## Colors
 
-> Source pages: mintlify.com/ (homepage), /startups (program page), /pricing (comparison), /docs/components/tabs (live documentation). Token coverage was identical across all four pages.
+> Structural reference: Mintlify-style story entry plus dense workspace. Palette source: Coolors “Neutral Harmony Bliss” (`#F4F1DE`, `#E07A5F`, `#3D405B`, `#81B29A`, `#F2CC8F`).
 
 ### Brand & Accent
-- **Mintlify Mint** ({colors.brand-green}): Signature accent — used on hero "Get started" pill button, green checkmarks in feature lists, featured pricing tier border accent, sidebar active indicator dots.
-- **Deep Mint** ({colors.brand-green-deep}): Pressed/active variant of the mint accent.
-- **Soft Mint** ({colors.brand-green-soft}): Subtle background tint for success states and confirmation surfaces.
-- **Brand Tag** ({colors.brand-tag}): Documentation tag and reference color (used in `<Tabs>` JSX-style annotations and code-tag chips).
-- **Brand Annotate** ({colors.brand-annotate}): Inline code annotation green (used in twoslash code annotation system).
-- **Brand Warn** ({colors.brand-warn}): Code warning highlight (deprecated, caution).
-- **Brand Error** ({colors.brand-error}): Red used for required-field labels and error highlight.
-- **Testimonial Orange** ({colors.testimonial-orange}): Warm coral-orange used on the "Cursor" testimonial card and warm callout surfaces.
+- **Sage** ({colors.brand-green}): Calm supportive accent for confirmations, selected secondary states, and small feature highlights.
+- **Deep Sage** ({colors.brand-green-deep}): Accessible text, icon, pressed, and focus variant of sage.
+- **Soft Sage** ({colors.brand-green-soft}): Background tint for success states and confirmation surfaces.
+- **Indigo Tag** ({colors.brand-tag}): Reference, label, and informational tag color.
+- **Sage Annotation** ({colors.brand-annotate}): Inline positive annotation color.
+- **Sand Warn** ({colors.brand-warn}): Caution and warning emphasis.
+- **Terracotta Error** ({colors.brand-error}): Required-field, destructive, and validation messaging.
+- **Terracotta Accent** ({colors.testimonial-orange}): Restrained warm accent for highlights; do not use as a large default surface.
 
 ### Surface
-- **Canvas White** ({colors.canvas}): Primary page and card background.
+- **Canvas Ivory** ({colors.canvas}): Primary page and card background.
 - **Canvas Dark** ({colors.canvas-dark}): Promo banner, dark inversion surfaces, code editor wrapper.
 - **Surface** ({colors.surface}): Subtle section backgrounds, search-pill rest, code-inline background, sidebar active state.
 - **Surface Soft** ({colors.surface-soft}): Quieter section backgrounds and FAQ accordion.
@@ -489,8 +489,8 @@ The brand's signature mint green ({colors.brand-green}) appears sparingly but de
 - **Hairline Soft** ({colors.hairline-soft}): Quieter table-row dividers and secondary section breaks.
 
 ### Hero Atmospheric
-- **Hero Sky From / To** ({colors.hero-sky-from}, {colors.hero-sky-to}): Atmospheric sky-blue to soft cream gradient on the homepage hero.
-- **Hero Dark From / To** ({colors.hero-dark-from}, {colors.hero-dark-to}): Dark teal to mint gradient on the startups hero.
+- **Hero Sage From / Ivory To** ({colors.hero-sky-from}, {colors.hero-sky-to}): Calm fallback gradient when a travel photo is unavailable.
+- **Hero Indigo From / Slate To** ({colors.hero-dark-from}, {colors.hero-dark-to}): Dark fallback gradient behind white hero text.
 
 ### Text
 - **Ink** ({colors.ink}): Primary headlines and CTA text.
@@ -574,7 +574,7 @@ The system runs predominantly flat with strategic atmospheric depth.
 | 1 (subtle) | `rgba(0, 0, 0, 0.04) 0px 1px 2px 0px` | Hover-elevated tiles, subtle highlights |
 | 2 (card) | `rgba(0, 0, 0, 0.08) 0px 4px 12px 0px` | Standard feature cards |
 | 3 (mockup) | `rgba(0, 0, 0, 0.12) 0px 24px 48px -8px` | Hero product mockup framing — the deep diffuse drop on the homepage hero docs preview |
-| 4 (brand-tinted) | `rgba(0, 212, 164, 0.08) 0px 8px 24px` | Featured pricing tier glow |
+| 4 (brand-tinted) | `rgba(129, 178, 154, 0.12) 0px 8px 24px` | Selected planning module glow |
 
 ### Decorative Depth
 - The homepage hero uses an atmospheric photographic backdrop (cloud illustration on sky-gradient) for depth — no shadow needed; the imagery does the work
@@ -651,7 +651,7 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 - Title `{typography.heading-3}`, price `{typography.display-lg}`, feature list `{typography.body-sm}` with green checkmark icons.
 
 **`pricing-card-featured`** — Highlighted pricing tier (Lift Off / featured plan).
-- Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `2px solid {colors.brand-green}`, soft brand-tinted shadow `rgba(0, 212, 164, 0.08) 0px 8px 24px`.
+- Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `2px solid {colors.brand-green}`, soft brand-tinted shadow `rgba(129, 178, 154, 0.12) 0px 8px 24px`.
 
 **`testimonial-card-feature`** — Bright orange large testimonial card with photo + quote ("Cursor — Every YC batch we consistently see the top performing startups use Mintlify to build their docs.").
 - Background `{colors.testimonial-orange}`, text `{colors.on-dark}`, rounded `{rounded.lg}`, padding `{spacing.section}`. Photo on right, large quote in `{typography.heading-3}` left, attribution below in `{typography.body-sm-medium}`.
@@ -785,20 +785,20 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 ## Do's and Don'ts
 
 ### Do
-- Reserve `{colors.brand-green}` (Mintlify mint) for accent CTAs and active state indicators only — even one accent button per viewport carries weight
-- Use `{colors.primary}` (black) as the dominant CTA on light backgrounds; switch to `button-on-dark` (white pill) on dark hero bands
+- Reserve `{colors.brand-green}` (sage) for supportive highlights and confirmations; deep indigo remains the primary action color
+- Use `{colors.primary}` (deep indigo) as the dominant CTA on light backgrounds; switch to `button-on-dark` (white pill) on dark hero bands
 - Apply `{rounded.full}` to every button and pill; never soften pill corners
 - Pair Inter (UI prose) with Geist Mono (code) — never introduce a third typeface
-- Use atmospheric gradient hero bands sparingly (only the homepage and startups page); keep deeper surfaces flat and dense
+- Use atmospheric photo or fallback-gradient hero bands only on login, trip covers, overview, and sharing; keep planning surfaces flat and dense
 - Apply `{rounded.lg}` (12px) consistently on cards; use `{rounded.md}` (8px) only on compact UI like search pills and code blocks
-- Keep documentation prose at `{typography.body-md}` (16px) with 1.50 line-height — never compress
+- Keep planning prose at `{typography.body-md}` (16px) with 1.50 line-height — never compress
 
 ### Don't
 - Don't use `{colors.brand-green}` on body text or large surfaces — it loses signal
-- Don't introduce additional accent colors beyond mint, tag-blue, error-red, and the testimonial orange
-- Don't apply heavy shadows on flat documentation cards; reserve elevation for the hero product mockup
-- Don't reduce documentation line-height below 1.50 — long-form readability suffers
-- Don't combine atmospheric gradients with multiple competing color accents in the same hero — the sky/dark gradient is the brand mood; let it breathe
+- Don't introduce additional accent colors beyond sage, indigo, sand, and restrained terracotta
+- Don't apply heavy shadows on flat planning cards; reserve elevation for story-led hero surfaces
+- Don't reduce planning copy line-height below 1.50 — long-form readability suffers
+- Don't combine atmospheric gradients with multiple competing accents in the same hero — indigo and sage set the mood; let the travel photo breathe
 - Don't use Inter for code or Geist Mono for prose — the typeface assignment IS the brand voice
 
 ## Responsive Behavior
