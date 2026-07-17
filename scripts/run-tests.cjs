@@ -2570,14 +2570,14 @@ test('formats itinerary days as date plus abbreviated weekday without generic Da
   assert.doesNotMatch(topNavigationActiveRule, /linear-gradient/);
 });
 
-test('keeps the mobile trip hero spaced below its top bar and the section navigation scrollable', () => {
+test('keeps the compact mobile trip hero spaced below its top bar and the section navigation scrollable', () => {
   const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
   const heroHeightRule = css.match(/\.tp-mobile-detail-hero,\s*\.tp-mobile-detail-shell,\s*\.tp-mobile-detail-photo\s*\{[\s\S]*?\}/)?.[0] || '';
   const heroCopyRule = css.match(/\.tp-mobile-detail-copy\s*\{[\s\S]*?\}/)?.[0] || '';
   const navigationRule = css.match(/\.tp-page-shell\.tp-workspace-shell \.tp-mobile-detail-tabs\s*\{[\s\S]*?\}/)?.[0] || '';
   const navigationButtonRule = css.match(/\.tp-mobile-detail-tabs button\s*\{[\s\S]*?\}/)?.[0] || '';
 
-  assert.match(heroHeightRule, /min-height:\s*20rem\s*!important/);
+  assert.match(heroHeightRule, /min-height:\s*18rem\s*!important/);
   assert.match(heroCopyRule, /bottom:\s*auto\s*!important/);
   assert.match(heroCopyRule, /top:\s*calc\(5\.25rem\s*\+\s*env\(safe-area-inset-top\)\)\s*!important/);
   assert.match(navigationRule, /display:\s*flex\s*!important/);
