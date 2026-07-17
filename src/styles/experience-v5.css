@@ -872,7 +872,7 @@ textarea.tp-input:focus {
   .tp-mobile-detail-hero,
   .tp-mobile-detail-shell,
   .tp-mobile-detail-photo {
-    min-height: 18rem !important;
+    min-height: 16rem !important;
   }
 
   .tp-mobile-detail-copy {

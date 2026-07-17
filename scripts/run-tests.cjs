@@ -2577,7 +2577,7 @@ test('keeps the compact mobile trip hero spaced below its top bar and the sectio
   const navigationRule = css.match(/\.tp-page-shell\.tp-workspace-shell \.tp-mobile-detail-tabs\s*\{[\s\S]*?\}/)?.[0] || '';
   const navigationButtonRule = css.match(/\.tp-mobile-detail-tabs button\s*\{[\s\S]*?\}/)?.[0] || '';
 
-  assert.match(heroHeightRule, /min-height:\s*18rem\s*!important/);
+  assert.match(heroHeightRule, /min-height:\s*16rem\s*!important/);
   assert.match(heroCopyRule, /bottom:\s*auto\s*!important/);
   assert.match(heroCopyRule, /top:\s*calc\(5\.25rem\s*\+\s*env\(safe-area-inset-top\)\)\s*!important/);
   assert.match(navigationRule, /display:\s*flex\s*!important/);
