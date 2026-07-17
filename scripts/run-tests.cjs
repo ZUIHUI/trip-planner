@@ -62,6 +62,11 @@ const {
   markLazyImportReload
 } = require('../src/utils/lazyImportRecovery.js');
 const {
+  EMAIL_LOGIN_CHALLENGE_STORAGE_KEY,
+  readEmailLoginChallenge,
+  saveEmailLoginChallenge
+} = require('../src/utils/emailLoginChallenge.js');
+const {
   buildErrorDiagnostic,
   getFirstComponentName,
   sanitizeErrorDiagnosticText
@@ -680,6 +685,38 @@ test('keeps Google sign-in on the login page when popup auth is unavailable', ()
   assert.doesNotMatch(authSource, /signInWithRedirect/);
   assert.match(loginSource, /popup-unavailable/);
   assert.match(loginSource, /Email 驗證碼/);
+});
+
+test('keeps a successful email-code request ready for verification after reload', () => {
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key)
+  };
+  const now = Date.parse('2026-07-17T05:00:00.000Z');
+  const expiresAt = '2026-07-17T05:10:00.000Z';
+  const saved = saveEmailLoginChallenge({
+    challengeId: 'challenge-123',
+    email: 'Traveler@Example.com',
+    expiresAt
+  }, storage, now);
+  const restored = readEmailLoginChallenge(storage, now + 1000);
+  const loginSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', 'LoginPage.jsx'), 'utf8');
+
+  assert.deepEqual(saved, {
+    challengeId: 'challenge-123',
+    email: 'traveler@example.com',
+    expiresAt
+  });
+  assert.deepEqual(restored, saved);
+  assert.equal(values.has(EMAIL_LOGIN_CHALLENGE_STORAGE_KEY), true);
+  assert.match(loginSource, /storedEmailChallenge \? 'code' : 'email'/);
+  assert.match(loginSource, /saveEmailLoginChallenge\(\{/);
+  assert.match(loginSource, /setLoginStep\('code'\)/);
+
+  assert.equal(readEmailLoginChallenge(storage, Date.parse(expiresAt)), null);
+  assert.equal(values.has(EMAIL_LOGIN_CHALLENGE_STORAGE_KEY), false);
 });
 
 test('keeps AI recommendation entry points visible in trip tabs', () => {

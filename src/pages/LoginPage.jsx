@@ -5,6 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
 import InstallAppPrompt from '../components/InstallAppPrompt';
 import { codeInputProps, emailInputProps } from '../utils/mobileInputProps';
+import {
+  clearEmailLoginChallenge,
+  readEmailLoginChallenge,
+  saveEmailLoginChallenge
+} from '../utils/emailLoginChallenge';
 
 const EMAIL_FOR_SIGN_IN_KEY = 'trip_planner_email_for_sign_in';
 
@@ -110,13 +115,22 @@ const LoginPage = () => {
   const redirectPath = useMemo(() => getRedirectFromSearch(location.search), [location.search]);
   const currentHref = getCurrentHref();
   const isCompletingLink = isEmailLink(currentHref);
-  const [email, setEmail] = useState(getStoredEmail);
+  const storedEmailChallenge = useMemo(() => readEmailLoginChallenge(), []);
+  const [email, setEmail] = useState(() => storedEmailChallenge?.email || getStoredEmail());
   const [code, setCode] = useState('');
-  const [challengeId, setChallengeId] = useState('');
-  const [loginStep, setLoginStep] = useState(isCompletingLink ? 'link' : 'email');
-  const [showEmailBackup, setShowEmailBackup] = useState(isCompletingLink);
+  const [challengeId, setChallengeId] = useState(() => storedEmailChallenge?.challengeId || '');
+  const [loginStep, setLoginStep] = useState(
+    isCompletingLink ? 'link' : (storedEmailChallenge ? 'code' : 'email')
+  );
+  const [showEmailBackup, setShowEmailBackup] = useState(
+    isCompletingLink || Boolean(storedEmailChallenge)
+  );
   const [rememberDevice, setRememberDevice] = useState(() => getRememberDevicePreference());
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(() => (
+    storedEmailChallenge
+      ? `驗證碼已寄出${formatExpiry(storedEmailChallenge.expiresAt) ? `，請在 ${formatExpiry(storedEmailChallenge.expiresAt)} 前輸入` : ''}。`
+      : ''
+  ));
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingAuthAction, setPendingAuthAction] = useState('');
@@ -185,9 +199,21 @@ const LoginPage = () => {
 
     try {
       const result = await requestEmailCode(email, redirectPath);
-      setChallengeId(result.challengeId || '');
+      const nextChallenge = saveEmailLoginChallenge({
+        challengeId: result.challengeId,
+        email,
+        expiresAt: result.expiresAt
+      });
+
+      if (!nextChallenge) {
+        throw new Error('無法建立驗證流程，請重新寄送驗證碼。');
+      }
+
+      setEmail(nextChallenge.email);
+      setChallengeId(nextChallenge.challengeId);
       setLoginStep('code');
-      setStatus(`驗證碼已寄出${formatExpiry(result.expiresAt) ? `，請在 ${formatExpiry(result.expiresAt)} 前輸入` : ''}。`);
+      setShowEmailBackup(true);
+      setStatus(`驗證碼已寄出${formatExpiry(nextChallenge.expiresAt) ? `，請在 ${formatExpiry(nextChallenge.expiresAt)} 前輸入` : ''}。`);
     } catch (authError) {
       setError(getErrorMessage(authError, '無法寄出驗證碼，請稍後再試。'));
     } finally {
@@ -211,6 +237,7 @@ const LoginPage = () => {
         rememberDevice,
         redirectPath
       });
+      clearEmailLoginChallenge();
       setStatus('驗證成功，正在進入 Trip Planner。');
     } catch (authError) {
       setError(getErrorMessage(authError, '驗證碼不正確或已過期，請重新確認。'));
@@ -229,6 +256,7 @@ const LoginPage = () => {
 
     try {
       await completeEmailLink(email, currentHref, rememberDevice);
+      clearEmailLoginChallenge();
       setStatus('Email 驗證成功，正在進入 Trip Planner。');
     } catch (authError) {
       setError(getErrorMessage(authError, 'Email 連結登入失敗，請確認 Email 與登入信一致。'));
@@ -246,6 +274,7 @@ const LoginPage = () => {
 
     try {
       await signInWithGoogle(redirectPath, rememberDevice);
+      clearEmailLoginChallenge();
     } catch (authError) {
       setError(getErrorMessage(authError, 'Google 登入失敗，請稍後再試。'));
     } finally {
@@ -255,6 +284,7 @@ const LoginPage = () => {
   };
 
   const handleBackToEmail = () => {
+    clearEmailLoginChallenge();
     setLoginStep('email');
     setShowEmailBackup(true);
     setCode('');
@@ -360,7 +390,7 @@ const LoginPage = () => {
                       required
                     />
                   </Field>
-                  <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
+                  <Button type="submit" disabled={isSubmitting || code.length !== 6 || !challengeId} className="justify-center">
                     {isVerifyingEmailCode ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
                     {isVerifyingEmailCode ? '登入中...' : '驗證並登入'}
                   </Button>
@@ -393,12 +423,12 @@ const LoginPage = () => {
           )}
 
           {status && (
-            <p className="tp-mobile-auth-status tp-mobile-auth-status-success">
+            <p className="tp-mobile-auth-status tp-mobile-auth-status-success" role="status" aria-live="polite">
               {status}
             </p>
           )}
           {error && (
-            <p className="tp-mobile-auth-status tp-mobile-auth-status-error">
+            <p className="tp-mobile-auth-status tp-mobile-auth-status-error" role="alert">
               {error}
             </p>
           )}
@@ -473,7 +503,7 @@ const LoginPage = () => {
                         required
                       />
                     </Field>
-                    <Button type="submit" disabled={isSubmitting || code.length !== 6} className="justify-center">
+                    <Button type="submit" disabled={isSubmitting || code.length !== 6 || !challengeId} className="justify-center">
                       {isVerifyingEmailCode ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
                       {isVerifyingEmailCode ? '登入中...' : '完成登入'}
                     </Button>
@@ -506,12 +536,12 @@ const LoginPage = () => {
             )}
 
             {status && (
-              <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200">
+              <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-200" role="status" aria-live="polite">
                 {status}
               </p>
             )}
             {error && (
-              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200">
+              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200" role="alert">
                 {error}
               </p>
             )}
