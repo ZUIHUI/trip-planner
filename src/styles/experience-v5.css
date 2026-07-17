@@ -22,7 +22,7 @@
   --story-cream: #edf6f9;
   --story-teal: #006d77;
   --story-teal-soft: #3d7774;
-  --story-coral: #e29578;
+  --story-coral: #7fb3c8;
   --story-shadow-card: 0 4px 12px rgba(0, 109, 119, 0.1);
   --story-shadow-hero: 0 24px 48px -8px rgba(23, 63, 67, 0.24);
 
@@ -65,7 +65,7 @@
   --accent-sun: 255 221 210;
   --accent-sun-strong: 148 95 48;
   --accent-coral: 255 221 210;
-  --accent-coral-strong: 226 149 120;
+  --accent-coral-strong: 127 179 200;
   --accent-lilac: 218 239 240;
   --accent-lilac-strong: 0 109 119;
   --accent-sky: 215 236 234;
@@ -83,7 +83,7 @@
   --atlas-paper: 237 246 249;
   --atlas-ink: 23 63 67;
   --atlas-muted: 87 117 121;
-  --atlas-coral: 226 149 120;
+  --atlas-coral: 127 179 200;
   --atlas-amber: 176 118 72;
   --atlas-mint: 131 197 190;
   --atlas-line: 62 97 101;
@@ -107,7 +107,7 @@
   --story-cream: #4b3832;
   --story-teal: #004b53;
   --story-teal-soft: #2c7075;
-  --story-coral: #e29578;
+  --story-coral: #7fb3c8;
   --story-shadow-card: 0 4px 14px rgba(0, 0, 0, 0.42);
   --story-shadow-hero: 0 24px 52px -10px rgba(0, 0, 0, 0.58);
 
@@ -130,7 +130,7 @@
   --accent-sun: 78 61 48;
   --accent-sun-strong: 255 221 210;
   --accent-coral: 84 59 51;
-  --accent-coral-strong: 226 149 120;
+  --accent-coral-strong: 127 179 200;
   --accent-lilac: 33 77 82;
   --accent-lilac-strong: 131 197 190;
   --accent-sky: 32 78 78;
@@ -148,7 +148,7 @@
   --atlas-paper: 23 63 67;
   --atlas-ink: 237 246 249;
   --atlas-muted: 170 196 200;
-  --atlas-coral: 226 149 120;
+  --atlas-coral: 127 179 200;
   --atlas-amber: 255 221 210;
   --atlas-mint: 131 197 190;
   --atlas-line: 170 196 200;
@@ -314,7 +314,7 @@ textarea.tp-input:focus {
 .tp-auth-story-preview.tp-auth-atlas-preview {
   background:
     radial-gradient(circle at 80% 15%, rgba(131, 197, 190, 0.5), transparent 16rem),
-    radial-gradient(circle at 18% 82%, rgba(226, 149, 120, 0.18), transparent 16rem),
+    radial-gradient(circle at 18% 82%, rgba(127, 179, 200, 0.18), transparent 16rem),
     linear-gradient(135deg, var(--story-teal) 0%, #245e66 52%, var(--story-teal-soft) 100%) !important;
   border: 0 !important;
   border-radius: 12px !important;
@@ -368,7 +368,7 @@ textarea.tp-input:focus {
 .tp-story-command-hero {
   background:
     radial-gradient(circle at 82% 0%, rgba(131, 197, 190, 0.58), transparent 24rem),
-    radial-gradient(circle at 12% 110%, rgba(226, 149, 120, 0.16), transparent 22rem),
+    radial-gradient(circle at 12% 110%, rgba(127, 179, 200, 0.16), transparent 22rem),
     linear-gradient(135deg, var(--story-teal) 0%, #245e66 56%, var(--story-teal-soft) 100%) !important;
   border: 0 !important;
   box-shadow: var(--story-shadow-hero) !important;
@@ -445,7 +445,7 @@ textarea.tp-input:focus {
 .tp-app-header-surface {
   background:
     radial-gradient(circle at 78% 8%, rgba(131, 197, 190, 0.56), transparent 22rem),
-    radial-gradient(circle at 16% 110%, rgba(226, 149, 120, 0.16), transparent 20rem),
+    radial-gradient(circle at 16% 110%, rgba(127, 179, 200, 0.16), transparent 20rem),
     linear-gradient(135deg, var(--story-teal) 0%, #245e66 58%, var(--story-teal-soft) 100%) !important;
 }
 
@@ -735,7 +735,7 @@ textarea.tp-input:focus {
   .tp-mobile-auth-hero {
     background:
       radial-gradient(circle at 82% 14%, rgba(131, 197, 190, 0.6), transparent 12rem),
-      radial-gradient(circle at 10% 100%, rgba(226, 149, 120, 0.16), transparent 12rem),
+      radial-gradient(circle at 10% 100%, rgba(127, 179, 200, 0.16), transparent 12rem),
       linear-gradient(145deg, var(--story-teal) 0%, #245e66 58%, var(--story-teal-soft) 100%) !important;
     color: #ffffff !important;
     min-height: 18.5rem !important;
@@ -827,7 +827,7 @@ textarea.tp-input:focus {
   .tp-mobile-trip-row-cover {
     background-color: var(--story-surface-soft) !important;
     background-image:
-      linear-gradient(135deg, rgba(226, 149, 120, 0.16), rgba(131, 197, 190, 0.42)) !important;
+      linear-gradient(135deg, rgba(127, 179, 200, 0.16), rgba(131, 197, 190, 0.42)) !important;
     color: var(--story-teal) !important;
   }
 
@@ -860,7 +860,7 @@ textarea.tp-input:focus {
   }
 
   .tp-mobile-trip-row-delete {
-    background: rgba(226, 149, 120, 0.12) !important;
+    background: rgba(159, 79, 57, 0.12) !important;
     border-left-color: rgba(159, 79, 57, 0.2) !important;
     color: #9f4f39 !important;
   }

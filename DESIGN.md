@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Trip-Planner-design-system
-description: Trip Planner pairs cinematic travel photography with dense, dependable planning surfaces. Its Ocean Pearl Delight palette uses deep ocean teal for structure, sea-glass for calm confirmation states, pearl white for readable work areas, and restrained shell or clay accents for warmth. Inter remains the primary UI face, deep-teal pill actions anchor the hierarchy, and white-on-dark inversions keep photo-backed entry surfaces legible.
+description: Trip Planner pairs cinematic travel photography with dense, dependable planning surfaces. Its adapted Ocean Pearl palette uses deep ocean teal for structure, sea-glass for calm confirmation states, pearl white for readable work areas, and restrained shell or ocean-mist accents for atmosphere. Inter remains the primary UI face, deep-teal pill actions anchor the hierarchy, and white-on-dark inversions keep photo-backed entry surfaces legible.
 
 colors:
   primary: "#006d77"
@@ -18,8 +18,8 @@ colors:
   hero-sky-to: "#edf6f9"
   hero-dark-from: "#006d77"
   hero-dark-to: "#3d7774"
-  testimonial-orange: "#e29578"
-  testimonial-orange-deep: "#9f4f39"
+  ocean-mist: "#7fb3c8"
+  ocean-mist-deep: "#356e77"
   canvas: "#fafcfc"
   canvas-dark: "#102f33"
   surface: "#edf6f9"
@@ -247,7 +247,7 @@ components:
     border: "2px solid {colors.brand-green}"
     shadow: "rgba(131, 197, 190, 0.16) 0px 8px 24px"
   testimonial-card-feature:
-    backgroundColor: "{colors.testimonial-orange}"
+    backgroundColor: "{colors.ocean-mist}"
     textColor: "{colors.ink}"
     rounded: "{rounded.lg}"
     padding: "{spacing.section}"
@@ -444,7 +444,7 @@ components:
     padding: "{spacing.xxl}"
     border: "1px solid {colors.hairline}"
   founder-quote-card:
-    backgroundColor: "{colors.testimonial-orange}"
+    backgroundColor: "{colors.ocean-mist}"
     textColor: "{colors.ink}"
     rounded: "{rounded.lg}"
     padding: "{spacing.xxl}"
@@ -452,9 +452,9 @@ components:
 
 ## Overview
 
-Trip Planner uses a polished, story-led entry experience before collapsing into dense, high-information planning tools. Login, trip covers, trip overview, and sharing may use cinematic photo-backed heroes; itinerary editing, lists, forms, and dashboards stay calm and highly readable. Ocean Pearl Delight supplies the color system: deep ocean teal anchors navigation and primary actions, pearl white supports long planning sessions, sea-glass carries calm confirmation states, and shell or clay appear only as restrained warmth.
+Trip Planner uses a polished, story-led entry experience before collapsing into dense, high-information planning tools. Login, trip covers, trip overview, and sharing may use cinematic photo-backed heroes; itinerary editing, lists, forms, and dashboards stay calm and highly readable. An adapted Ocean Pearl palette supplies the color system: deep ocean teal anchors navigation and primary actions, pearl white supports long planning sessions, sea-glass carries calm confirmation states, and shell or ocean mist appear only as restrained atmosphere.
 
-Sea-glass ({colors.brand-green}) appears sparingly but decisively on confirmations, selected secondary states, and supportive highlights. Deep ocean teal ({colors.primary}) dominates primary actions and active navigation; white-on-dark inversions appear on dark photo scrims. Clay ({colors.testimonial-orange}) is reserved for attention-worthy accents and never becomes a competing large surface.
+Sea-glass ({colors.brand-green}) appears sparingly but decisively on confirmations, selected secondary states, and supportive highlights. Deep ocean teal ({colors.primary}) dominates primary actions and active navigation; white-on-dark inversions appear on dark photo scrims. Ocean mist ({colors.ocean-mist}) is reserved for atmospheric accents and never becomes a competing large surface.
 
 **Key Characteristics:**
 - Atmospheric photo-backed hero bands with ocean-teal-to-sea-glass fallbacks provide cinematic travel presentation
@@ -463,11 +463,11 @@ Sea-glass ({colors.brand-green}) appears sparingly but decisively on confirmatio
 - Inter for all UI prose; Geist Mono for code blocks, inline code, and type/property signatures
 - 3-column documentation layout (sidebar / prose / TOC) with dense 14px body type for long-form developer reading
 - Tightly-controlled radius scale: marketing uses `{rounded.lg}` (12px), pill buttons use `{rounded.full}` — no in-between corner softening
-- Restrained clay (`{colors.testimonial-orange}`) breaks color rhythm only for attention-worthy moments
+- Restrained ocean mist (`{colors.ocean-mist}`) adds cool atmospheric depth without competing with primary actions
 
 ## Colors
 
-> Structural reference: Mintlify-style story entry plus dense workspace. Palette source: Coolors “Ocean Pearl Delight” (`#006D77`, `#83C5BE`, `#EDF6F9`, `#FFDDD2`, `#E29578`).
+> Structural reference: Mintlify-style story entry plus dense workspace. Palette foundation: Coolors “Ocean Pearl Delight” (`#006D77`, `#83C5BE`, `#EDF6F9`, `#FFDDD2`), with its clay accent replaced by Ocean Mist (`#7FB3C8`).
 
 ### Brand & Accent
 - **Sea Glass** ({colors.brand-green}): Calm supportive accent for confirmations, selected secondary states, and small feature highlights.
@@ -476,8 +476,8 @@ Sea-glass ({colors.brand-green}) appears sparingly but decisively on confirmatio
 - **Ocean Tag** ({colors.brand-tag}): Reference, label, and informational tag color.
 - **Sea-glass Annotation** ({colors.brand-annotate}): Inline positive annotation color.
 - **Shell Warn** ({colors.brand-warn}): Caution and warning emphasis.
-- **Deep Clay Error** ({colors.brand-error}): Required-field, destructive, and validation messaging.
-- **Clay Accent** ({colors.testimonial-orange}): Restrained warm accent for highlights; do not use as a large default surface.
+- **Brick Error** ({colors.brand-error}): Required-field, destructive, and validation messaging.
+- **Ocean Mist** ({colors.ocean-mist}): Restrained cool accent for atmospheric highlights; do not use as a large default surface.
 
 ### Surface
 - **Canvas Pearl** ({colors.canvas}): Primary page and card background.
@@ -653,14 +653,14 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 **`pricing-card-featured`** — Highlighted pricing tier (Lift Off / featured plan).
 - Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `2px solid {colors.brand-green}`, soft brand-tinted shadow `rgba(131, 197, 190, 0.16) 0px 8px 24px`.
 
-**`testimonial-card-feature`** — Restrained clay testimonial card with photo + quote ("Cursor — Every YC batch we consistently see the top performing startups use Mintlify to build their docs.").
-- Background `{colors.testimonial-orange}`, text `{colors.ink}`, rounded `{rounded.lg}`, padding `{spacing.section}`. Photo on right, large quote in `{typography.heading-3}` left, attribution below in `{typography.body-sm-medium}`.
+**`testimonial-card-feature`** — Restrained ocean-mist testimonial card with photo + quote ("Cursor — Every YC batch we consistently see the top performing startups use Mintlify to build their docs.").
+- Background `{colors.ocean-mist}`, text `{colors.ink}`, rounded `{rounded.lg}`, padding `{spacing.section}`. Photo on right, large quote in `{typography.heading-3}` left, attribution below in `{typography.body-sm-medium}`.
 
 **`testimonial-card-quote`** — Smaller white testimonial card on the startups page.
 - Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `1px solid {colors.hairline}`.
 
-**`founder-quote-card`** — Cursor founder testimonial card variant on the clay surface.
-- Background `{colors.testimonial-orange}`, text `{colors.ink}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`. Carries the specific founder portrait + quote treatment.
+**`founder-quote-card`** — Cursor founder testimonial card variant on the ocean-mist surface.
+- Background `{colors.ocean-mist}`, text `{colors.ink}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`. Carries the specific founder portrait + quote treatment.
 
 **`startup-program-card`** — Larger application/program card containing perks grid + apply CTA.
 - Background `{colors.canvas}`, rounded `{rounded.lg}`, padding `{spacing.xxl}`, border `1px solid {colors.hairline}`.
@@ -795,7 +795,7 @@ The radius scale is tightly disciplined — the brand never uses a corner soften
 
 ### Don't
 - Don't use `{colors.brand-green}` on body text or large surfaces — it loses signal
-- Don't introduce additional accent colors beyond ocean teal, sea-glass, shell, and restrained clay
+- Don't introduce additional accent colors beyond ocean teal, sea-glass, shell, and restrained ocean mist
 - Don't apply heavy shadows on flat planning cards; reserve elevation for story-led hero surfaces
 - Don't reduce planning copy line-height below 1.50 — long-form readability suffers
 - Don't combine atmospheric gradients with multiple competing accents in the same hero — ocean teal and sea-glass set the mood; let the travel photo breathe
