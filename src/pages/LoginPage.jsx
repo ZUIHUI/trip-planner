@@ -278,7 +278,7 @@ const LoginPage = () => {
   }
 
   return (
-    <main className="tp-page-shell tp-auth-shell min-h-screen">
+    <main id="main-content" tabIndex={-1} className="tp-page-shell tp-auth-shell min-h-screen">
       <section
         className="tp-mobile-auth-shell"
         aria-label="Trip Planner sign in"
@@ -411,14 +411,15 @@ const LoginPage = () => {
         className="tp-auth-layout tp-desktop-auth-shell py-10"
       >
         <section className="tp-auth-composite" aria-label="Trip Planner 登入">
-          <Card className="tp-auth-card tp-atlas-auth-card relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
+          <Card className="tp-auth-card tp-atlas-auth-card tp-auth-story-card relative w-full max-w-md overflow-hidden p-5 pt-6 sm:p-6 sm:pt-7">
             <div className="absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
             <div className="mb-6">
               <div className="tp-icon-chip mb-4">
                 <PlaneTakeoff size={22} />
               </div>
-              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">下一趟旅行，從清楚的計畫開始</h1>
-              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">登入後繼續整理行程、地圖、旅伴與預算。</p>
+              <p className="tp-auth-story-kicker">PLAN TOGETHER · TRAVEL BETTER</p>
+              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">把每一次出發，整理成大家都跟得上的旅程</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">從第一個想法到旅途中的下一站，行程、地圖、旅伴與預算都在一起。</p>
             </div>
 
             <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#e0e9e0] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">
@@ -515,7 +516,7 @@ const LoginPage = () => {
               </p>
             )}
           </Card>
-          <aside className="tp-auth-atlas-preview" aria-label="Trip Planner 工作台摘要">
+          <aside className="tp-auth-atlas-preview tp-auth-story-preview" aria-label="Trip Planner 工作台摘要">
             <div className="tp-auth-preview-map" aria-hidden="true">
               <span className="tp-auth-route-dot" />
               <span className="tp-auth-route-dot" />
@@ -523,10 +524,10 @@ const LoginPage = () => {
             </div>
 
             <div className="tp-auth-preview-copy">
-            <p className="tp-auth-preview-kicker">旅程工作台</p>
-              <h2>Trip Planner</h2>
+            <p className="tp-auth-preview-kicker">YOUR NEXT JOURNEY</p>
+              <h2>一起計畫，也一起期待。</h2>
             <p>
-              登入後接續管理行程、地點、購物清單、記帳、行李與 AI 旅伴提醒。
+              登入後接續管理行程、地點、購物清單、記帳、行李與智慧旅伴提醒。
             </p>
             </div>
 

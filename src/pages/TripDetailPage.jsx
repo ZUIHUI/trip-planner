@@ -1771,6 +1771,8 @@ const TripDetailPage = () => {
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
     <div
+      id="main-content"
+      tabIndex={-1}
       className={`tp-page-shell tp-workspace-shell tp-mobile-detail-theme-${mobileDetailTheme.id} min-h-screen font-sans interface-size-${interfaceSize} transition-colors`}
       style={{
         "--footer-nav-height": "calc(5.2rem + env(safe-area-inset-bottom))",

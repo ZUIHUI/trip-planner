@@ -1,11 +1,11 @@
 {
-  "name": "Trip Planner",
+  "name": "Trip Planner｜一起計畫，也一起期待",
   "short_name": "TripPlanner",
   "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F4F6F2",
-  "theme_color": "#356B65",
+  "theme_color": "#1A3D4A",
   "orientation": "portrait",
   "icons": [
     {

@@ -372,7 +372,7 @@ const ShareCollaborationCard = ({
   };
 
   return (
-    <Card className="order-4 p-4">
+    <Card className="tp-share-story-card order-4 p-4">
       <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <div className="tp-icon-chip bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-300">

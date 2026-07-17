@@ -778,7 +778,7 @@ const TripListPage = () => {
   };
 
   return (
-    <main className="tp-page-shell tp-list-shell">
+    <main id="main-content" tabIndex={-1} className="tp-page-shell tp-list-shell">
       <div className="tp-atlas-side-rail" aria-hidden="true">
         <span />
         <span />
@@ -1094,7 +1094,7 @@ const TripListPage = () => {
 
       <PageContainer className="tp-desktop-trips-shell tp-atlas-page-frame py-7 sm:py-10">
         <motion.section
-          className="tp-panel tp-command-hero relative mb-4 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
+          className="tp-panel tp-command-hero tp-story-command-hero relative mb-4 overflow-hidden p-5 pb-8 pt-6 sm:p-6 sm:pb-9"
           initial={{ opacity: 0, y: 12, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
@@ -1107,7 +1107,8 @@ const TripListPage = () => {
                   <PlaneTakeoff size={19} />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">我的旅程</h1>
+                  <span className="tp-story-eyebrow">TRIP LIBRARY</span>
+                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">下一趟，一起排得更好</h1>
                   <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
                     {totalTripCount ? `共 ${totalTripCount} 趟旅程，其中 ${ownedTripCount} 趟由你管理` : '建立旅程，開始整理日期、地點與旅伴。'}
                   </p>

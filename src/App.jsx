@@ -60,6 +60,9 @@ const App = () => {
         <AppErrorBoundary>
           <MotionConfig reducedMotion="user">
             <BrowserRouter>
+              <a className="tp-skip-link" href="#main-content">
+                跳到主要內容
+              </a>
               <Suspense fallback={<RouteFallback />}>
                 <AnimatedRoutes />
               </Suspense>

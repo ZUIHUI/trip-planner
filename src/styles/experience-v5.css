@@ -1,0 +1,789 @@
+/*
+ * Trip Planner experience v5
+ * Story-led entry surfaces + dense, dependable planning workspace.
+ * DESIGN.md remains the source of truth for tokens, hierarchy, and interaction.
+ */
+
+:root {
+  --story-ink: #0a0a0a;
+  --story-charcoal: #1c1c1e;
+  --story-slate: #3a3a3c;
+  --story-steel: #5a5a5c;
+  --story-muted: #888888;
+  --story-canvas: #ffffff;
+  --story-surface: #f7f7f7;
+  --story-surface-soft: #fafafa;
+  --story-border: #e5e5e5;
+  --story-border-soft: #ededed;
+  --story-mint: #00d4a4;
+  --story-mint-deep: #00b48a;
+  --story-mint-soft: #e7faf5;
+  --story-sky: #87a8c8;
+  --story-cream: #f5e9d8;
+  --story-teal: #1a3d4a;
+  --story-teal-soft: #2d5a4f;
+  --story-coral: #f55a3c;
+  --story-shadow-card: 0 4px 12px rgba(10, 10, 10, 0.08);
+  --story-shadow-hero: 0 24px 48px -8px rgba(10, 10, 10, 0.18);
+
+  --v4-canvas: var(--story-canvas);
+  --v4-paper: var(--story-canvas);
+  --v4-ink: var(--story-ink);
+  --v4-body: var(--story-slate);
+  --v4-muted: var(--story-steel);
+  --v4-primary: var(--story-ink);
+  --v4-primary-strong: var(--story-charcoal);
+  --v4-primary-soft: var(--story-surface);
+  --v4-accent: var(--story-mint);
+  --v4-accent-strong: var(--story-mint-deep);
+  --v4-accent-soft: var(--story-mint-soft);
+  --v4-sky: #edf4f6;
+  --v4-sand: #fbf5ec;
+  --v4-border: var(--story-border);
+  --v4-border-strong: #d7d7d7;
+  --v4-surface-soft: var(--story-surface-soft);
+  --v4-surface-card: var(--story-surface);
+  --v4-shadow: none;
+  --v4-shadow-float: var(--story-shadow-card);
+}
+
+.dark {
+  --story-ink: #f8fafc;
+  --story-charcoal: #ffffff;
+  --story-slate: #d1d5db;
+  --story-steel: #b3b3b3;
+  --story-muted: #9ca3af;
+  --story-canvas: #101010;
+  --story-surface: #1a1a1a;
+  --story-surface-soft: #181818;
+  --story-border: #2f2f2f;
+  --story-border-soft: #252525;
+  --story-mint: #7cebcb;
+  --story-mint-deep: #00d4a4;
+  --story-mint-soft: #123a31;
+  --story-shadow-card: 0 4px 14px rgba(0, 0, 0, 0.42);
+  --story-shadow-hero: 0 24px 52px -10px rgba(0, 0, 0, 0.58);
+}
+
+html {
+  background: var(--story-canvas);
+}
+
+body {
+  background: var(--story-canvas);
+  color: var(--story-ink);
+  font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+}
+
+.tp-skip-link {
+  background: var(--story-ink);
+  border-radius: 9999px;
+  color: var(--story-canvas);
+  font-size: 14px;
+  font-weight: 600;
+  left: 16px;
+  padding: 10px 18px;
+  position: fixed;
+  top: 12px;
+  transform: translateY(-160%);
+  transition: transform 160ms ease;
+  z-index: 9999;
+}
+
+.tp-skip-link:focus {
+  transform: translateY(0);
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+.tp-page-shell,
+.tp-page-shell.tp-workspace-shell {
+  background-color: var(--story-canvas) !important;
+  background-image:
+    radial-gradient(circle at 3% 0%, color-mix(in srgb, var(--story-sky) 18%, transparent), transparent 30rem),
+    radial-gradient(circle at 100% 10%, color-mix(in srgb, var(--story-cream) 32%, transparent), transparent 28rem) !important;
+}
+
+.tp-page-container {
+  max-width: 1280px;
+}
+
+.tp-card,
+.tp-panel,
+.tp-auth-card,
+.tp-modal-surface,
+.tp-confirm-surface {
+  background: var(--story-canvas) !important;
+  border-color: var(--story-border) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.tp-card[data-interactive="true"]:hover,
+.tp-card[data-interactive="true"]:focus-within {
+  border-color: color-mix(in srgb, var(--story-ink) 20%, var(--story-border)) !important;
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04) !important;
+  transform: translateY(-1px) !important;
+}
+
+.tp-button-primary,
+.tp-button-secondary,
+.tp-button-ghost,
+.tp-button-danger {
+  border-radius: 9999px !important;
+  font-size: 14px;
+  font-weight: 600 !important;
+  min-height: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.tp-button-primary {
+  background: var(--story-ink) !important;
+  border-color: var(--story-ink) !important;
+  color: var(--story-canvas) !important;
+}
+
+.tp-button-primary:hover:not(:disabled),
+.tp-button-primary:active:not(:disabled) {
+  background: var(--story-charcoal) !important;
+  border-color: var(--story-charcoal) !important;
+}
+
+.tp-button-secondary {
+  background: var(--story-canvas) !important;
+  border-color: var(--story-border) !important;
+  color: var(--story-ink) !important;
+}
+
+.tp-button-secondary:hover:not(:disabled) {
+  background: var(--story-surface) !important;
+  border-color: #cfcfcf !important;
+}
+
+.tp-button-ghost:hover:not(:disabled) {
+  background: var(--story-surface) !important;
+}
+
+.tp-input,
+.tp-select,
+textarea.tp-input {
+  background: var(--story-canvas) !important;
+  border-color: var(--v4-border-strong) !important;
+  border-radius: 8px !important;
+  color: var(--story-ink) !important;
+  min-height: 40px;
+}
+
+.tp-input:focus,
+.tp-select:focus,
+textarea.tp-input:focus {
+  border-color: var(--story-mint-deep) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--story-mint) 24%, transparent) !important;
+}
+
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--story-mint) 52%, transparent) !important;
+  outline-offset: 2px;
+}
+
+.tp-badge,
+.tp-filter-chip,
+.tp-action-mode-button {
+  border-radius: 9999px !important;
+}
+
+.tp-icon-chip {
+  background: var(--story-surface) !important;
+  border: 1px solid var(--story-border) !important;
+  border-radius: 8px !important;
+  color: var(--story-ink) !important;
+}
+
+.tp-story-eyebrow,
+.tp-auth-story-kicker {
+  color: var(--story-mint-deep);
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+/* Entry experience: cinematic mood, practical sign-in surface. */
+.tp-auth-layout {
+  max-width: 1280px !important;
+}
+
+.tp-auth-story-card {
+  box-shadow: var(--story-shadow-card) !important;
+}
+
+.tp-auth-story-preview.tp-auth-atlas-preview {
+  background:
+    radial-gradient(circle at 80% 15%, rgba(135, 168, 200, 0.48), transparent 16rem),
+    radial-gradient(circle at 18% 82%, rgba(0, 212, 164, 0.16), transparent 16rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #244e56 52%, var(--story-teal-soft) 100%) !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: var(--story-shadow-hero) !important;
+  color: #ffffff !important;
+}
+
+.tp-auth-story-preview.tp-auth-atlas-preview::before {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.98) 0 0.28rem, transparent 0.33rem),
+    radial-gradient(circle at 52% 38%, rgba(255, 255, 255, 0.78) 0 0.24rem, transparent 0.29rem),
+    radial-gradient(circle at 84% 18%, var(--story-mint) 0 0.38rem, transparent 0.44rem),
+    linear-gradient(128deg, transparent 0 33%, rgba(0, 212, 164, 0.5) 33.08% 33.4%, transparent 33.58% 100%) !important;
+  opacity: 1 !important;
+}
+
+.tp-auth-story-preview .tp-auth-preview-map {
+  opacity: 0.52;
+}
+
+.tp-auth-story-preview .tp-auth-preview-kicker,
+.tp-auth-story-preview .tp-auth-preview-metrics span {
+  color: rgba(255, 255, 255, 0.66) !important;
+}
+
+.tp-auth-story-preview .tp-auth-preview-copy h2,
+.tp-auth-story-preview .tp-auth-preview-copy p,
+.tp-auth-story-preview .tp-auth-preview-list span,
+.tp-auth-story-preview .tp-auth-preview-metrics strong {
+  color: #ffffff !important;
+}
+
+.tp-auth-story-preview .tp-auth-preview-copy h2 {
+  font-size: clamp(32px, 4vw, 56px) !important;
+  line-height: 1.08;
+  max-width: 10ch;
+}
+
+.tp-auth-story-preview .tp-auth-preview-metrics div,
+.tp-auth-story-preview .tp-auth-preview-list div {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  backdrop-filter: blur(10px);
+}
+
+.tp-auth-story-preview .tp-auth-preview-list svg {
+  color: var(--story-mint) !important;
+}
+
+/* Trip library: immersive cover at the doorway, efficient controls below. */
+.tp-story-command-hero {
+  background:
+    radial-gradient(circle at 82% 0%, rgba(135, 168, 200, 0.65), transparent 24rem),
+    radial-gradient(circle at 12% 110%, rgba(0, 212, 164, 0.14), transparent 22rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #264f58 56%, var(--story-teal-soft) 100%) !important;
+  border: 0 !important;
+  box-shadow: var(--story-shadow-hero) !important;
+  color: #ffffff !important;
+}
+
+.tp-story-command-hero .tp-command-hero-rule {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.tp-story-command-hero .tp-story-eyebrow {
+  color: var(--story-mint) !important;
+}
+
+.tp-story-command-hero h1,
+.tp-story-command-hero .tp-command-hero-intro > div p,
+.tp-story-command-hero .tp-desktop-trips-account strong,
+.tp-story-command-hero .tp-desktop-trips-account small,
+.tp-story-command-hero .tp-desktop-trips-account span {
+  color: #ffffff !important;
+}
+
+.tp-story-command-hero .tp-icon-chip,
+.tp-story-command-hero .tp-desktop-trips-account,
+.tp-story-command-hero .tp-desktop-trips-account-button,
+.tp-story-command-hero .tp-action-mode-button {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(12px);
+}
+
+.tp-story-command-hero .tp-action-mode-button[aria-pressed="true"] {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: var(--story-ink) !important;
+}
+
+.tp-story-command-hero .tp-atlas-map-strip {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(245, 233, 216, 0.82)),
+    linear-gradient(90deg, rgba(26, 61, 74, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(26, 61, 74, 0.08) 1px, transparent 1px) !important;
+  background-size: auto, 28px 28px, 28px 28px !important;
+  border-color: rgba(255, 255, 255, 0.42) !important;
+}
+
+.tp-story-command-hero form {
+  border-color: rgba(255, 255, 255, 0.32) !important;
+}
+
+.tp-trip-card {
+  border-color: var(--story-border) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.tp-trip-card img {
+  filter: saturate(0.92) contrast(1.04);
+}
+
+/* Trip detail: story cover outside, workbench inside. */
+.tp-app-header.tp-atlas-header {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.tp-app-header-cover,
+.tp-app-header-surface {
+  color: #ffffff !important;
+}
+
+.tp-app-header-surface {
+  background:
+    radial-gradient(circle at 78% 8%, rgba(135, 168, 200, 0.62), transparent 22rem),
+    radial-gradient(circle at 16% 110%, rgba(0, 212, 164, 0.14), transparent 20rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #28525a 58%, var(--story-teal-soft) 100%) !important;
+}
+
+.tp-app-header-cover {
+  background-color: var(--story-teal) !important;
+}
+
+.tp-app-header-cover h1,
+.tp-app-header-surface h1,
+.tp-app-header-cover span,
+.tp-app-header-surface span,
+.tp-app-header-cover svg,
+.tp-app-header-surface svg {
+  color: #ffffff !important;
+}
+
+.tp-app-header-cover h1,
+.tp-app-header-surface h1 {
+  text-shadow: 0 2px 12px rgba(10, 10, 10, 0.56) !important;
+}
+
+.tp-app-header-cover .tp-button-ghost,
+.tp-app-header-cover .tp-button-secondary,
+.tp-app-header-surface .tp-button-ghost,
+.tp-app-header-surface .tp-button-secondary,
+.tp-app-header-cover .tp-motion-panel,
+.tp-app-header-surface .tp-motion-panel {
+  background: rgba(10, 10, 10, 0.34) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(12px);
+}
+
+.tp-workspace-shell .tp-atlas-page-frame.tp-detail-page-frame {
+  max-width: min(1280px, calc(100vw - 2rem)) !important;
+}
+
+.tp-v4-workspace-rail,
+.tp-v4-planner-panel {
+  border-color: var(--story-border) !important;
+  border-radius: 12px !important;
+}
+
+.tp-v4-rail-section button,
+.tp-v4-rail-settings {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  min-height: 44px !important;
+}
+
+.tp-v4-rail-section button.is-active {
+  background: var(--story-mint-soft) !important;
+  color: var(--story-ink) !important;
+}
+
+.tp-v4-rail-section button.is-active svg {
+  color: var(--story-mint-deep) !important;
+}
+
+.tp-v4-desktop-map {
+  border-radius: 12px !important;
+  box-shadow: var(--story-shadow-card) !important;
+}
+
+.tp-v4-desktop-map-toolbar,
+.tp-v4-desktop-map-card {
+  border-radius: 12px !important;
+}
+
+.tp-v4-planner-heading > span,
+.tp-v4-panel-section-heading > div > span,
+.tp-v4-rail-trip > span,
+.tp-v4-rail-section h2 {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.tp-v4-planner-heading h2 {
+  font-size: 22px !important;
+  font-weight: 600 !important;
+}
+
+.tp-v4-panel-timeline li strong,
+.tp-v4-panel-note strong,
+.tp-v4-desktop-map-card h2 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.tp-v4-panel-timeline li small,
+.tp-v4-panel-note p,
+.tp-v4-panel-empty p {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+.tp-v4-panel-timeline time {
+  font-size: 12px !important;
+}
+
+.tp-journey-hero {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(135, 168, 200, 0.58), transparent 15rem),
+    linear-gradient(135deg, var(--story-teal) 0%, #28525a 58%, var(--story-teal-soft) 100%) !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: var(--story-shadow-hero) !important;
+  color: #ffffff !important;
+}
+
+.tp-journey-hero h3,
+.tp-journey-hero p,
+.tp-journey-hero span,
+.tp-journey-hero svg,
+.tp-journey-hero .text-brand-100,
+.tp-journey-hero .text-brand-50 {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+.tp-journey-hero .tp-trip-weather-card {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+}
+
+.tp-journey-hero .tp-trip-weather-card * {
+  color: #ffffff !important;
+}
+
+.tp-v4-next-action-primary,
+.tp-journey-hero .tp-button-primary,
+.tp-journey-hero > button {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: var(--story-ink) !important;
+}
+
+.tp-v4-next-action-secondary,
+.tp-journey-hero .tp-button-secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.26) !important;
+  color: #ffffff !important;
+}
+
+.tp-command-center {
+  background:
+    radial-gradient(circle at 92% 0%, rgba(135, 168, 200, 0.32), transparent 15rem),
+    linear-gradient(135deg, color-mix(in srgb, var(--story-cream) 52%, var(--story-canvas)), var(--story-canvas)) !important;
+  border-color: color-mix(in srgb, var(--story-sky) 32%, var(--story-border)) !important;
+}
+
+/* Sharing gets a memorable story header while controls stay clear and flat. */
+.tp-share-story-card {
+  overflow: hidden;
+}
+
+.tp-share-story-card > div:first-child {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(135, 168, 200, 0.52), transparent 14rem),
+    linear-gradient(135deg, var(--story-teal), var(--story-teal-soft));
+  border-radius: 12px 12px 0 0;
+  margin: -16px -16px 18px;
+  padding: 20px 16px;
+}
+
+.tp-share-story-card > div:first-child .tp-section-title,
+.tp-share-story-card > div:first-child svg {
+  color: #ffffff !important;
+}
+
+.tp-share-story-card > div:first-child .tp-icon-chip {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.tp-share-story-card > div:first-child .tp-badge {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+.tp-share-story-card .whitespace-pre-line {
+  background: color-mix(in srgb, var(--story-cream) 50%, var(--story-canvas));
+  border-left: 3px solid var(--story-coral);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.tp-bottom-nav,
+.tp-atlas-dock,
+.tp-mobile-trips-dock {
+  background: color-mix(in srgb, var(--story-canvas) 94%, transparent) !important;
+  border-color: var(--story-border) !important;
+  box-shadow: 0 -12px 32px -28px rgba(10, 10, 10, 0.42) !important;
+  backdrop-filter: blur(16px);
+}
+
+.tp-nav-active,
+.tp-bottom-nav .tp-nav-active,
+.tp-atlas-dock .tp-nav-active,
+.tp-mobile-trips-dock .is-active {
+  background: var(--story-ink) !important;
+  color: var(--story-canvas) !important;
+}
+
+.tp-nav-active svg,
+.tp-nav-active .tp-nav-label,
+.tp-mobile-trips-dock .is-active svg,
+.tp-mobile-trips-dock .is-active span {
+  color: var(--story-canvas) !important;
+}
+
+@media (min-width: 768px) {
+  .tp-auth-shell {
+    background:
+      radial-gradient(circle at 12% 12%, rgba(135, 168, 200, 0.28), transparent 28rem),
+      radial-gradient(circle at 96% 90%, rgba(245, 233, 216, 0.34), transparent 30rem),
+      var(--story-surface-soft) !important;
+  }
+
+  .tp-auth-layout {
+    padding-bottom: 48px !important;
+    padding-top: 48px !important;
+  }
+
+  .tp-app-header.tp-atlas-header {
+    position: relative !important;
+    top: auto !important;
+  }
+
+  .tp-app-header-cover,
+  .tp-app-header-surface {
+    min-height: clamp(250px, 30vh, 360px);
+  }
+
+  .tp-app-header .tp-page-container {
+    align-items: end;
+    display: flex;
+    min-height: clamp(250px, 30vh, 360px);
+    padding-bottom: 32px !important;
+    padding-top: 32px !important;
+    width: 100%;
+  }
+
+  .tp-app-header .tp-page-container > div {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1180px) {
+  .tp-workspace-shell .tp-atlas-page-frame.tp-detail-page-frame {
+    margin-top: 24px !important;
+  }
+
+  .tp-v4-workspace-rail,
+  .tp-v4-planner-panel {
+    top: 20px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .tp-page-shell,
+  .tp-page-shell.tp-workspace-shell {
+    background-image: none !important;
+  }
+
+  .tp-button-primary,
+  .tp-button-secondary,
+  .tp-button-ghost,
+  .tp-button-danger,
+  .tp-input,
+  .tp-select {
+    min-height: 44px;
+  }
+
+  .tp-mobile-auth-shell {
+    grid-template-rows: minmax(18.5rem, 41vh) auto !important;
+  }
+
+  .tp-mobile-auth-hero {
+    background:
+      radial-gradient(circle at 82% 14%, rgba(135, 168, 200, 0.68), transparent 12rem),
+      radial-gradient(circle at 10% 100%, rgba(0, 212, 164, 0.16), transparent 12rem),
+      linear-gradient(145deg, var(--story-teal) 0%, #28525a 58%, var(--story-teal-soft) 100%) !important;
+    color: #ffffff !important;
+    min-height: 18.5rem !important;
+    padding-bottom: 4rem !important;
+  }
+
+  .tp-mobile-auth-hero h1,
+  .tp-mobile-auth-hero p,
+  .tp-mobile-auth-hero span,
+  .tp-mobile-auth-hero svg {
+    color: #ffffff !important;
+    text-shadow: 0 2px 10px rgba(10, 10, 10, 0.46) !important;
+  }
+
+  .tp-mobile-auth-icon {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+  }
+
+  .tp-mobile-auth-sheet,
+  .tp-mobile-trips-sheet,
+  .tp-workspace-shell-content.tp-mobile-detail-sheet {
+    background: var(--story-canvas) !important;
+    border-color: var(--story-border) !important;
+    border-radius: 24px 24px 0 0 !important;
+    box-shadow: 0 22px 48px -38px rgba(10, 10, 10, 0.4) !important;
+  }
+
+  .tp-mobile-auth-primary {
+    background: var(--story-ink) !important;
+    border-color: var(--story-ink) !important;
+    color: var(--story-canvas) !important;
+  }
+
+  .tp-mobile-auth-email {
+    background: var(--story-canvas) !important;
+    border-color: var(--story-border) !important;
+    color: var(--story-ink) !important;
+  }
+
+  .tp-mobile-trips-hero,
+  .tp-mobile-detail-hero {
+    background:
+      radial-gradient(circle at 82% 12%, rgba(135, 168, 200, 0.58), transparent 12rem),
+      linear-gradient(145deg, var(--story-teal) 0%, #28525a 58%, var(--story-teal-soft) 100%) !important;
+    color: #ffffff !important;
+  }
+
+  .tp-mobile-trips-hero:not(.has-trip-cover) h1,
+  .tp-mobile-trips-hero:not(.has-trip-cover) p,
+  .tp-mobile-trips-hero:not(.has-trip-cover) span,
+  .tp-mobile-trips-hero:not(.has-trip-cover) svg,
+  .tp-mobile-detail-hero h1,
+  .tp-mobile-detail-hero p,
+  .tp-mobile-detail-hero span,
+  .tp-mobile-detail-hero svg {
+    color: #ffffff !important;
+    text-shadow: 0 2px 10px rgba(10, 10, 10, 0.62) !important;
+  }
+
+  .tp-mobile-trips-hero.has-trip-cover {
+    background-image:
+      linear-gradient(180deg, rgba(10, 10, 10, 0.35) 0%, rgba(10, 10, 10, 0.28) 38%, rgba(10, 10, 10, 0.88) 100%),
+      var(--tp-mobile-trip-hero-image) !important;
+  }
+
+  .tp-mobile-trips-sheet {
+    margin-top: -24px;
+    position: relative;
+    z-index: 4;
+  }
+
+  .tp-mobile-trips-continue,
+  .tp-mobile-trips-search-panel,
+  .tp-mobile-trips-list-panel,
+  .tp-mobile-trip-row {
+    background: var(--story-canvas) !important;
+    border-color: var(--story-border) !important;
+    border-radius: 12px !important;
+  }
+
+  .tp-mobile-action-tabs button.is-active,
+  .tp-mobile-trip-filters button[aria-pressed="true"] {
+    background: var(--story-ink) !important;
+    color: var(--story-canvas) !important;
+  }
+
+  .tp-mobile-detail-hero,
+  .tp-mobile-detail-shell,
+  .tp-mobile-detail-photo {
+    min-height: 18rem !important;
+  }
+
+  .tp-mobile-detail-tabs {
+    background: var(--story-surface) !important;
+    border-color: var(--story-border) !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+  }
+
+  .tp-mobile-detail-tabs button {
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    min-height: 44px;
+  }
+
+  .tp-mobile-detail-tabs button.is-active {
+    background: var(--story-ink) !important;
+    color: var(--story-canvas) !important;
+  }
+
+  .tp-mobile-feature-header {
+    border-radius: 12px !important;
+    padding: 18px !important;
+  }
+
+  .tp-mobile-detail-stage .tp-day-switcher,
+  .tp-mobile-detail-stage .tp-card,
+  .tp-mobile-detail-stage .tp-panel {
+    border-radius: 12px !important;
+  }
+
+  .tp-journey-hero {
+    padding: 20px !important;
+  }
+
+  .tp-bottom-nav,
+  .tp-atlas-dock,
+  .tp-mobile-trips-dock {
+    border-radius: 16px 16px 0 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-skip-link,
+  .tp-card,
+  .tp-button-motion,
+  .tp-motion-panel {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
