@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Map, Route } from 'lucide-react';
-import { buildGoogleMapsEmbedRouteUrl } from '../../utils/googleMapsEmbed';
+import {
+  GOOGLE_MAPS_EMBED_PREVIEW_STATUS,
+  buildGoogleMapsEmbedRouteUrl,
+  getGoogleMapsEmbedPreviewStatus
+} from '../../utils/googleMapsEmbed';
 
 const googleMapsEmbedApiKey = String(
   import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY || ''
@@ -17,6 +21,13 @@ const GoogleRoutePreview = ({
     () => routeStops.map((stop) => stop?.destination || stop).filter(Boolean),
     [routeStops]
   );
+  const previewStatus = useMemo(
+    () => getGoogleMapsEmbedPreviewStatus({
+      apiKey: googleMapsEmbedApiKey,
+      destinations
+    }),
+    [destinations]
+  );
   // Keep the preview fitted to planned stops; live GPS remains available to the external navigation link.
   const embedUrl = useMemo(
     () => buildGoogleMapsEmbedRouteUrl({
@@ -31,16 +42,22 @@ const GoogleRoutePreview = ({
     setIsLoaded(false);
   }, [embedUrl]);
 
-  if (!embedUrl) {
+  if (previewStatus !== GOOGLE_MAPS_EMBED_PREVIEW_STATUS.ready) {
+    const isMissingKey = previewStatus === GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey;
+
     return (
       <div className={`relative flex min-h-56 items-center justify-center overflow-hidden bg-[#eef4f2] px-6 text-center dark:bg-slate-900 ${className}`}>
         <div className="max-w-xs text-slate-600 dark:text-slate-300">
           <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-300">
             <Map size={21} aria-hidden="true" />
           </span>
-          <p className="mt-3 text-sm font-black">尚無可預覽路線</p>
+          <p className="mt-3 text-sm font-black">
+            {isMissingKey ? '地圖預覽暫時無法載入' : '尚無可預覽路線'}
+          </p>
           <p className="mt-1 text-xs font-semibold leading-5 opacity-75">
-            行程加入地點後，Google Maps 會依時間順序顯示今日路線。
+            {isMissingKey
+              ? '地圖服務尚未完成設定，仍可使用「開路線」前往 Google Maps。'
+              : '行程加入地點後，Google Maps 會依時間順序顯示今日路線。'}
           </p>
         </div>
       </div>

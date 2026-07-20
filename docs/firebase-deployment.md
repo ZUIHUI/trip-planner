@@ -85,9 +85,17 @@ The Firebase web app config is pinned in `src/services/firebase.js`. Set only ap
 
 ```bash
 VITE_PRIMARY_OWNER_EMAIL=owner@example.com
+VITE_GOOGLE_MAPS_EMBED_API_KEY=your_http_referrer_restricted_embed_key
 ```
 
-Keep provider API keys in Firebase Functions secrets, not in Vercel frontend env vars.
+`VITE_GOOGLE_MAPS_EMBED_API_KEY` is intentionally browser-visible because Google Maps Embed API requires the key in the iframe URL. Use a dedicated key restricted to Maps Embed API and these HTTP referrers:
+
+- `https://trip-planner-36455.web.app/*`
+- `https://trip-planner-36455.firebaseapp.com/*`
+- `http://localhost:5173/*`
+- `http://127.0.0.1:5173/*`
+
+Store the value in ignored `.env.production.local` for production builds. Keep all other provider API keys in Firebase Functions secrets, and never reuse the server-only `GOOGLE_GEOCODING_API_KEY` for the iframe.
 
 Cloud Storage is intentionally closed to browser clients by `storage.rules`. The app writes handbook cover images with Admin SDK and returns server-created Firebase Storage token URLs; clients must not be able to list, upload, delete, or read arbitrary bucket objects through the Firebase Storage SDK.
 

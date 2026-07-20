@@ -42,8 +42,10 @@ const {
 } = require('../src/utils/itineraryRoute.js');
 const {
   GOOGLE_MAPS_EMBED_MAX_WAYPOINTS,
+  GOOGLE_MAPS_EMBED_PREVIEW_STATUS,
   buildGoogleMapsEmbedRouteUrl,
-  formatGoogleMapsEmbedPlace
+  formatGoogleMapsEmbedPlace,
+  getGoogleMapsEmbedPreviewStatus
 } = require('../src/utils/googleMapsEmbed.js');
 const {
   hasUsableCoordinatePair,
@@ -907,6 +909,35 @@ test('uses manual event locations when saved place details are empty', () => {
   assert.equal(state.routeStopCount, 1);
   assert.equal(state.routeStops[0].text, 'Taipei Main Station');
   assert.equal(state.routeStops[0].time, '10:15');
+});
+
+test('distinguishes empty routes from missing Google Maps Embed configuration', () => {
+  assert.equal(
+    getGoogleMapsEmbedPreviewStatus({ apiKey: '', destinations: [] }),
+    GOOGLE_MAPS_EMBED_PREVIEW_STATUS.emptyRoute
+  );
+  assert.equal(
+    getGoogleMapsEmbedPreviewStatus({ apiKey: '', destinations: ['Tokyo Station'] }),
+    GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey
+  );
+  assert.equal(
+    getGoogleMapsEmbedPreviewStatus({ apiKey: 'browser-key', destinations: ['Tokyo Station'] }),
+    GOOGLE_MAPS_EMBED_PREVIEW_STATUS.ready
+  );
+});
+
+test('documents the browser-restricted Maps Embed key and keeps preview errors distinct', () => {
+  const envExample = fs.readFileSync(path.join(__dirname, '..', '.env.example'), 'utf8');
+  const previewSource = fs.readFileSync(
+    path.join(__dirname, '..', 'src', 'components', 'trip', 'GoogleRoutePreview.jsx'),
+    'utf8'
+  );
+
+  assert.match(envExample, /^VITE_GOOGLE_MAPS_EMBED_API_KEY=\s*$/m);
+  assert.match(envExample, /Google Maps Embed API/);
+  assert.match(previewSource, /地圖預覽暫時無法載入/);
+  assert.match(previewSource, /尚無可預覽路線/);
+  assert.match(previewSource, /getGoogleMapsEmbedPreviewStatus/);
 });
 
 test('builds an authenticated Google Maps Embed route in itinerary order', () => {

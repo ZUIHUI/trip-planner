@@ -3,6 +3,12 @@ import { hasUsableCoordinatePair, readFiniteCoordinate } from './placeCoordinate
 
 export const GOOGLE_MAPS_EMBED_MAX_WAYPOINTS = 20;
 
+export const GOOGLE_MAPS_EMBED_PREVIEW_STATUS = Object.freeze({
+  emptyRoute: 'empty-route',
+  missingKey: 'missing-key',
+  ready: 'ready'
+});
+
 export const formatGoogleMapsEmbedPlace = (place) => {
   const placeId = getPlaceId(place);
   if (placeId) return `place_id:${placeId}`;
@@ -29,6 +35,24 @@ const uniqueRoutePoints = (points = []) => {
   return unique;
 };
 
+const normalizeRoutePoints = (destinations = []) => uniqueRoutePoints(
+  (Array.isArray(destinations) ? destinations : [destinations])
+    .map(formatGoogleMapsEmbedPlace)
+    .filter(Boolean)
+);
+
+export const getGoogleMapsEmbedPreviewStatus = ({ apiKey, destinations = [] } = {}) => {
+  if (!normalizeRoutePoints(destinations).length) {
+    return GOOGLE_MAPS_EMBED_PREVIEW_STATUS.emptyRoute;
+  }
+
+  if (!String(apiKey || '').trim()) {
+    return GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey;
+  }
+
+  return GOOGLE_MAPS_EMBED_PREVIEW_STATUS.ready;
+};
+
 const buildEmbedBaseParams = ({ apiKey, language, region }) => {
   const params = new URLSearchParams({ key: apiKey });
   if (language) params.set('language', language);
@@ -48,11 +72,7 @@ export const buildGoogleMapsEmbedRouteUrl = ({
   const normalizedApiKey = String(apiKey || '').trim();
   if (!normalizedApiKey) return '';
 
-  const routePoints = uniqueRoutePoints(
-    (Array.isArray(destinations) ? destinations : [destinations])
-      .map(formatGoogleMapsEmbedPlace)
-      .filter(Boolean)
-  );
+  const routePoints = normalizeRoutePoints(destinations);
   if (!routePoints.length) return '';
 
   let originPoint = formatGoogleMapsEmbedPlace(origin);

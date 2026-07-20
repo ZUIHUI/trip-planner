@@ -80,7 +80,7 @@ npm run preview
 
 請以 `.env.example` 作為完整範本。常用設定分成三類：
 
-- 前端 Vite 變數：Firebase web app 設定、Realtime Database URL、主要 owner email，皆使用 `VITE_` 前綴；不要把第三方 provider API key 放在前端變數。
+- 前端 Vite 變數：Firebase web app 設定、Realtime Database URL、主要 owner email，皆使用 `VITE_` 前綴。唯一例外是刻意公開在 iframe URL 的 `VITE_GOOGLE_MAPS_EMBED_API_KEY`；它必須是獨立 key，且只允許 Maps Embed API 與指定 HTTP referrer。
 - Server-side 變數：航班查詢使用 FlightAPI.io，地點搜尋 / Geocoding 使用 Google API，AI 行程推薦使用 OpenAI API；provider API key 必須放在 Firebase Functions secret，不要加上 `VITE_` 前綴。
 - Firebase Functions secrets：Email 驗證碼、邀請碼、航班查詢、Google 地點查詢、AI 推薦與 Gmail SMTP 寄信服務使用 `GMAIL_SMTP_USER`、`GMAIL_SMTP_APP_PASSWORD`、`EMAIL_FROM`、`EMAIL_CODE_PEPPER`、`INVITE_CODE_PEPPER`、`FLIGHTAPI_IO_KEY`、`GOOGLE_GEOCODING_API_KEY`、`OPENAI_API_KEY` 等 secrets / runtime env。
 
@@ -91,6 +91,14 @@ firebase functions:secrets:set FLIGHTAPI_IO_KEY
 firebase functions:secrets:set GOOGLE_GEOCODING_API_KEY
 firebase functions:secrets:set OPENAI_API_KEY
 ```
+
+地圖預覽使用瀏覽器端 Maps Embed API key。將既有的專用 key 放在不納入 Git 的 `.env.production.local`：
+
+```env
+VITE_GOOGLE_MAPS_EMBED_API_KEY=your_http_referrer_restricted_embed_key
+```
+
+此 key 只允許 Maps Embed API，HTTP referrer 限制為正式 Hosting 網域與本機開發網址；不要沿用 server-side 的 `GOOGLE_GEOCODING_API_KEY`。
 
 航班查詢已改為需要登入的 Firebase Callable Function；公開 `/api/flight-lookup` endpoint 只會回傳授權錯誤，避免外部直接消耗 provider key。
 
