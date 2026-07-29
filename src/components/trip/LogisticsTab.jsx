@@ -9,14 +9,12 @@ import {
   Info,
   MapPin,
   Plane,
-  Search,
   Wallet
 } from 'lucide-react';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { formatDateRangeText, getTripDisplayDates, normalizeTripDateFields } from '../../utils/tripDates';
 import { getEditingMembersForTarget } from '../../utils/presence';
-import { getFlightLookupAvailability } from '../../services/flightService';
 import { dateInputProps, moneyInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 import {
   buildFlightDateValue,
@@ -40,12 +38,12 @@ const statusMeta = {
 const directionMeta = {
   outbound: {
     label: '去程',
-    helper: '用旅程開始日查詢航班',
+    helper: '手動記錄去程航班與機場資訊',
     colorClass: 'bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300'
   },
   inbound: {
     label: '回程',
-    helper: '用旅程結束日查詢航班',
+    helper: '手動記錄回程航班與機場資訊',
     colorClass: 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
   }
 };
@@ -771,9 +769,6 @@ const FlightCard = ({
   direction,
   tripDetails,
   setTripDetails,
-  handleLookupFlight,
-  isLookingUp,
-  lookupError,
   editingMembers = [],
   onEditingFocus,
   onEditingBlur,
@@ -784,18 +779,7 @@ const FlightCard = ({
   const meta = directionMeta[direction];
   const flight = tripDetails?.flights?.[direction] || {};
   const flightDateFallbackYear = getFlightDateFallbackYear(tripDetails);
-  const lookupDate = direction === 'outbound'
-    ? tripDetails?.dateRange?.start
-    : tripDetails?.dateRange?.end;
-  const lookupAvailability = getFlightLookupAvailability(lookupDate || '');
-  const hasFlightCode = Boolean((flight.code || '').trim());
-  const canLookup = hasFlightCode && lookupAvailability.canLookup;
   const showDetails = !compact || detailsOpen;
-  const lookupHint = !lookupAvailability.canLookup
-    ? lookupAvailability.message
-    : hasFlightCode
-      ? `用旅程日期 ${lookupAvailability.normalizedDate} 查航班`
-      : '輸入航班號後可用旅程日期查航班';
   const editingTarget = getFlightEditingTarget(direction);
   const compactRoute = flight.dep || flight.arr
     ? `${flight.dep || '未設定'} -> ${flight.arr || '未設定'}`
@@ -813,7 +797,7 @@ const FlightCard = ({
       onFocusCapture={() => onEditingFocus?.(editingTarget)}
       onBlurCapture={(event) => onEditingBlur?.(editingTarget, event)}
     >
-      <div className="mb-3 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="mb-3 flex min-w-0 items-start gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${meta.colorClass}`}>
             <Plane size={20} />
@@ -831,37 +815,8 @@ const FlightCard = ({
             )}
           </div>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => handleLookupFlight(direction)}
-          disabled={isLookingUp || !canLookup}
-          className="w-full sm:w-auto"
-        >
-          <Search size={14} />
-          {isLookingUp ? '查詢中...' : '查詢航班'}
-        </Button>
       </div>
       <EditingNotice target={editingTarget} members={editingMembers} />
-
-      <p className={`mb-3 max-w-full break-words rounded-lg border px-3 py-2 text-xs font-semibold ${
-        lookupAvailability.canLookup
-          ? 'border-sky-100 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/25 dark:text-sky-300'
-          : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-200'
-      }`}>
-        {lookupHint}
-      </p>
-
-      <p className="mb-3 max-w-full break-words rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-        同航班號有多段航線時，先填出發與抵達機場。
-      </p>
-
-      {lookupError && (
-        <p className="mb-3 max-w-full break-words rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-300">
-          {lookupError}
-        </p>
-      )}
 
       <div className="grid min-w-0 gap-3">
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
@@ -992,9 +947,6 @@ const FlightCard = ({
 const FlightSection = ({
   tripDetails,
   setTripDetails,
-  handleLookupFlight,
-  isLookingUpFlight,
-  flightLookupError,
   editingByTarget = {},
   onEditingFocus,
   onEditingBlur,
@@ -1046,9 +998,6 @@ const FlightSection = ({
           direction={activeDirection}
           tripDetails={tripDetails}
           setTripDetails={setTripDetails}
-          handleLookupFlight={handleLookupFlight}
-          isLookingUp={Boolean(isLookingUpFlight?.[activeDirection])}
-          lookupError={flightLookupError?.[activeDirection]}
           editingMembers={getEditingMembersForTarget(editingByTarget, getFlightEditingTarget(activeDirection))}
           onEditingFocus={onEditingFocus}
           onEditingBlur={onEditingBlur}
@@ -1071,9 +1020,6 @@ const FlightSection = ({
           direction="outbound"
           tripDetails={tripDetails}
           setTripDetails={setTripDetails}
-          handleLookupFlight={handleLookupFlight}
-          isLookingUp={Boolean(isLookingUpFlight?.outbound)}
-          lookupError={flightLookupError?.outbound}
           editingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.outboundFlight)}
           onEditingFocus={onEditingFocus}
           onEditingBlur={onEditingBlur}
@@ -1083,9 +1029,6 @@ const FlightSection = ({
           direction="inbound"
           tripDetails={tripDetails}
           setTripDetails={setTripDetails}
-          handleLookupFlight={handleLookupFlight}
-          isLookingUp={Boolean(isLookingUpFlight?.inbound)}
-          lookupError={flightLookupError?.inbound}
           editingMembers={getEditingMembersForTarget(editingByTarget, tripDetailEditingTargets.inboundFlight)}
           onEditingFocus={onEditingFocus}
           onEditingBlur={onEditingBlur}
@@ -1100,9 +1043,6 @@ const LogisticsTab = () => {
   const {
     tripDetails,
     setTripDetails,
-    handleLookupFlight,
-    isLookingUpFlight,
-    flightLookupError,
     editingByTarget,
     canEdit,
     updatePresenceEditingTarget,
@@ -1213,9 +1153,6 @@ const LogisticsTab = () => {
         <FlightSection
           tripDetails={tripDetails}
           setTripDetails={setTripDetails}
-          handleLookupFlight={handleLookupFlight}
-          isLookingUpFlight={isLookingUpFlight}
-          flightLookupError={flightLookupError}
           editingByTarget={editingByTarget}
           onEditingFocus={handleEditingFocus}
           onEditingBlur={handleEditingBlur}
@@ -1298,9 +1235,6 @@ const LogisticsTab = () => {
         <FlightSection
           tripDetails={tripDetails}
           setTripDetails={setTripDetails}
-          handleLookupFlight={handleLookupFlight}
-          isLookingUpFlight={isLookingUpFlight}
-          flightLookupError={flightLookupError}
           editingByTarget={editingByTarget}
           onEditingFocus={handleEditingFocus}
           onEditingBlur={handleEditingBlur}

@@ -1,7 +1,7 @@
 const { onDocumentDeleted, onDocumentWritten } = require('firebase-functions/v2/firestore');
 const { HttpsError, onCall } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { defineSecret } = require('firebase-functions/params');
+const { defineSecret, defineString } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -37,29 +37,29 @@ const firestore = admin.firestore();
 const realtimeDb = admin.database();
 const serverTimestamp = admin.database.ServerValue.TIMESTAMP;
 const PRIMARY_OWNER_EMAIL = (process.env.PRIMARY_OWNER_EMAIL || 'sky32439@gmail.com').toLowerCase();
-const GMAIL_SMTP_USER = defineSecret('GMAIL_SMTP_USER');
+const GMAIL_SMTP_USER = defineString('GMAIL_SMTP_USER', {
+  description: 'Gmail account used to send login codes.'
+});
 const GMAIL_SMTP_APP_PASSWORD = defineSecret('GMAIL_SMTP_APP_PASSWORD');
 const EMAIL_CODE_PEPPER = defineSecret('EMAIL_CODE_PEPPER');
 const INVITE_CODE_PEPPER = defineSecret('INVITE_CODE_PEPPER');
-const FLIGHTAPI_IO_KEY = defineSecret('FLIGHTAPI_IO_KEY');
 const GOOGLE_GEOCODING_API_KEY = defineSecret('GOOGLE_GEOCODING_API_KEY');
 const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
-const WEB_PUSH_VAPID_PUBLIC_KEY = defineSecret('WEB_PUSH_VAPID_PUBLIC_KEY');
+const WEB_PUSH_VAPID_PUBLIC_KEY = defineString('WEB_PUSH_VAPID_PUBLIC_KEY', {
+  description: 'Public VAPID key returned to signed-in browser clients.'
+});
 const WEB_PUSH_VAPID_PRIVATE_KEY = defineSecret('WEB_PUSH_VAPID_PRIVATE_KEY');
-const WEB_PUSH_VAPID_SUBJECT = defineSecret('WEB_PUSH_VAPID_SUBJECT');
-const WEB_PUSH_SECRET_DEFINITIONS = [
-  WEB_PUSH_VAPID_PUBLIC_KEY,
-  WEB_PUSH_VAPID_PRIVATE_KEY,
-  WEB_PUSH_VAPID_SUBJECT
-];
+const WEB_PUSH_VAPID_SUBJECT = defineString('WEB_PUSH_VAPID_SUBJECT', {
+  default: `mailto:${PRIMARY_OWNER_EMAIL}`,
+  description: 'Public contact URI used for Web Push VAPID details.'
+});
+const WEB_PUSH_SECRET_DEFINITIONS = [WEB_PUSH_VAPID_PRIVATE_KEY];
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const EMAIL_CODE_SEND_COOLDOWN_MS = 60 * 1000;
 const EMAIL_CODE_VERIFICATION_LOCK_MS = 60 * 1000;
 const EMAIL_CODE_MAX_ATTEMPTS = 5;
 const INVITE_CODE_RATE_WINDOW_MS = 5 * 60 * 1000;
 const INVITE_CODE_MAX_ATTEMPTS = 12;
-const FLIGHT_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
-const FLIGHT_LOOKUP_MAX_ATTEMPTS = 20;
 const GOOGLE_LOOKUP_RATE_WINDOW_MS = 10 * 60 * 1000;
 const GOOGLE_LOOKUP_MAX_ATTEMPTS = 120;
 const AI_RECOMMENDATION_RATE_WINDOW_MS = 10 * 60 * 1000;
@@ -68,7 +68,6 @@ const AI_HANDBOOK_RATE_WINDOW_MS = 10 * 60 * 1000;
 const AI_HANDBOOK_MAX_ATTEMPTS = 5;
 const INVITE_CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const DEFAULT_EMAIL_FROM_NAME = 'Trip Planner';
-const FLIGHTAPI_BASE_URL = 'https://api.flightapi.io/airline';
 const OPENAI_RESPONSES_ENDPOINT = 'https://api.openai.com/v1/responses';
 const GOOGLE_GEOCODING_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 const GOOGLE_PLACES_AUTOCOMPLETE_ENDPOINT = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
@@ -488,35 +487,6 @@ const assertInviteRedeemRateLimit = async (uid) => {
   }
 };
 
-const assertFlightLookupRateLimit = async (uid) => {
-  const now = Date.now();
-  const rateRef = firestore.collection('flightLookupRateLimits').doc(uid);
-  let waitSeconds = 0;
-
-  await firestore.runTransaction(async (transaction) => {
-    const snap = await transaction.get(rateRef);
-    const data = snap.exists ? snap.data() : {};
-    const windowStartedAtMs = Number(data.windowStartedAtMs || 0);
-    const attempts = Number(data.attempts || 0);
-    const isSameWindow = windowStartedAtMs && now - windowStartedAtMs < FLIGHT_LOOKUP_RATE_WINDOW_MS;
-
-    if (isSameWindow && attempts >= FLIGHT_LOOKUP_MAX_ATTEMPTS) {
-      waitSeconds = Math.ceil((FLIGHT_LOOKUP_RATE_WINDOW_MS - (now - windowStartedAtMs)) / 1000);
-      return;
-    }
-
-    transaction.set(rateRef, {
-      attempts: isSameWindow ? attempts + 1 : 1,
-      windowStartedAtMs: isSameWindow ? windowStartedAtMs : now,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-  });
-
-  if (waitSeconds > 0) {
-    throw new HttpsError('resource-exhausted', `航班查詢太頻繁，請 ${waitSeconds} 秒後再試。`);
-  }
-};
-
 const assertGoogleLookupRateLimit = async (uid) => {
   const now = Date.now();
   const rateRef = firestore.collection('googleLookupRateLimits').doc(uid);
@@ -622,146 +592,6 @@ const getOrCreateEmailUser = async (email) => {
       displayName: email.split('@')[0]
     });
   }
-};
-
-const normalizeFlightCode = (rawCode = '') => String(rawCode).trim().toUpperCase().replace(/\s+/g, '');
-const normalizeAirportCode = (rawCode = '') => String(rawCode || '').trim().toUpperCase();
-const isAirportCode = (rawCode = '') => /^[A-Z]{3}$/.test(normalizeAirportCode(rawCode));
-
-const parseFlightCode = (rawCode = '') => {
-  const code = normalizeFlightCode(rawCode);
-  const match = code.match(/^([A-Z0-9]{2})(\d{1,5}[A-Z]?)$/);
-  if (!match) return null;
-  return { code, name: match[1], num: match[2] };
-};
-
-const normalizeLookupDate = (rawDate = '') => {
-  const value = String(rawDate || '').trim();
-  if (!value) return '';
-
-  const slashDate = value.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if (slashDate) {
-    return `${slashDate[1]}${slashDate[2].padStart(2, '0')}${slashDate[3].padStart(2, '0')}`;
-  }
-
-  const dashDate = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (dashDate) {
-    return `${dashDate[1]}${dashDate[2].padStart(2, '0')}${dashDate[3].padStart(2, '0')}`;
-  }
-
-  return /^\d{8}$/.test(value) ? value : '';
-};
-
-const formatLookupDate = (yyyymmdd = '') => {
-  const match = String(yyyymmdd).match(/^\d{4}(\d{2})(\d{2})$/);
-  return match ? `${Number(match[1])}/${Number(match[2])}` : '';
-};
-
-const toFlightTimeText = (raw) => {
-  const value = String(raw || '').trim();
-  if (!value) return '';
-
-  const isoMatch = value.match(/T(\d{2}):(\d{2})/);
-  if (isoMatch) return `${isoMatch[1]}:${isoMatch[2]}`;
-
-  const meridiemMatch = value.match(/\b(\d{1,2}):(\d{2})\s*(AM|PM)\b/i);
-  if (meridiemMatch) {
-    const hour = Number(meridiemMatch[1]);
-    const minute = meridiemMatch[2];
-    const meridiem = meridiemMatch[3].toUpperCase();
-    const normalizedHour = meridiem === 'PM'
-      ? (hour === 12 ? 12 : hour + 12)
-      : (hour === 12 ? 0 : hour);
-    return `${String(normalizedHour).padStart(2, '0')}:${minute}`;
-  }
-
-  const timeMatch = value.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
-  return timeMatch ? `${String(Number(timeMatch[1])).padStart(2, '0')}:${timeMatch[2]}` : value;
-};
-
-const readFlightText = (...values) => {
-  const value = values.find((item) => typeof item === 'string' && item.trim());
-  return value ? value.trim() : '';
-};
-
-const getFlightField = (source, ...keys) => {
-  if (!source || typeof source !== 'object') return '';
-  for (const key of keys) {
-    const value = source[key];
-    if (typeof value === 'string' && value.trim()) return value.trim();
-  }
-  return '';
-};
-
-const asFlightArray = (value) => {
-  if (Array.isArray(value)) return value;
-  return value == null ? [] : [value];
-};
-
-const findFlightLeg = (payload, key) => {
-  for (const container of asFlightArray(payload)) {
-    const leg = asFlightArray(container?.[key]).find((item) => item && typeof item === 'object');
-    if (leg) return leg;
-  }
-  return null;
-};
-
-const extractFlightTerminal = (raw) => {
-  const value = String(raw || '').trim();
-  if (!value) return '';
-  const [terminal] = value.split(/\s+-\s+/);
-  return terminal?.trim() || '';
-};
-
-const buildFlightRecord = (payload, flightCode, carrierCode, lookupDate) => {
-  const items = asFlightArray(payload);
-  const firstItem = items[0] || {};
-  const departure = findFlightLeg(items, 'departure');
-  const arrival = findFlightLeg(items, 'arrival');
-
-  if (!departure && !arrival) return null;
-
-  const departureTime = readFlightText(
-    departure?.offGroundTime,
-    departure?.outGateTime,
-    getFlightField(departure, 'Takeoff Time:', 'Takeoff Time', 'Actual Time:', 'Actual Time'),
-    getFlightField(departure, 'Scheduled Time:', 'Scheduled Time'),
-    departure?.scheduledTime,
-    departure?.estimatedTime,
-    departure?.departureDateTime,
-    departure?.scheduledDateTime,
-    departure?.estimatedDateTime
-  );
-  const arrivalTime = readFlightText(
-    arrival?.inGateTime,
-    arrival?.onGroundTime,
-    getFlightField(arrival, 'At Gate Time:', 'At Gate Time', 'Actual Time:', 'Actual Time'),
-    getFlightField(arrival, 'Scheduled Time:', 'Scheduled Time'),
-    arrival?.scheduledTime,
-    arrival?.estimatedTime,
-    arrival?.arrivalDateTime,
-    arrival?.scheduledDateTime,
-    arrival?.estimatedDateTime
-  );
-
-  return {
-    code: flightCode,
-    airline: readFlightText(firstItem?.airline?.name, firstItem?.airlineName, firstItem?.airline, carrierCode),
-    date: formatLookupDate(lookupDate),
-    departureTime: toFlightTimeText(departureTime),
-    arrivalTime: toFlightTimeText(arrivalTime),
-    dep: readFlightText(departure?.airportCode, departure?.airportIata, departure?.iata, getFlightField(departure, 'Airport:', 'Airport')),
-    arr: readFlightText(arrival?.airportCode, arrival?.airportIata, arrival?.iata, getFlightField(arrival, 'Airport:', 'Airport')),
-    depTerminal: readFlightText(extractFlightTerminal(getFlightField(departure, 'Terminal - Gate:', 'Terminal - Gate')), departure?.terminal),
-    arrTerminal: readFlightText(extractFlightTerminal(getFlightField(arrival, 'Terminal - Gate:', 'Terminal - Gate')), arrival?.terminal)
-  };
-};
-
-const flightProviderMessage = (status) => {
-  if (status === 401 || status === 403) return '航班查詢服務設定尚未完成，請稍後再試或手動填寫。';
-  if (status === 404 || status === 410) return '查無此日期的航班資料，已保留目前手動輸入內容。';
-  if (status === 429) return '航班查詢次數已達上限，請稍後再試或手動填寫。';
-  return '航班查詢暫時無法使用，請稍後再試或手動填寫。';
 };
 
 const GOOGLE_PLACE_STATUS = {
@@ -1053,7 +883,7 @@ const getRuntimeValue = (secret, envName, fallback = '') => {
 };
 
 const getConfiguredWebPushPublicKey = () => {
-  const publicKey = getRuntimeValue(WEB_PUSH_VAPID_PUBLIC_KEY, 'WEB_PUSH_VAPID_PUBLIC_KEY');
+  const publicKey = String(WEB_PUSH_VAPID_PUBLIC_KEY.value() || '').trim();
   if (!publicKey) {
     throw new HttpsError('failed-precondition', 'Web Push is not configured.');
   }
@@ -1063,11 +893,7 @@ const getConfiguredWebPushPublicKey = () => {
 const getConfiguredWebPushDetails = () => {
   const publicKey = getConfiguredWebPushPublicKey();
   const privateKey = getRuntimeValue(WEB_PUSH_VAPID_PRIVATE_KEY, 'WEB_PUSH_VAPID_PRIVATE_KEY');
-  const subject = getRuntimeValue(
-    WEB_PUSH_VAPID_SUBJECT,
-    'WEB_PUSH_VAPID_SUBJECT',
-    `mailto:${PRIMARY_OWNER_EMAIL}`
-  );
+  const subject = String(WEB_PUSH_VAPID_SUBJECT.value() || `mailto:${PRIMARY_OWNER_EMAIL}`).trim();
 
   if (!privateKey) {
     throw new HttpsError('failed-precondition', 'Web Push private key is not configured.');
@@ -2036,15 +1862,12 @@ const readStoredTripHandbookCoverDataUrl = async ({ tripId, visuals = {} }) => {
   }
 };
 
-exports.getWebPushConfig = onCall(
-  { secrets: [WEB_PUSH_VAPID_PUBLIC_KEY] },
-  async (request) => {
-    requireSignedIn(request);
-    return {
-      publicKey: getConfiguredWebPushPublicKey()
-    };
-  }
-);
+exports.getWebPushConfig = onCall(async (request) => {
+  requireSignedIn(request);
+  return {
+    publicKey: getConfiguredWebPushPublicKey()
+  };
+});
 
 exports.registerPushDevice = onCall(async (request) => {
   const uid = requireSignedIn(request);
@@ -2466,92 +2289,8 @@ exports.getTripHandbook = onCall(
   }
 );
 
-exports.lookupFlight = onCall(
-  { secrets: [FLIGHTAPI_IO_KEY] },
-  async (request) => {
-    const uid = requireSignedIn(request);
-
-    const apiKey = FLIGHTAPI_IO_KEY.value();
-    if (!apiKey) {
-      throw new HttpsError('failed-precondition', '航班查詢服務尚未設定完成。');
-    }
-
-    const parsedCode = parseFlightCode(request.data?.code);
-    if (!parsedCode) {
-      throw new HttpsError('invalid-argument', '航班代號格式不正確，請輸入例如 BR198、JX802 或 7C1101。');
-    }
-
-    const date = normalizeLookupDate(request.data?.date);
-    if (!date) {
-      throw new HttpsError('invalid-argument', '航班查詢日期格式不正確，請使用旅程日期或手動填寫。');
-    }
-
-    const departureAirport = normalizeAirportCode(request.data?.depap);
-    if (request.data?.depap && !isAirportCode(departureAirport)) {
-      throw new HttpsError('invalid-argument', '出發機場請輸入 3 碼 IATA 代碼，例如 TPE。');
-    }
-
-    const arrivalAirport = normalizeAirportCode(request.data?.arrap);
-    if (request.data?.arrap && !isAirportCode(arrivalAirport)) {
-      throw new HttpsError('invalid-argument', '抵達機場請輸入 3 碼 IATA 代碼，例如 NRT。');
-    }
-
-    await assertFlightLookupRateLimit(uid);
-
-    const query = new URLSearchParams({
-      num: parsedCode.num,
-      name: parsedCode.name,
-      date
-    });
-    if (departureAirport) query.set('depap', departureAirport);
-
-    let payload = null;
-    let response = null;
-    try {
-      response = await fetch(`${FLIGHTAPI_BASE_URL}/${encodeURIComponent(apiKey)}?${query.toString()}`);
-      const contentType = response.headers.get('content-type') || '';
-      payload = contentType.includes('application/json')
-        ? await response.json()
-        : await response.text();
-    } catch {
-      throw new HttpsError('unavailable', '航班查詢暫時無法連線，請稍後再試或手動填寫。');
-    }
-
-    if (!response.ok) {
-      throw new HttpsError(
-        response.status === 429 ? 'resource-exhausted' : 'unavailable',
-        flightProviderMessage(response.status)
-      );
-    }
-
-    const results = Array.isArray(payload) ? payload : payload?.data || payload?.results || [];
-    if (!Array.isArray(results) || results.length === 0) {
-      throw new HttpsError('not-found', '查無此日期的航班資料，已保留目前手動輸入內容。');
-    }
-
-    const flight = buildFlightRecord(results, parsedCode.code, parsedCode.name, date);
-    if (!flight) {
-      throw new HttpsError('data-loss', '航班資料不完整，請手動確認。');
-    }
-
-    if (arrivalAirport && normalizeAirportCode(flight.arr) !== arrivalAirport) {
-      const actualRoute = `${flight.dep || '未取得'} -> ${flight.arr || '未取得'}`;
-      throw new HttpsError(
-        'failed-precondition',
-        `查到的航段為 ${actualRoute}，與選擇的抵達機場 ${arrivalAirport} 不符。`,
-        { flight }
-      );
-    }
-
-    return {
-      provider: 'flightapi.io',
-      flight
-    };
-  }
-);
-
 exports.requestEmailLoginCode = onCall(
-  { secrets: [GMAIL_SMTP_USER, GMAIL_SMTP_APP_PASSWORD, EMAIL_CODE_PEPPER] },
+  { secrets: [GMAIL_SMTP_APP_PASSWORD, EMAIL_CODE_PEPPER] },
   async (request) => {
     const email = normalizeEmail(request.data?.email);
     if (!isValidEmail(email)) {

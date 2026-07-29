@@ -101,26 +101,38 @@ Cloud Storage is intentionally closed to browser clients by `storage.rules`. The
 
 Email verification-code login uses Gmail SMTP. Use a dedicated Gmail account when possible, enable 2-Step Verification, then create a Google App Password for SMTP. Personal Gmail accounts are subject to Gmail sending limits, commonly 500 sent messages per day; if the limit is reached, sending can pause for 1 to 24 hours.
 
-Configure the Functions secrets before deploying Functions:
+Configure non-sensitive Functions parameters in the ignored
+`functions/.env.trip-planner-36455` file:
+
+```env
+GMAIL_SMTP_USER=your-gmail@gmail.com
+WEB_PUSH_VAPID_PUBLIC_KEY=your_public_vapid_key
+WEB_PUSH_VAPID_SUBJECT=mailto:your-gmail@gmail.com
+EMAIL_FROM="Trip Planner <your-gmail@gmail.com>"
+```
+
+Configure the six sensitive Functions secrets before deploying Functions:
 
 ```bash
-firebase functions:secrets:set GMAIL_SMTP_USER
 firebase functions:secrets:set GMAIL_SMTP_APP_PASSWORD
 firebase functions:secrets:set EMAIL_CODE_PEPPER
 firebase functions:secrets:set INVITE_CODE_PEPPER
-firebase functions:secrets:set FLIGHTAPI_IO_KEY
 firebase functions:secrets:set GOOGLE_GEOCODING_API_KEY
 firebase functions:secrets:set OPENAI_API_KEY
-firebase functions:secrets:set WEB_PUSH_VAPID_PUBLIC_KEY
 firebase functions:secrets:set WEB_PUSH_VAPID_PRIVATE_KEY
-firebase functions:secrets:set WEB_PUSH_VAPID_SUBJECT
 ```
 
-Set the optional sender display value to match the Gmail account or an allowed Gmail alias:
+Flight details are entered manually. The app no longer calls FlightAPI.io and
+does not require `FLIGHTAPI_IO_KEY`.
 
-```bash
-EMAIL_FROM="Trip Planner <your-gmail@gmail.com>"
-```
+After deploying these Functions, run
+`firebase functions:secrets:prune --project trip-planner-36455` to destroy
+Firebase-managed Secret versions no longer referenced by deployed Functions, including
+`GMAIL_SMTP_USER`, `WEB_PUSH_VAPID_PUBLIC_KEY`, `WEB_PUSH_VAPID_SUBJECT`, and
+`FLIGHTAPI_IO_KEY`. Remove the legacy `RESEND_API_KEY` too when it is still
+present. The prune command can miss manually created Secret versions without a
+Firebase-managed label, so review those versions separately. Destroyed secret
+versions cannot be restored.
 
 AI trip recommendations use the `generateTripRecommendations` callable Function. Keep `OPENAI_API_KEY` as a Functions secret; optionally set `OPENAI_MODEL` as a Functions runtime environment value when a different OpenAI model should be used. Do not expose either provider key through `VITE_` frontend variables.
 

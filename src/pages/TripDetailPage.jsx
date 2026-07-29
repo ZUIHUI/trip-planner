@@ -45,7 +45,6 @@ import { useTripPresence } from '../hooks/useTripPresence';
 import { useTripRealtime } from '../hooks/useTripRealtime';
 import { useBudget } from '../hooks/useBudget';
 import { useDeviceLocation } from '../hooks/useDeviceLocation';
-import { useFlightLookup } from '../hooks/useFlightLookup';
 import { useTripAiRecommendations } from '../hooks/useTripAiRecommendations';
 import { useTripHandbook } from '../hooks/useTripHandbook';
 import { fetchJPYRate } from '../services/currencyService';
@@ -681,15 +680,6 @@ const TripDetailPage = () => {
     tripId
   ]);
 
-  const {
-    isLookingUpFlight,
-    flightLookupError,
-    handleLookupFlight
-  } = useFlightLookup({
-    canEdit,
-    tripDetails,
-    setTripDetails: handleTripDetailsChange
-  });
   const tripAi = useTripAiRecommendations({
     tripId,
     selectedDay,
@@ -1667,10 +1657,7 @@ const TripDetailPage = () => {
     handleMoveEvent: handleMoveEventDocument,
     handleMoveEventToAdjacentDay: handleMoveEventToAdjacentDayDocument,
     handleAppendEvent: handleAppendEventDocument,
-    handleOpenGoogleMaps,
-    handleLookupFlight,
-    isLookingUpFlight,
-    flightLookupError
+    handleOpenGoogleMaps
   }), [
     tripId,
     tripDetails,
@@ -1735,9 +1722,7 @@ const TripDetailPage = () => {
     isEditingDayMeta,
     dayMetaDraft,
     tripAi.openPanel,
-    handleAppendEventDocument,
-    isLookingUpFlight,
-    flightLookupError
+    handleAppendEventDocument
   ]);
 
   if (isLoading) {

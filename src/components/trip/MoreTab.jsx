@@ -193,7 +193,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
         <ModuleButton
           icon={Plane}
           title="航班與住宿"
-          description="航班查詢、住宿地址"
+          description="航班資料、住宿地址"
           meta={getLogisticsStatus(tripDetails)}
           tone="sky"
           onClick={() => onTabChange?.('flights')}

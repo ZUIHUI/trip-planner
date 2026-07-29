@@ -435,6 +435,33 @@ test('wires AI recommendations through server-only OpenAI configuration', () => 
   assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
 });
 
+test('keeps non-sensitive function settings out of Secret Manager and removes FlightAPI lookup', () => {
+  const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', 'TripDetailPage.jsx'), 'utf8');
+  const logisticsSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'LogisticsTab.jsx'), 'utf8');
+  const secretNames = [...functionsSource.matchAll(/defineSecret\('([^']+)'\)/g)]
+    .map((match) => match[1])
+    .sort();
+
+  assert.deepEqual(secretNames, [
+    'EMAIL_CODE_PEPPER',
+    'GMAIL_SMTP_APP_PASSWORD',
+    'GOOGLE_GEOCODING_API_KEY',
+    'INVITE_CODE_PEPPER',
+    'OPENAI_API_KEY',
+    'WEB_PUSH_VAPID_PRIVATE_KEY'
+  ]);
+  assert.match(functionsSource, /const GMAIL_SMTP_USER = defineString\('GMAIL_SMTP_USER'/);
+  assert.match(functionsSource, /const WEB_PUSH_VAPID_PUBLIC_KEY = defineString\('WEB_PUSH_VAPID_PUBLIC_KEY'/);
+  assert.match(functionsSource, /const WEB_PUSH_VAPID_SUBJECT = defineString\('WEB_PUSH_VAPID_SUBJECT'/);
+  assert.doesNotMatch(functionsSource, /FLIGHTAPI_IO_KEY|exports\.lookupFlight|flightLookupRateLimits/);
+  assert.doesNotMatch(tripDetailSource, /useFlightLookup|handleLookupFlight|flightLookupError/);
+  assert.doesNotMatch(logisticsSource, /getFlightLookupAvailability|handleLookupFlight|查詢航班/);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', 'src', 'hooks', 'useFlightLookup.js')), false);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', 'src', 'services', 'flightService.js')), false);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', 'api', 'flight-lookup.js')), false);
+});
+
 test('builds sanitized AI handbook snapshots with trip-only data', () => {
   const snapshot = buildTripHandbookSnapshot({
     trip: {

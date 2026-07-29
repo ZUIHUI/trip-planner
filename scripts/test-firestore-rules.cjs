@@ -538,8 +538,6 @@ const run = async () => {
       updatedAt: now
     }));
 
-    await assertFails(getDoc(doc(ownerDb, 'flightLookupRateLimits/ownerUid')));
-    await assertFails(deleteDoc(doc(ownerDb, 'flightLookupRateLimits/ownerUid')));
     await assertFails(getDoc(doc(ownerDb, 'googleLookupRateLimits/ownerUid')));
     await assertFails(setDoc(doc(ownerDb, 'googleLookupRateLimits/ownerUid'), {
       count: 1,

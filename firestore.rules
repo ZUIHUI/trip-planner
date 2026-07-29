@@ -830,10 +830,6 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    match /flightLookupRateLimits/{uid} {
-      allow read, write: if false;
-    }
-
     match /googleLookupRateLimits/{uid} {
       allow read, write: if false;
     }
