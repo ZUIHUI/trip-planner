@@ -575,7 +575,7 @@ const ReminderStrip = ({ reminders }) => {
 
 const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
   return (
-    <Card className="p-5">
+    <Card className="p-4 sm:p-5">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           <div className="tp-icon-chip">
@@ -602,46 +602,48 @@ const TodayTimeline = ({ events, tripDetails, onOpenEvent, onOpenMaps }) => {
               : tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
 
             return (
-              <li key={event.id || `${event.time}-${event.title}-${index}`} className="flex min-w-0 gap-4">
-                <div className="w-14 shrink-0 pt-1 text-right font-mono text-sm font-black text-slate-700 dark:text-slate-200">
+              <li key={event.id || `${event.time}-${event.title}-${index}`} className="flex min-w-0 gap-2 sm:gap-4">
+                <div className="w-12 shrink-0 pt-1 text-right font-mono text-sm font-black text-slate-700 sm:w-14 dark:text-slate-200">
                   {formatEventTime(event)}
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="mt-1 h-3 w-3 rounded-full bg-brand-600 ring-4 ring-brand-50 dark:bg-brand-300 dark:ring-brand-950/50" />
                   {index < events.length - 1 && <span className="mt-1 h-full min-h-10 w-px bg-slate-200 dark:bg-slate-800" />}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onOpenEvent(event, true)}
-                  className="min-w-0 flex-1 rounded-lg border border-[#e0e9e0] bg-white/80 px-4 py-3 text-left transition hover:border-brand-200 hover:bg-brand-50 supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/50"
-                >
-                  <span className="block break-words text-sm font-black text-stone-800 dark:text-brand-900">
-                    {event.title || '未命名行程'}
-                  </span>
-                  {locationText && (
-                    <span className="mt-1 flex min-w-0 items-start gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      <MapPin size={13} className="mt-0.5 shrink-0" />
-                      <span className="line-clamp-2 break-words">{locationText}</span>
-                    </span>
-                  )}
-                  {locationText && (
-                    <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-black text-brand-700 dark:bg-brand-950/40 dark:text-brand-200">
-                      <Info size={12} />
-                      查看詳情
-                    </span>
-                  )}
-                </button>
-                {locationText && (
+                <div className="relative min-w-0 flex-1">
                   <button
                     type="button"
-                    onClick={() => onOpenMaps(previousLocation, getEventDestination(event))}
-                    className="touch-target mt-1 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-brand-100 bg-brand-50 text-brand-700 transition hover:bg-brand-100 dark:border-brand-900/70 dark:bg-brand-950/30 dark:text-brand-300"
-                    aria-label={`導航到 ${event.title || locationText}`}
-                    title="導航"
+                    onClick={() => onOpenEvent(event, true)}
+                    className="min-w-0 w-full rounded-lg border border-[#e0e9e0] bg-white/80 px-4 py-3 pr-14 text-left transition hover:border-brand-200 hover:bg-brand-50 supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/50"
                   >
-                    <Navigation size={17} />
+                    <span className="block break-words text-sm font-black text-stone-800 dark:text-brand-900">
+                      {event.title || '未命名行程'}
+                    </span>
+                    {locationText && (
+                      <span className="mt-1 flex min-w-0 items-start gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <MapPin size={13} className="mt-0.5 shrink-0" />
+                        <span className="line-clamp-2 break-words">{locationText}</span>
+                      </span>
+                    )}
+                    {locationText && (
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-black text-brand-700 dark:bg-brand-950/40 dark:text-brand-200">
+                        <Info size={12} />
+                        查看詳情
+                      </span>
+                    )}
                   </button>
-                )}
+                  {locationText && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenMaps(previousLocation, getEventDestination(event))}
+                      className="touch-target absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-lg border border-brand-100 bg-brand-50 text-brand-700 transition hover:bg-brand-100 dark:border-brand-900/70 dark:bg-brand-950/30 dark:text-brand-300"
+                      aria-label={`導航到 ${event.title || locationText}`}
+                      title="導航"
+                    >
+                      <Navigation size={17} />
+                    </button>
+                  )}
+                </div>
               </li>
             );
           })}

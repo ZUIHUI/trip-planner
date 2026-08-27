@@ -2859,6 +2859,17 @@ test('vertically centers the compact mobile trip hero details and keeps the sect
   assert.match(navigationButtonRule, /min-width:\s*max-content\s*!important/);
 });
 
+test('keeps overview timeline event cards wide enough on mobile', () => {
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+
+  assert.match(todaySource, /<Card className="p-4 sm:p-5">/);
+  assert.match(todaySource, /className="flex min-w-0 gap-2 sm:gap-4"/);
+  assert.match(todaySource, /className="w-12 shrink-0[^"]+sm:w-14/);
+  assert.match(todaySource, /className="relative min-w-0 flex-1"/);
+  assert.match(todaySource, /className="min-w-0 w-full[^"]+pr-14/);
+  assert.match(todaySource, /className="touch-target absolute right-2 top-2[^"]+h-11 w-11/);
+});
+
 test('uses the same sea-glass icon tone across the primary mobile trip sections', () => {
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
