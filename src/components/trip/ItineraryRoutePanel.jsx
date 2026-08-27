@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { AlertTriangle, CheckCircle2, Map, MapPin, Navigation } from 'lucide-react';
-import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
+import { buildGoogleMapsMultiStopDirectionsUrl } from '../../utils/googleMapsDirections';
 import {
   buildItineraryRouteState,
   getTripRouteOrigin,
@@ -60,7 +60,7 @@ const MissingLocationNotice = ({ missingEvents }) => {
   );
 };
 
-const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) => {
+const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation, daySummary = null }) => {
   const events = useMemo(
     () => Array.isArray(currentDayData?.events) ? [...currentDayData.events] : [],
     [currentDayData]
@@ -70,10 +70,11 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
     [currentLocation, tripDetails]
   );
   const originLabel = getTripRouteOriginLabel(tripDetails, currentLocation);
-  const routeState = useMemo(
+  const fallbackRouteState = useMemo(
     () => buildItineraryRouteState(events, { origin }),
     [events, origin]
   );
+  const routeState = daySummary?.route || fallbackRouteState;
   const {
     routeStops,
     missingEvents,
@@ -85,7 +86,7 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation }) =
     hasCompleteRoute
   } = routeState;
 
-  const routeUrl = buildGoogleMapsMultiStopDirectionsUrl(
+  const routeUrl = daySummary?.routeUrl || buildGoogleMapsMultiStopDirectionsUrl(
     origin,
     routeStops.map((stop) => stop.destination)
   );

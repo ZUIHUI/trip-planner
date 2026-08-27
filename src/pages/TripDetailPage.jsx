@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   CalendarDays,
   ChevronLeft,
   Plus,
   Save,
-  ChevronRight,
   Settings,
   UsersRound,
   Lightbulb,
@@ -13,23 +12,12 @@ import {
   Menu as MenuIcon
 } from 'lucide-react';
 import Header from '../components/Header';
+import WeatherWidget from '../components/WeatherWidget';
 import Modal from '../components/Modal';
-import EditEventForm from '../components/EditEventForm';
-import EventDetailView from '../components/EventDetailView';
-import SettingsPanel from '../components/SettingsPanel';
 import BottomNavigation from '../components/BottomNavigation';
 import TodayTab from '../components/trip/TodayTab';
-import SummaryTab from '../components/trip/SummaryTab';
 import ItineraryTab from '../components/trip/ItineraryTab';
 import IdeasTab from '../components/trip/IdeasTab';
-import MoreTab from '../components/trip/MoreTab';
-import LogisticsTab from '../components/trip/LogisticsTab';
-import PreTripTab from '../components/trip/PreTripTab';
-import PackingTab from '../components/trip/PackingTab';
-import ShoppingTab from '../components/trip/ShoppingTab';
-import ExpensesTab from '../components/trip/ExpensesTab';
-import TripAiRecommendationPanel from '../components/trip/TripAiRecommendationPanel';
-import TripHandbookModal from '../components/trip/TripHandbookModal';
 import {
   DesktopMapOverview,
   DesktopPlannerPanel,
@@ -80,10 +68,12 @@ import {
   getTripDisplayDates,
   isGenericTripDayTitle
 } from '../utils/tripDates';
+import { getTripDayIsoDate } from '../utils/tripEvents';
 import { getTripDetailsPatchSections } from '../utils/tripDetailsPatch';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
 import { moveEventInDay, moveEventToDay } from '../utils/itineraryEvents';
+import { lazyWithReload } from '../utils/lazyComponent';
 import { buildSyncConflictSummary } from '../utils/tripSync';
 import {
   getAppendOrderKey,
@@ -97,16 +87,35 @@ import {
   createPlaceFromAiRecommendation
 } from '../utils/tripAiRecommendations';
 import { getPermissionDeniedToast, isPermissionDeniedError } from '../utils/persistenceErrors';
+import { readStoredAppTheme, saveAppTheme } from '../utils/appTheme';
 import { Button, ErrorState, LoadingState, PageContainer } from '../components/ui';
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
 import {
   INTERFACE_SIZE_STORAGE_KEY,
   LAST_OPENED_TRIP_KEY,
-  THEME_STORAGE_KEY,
   getTripIndexKey
 } from '../utils/storageKeys';
 import { logger } from '../utils/logger';
+
+const EditEventForm = lazyWithReload(() => import('../components/EditEventForm'));
+const EventDetailView = lazyWithReload(() => import('../components/EventDetailView'));
+const SettingsPanel = lazyWithReload(() => import('../components/SettingsPanel'));
+const SummaryTab = lazyWithReload(() => import('../components/trip/SummaryTab'));
+const MoreTab = lazyWithReload(() => import('../components/trip/MoreTab'));
+const LogisticsTab = lazyWithReload(() => import('../components/trip/LogisticsTab'));
+const PreTripTab = lazyWithReload(() => import('../components/trip/PreTripTab'));
+const PackingTab = lazyWithReload(() => import('../components/trip/PackingTab'));
+const ShoppingTab = lazyWithReload(() => import('../components/trip/ShoppingTab'));
+const ExpensesTab = lazyWithReload(() => import('../components/trip/ExpensesTab'));
+const TripAiRecommendationPanel = lazyWithReload(() => import('../components/trip/TripAiRecommendationPanel'));
+const TripHandbookModal = lazyWithReload(() => import('../components/trip/TripHandbookModal'));
+
+const ModuleFallback = ({ label = '載入功能中...' }) => (
+  <div className="flex min-h-40 items-center justify-center px-5 py-8" role="status">
+    <LoadingState label={label} />
+  </div>
+);
 
 const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
 const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
@@ -167,6 +176,11 @@ const mobileDetailStatusLabels = {
   done: 'Archived'
 };
 const sameJsonValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+
+const getWeatherEventLocation = (event) => {
+  const location = event?.locationPlace || event?.location?.name || event?.location || '';
+  return typeof location === 'string' ? location.trim() : '';
+};
 
 const getMobileDetailTheme = (details = {}) => {
   const rawTitle = String(details?.title || '').toLowerCase();
@@ -311,7 +325,7 @@ const TripDetailPage = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'light');
+  const [currentTheme, setCurrentTheme] = useState(readStoredAppTheme);
   const [interfaceSize, setInterfaceSize] = useState(() => localStorage.getItem(INTERFACE_SIZE_STORAGE_KEY) || 'medium');
   const [enableGPS, setEnableGPS] = useState(false);
   const [selectedEventLocation, setSelectedEventLocation] = useState(null);
@@ -809,8 +823,7 @@ const TripDetailPage = () => {
 
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', currentTheme === 'dark');
-    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+    saveAppTheme(currentTheme);
   }, [currentTheme]);
 
   useEffect(() => {
@@ -922,6 +935,11 @@ const TripDetailPage = () => {
   const currentDayDate = isGenericTripDayTitle(currentDayData?.date)
     ? ''
     : String(currentDayData?.date || '').trim();
+  const currentDayWeatherDate = getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay)
+    || currentDayDate;
+  const currentDayWeatherLocation = (currentDayData?.events || [])
+    .map(getWeatherEventLocation)
+    .find(Boolean) || '';
   const currentDayDisplayTitle = getTripDayDisplayTitle(currentDayData);
   const currentDayLabel = getTripDayDisplayLabel(currentDayData, tripDetails);
   const tripDisplayDates = getTripDisplayDates(tripDetails);
@@ -1405,12 +1423,6 @@ const TripDetailPage = () => {
     setIsEditModalOpen(true);
   };
 
-  const goToNextDay = () => {
-    if (!itinerary.length) return;
-    const nextDay = selectedDay >= itinerary.length ? 1 : selectedDay + 1;
-    setSelectedDay(nextDay);
-  };
-
   const handleBackToTrips = () => {
     const hasHistory =
       typeof window !== 'undefined' &&
@@ -1823,7 +1835,19 @@ const TripDetailPage = () => {
             <div className="tp-mobile-detail-chips">
               <span>{mobileDetailDayCount > 0 ? `${mobileDetailDayCount} 天` : '設定日期'}</span>
               {currentDayData?.events?.length > 0 && <span>今日 {currentDayData.events.length} 個</span>}
-              {isSaving || isSavingTripDetails ? <span>儲存中</span> : <span>{presenceUi?.summaryText || '已同步'}</span>}
+              {isSaving || isSavingTripDetails ? (
+                <span role="status" aria-live="polite">儲存中</span>
+              ) : (
+                <WeatherWidget
+                  variant="chip"
+                  date={currentDayWeatherDate}
+                  firstEventLocation={currentDayWeatherLocation}
+                  accommodation={tripDetails?.accommodation?.address
+                    || tripDetails?.accommodation?.name
+                    || tripDetails?.title
+                    || '東京'}
+                />
+              )}
             </div>
           </div>
         </header>
@@ -1904,6 +1928,7 @@ const TripDetailPage = () => {
               )}
 
               <section className={`tp-mobile-detail-stage tp-mobile-detail-stage-${activeTab}`} aria-label={`${mobileDetailActiveLabel} content`}>
+            <Suspense fallback={<ModuleFallback />}>
             {activeTab === 'today' && (
               <TodayTab onTabChange={setActiveTab} />
             )}
@@ -1917,7 +1942,7 @@ const TripDetailPage = () => {
             )}
 
             {activeTab === 'itinerary' && (
-              <ItineraryTab />
+              <ItineraryTab onTabChange={setActiveTab} />
             )}
 
             {activeTab === 'ideas' && (
@@ -1952,6 +1977,7 @@ const TripDetailPage = () => {
             {activeTab === 'expenses' && (
               <ExpensesTab />
             )}
+            </Suspense>
               </section>
             </main>
 
@@ -1970,35 +1996,39 @@ const TripDetailPage = () => {
         title={editingEvent ? (isEventViewMode ? '行程詳情' : '編輯行程') : '新增行程'}
         size="lg"
       >
-        {isEventViewMode && editingEvent ? (
-          <EventDetailView
-            event={editingEvent}
-            prevLocation={editingEventPrevLocation}
-            onEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
-            onClose={() => {
-              setIsEditModalOpen(false);
-              setEditingEvent(null);
-              setIsEventViewMode(false);
-            }}
-            onOpenGoogleMaps={handleOpenGoogleMaps}
-          />
-        ) : (
-          <EditEventForm
-            event={editingEvent}
-            onSave={handleSaveEventDocument}
-            readOnly={isReadOnly}
-            onRequestEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
-            onCancel={() => {
-              setIsEditModalOpen(false);
-              setEditingEvent(null);
-              setIsEventViewMode(false);
-            }}
-          />
-        )}
+        <Suspense fallback={<ModuleFallback label="載入行程編輯器中..." />}>
+          {isEventViewMode && editingEvent ? (
+            <EventDetailView
+              event={editingEvent}
+              prevLocation={editingEventPrevLocation}
+              onEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
+              onClose={() => {
+                setIsEditModalOpen(false);
+                setEditingEvent(null);
+                setIsEventViewMode(false);
+              }}
+              onOpenGoogleMaps={handleOpenGoogleMaps}
+            />
+          ) : (
+            <EditEventForm
+              event={editingEvent}
+              onSave={handleSaveEventDocument}
+              readOnly={isReadOnly}
+              onRequestEdit={canEdit ? () => setIsEventViewMode(false) : undefined}
+              onCancel={() => {
+                setIsEditModalOpen(false);
+                setEditingEvent(null);
+                setIsEventViewMode(false);
+              }}
+            />
+          )}
+        </Suspense>
       </Modal>
 
       {/* 設定面板 */}
-      <SettingsPanel
+      {isSettingsOpen && (
+        <Suspense fallback={null}>
+          <SettingsPanel
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         enableGPS={enableGPS}
@@ -2023,9 +2053,13 @@ const TripDetailPage = () => {
             coverImage: nextCoverImage
           }))
         }
-      />
+          />
+        </Suspense>
+      )}
 
-      <TripHandbookModal
+      {tripHandbook.isOpen && (
+        <Suspense fallback={null}>
+          <TripHandbookModal
         isOpen={tripHandbook.isOpen}
         onClose={tripHandbook.closePanel}
         canEdit={canEdit}
@@ -2042,10 +2076,12 @@ const TripDetailPage = () => {
           tripTitle: tripDetails?.title || '',
           tripDetails
         })}
-      />
+          />
+        </Suspense>
+      )}
 
       {activeTab === 'itinerary' && (
-        <div className={`fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+        <div className={`tp-itinerary-action-dock fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="tp-panel mx-auto max-w-4xl p-3 shadow-lg sm:max-w-none">
             <div className="sm:hidden">
               <Button
@@ -2057,7 +2093,7 @@ const TripDetailPage = () => {
                 新增行程
               </Button>
             </div>
-            <div className="hidden grid-cols-3 gap-2 sm:grid">
+            <div className="hidden grid-cols-2 gap-2 sm:grid">
               <Button
                 onClick={openAddModal}
                 disabled={!canEdit}
@@ -2074,16 +2110,6 @@ const TripDetailPage = () => {
               >
                 <Save size={16} />
                 儲存
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={goToNextDay}
-                className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
-                aria-label="前往下一天"
-                title="前往下一天"
-              >
-                <span className="hidden sm:inline">下一天</span>
-                <ChevronRight size={16} />
               </Button>
             </div>
           </div>
@@ -2120,26 +2146,28 @@ const TripDetailPage = () => {
         </div>
       )}
 
-      <TripAiRecommendationPanel
-        isOpen={tripAi.isOpen}
-        mode={tripAi.mode}
-        response={tripAi.response}
-        isLoading={tripAi.isLoading}
-        error={tripAi.error}
-        canEdit={canEdit}
-        itinerary={itinerary}
-        tripDetails={tripDetails}
-        isHidden={isAnyModalOpen}
-        isCompanionHidden={tripAi.isCompanionHidden}
-        onOpen={tripAi.openPanel}
-        onClose={tripAi.closePanel}
-        onHideCompanion={tripAi.hideCompanion}
-        onSummon={tripAi.summonCompanion}
-        onModeChange={tripAi.setMode}
-        onGenerate={tripAi.generate}
-        onApplyPlace={handleApplyAiPlaceRecommendation}
-        onApplyEvent={handleApplyAiEventRecommendation}
-      />
+      <Suspense fallback={null}>
+        <TripAiRecommendationPanel
+          isOpen={tripAi.isOpen}
+          mode={tripAi.mode}
+          response={tripAi.response}
+          isLoading={tripAi.isLoading}
+          error={tripAi.error}
+          canEdit={canEdit}
+          itinerary={itinerary}
+          tripDetails={tripDetails}
+          isHidden={isAnyModalOpen}
+          isCompanionHidden={tripAi.isCompanionHidden}
+          onOpen={tripAi.openPanel}
+          onClose={tripAi.closePanel}
+          onHideCompanion={tripAi.hideCompanion}
+          onSummon={tripAi.summonCompanion}
+          onModeChange={tripAi.setMode}
+          onGenerate={tripAi.generate}
+          onApplyPlace={handleApplyAiPlaceRecommendation}
+          onApplyEvent={handleApplyAiEventRecommendation}
+        />
+      </Suspense>
 
       <BottomNavigation
         activeTab={activeTab}

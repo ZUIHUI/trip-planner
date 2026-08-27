@@ -66,7 +66,7 @@ const Header = forwardRef(({
 
   const headerStyle = shouldShowCoverBackground
     ? {
-        backgroundImage: `linear-gradient(180deg, rgba(10, 10, 10, 0.28) 0%, rgba(10, 10, 10, 0.62) 58%, rgba(10, 10, 10, 0.88) 100%), url(${coverImageUrl})`,
+        backgroundImage: `var(--tp-photo-scrim), url(${coverImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'

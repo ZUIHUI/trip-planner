@@ -624,7 +624,9 @@ service cloud.firestore {
           && isTripOwner(tripId)
           && validMember(request.resource.data, uid);
 
-        allow delete: if signedIn() && isTripOwner(tripId);
+        allow delete: if signedIn()
+          && isTripOwner(tripId)
+          && uid != request.auth.uid;
 
         allow update: if signedIn()
           && uid == request.auth.uid

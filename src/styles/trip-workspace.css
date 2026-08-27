@@ -1,0 +1,93 @@
+/* Shared trip-workspace components. Semantic values come from tokens.css. */
+
+.tp-itinerary-tablet-context {
+  display: none;
+}
+
+.tp-itinerary-tablet-route,
+.tp-trip-task-summary[open] {
+  border-color: var(--tp-border);
+}
+
+.tp-itinerary-tablet-route > summary,
+.tp-trip-task-summary > summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  min-height: var(--tp-touch-min);
+}
+
+.tp-itinerary-tablet-route > summary::-webkit-details-marker,
+.tp-trip-task-summary > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tp-itinerary-tablet-route > summary span,
+.tp-trip-task-summary > summary span {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--tp-space-2);
+}
+
+.tp-itinerary-tablet-route > summary strong,
+.tp-trip-task-summary > summary b {
+  color: var(--tp-muted);
+  font-size: var(--tp-text-caption);
+}
+
+.tp-trip-task-summary > summary span {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tp-trip-task-summary > summary small {
+  color: var(--tp-muted);
+  font-size: var(--tp-text-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.tp-trip-task-summary > summary strong {
+  color: var(--tp-ink);
+  font-size: var(--tp-text-small);
+}
+
+.tp-trip-task-summary-body {
+  border-top: 1px solid var(--tp-border-soft);
+  margin-top: var(--tp-space-3);
+  padding-top: var(--tp-space-4);
+}
+
+@media (min-width: 768px) and (max-width: 1179px) {
+  .tp-itinerary-route-primary {
+    display: none;
+  }
+
+  .tp-itinerary-tablet-context {
+    display: grid;
+    gap: var(--tp-space-4);
+    margin-top: var(--tp-space-6);
+  }
+
+  .tp-itinerary-tablet-route,
+  .tp-itinerary-tablet-context > .tp-trip-task-summary {
+    background: var(--tp-paper);
+    border: 1px solid var(--tp-border);
+    border-radius: var(--tp-radius-card);
+    padding: var(--tp-space-4);
+  }
+
+  .tp-itinerary-tablet-route .tp-itinerary-route-panel,
+  .tp-itinerary-tablet-route .tp-card {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1180px) {
+  .tp-itinerary-action-dock {
+    display: none !important;
+  }
+}

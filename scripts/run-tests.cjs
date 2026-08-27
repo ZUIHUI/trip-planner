@@ -104,6 +104,8 @@ const {
   makeShoppingCategoryId
 } = require('../src/utils/tripCollectionDocuments.js');
 const { buildDayReadiness, buildEventReadiness } = require('../src/utils/eventReadiness.js');
+const { buildTripDaySummary } = require('../src/utils/tripDaySummary.js');
+const { APP_THEME, applyAppTheme, normalizeAppTheme, saveAppTheme } = require('../src/utils/appTheme.js');
 const {
   PLACE_VOTE_OPERATION,
   TRIP_DOCUMENT_TOUCH_OPERATIONS,
@@ -886,6 +888,33 @@ test('reloads once when a deployed lazy chunk is no longer available', () => {
   }), true);
 });
 
+test('keeps the trip detail shell small by lazy loading secondary surfaces', () => {
+  const detailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'src/App.jsx'), 'utf8');
+  const lazySource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/lazyComponent.js'), 'utf8');
+
+  ['TodayTab', 'ItineraryTab', 'IdeasTab'].forEach((componentName) => {
+    assert.match(detailSource, new RegExp(`import ${componentName} from`));
+  });
+  [
+    'SummaryTab',
+    'MoreTab',
+    'LogisticsTab',
+    'PreTripTab',
+    'PackingTab',
+    'ShoppingTab',
+    'ExpensesTab',
+    'TripAiRecommendationPanel',
+    'TripHandbookModal'
+  ].forEach((componentName) => {
+    assert.match(detailSource, new RegExp(`const ${componentName} = lazyWithReload`));
+    assert.doesNotMatch(detailSource, new RegExp(`import ${componentName} from`));
+  });
+  assert.match(detailSource, /<Suspense fallback=\{<ModuleFallback/);
+  assert.match(appSource, /import \{ lazyWithReload \} from '\.\/utils\/lazyComponent'/);
+  assert.match(lazySource, /markLazyImportReload/);
+});
+
 test('builds safe production render diagnostics without exposing credentials', () => {
   const error = new TypeError(
     'Failed at https://example.com/trip/private?key=secret-value with AIza123456789012345678901234567890 and owner@example.com'
@@ -1241,13 +1270,20 @@ test('keeps overview and itinerary pages in saved arrangement order', () => {
   const desktopSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/DesktopWorkspace.jsx'), 'utf8');
   const bottomNavigationSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/BottomNavigation.jsx'), 'utf8');
   const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  const daySummarySource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/tripDaySummary.js'), 'utf8');
+  const timelineSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripTimeline.jsx'), 'utf8');
 
   assert.match(todaySource, /getTripDayIsoDate\(tripDetails\?\.dateRange\?\.start,\s*selectedDay\)/);
-  assert.match(todaySource, /pickNextEvent\(events,\s*new Date\(\),\s*selectedDayIsoDate\)/);
+  assert.match(todaySource, /useTripDaySummary\(\{/);
   assert.match(todaySource, /\(\) => \[\.\.\.dayEvents\]/);
   assert.doesNotMatch(todaySource, /sortEventsByTime|\.sort\s*\(/);
+  assert.match(daySummarySource, /const orderedEvents = Array\.isArray\(events\) \? \[\.\.\.events\] : \[\]/);
+  assert.match(daySummarySource, /pickNextEvent\(orderedEvents, now, selectedDayIsoDate\)/);
+  assert.doesNotMatch(daySummarySource, /sortEventsByTime|\.sort\s*\(/);
   assert.match(summarySource, /getSummaryNextEvent\(itinerary,\s*selectedDay,\s*tripDetails\)/);
-  assert.match(itinerarySource, /\(currentDayData\?\.events \|\| \[\]\)\.map\(\(event, index\)/);
+  assert.match(itinerarySource, /<TripTimeline[\s\S]+?events=\{currentDayData\?\.events \|\| \[\]\}/);
+  assert.match(timelineSource, /events\.map\(\(event, index\)/);
+  assert.doesNotMatch(timelineSource, /sortEventsByTime|\.sort\s*\(/);
   assert.match(placePoolSource, /events:\s*\[\.\.\.\(day\.events \|\| \[\]\),\s*nextEvent\]/);
   assert.doesNotMatch(placePoolSource, /normalizeEventTime\(a\.time\)\.localeCompare/);
   assert.match(desktopSource, /id:\s*'today',\s*label:\s*'旅程總覽'/);
@@ -1791,6 +1827,55 @@ test('keeps companion invite flows as an explicit navigation destination', () =>
   assert.match(moreTabSource, /onTabChange\?\.\('companions'\)/);
   assert.doesNotMatch(moreTabSource, /trip-collaboration-card/);
   assert.match(shareCardSource, /isInviteLoading \? '邀請碼載入中\.\.\.'/);
+  assert.match(shareCardSource, /const canRemoveMember = canManageInvite && memberUid && memberUid !== currentUid/);
+  assert.match(shareCardSource, /removeTripMember\(\{/);
+  assert.match(shareCardSource, /title: '移除旅伴？'/);
+  assert.match(shareCardSource, /若仍持有有效邀請碼，之後可以再次加入/);
+});
+
+test('builds one saved-order day summary for route tasks readiness and currency costs', () => {
+  const events = [
+    { id: 'night-market', time: '23:30', title: '夜市', location: '士林夜市', cost: 300, currency: 'TWD' },
+    { id: 'late-snack', time: '00:30', title: '宵夜', location: '寧夏夜市', cost: { amount: 200, currency: 'TWD' } },
+    { id: 'memo-only', time: '', title: '整理照片', location: '', cost: 1000, currency: 'JPY' }
+  ];
+  const summary = buildTripDaySummary({
+    events,
+    selectedDayIsoDate: '2026-08-27',
+    tripDetails: { accommodation: { name: '台北旅店', address: '台北車站' } },
+    checklists: {
+      preTrip: [
+        { id: 'passport', text: '護照', done: false },
+        { id: 'ticket', text: '車票', done: false }
+      ],
+      packing: [{ id: 'charger', text: '充電器', done: false }]
+    },
+    checklistStatusByListId: {
+      preTrip: { passport: { done: true } }
+    },
+    now: new Date(2026, 7, 28, 0, 0)
+  });
+
+  assert.deepEqual(summary.events.map((event) => event.id), events.map((event) => event.id));
+  assert.deepEqual(summary.routeStops.map((stop) => stop.id), ['night-market', 'late-snack']);
+  assert.equal(summary.nextEvent.id, 'late-snack');
+  assert.equal(summary.readiness.incompleteCount, 1);
+  assert.deepEqual(summary.costByCurrency, { TWD: 500, JPY: 1000 });
+  assert.equal(summary.costSummary, 'NT$500 / ¥1,000');
+  assert.deepEqual(summary.pendingPreTripTasks.map((item) => item.id), ['ticket']);
+  assert.deepEqual(summary.pendingTasks.map((item) => item.id), ['ticket', 'charger']);
+  assert.equal(summary.completedPreTripCount, 1);
+});
+
+test('removes only non-owner trip members through an owner-checked transaction', () => {
+  const serviceSource = fs.readFileSync(path.join(__dirname, '..', 'src/services/tripService.js'), 'utf8');
+  const rulesSource = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
+  const removeMemberBody = serviceSource.match(/export const removeTripMember[\s\S]*?\n};/)?.[0] || '';
+
+  assert.match(removeMemberBody, /safeMemberUid === user\.uid/);
+  assert.match(removeMemberBody, /tripSnap\.data\(\)\?\.access\?\.ownerUid !== user\.uid/);
+  assert.match(removeMemberBody, /transaction\.delete\(memberRef\)/);
+  assert.match(rulesSource, /allow delete: if signedIn\(\)\s*&& isTripOwner\(tripId\)\s*&& uid != request\.auth\.uid/);
 });
 
 test('keeps high-friction mobile form controls explicit', () => {
@@ -2569,32 +2654,154 @@ test('detects realtime-only status changes without treating structure edits as s
 });
 
 test('keeps the DESIGN.md visual system centralized and accessible', () => {
-  const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/uiux-v4.css'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/tokens.css'), 'utf8');
+  const legacyCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/uiux-v4.css'), 'utf8');
+  const experienceCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
+  const design = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
+  const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src/main.jsx'), 'utf8');
   const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
+  const headerSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/Header.jsx'), 'utf8');
   const moreTabSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
   const agentInstructions = fs.readFileSync(path.join(__dirname, '..', 'AGENTS.md'), 'utf8');
 
-  assert.match(css, /--v4-primary:\s*#0a0a0a;/);
-  assert.match(css, /--v4-ink:\s*#0a0a0a;/);
-  assert.match(css, /--v4-surface-card:\s*#f7f7f7;/);
-  assert.match(css, /--v4-accent:\s*#00d4a4;/);
-  assert.match(css, /--radius-card:\s*12px;/);
+  assert.match(css, /--tp-primary:\s*#277997;/);
+  assert.match(css, /--tp-sea-glass:\s*#79cbd5;/);
+  assert.match(css, /--tp-canvas:\s*#f8fcfe;/);
+  assert.match(css, /--tp-ink:\s*#173f52;/);
+  assert.match(css, /--tp-touch-min:\s*44px;/);
+  assert.match(css, /--tp-photo-scrim:\s*linear-gradient/);
+  assert.match(css, /--tp-main-card-gradient:[\s\S]+?#e5f7fc[\s\S]+?#7fcee5[\s\S]+?#4a9dc2/);
+  assert.match(css, /--tp-main-card-text:\s*var\(--tp-ink\);/);
+  assert.match(css, /\.dark\s*\{[\s\S]+?--tp-canvas:\s*#102f33;/);
+  assert.match(css, /\.dark\s*\{[\s\S]+?--tp-main-card-text:\s*#ffffff;[\s\S]+?--tp-main-card-gradient:/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-primary:\s*#e47fa5;/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-surface-dark:\s*#b55276;/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-ink:\s*#342e31;/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-on-primary:\s*#ffffff;/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-main-card-text:\s*#fffafa;/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-main-card-glass:\s*rgba\(119, 33, 69, 0\.36\);/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-main-card-gradient:[\s\S]+?#f1a3be[\s\S]+?#e076a1[\s\S]+?#c95785/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-primary:\s*#ffd51e;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-canvas:\s*#f7f6f2;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-ink:\s*#0a0a0a;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-main-card-gradient:\s*var\(--tp-theme-hero\);/);
+  assert.match(css, /--v4-primary:\s*var\(--tp-primary\);/);
+  assert.match(css, /--story-ink:\s*var\(--tp-ink\);/);
+  assert.match(css, /--radius-card:\s*var\(--tp-radius-card\);/);
   assert.match(css, /--v4-shadow:\s*none;/);
-  assert.match(css, /--v4-shadow-float:[^;]+0 4px 12px/);
-  assert.match(css, /\.tp-button-primary,[\s\S]+?min-height:\s*40px;/);
-  assert.match(css, /\.tp-button-primary,[\s\S]+?border-radius:\s*9999px\s*!important;/);
-  assert.match(css, /\.tp-input,[\s\S]+?min-height:\s*40px;/);
-  assert.match(css, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
-  assert.match(css, /\.tp-v4-rail-section button,[\s\S]+?font-size:\s*14px;/);
-  assert.match(css, /\.tp-app-header-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
-  assert.match(css, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
-  assert.match(css, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?rgba\(10,\s*10,\s*10,\s*0\.7\)/);
-  assert.match(css, /\.tp-mobile-detail-shell\.has-cover \.tp-mobile-detail-copy h1[\s\S]+?color:\s*#ffffff\s*!important;/);
-  assert.match(css, /\.tp-mobile-feature-accent \.tp-mobile-feature-icon[\s\S]+?background:\s*var\(--v4-accent\)\s*!important;/);
+  assert.match(css, /:where\(button, a, input, select, textarea, summary\):focus-visible/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(legacyCss, /\.tp-button-primary,[\s\S]+?min-height:\s*40px;/);
+  assert.match(legacyCss, /\.tp-button-primary,[\s\S]+?border-radius:\s*9999px\s*!important;/);
+  assert.match(legacyCss, /\.tp-input,[\s\S]+?min-height:\s*40px;/);
+  assert.match(legacyCss, /\.tp-card-animated::before,[\s\S]+?display:\s*none\s*!important;/);
+  assert.match(legacyCss, /\.tp-v4-rail-section button,[\s\S]+?font-size:\s*14px;/);
+  assert.match(legacyCss, /\.tp-app-header-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(legacyCss, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(legacyCss, /\.tp-mobile-trips-hero\.has-trip-cover[\s\S]+?rgba\(10,\s*10,\s*10,\s*0\.7\)/);
+  assert.match(legacyCss, /\.tp-mobile-detail-shell\.has-cover \.tp-mobile-detail-copy h1[\s\S]+?color:\s*#ffffff\s*!important;/);
+  assert.match(legacyCss, /\.tp-mobile-feature-accent \.tp-mobile-feature-icon[\s\S]+?background:\s*var\(--v4-accent\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-button-primary\s*\{\s*background:\s*var\(--tp-primary\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-button-secondary\s*\{[\s\S]+?background:\s*var\(--tp-surface\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-nav-active,[\s\S]+?background:\s*var\(--tp-primary\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-mobile-detail-tabs button\.is-active\s*\{[\s\S]+?background:\s*var\(--tp-primary\)\s*!important;/);
+  assert.doesNotMatch(experienceCss, /\.tp-button-primary\s*\{\s*background:\s*var\(--story-ink\)/);
+  assert.doesNotMatch(experienceCss, /#245e66/i);
+  assert.match(experienceCss, /\.tp-journey-hero\s*\{\s*background:\s*var\(--tp-main-card-gradient\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-journey-hero h3,[\s\S]+?color:\s*var\(--tp-main-card-text\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-journey-hero h3,[\s\S]+?text-shadow:\s*var\(--tp-main-card-text-shadow\)\s*!important;/);
+  assert.match(experienceCss, /\.tp-journey-hero \.tp-trip-weather-card\s*\{[\s\S]+?background:\s*var\(--tp-main-card-glass\)/);
+  assert.match(css, /:root\[data-theme\] \.tp-workspace-shell\s*\{[\s\S]+?var\(--tp-surface-soft\)[\s\S]+?var\(--tp-canvas\)/);
+  assert.match(css, /:root\[data-theme\] \.tp-mobile-detail-shell\.has-cover \.tp-mobile-detail-photo\s*\{[\s\S]+?var\(--tp-photo-scrim\)[\s\S]+?var\(--tp-mobile-detail-cover-image\)/);
+  assert.match(css, /:root\[data-theme\] \.tp-mobile-detail-route::before\s*\{[\s\S]+?var\(--tp-detail-route-art\)/);
+  assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-detail-route-art:[\s\S]+?%23d9a7b5/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-detail-route-art:[\s\S]+?%23f1c75b/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\] \.tp-journey-hero h3,[\s\S]+?color:\s*var\(--tp-ink\)\s*!important;/);
+  assert.doesNotMatch(css, /:root\[data-theme="sunny-yellow"\] \.tp-journey-hero,\r?\n:root\[data-theme="sunny-yellow"\] \.tp-share-story-card/);
+  assert.match(css, /:root\[data-theme\] \.tp-mobile-feature-icon\s*\{[\s\S]+?var\(--tp-primary\)[\s\S]+?var\(--tp-primary-strong\)[\s\S]+?color:\s*var\(--tp-on-primary\)/);
+  assert.match(css, /:root\[data-theme="soft-pink"\] \.tp-journey-hero \.tp-button-primary,[\s\S]+?background:\s*var\(--tp-surface\)/);
+  assert.match(experienceCss, /\.tp-route-preview-surface,[\s\S]+?background:\s*var\(--tp-surface-strong\)/);
+  assert.match(headerSource, /backgroundImage:\s*`var\(--tp-photo-scrim\), url\(\$\{coverImageUrl\}\)`/);
   assert.match(moreTabSource, /icon=\{Settings\}[\s\S]+?tone="accent"/);
   assert.match(agentInstructions, /read the root `DESIGN\.md` completely/i);
+  assert.match(design, /actual planning product/i);
+  assert.match(design, /Exactly one visually dominant add action/i);
+  assert.match(design, /Complete visual themes/i);
+  assert.match(design, /Sunny Yellow/i);
+  assert.match(design, /main journey card uses the original layered theme gradient/i);
+  assert.match(design, /airy sky-blue heroes/i);
+  assert.match(design, /Candy rose `#e47fa5`/i);
+  assert.match(design, /The full visual hierarchy follows the chosen theme/i);
+  assert.match(design, /never use `--tp-ink` as its fill/i);
+  assert.match(mainSource, /experience-v5\.css[\s\S]+tokens\.css/);
   assert.doesNotMatch(css, /#ff385c|#e00b41|#ffd1da/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap/);
+});
+
+test('persists accessible complete app themes', () => {
+  const classes = new Set(['dark']);
+  const root = {
+    classList: {
+      toggle(name, force) {
+        if (force) classes.add(name);
+        else classes.delete(name);
+      }
+    },
+    dataset: {}
+  };
+  const stored = new Map();
+  const storage = {
+    getItem: (key) => stored.get(key) || null,
+    setItem: (key, value) => stored.set(key, value)
+  };
+
+  assert.equal(normalizeAppTheme('unknown'), APP_THEME.LIGHT);
+  assert.equal(applyAppTheme(APP_THEME.SOFT_PINK, root), APP_THEME.SOFT_PINK);
+  assert.equal(classes.has('dark'), false);
+  assert.equal(root.dataset.theme, APP_THEME.SOFT_PINK);
+  assert.equal(applyAppTheme(APP_THEME.SUNNY_YELLOW, root), APP_THEME.SUNNY_YELLOW);
+  assert.equal(classes.has('dark'), false);
+  assert.equal(root.dataset.theme, APP_THEME.SUNNY_YELLOW);
+  assert.equal(saveAppTheme(APP_THEME.DARK, { root, storage }), APP_THEME.DARK);
+  assert.equal(classes.has('dark'), true);
+  assert.equal(root.dataset.theme, APP_THEME.DARK);
+  assert.equal(stored.get('trip_planner_theme'), APP_THEME.DARK);
+
+  const settingsSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/SettingsPanel.jsx'), 'utf8');
+  const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src/main.jsx'), 'utf8');
+  assert.match(settingsSource, /id:\s*'soft-pink'[\s\S]+?柔和粉[\s\S]+?糖果粉與櫻花重點色/);
+  assert.match(settingsSource, /id:\s*'sunny-yellow'[\s\S]+?晴光黃/);
+  assert.match(settingsSource, /aria-pressed=\{isSelected\}/);
+  assert.match(mainSource, /initializeStoredAppTheme\(\)/);
+});
+
+test('shows useful destination weather instead of self-presence in mobile hero chips', () => {
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  const weatherSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/WeatherWidget.jsx'), 'utf8');
+  const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
+  const experienceSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
+  const designSource = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
+  const chipMarkup = tripDetailSource.match(/<div className="tp-mobile-detail-chips">([\s\S]*?)<\/div>/)?.[1] || '';
+  const chipRule = [...stylesSource.matchAll(/\.tp-mobile-detail-chips > span \{[\s\S]*?\n  \}/g)]
+    .map((match) => match[0])
+    .find((rule) => rule.includes('--tp-primary-strong')) || '';
+
+  assert.match(chipMarkup, /<WeatherWidget[\s\S]+?variant="chip"/);
+  assert.match(chipMarkup, /currentDayWeatherDate/);
+  assert.match(chipMarkup, /currentDayWeatherLocation/);
+  assert.doesNotMatch(chipMarkup, /presenceUi|你在線/);
+  assert.match(tripDetailSource, /import \{ getTripDayIsoDate \} from '\.\.\/utils\/tripEvents';/);
+  assert.match(weatherSource, /variant === 'chip'/);
+  assert.match(weatherSource, /CHIP_WEATHER_LOADING_TIMEOUT_MS = 6000/);
+  assert.match(weatherSource, /chipLoadingTimedOut \? '🌤️ 天氣待更新' : '☁️ 天氣載入中'/);
+  assert.match(weatherSource, /aria-label=\{weatherLabel\}/);
+  assert.match(weatherSource, /\{weather\.icon \|\| '🌤️'\} \{weather\.temperature\}°C/);
+  assert.match(chipRule, /color:\s*var\(--tp-primary-strong\)/);
+  assert.match(chipRule, /font-weight:\s*600/);
+  assert.doesNotMatch(chipRule, /font-weight:\s*950/);
+  assert.match(experienceSource, /\.tp-mobile-detail-hero \.tp-mobile-detail-chips > span \{[\s\S]+?color:\s*var\(--tp-primary-strong\)\s*!important;[\s\S]+?text-shadow:\s*none\s*!important;/);
+  assert.match(experienceSource, /\.tp-mobile-detail-hero \.tp-mobile-detail-chips > \.tp-trip-weather-chip \{[\s\S]+?color:\s*var\(--tp-ink\)\s*!important;/);
+  assert.match(designSource, /do not use[\s\S]+?`你在線` as permanent hero content/i);
 });
 
 test('formats itinerary days as date plus abbreviated weekday without generic Day labels', () => {
@@ -2661,6 +2868,40 @@ test('uses the same sea-glass icon tone across the primary mobile trip sections'
   [todaySource, itinerarySource, ideasSource, moreSource].forEach((source) => {
     assert.match(source, /<MobileMockupFrame[\s\S]*?tone="accent"/);
   });
+});
+
+test('fuses the compact itinerary reference without duplicating desktop route surfaces', () => {
+  const desktopSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/DesktopWorkspace.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const eventCardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/EventCard.jsx'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
+  const workspaceCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/trip-workspace.css'), 'utf8');
+  const daySummarySource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/tripDaySummary.js'), 'utf8');
+  const contextRailSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripContextRail.jsx'), 'utf8');
+  const taskSummarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripTaskSummary.jsx'), 'utf8');
+  const timelineSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripTimeline.jsx'), 'utf8');
+  const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+
+  assert.match(desktopSource, /if \(activeTab !== 'today'\) return null/);
+  assert.match(desktopSource, /activeTab !== 'itinerary' && \(/);
+  assert.match(desktopSource, /useTripDaySummary/);
+  assert.match(daySummarySource, /mergeRealtimeChecklistStatus/);
+  assert.match(daySummarySource, /pendingPreTripTasks/);
+  assert.match(desktopSource, /<TripContextRail/);
+  assert.match(contextRailSource, /<TripTaskSummary/);
+  assert.match(contextRailSource, /<h3>\{activeTab === 'itinerary' \? '今日路線' : '下一站'\}<\/h3>/);
+  assert.match(taskSummarySource, /tp-v4-panel-checklist/);
+  assert.match(itinerarySource, /tp-itinerary-route-panel/);
+  assert.match(timelineSource, /tp-itinerary-timeline/);
+  assert.match(itinerarySource, /tp-itinerary-tablet-context/);
+  assert.doesNotMatch(itinerarySource, /下一天/);
+  assert.match(eventCardSource, /tp-itinerary-event-time/);
+  assert.match(css, /@media \(min-width: 1180px\)[\s\S]*?\.tp-itinerary-route-panel\s*\{\s*display:\s*none/);
+  assert.match(workspaceCss, /@media \(min-width: 768px\) and \(max-width: 1179px\)[\s\S]*?\.tp-itinerary-tablet-context/);
+  assert.match(workspaceCss, /@media \(min-width: 1180px\)[\s\S]*?\.tp-itinerary-action-dock/);
+  assert.doesNotMatch(tripDetailSource, /goToNextDay|前往下一天/);
+  assert.match(css, /\.tp-day-selector-chip\[aria-pressed="true"\]/);
+  assert.match(css, /\.tp-v4-panel-link:focus-visible/);
 });
 
 let failed = 0;

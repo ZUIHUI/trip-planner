@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle2, Copy, KeyRound, RefreshCw, Send, Share2, UsersRound, Vote, XCircle } from 'lucide-react';
+import { CheckCircle2, Copy, KeyRound, RefreshCw, Send, Share2, Trash2, UsersRound, Vote, XCircle } from 'lucide-react';
 import {
   createTripInviteCode,
   disableTripInviteCode,
   getTripInviteCode,
+  removeTripMember,
   updateTripMemberProfile
 } from '../../services/tripService';
 import { Badge, Button, Card, Field, Input, Select } from '../ui';
 import { inviteCodeInputProps, plainTextInputProps } from '../../utils/mobileInputProps';
 import { PresenceStatusDot } from '../PresenceStatus';
 import { getEditingTargetLabel } from '../../utils/presence';
+import { useFeedback } from '../../contexts/FeedbackContext';
 
 const defaultCollaboration = {
   enabled: false,
@@ -136,10 +138,12 @@ const ShareCollaborationCard = ({
   presenceByUid = {},
   presenceError = ''
 }) => {
+  const { confirm, toast } = useFeedback();
   const settings = normalizeSettings(collaboration);
   const [message, setMessage] = useState('');
   const [isWorking, setIsWorking] = useState(false);
   const [isInviteLoading, setIsInviteLoading] = useState(false);
+  const [removingMemberUid, setRemovingMemberUid] = useState('');
   const [displayNameDraft, setDisplayNameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [invite, setInvite] = useState(defaultInvite);
   const [selectedPermission, setSelectedPermission] = useState(settings.permission);
@@ -371,6 +375,52 @@ const ShareCollaborationCard = ({
     }
   };
 
+  const handleRemoveMember = async (member) => {
+    if (!canManageInvite) {
+      setMessage('只有行程建立者可以移除旅伴。');
+      return;
+    }
+
+    const memberUid = String(member?.uid || member?.id || '').trim();
+    if (!memberUid || memberUid === currentUid) {
+      setMessage('行程建立者不能移除自己。');
+      return;
+    }
+
+    const memberName = getMemberName(member);
+    const shouldRemove = await confirm({
+      title: '移除旅伴？',
+      description: `「${memberName}」會立即失去這趟行程的存取權。若仍持有有效邀請碼，之後可以再次加入。`,
+      confirmLabel: '移除旅伴',
+      variant: 'danger'
+    });
+    if (!shouldRemove) return;
+
+    setIsWorking(true);
+    setRemovingMemberUid(memberUid);
+    try {
+      const removed = await removeTripMember({
+        tripId,
+        memberUid,
+        user: currentUser
+      });
+      const successMessage = removed
+        ? `已移除「${memberName}」。`
+        : `「${memberName}」已不在旅伴清單中。`;
+      setMessage(successMessage);
+      toast({
+        variant: removed ? 'success' : 'info',
+        title: removed ? '已移除旅伴' : '旅伴已移除',
+        description: memberName
+      });
+    } catch (error) {
+      setMessage(error?.message || '移除旅伴失敗，請稍後再試。');
+    } finally {
+      setRemovingMemberUid('');
+      setIsWorking(false);
+    }
+  };
+
   return (
     <Card className="tp-share-story-card order-4 p-4">
       <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -519,6 +569,8 @@ const ShareCollaborationCard = ({
             const presence = presenceByUid?.[member.uid] || null;
             const online = Boolean(presence?.online);
             const editingText = formatEditingTarget(presence?.editingTarget);
+            const memberUid = String(member.uid || member.id || '').trim();
+            const canRemoveMember = canManageInvite && memberUid && memberUid !== currentUid;
             return (
               <motion.div
                 key={member.uid || member.id || member.email}
@@ -539,9 +591,24 @@ const ShareCollaborationCard = ({
                       : member.email || '尚未提供 Email'}
                   </p>
                 </div>
-                <Badge variant={member.role === 'owner' ? 'success' : (member.role === 'editor' || member.role === 'edit') ? 'info' : 'muted'}>
-                  {getRoleLabel(member.role)}
-                </Badge>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge variant={member.role === 'owner' ? 'success' : (member.role === 'editor' || member.role === 'edit') ? 'info' : 'muted'}>
+                    {getRoleLabel(member.role)}
+                  </Badge>
+                  {canRemoveMember && (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleRemoveMember(member)}
+                      disabled={isWorking}
+                      aria-label={`移除旅伴 ${getMemberName(member)}`}
+                      className="shrink-0 justify-center"
+                    >
+                      <Trash2 size={15} />
+                      {removingMemberUid === memberUid ? '移除中' : '移除'}
+                    </Button>
+                  )}
+                </div>
               </motion.div>
             );
           }) : (

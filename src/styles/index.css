@@ -1996,7 +1996,7 @@ textarea.tp-input:focus {
 }
 
 /* Fresh breeze correction: color-only palette override */
-:root {
+.tp-legacy-brand-token-reference-a {
   --color-brand-50: 236 254 255;
   --color-brand-100: 207 250 254;
   --color-brand-200: 165 243 252;
@@ -2034,7 +2034,7 @@ textarea.tp-input:focus {
   --shadow-nav: 0 -14px 44px -36px rgba(22, 40, 45, 0.22), 0 14px 34px -30px rgba(15, 159, 178, 0.22);
 }
 
-.dark {
+.tp-legacy-brand-token-reference-a.dark {
   --color-brand-50: 8 51 68;
   --color-brand-100: 22 78 99;
   --color-brand-200: 21 94 117;
@@ -2241,7 +2241,7 @@ textarea.tp-input {
 }
 
 /* Coastal atlas: imagegen-guided product UI direction */
-:root {
+.tp-legacy-brand-token-reference-b {
   --color-brand-50: 239 253 255;
   --color-brand-100: 207 250 254;
   --color-brand-200: 165 243 252;
@@ -2279,7 +2279,7 @@ textarea.tp-input {
   --shadow-nav: 0 -18px 52px -38px rgba(8, 41, 55, 0.28), 0 20px 46px -36px rgba(10, 157, 181, 0.24), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
 }
 
-.dark {
+.tp-legacy-brand-token-reference-b.dark {
   --color-brand-50: 8 41 55;
   --color-brand-100: 18 67 87;
   --color-brand-200: 21 88 112;
@@ -2756,7 +2756,7 @@ textarea.tp-input {
 }
 
 /* Mockup-aligned Coastal Atlas redesign */
-:root {
+.tp-legacy-atlas-token-reference {
   --atlas-ocean: 8 59 73;
   --atlas-ocean-deep: 4 35 49;
   --atlas-water: 202 236 242;
@@ -6670,8 +6670,8 @@ textarea.tp-input {
     margin-top: 0.62rem;
   }
 
-  .tp-mobile-detail-meta span,
-  .tp-mobile-detail-chips span {
+  .tp-mobile-detail-meta > span,
+  .tp-mobile-detail-chips > span {
     align-items: center;
     display: inline-flex;
     gap: 0.35rem;
@@ -6682,14 +6682,26 @@ textarea.tp-input {
     margin-top: 0.66rem;
   }
 
-  .tp-mobile-detail-chips span {
-    background: rgba(220, 251, 245, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.34);
+  .tp-mobile-detail-chips > span {
+    backdrop-filter: blur(10px) saturate(0.9);
+    background: var(--tp-canvas);
+    background: color-mix(in srgb, var(--tp-canvas) 90%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tp-border) 72%, transparent);
     border-radius: 999px;
-    color: rgb(4, 83, 95);
-    font-size: 0.76rem;
-    font-weight: 950;
-    padding: 0.42rem 0.7rem;
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--tp-ink) 10%, transparent);
+    color: var(--tp-primary-strong);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    min-height: 2rem;
+    padding: 0.44rem 0.72rem;
+    text-shadow: none;
+  }
+
+  .tp-mobile-detail-chips > .tp-trip-weather-chip {
+    background: var(--tp-sea-glass-soft);
+    background: color-mix(in srgb, var(--tp-sea-glass-soft) 78%, var(--tp-canvas));
+    color: var(--tp-ink);
   }
 
   .tp-workspace-shell .tp-atlas-page-frame.tp-detail-page-frame {

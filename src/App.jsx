@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -6,19 +6,7 @@ import AppErrorBoundary from './components/AppErrorBoundary';
 import { FeedbackProvider } from './contexts/FeedbackContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoadingState } from './components/ui';
-import { markLazyImportReload } from './utils/lazyImportRecovery';
-
-const lazyWithReload = (loader) => lazy(async () => {
-  try {
-    return await loader();
-  } catch (error) {
-    if (typeof window !== 'undefined' && markLazyImportReload(error)) {
-      window.location.reload();
-      return new Promise(() => {});
-    }
-    throw error;
-  }
-});
+import { lazyWithReload } from './utils/lazyComponent';
 
 const LoginPage = lazyWithReload(() => import('./pages/LoginPage'));
 const TripListPage = lazyWithReload(() => import('./pages/TripListPage'));

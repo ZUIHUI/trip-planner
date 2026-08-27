@@ -1,4 +1,4 @@
-:root {
+.tp-legacy-v4-token-reference {
   --v4-canvas: #ffffff;
   --v4-paper: #ffffff;
   --v4-ink: #0a0a0a;
@@ -45,7 +45,7 @@
   --shadow-nav: 0 -1px 0 rgba(0, 0, 0, 0.08);
 }
 
-.dark {
+.tp-legacy-v4-token-reference.dark {
   --v4-canvas: #101010;
   --v4-paper: #1a1a1a;
   --v4-ink: #f9fafb;

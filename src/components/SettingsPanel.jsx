@@ -1,12 +1,14 @@
 import React, { useRef, useState } from 'react';
 import {
   Check,
+  Heart,
   Image as ImageIcon,
   MapPin,
   Moon,
   Palette,
   Plus,
   RefreshCw,
+  Sparkles,
   Sun,
   Trash2,
   Type,
@@ -29,6 +31,33 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 
 const fileSizeLabel = `${Math.round(MAX_COVER_IMAGE_FILE_SIZE_BYTES / 1024)}KB`;
+
+const themeOptions = [
+  {
+    id: 'light',
+    name: '海洋白',
+    description: '清爽的 Ocean Pearl',
+    icon: Sun
+  },
+  {
+    id: 'soft-pink',
+    name: '柔和粉',
+    description: '糖果粉與櫻花重點色',
+    icon: Heart
+  },
+  {
+    id: 'sunny-yellow',
+    name: '晴光黃',
+    description: '暖白與高亮黃色',
+    icon: Sparkles
+  },
+  {
+    id: 'dark',
+    name: '深海夜',
+    description: '夜間低亮度介面',
+    icon: Moon
+  }
+];
 
 const Section = ({ icon: Icon, title, children }) => (
   <section className="tp-mobile-settings-section rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -192,22 +221,33 @@ const SettingsPanel = ({
         <div className="tp-mobile-settings-body space-y-4 p-4">
           <Section
             icon={Palette}
-            title="外觀模式"
+            title="外觀主題"
           >
-            <div className="flex items-center justify-between gap-4 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
-              <div className="flex items-center gap-3">
-                <div className={`tp-icon-chip ${currentTheme === 'dark' ? 'bg-indigo-950/40 text-indigo-300' : 'bg-amber-50 text-amber-700'}`}>
-                  {currentTheme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
-                </div>
-                <div>
-                  <p className="font-bold text-slate-900 dark:text-white">{currentTheme === 'dark' ? '夜間模式' : '日間模式'}</p>
-                </div>
-              </div>
-              <ToggleSwitch
-                checked={currentTheme === 'dark'}
-                onChange={() => onThemeChange(currentTheme === 'light' ? 'dark' : 'light')}
-                label="切換外觀模式"
-              />
+            <div className="tp-theme-choice-grid" aria-label="選擇外觀主題">
+              {themeOptions.map((theme) => {
+                const ThemeIcon = theme.icon;
+                const isSelected = currentTheme === theme.id;
+
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    className="tp-theme-choice"
+                    data-theme-option={theme.id}
+                    aria-pressed={isSelected}
+                    onClick={() => onThemeChange(theme.id)}
+                  >
+                    <span className="tp-theme-choice-swatch" aria-hidden="true">
+                      <ThemeIcon size={19} />
+                    </span>
+                    <span className="tp-theme-choice-copy">
+                      <strong>{theme.name}</strong>
+                      <small>{theme.description}</small>
+                    </span>
+                    {isSelected && <Check className="tp-theme-choice-check" size={17} aria-hidden="true" />}
+                  </button>
+                );
+              })}
             </div>
           </Section>
 

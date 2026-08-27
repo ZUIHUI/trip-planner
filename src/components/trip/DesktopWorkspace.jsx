@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  BookOpen,
-  CalendarDays,
   CheckSquare,
   ChevronRight,
   CircleDollarSign,
@@ -10,21 +8,19 @@ import {
   Lightbulb,
   Luggage,
   Map,
-  MapPin,
   Navigation,
   Plane,
-  Plus,
   Settings,
   ShoppingBag,
-  Sparkles,
   UsersRound
 } from 'lucide-react';
 import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
-import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
-import { buildItineraryRouteState, getTripRouteOrigin } from '../../utils/itineraryRoute';
 import { getTripDayDisplayLabel, getTripDayDisplayTitle, getTripDisplayDates } from '../../utils/tripDates';
+import { formatEventTime, getEventLocationText, getTripDayIsoDate } from '../../utils/tripEvents';
+import { useTripDaySummary } from '../../hooks/useTripDaySummary';
 import GoogleRoutePreview from './GoogleRoutePreview';
+import TripContextRail from './TripContextRail';
 
 const primaryModules = [
   { id: 'today', label: '旅程總覽', icon: Compass },
@@ -41,16 +37,6 @@ const planningModules = [
   { id: 'shopping', label: '購物清單', icon: ShoppingBag },
   { id: 'companions', label: '旅伴與分享', icon: UsersRound }
 ];
-
-const readLocation = (event) => (
-  event?.locationPlace?.name
-  || event?.locationPlace?.address
-  || event?.location
-  || event?.address
-  || ''
-);
-
-const formatEventTime = (event) => event?.time || event?.startTime || '--:--';
 
 const NavigationGroup = ({ label, items, activeTab, onTabChange }) => (
   <section className="tp-v4-rail-section">
@@ -97,30 +83,32 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
 
       <NavigationGroup label="旅途中" items={primaryModules} activeTab={activeTab} onTabChange={onTabChange} />
 
-      <section className="tp-v4-rail-section tp-v4-rail-days">
-        <h2>日期</h2>
-        <div>
-          {(Array.isArray(itinerary) ? itinerary : []).map((day) => {
-            const isActive = String(day.day) === String(selectedDay);
-            const dayLabel = getTripDayDisplayLabel(day, tripDetails);
-            const dayTitle = getTripDayDisplayTitle(day, '');
-            return (
-              <button
-                key={day.day}
-                type="button"
-                className={isActive ? 'is-active' : ''}
-                onClick={() => handleDayChange(day.day)}
-                aria-current={isActive ? 'date' : undefined}
-              >
-                <span className="tp-v4-rail-day-copy">
-                  <strong>{dayLabel}</strong>
-                  {dayTitle && <small>{dayTitle}</small>}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      {activeTab !== 'itinerary' && (
+        <section className="tp-v4-rail-section tp-v4-rail-days">
+          <h2>日期</h2>
+          <div>
+            {(Array.isArray(itinerary) ? itinerary : []).map((day) => {
+              const isActive = String(day.day) === String(selectedDay);
+              const dayLabel = getTripDayDisplayLabel(day, tripDetails);
+              const dayTitle = getTripDayDisplayTitle(day, '');
+              return (
+                <button
+                  key={day.day}
+                  type="button"
+                  className={isActive ? 'is-active' : ''}
+                  onClick={() => handleDayChange(day.day)}
+                  aria-current={isActive ? 'date' : undefined}
+                >
+                  <span className="tp-v4-rail-day-copy">
+                    <strong>{dayLabel}</strong>
+                    {dayTitle && <small>{dayTitle}</small>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <NavigationGroup label="行前規劃" items={planningModules} activeTab={activeTab} onTabChange={onTabChange} />
 
@@ -137,6 +125,7 @@ export const DesktopMapOverview = ({ activeTab }) => {
     currentDayData,
     currentDayDisplayTitle,
     currentDayLabel,
+    selectedDay,
     tripDetails,
     currentLocation
   } = useTripWorkspace();
@@ -144,22 +133,16 @@ export const DesktopMapOverview = ({ activeTab }) => {
     () => Array.isArray(currentDayData?.events) ? [...currentDayData.events] : [],
     [currentDayData]
   );
-  const nextEvent = events.find((event) => readLocation(event)) || events[0];
-  const destination = readLocation(nextEvent);
-  const origin = useMemo(
-    () => getTripRouteOrigin(tripDetails, currentLocation),
-    [currentLocation, tripDetails]
-  );
-  const routeStops = useMemo(
-    () => buildItineraryRouteState(events, { origin }).routeStops,
-    [events, origin]
-  );
-  const routeUrl = buildGoogleMapsMultiStopDirectionsUrl(
-    origin,
-    routeStops.map((stop) => stop.destination)
-  );
+  const selectedDayIsoDate = getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay);
+  const { nextEvent, routeStops, routeUrl } = useTripDaySummary({
+    events,
+    selectedDayIsoDate,
+    tripDetails,
+    currentLocation
+  });
+  const destination = getEventLocationText(nextEvent);
 
-  if (activeTab !== 'today' && activeTab !== 'itinerary') return null;
+  if (activeTab !== 'today') return null;
 
   return (
     <section className="tp-v4-desktop-map" aria-label="今日地圖概覽">
@@ -204,83 +187,43 @@ export const DesktopPlannerPanel = ({ activeTab, onTabChange }) => {
     remainingBudget,
     budgetProgress,
     canEdit,
+    checklists,
+    checklistStatusByListId,
+    currentLocation,
+    selectedDay,
     openAddModal,
     openAiRecommendations,
-    presenceUi
+    presenceUi,
+    tripDetails
   } = useTripWorkspace();
   const events = useMemo(
     () => Array.isArray(currentDayData?.events) ? [...currentDayData.events] : [],
     [currentDayData]
   );
-
+  const selectedDayIsoDate = getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay);
+  const daySummary = useTripDaySummary({
+    events,
+    selectedDayIsoDate,
+    tripDetails,
+    currentLocation,
+    checklists,
+    checklistStatusByListId,
+    remainingBudget
+  });
   return (
-    <aside className="tp-v4-planner-panel" aria-label="今日規劃摘要">
-      <div className="tp-v4-planner-heading">
-        <span>{currentDayLabel}</span>
-        <h2>{currentDayDisplayTitle}</h2>
-        <p>{presenceUi?.summaryText || '已同步'}</p>
-      </div>
-
-      <div className="tp-v4-planner-actions">
-        <Button onClick={openAddModal} disabled={!canEdit}>
-          <Plus size={16} />
-          新增行程
-        </Button>
-        <Button variant="secondary" onClick={() => openAiRecommendations?.('dayPlan')} disabled={!canEdit}>
-          <Sparkles size={16} />
-          智慧建議
-        </Button>
-      </div>
-
-      <div className="tp-v4-planner-stats">
-        <div><strong>{events.length}</strong><span>今日行程</span></div>
-        <div><strong>{budgetProgress || 0}%</strong><span>預算使用</span></div>
-        <div><strong>{Number.isFinite(remainingBudget) ? Math.round(remainingBudget).toLocaleString() : '--'}</strong><span>預算餘額</span></div>
-      </div>
-
-      <section className="tp-v4-panel-timeline">
-        <div className="tp-v4-panel-section-heading">
-          <div>
-            <span>TIME LINE</span>
-            <h3>今日時間線</h3>
-          </div>
-          {activeTab !== 'itinerary' && (
-            <button type="button" onClick={() => onTabChange('itinerary')}>完整行程</button>
-          )}
-        </div>
-
-        {events.length ? (
-          <ol>
-            {events.slice(0, 6).map((event, index) => (
-              <li key={event.id || `${event.title}-${index}`}>
-                <time>{formatEventTime(event)}</time>
-                <span className={index === 0 ? 'is-next' : ''} aria-hidden="true" />
-                <div>
-                  <strong>{event.title || '未命名行程'}</strong>
-                  <small>
-                    {readLocation(event) ? <MapPin size={12} /> : <CalendarDays size={12} />}
-                    {readLocation(event) || '尚未設定地點'}
-                  </small>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <div className="tp-v4-panel-empty">
-            <CalendarDays size={22} />
-            <strong>這一天還沒有行程</strong>
-            <p>先新增一個停靠點，時間線會在這裡整理完成。</p>
-          </div>
-        )}
-      </section>
-
-      <section className="tp-v4-panel-note">
-        <BookOpen size={18} />
-        <div>
-          <strong>規劃提醒</strong>
-          <p>桌面適合跨日調整與資料檢查；旅途中可回到「旅程總覽」快速查看下一站。</p>
-        </div>
-      </section>
-    </aside>
+    <TripContextRail
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      dayLabel={currentDayLabel}
+      dayTitle={currentDayDisplayTitle}
+      syncText={presenceUi?.summaryText}
+      canEdit={canEdit}
+      onAddEvent={openAddModal}
+      onOpenAi={() => openAiRecommendations?.('dayPlan')}
+      events={events}
+      budgetProgress={budgetProgress}
+      remainingBudget={remainingBudget}
+      daySummary={daySummary}
+    />
   );
 };

@@ -280,7 +280,7 @@ const EventCard = ({
 
   return (
     <motion.div
-      className="relative ml-4 border-l-2 border-slate-200 pb-8 pl-7 last:pb-0 dark:border-slate-800"
+      className="tp-itinerary-timeline-row relative ml-4 border-l-2 border-slate-200 pb-8 pl-7 last:pb-0 dark:border-slate-800"
       initial={false}
     >
       <motion.span className={`tp-soft-pulse absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 bg-white dark:bg-slate-950 ${
@@ -295,7 +295,7 @@ const EventCard = ({
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-base font-black text-slate-800 dark:text-slate-100">{eventTimeText}</span>
+                <span className="tp-itinerary-event-time font-mono text-base font-black text-slate-800 dark:text-slate-100">{eventTimeText}</span>
                 <Badge variant="muted">{meta.label}</Badge>
                 {event.urgent && (
                   <Badge variant="warning">

@@ -24,7 +24,6 @@ import { Badge, Button, Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import DayReadinessStrip from './DayReadinessStrip';
 import MobileMockupFrame from './MobileMockupFrame';
-import { buildGoogleMapsMultiStopDirectionsUrl } from '../../services/googleMapsService';
 import {
   formatDailyCost,
   formatEventTime,
@@ -32,16 +31,11 @@ import {
   getEventDestination,
   getEventLocationText,
   getEventMemoText,
-  getLocalIsoDate,
-  pickNextEvent,
   getTripDayIsoDate
 } from '../../utils/tripEvents';
 import { getTripDayDisplayLabel } from '../../utils/tripDates';
-import {
-  buildRouteStop,
-  getTripRouteOrigin
-} from '../../utils/itineraryRoute';
 import { getAirportDayFlights } from '../../utils/airportDayFlights';
+import { useTripDaySummary } from '../../hooks/useTripDaySummary';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const emptyFlightText = '未設定';
@@ -58,117 +52,6 @@ const quickActionMotion = {
 const quickActionItemMotion = {
   hidden: { opacity: 0, y: 10, scale: 0.985 },
   visible: { opacity: 1, y: 0, scale: 1 }
-};
-
-const getChecklistRemaining = (items = []) => (
-  Array.isArray(items) ? items.filter((item) => !item.done).length : 0
-);
-
-const readEventTimeMinutes = (event) => {
-  const match = formatEventTime(event, '').match(/^([01]\d|2[0-3]):([0-5]\d)$/);
-  if (!match) return null;
-  return Number(match[1]) * 60 + Number(match[2]);
-};
-
-const getCurrentTimeMinutes = (now = new Date()) => (
-  now.getHours() * 60 + now.getMinutes()
-);
-
-const buildDayStatus = ({
-  events,
-  routeStops,
-  checklists,
-  nextEvent,
-  dayIsoDate = '',
-  now = new Date()
-}) => {
-  const currentMinutes = getCurrentTimeMinutes(now);
-  const isCurrentTripDay = !dayIsoDate || dayIsoDate === getLocalIsoDate(now);
-  const timedEvents = events
-    .map((event) => ({ event, minutes: readEventTimeMinutes(event) }))
-    .filter((item) => item.minutes !== null);
-  const completedTimedEvents = isCurrentTripDay
-    ? timedEvents.filter((item) => item.minutes < currentMinutes).length
-    : 0;
-  const completedEvents = timedEvents.length
-    ? completedTimedEvents
-    : 0;
-  const totalEvents = events.length;
-  const progressPercent = totalEvents
-    ? Math.min(100, Math.round((completedEvents / totalEvents) * 100))
-    : 0;
-  const missingLocationCount = Math.max(0, totalEvents - routeStops.length);
-  const checklistRemaining = getChecklistRemaining(checklists?.preTrip) + getChecklistRemaining(checklists?.packing);
-
-  return {
-    completedEvents,
-    totalEvents,
-    progressPercent,
-    routeStopCount: routeStops.length,
-    missingLocationCount,
-    checklistRemaining,
-    nextTime: formatEventTime(nextEvent)
-  };
-};
-
-const buildReminders = ({
-  events,
-  routeStops,
-  tripDetails,
-  budgetTarget,
-  remainingBudget,
-  checklists
-}) => {
-  const reminders = [];
-  const accommodation = tripDetails?.accommodation || {};
-
-  if (!events.length) {
-    reminders.push({
-      id: 'empty-day',
-      tone: 'info',
-      title: '今日還沒有行程',
-      description: '新增下一站。'
-    });
-  }
-
-  if (!accommodation.address && !accommodation.name) {
-    reminders.push({
-      id: 'accommodation',
-      tone: 'warning',
-      title: '住宿資訊未補',
-      description: '補住宿地址。'
-    });
-  }
-
-  if (events.length > 0 && routeStops.length === 0) {
-    reminders.push({
-      id: 'route',
-      tone: 'warning',
-      title: '今日行程缺地點',
-      description: '補上地點。'
-    });
-  }
-
-  if (budgetTarget > 0 && remainingBudget < 0) {
-    reminders.push({
-      id: 'budget',
-      tone: 'danger',
-      title: '旅程預算已超支',
-      description: `目前超出 ${Math.abs(remainingBudget).toLocaleString()} 元。`
-    });
-  }
-
-  const preTripRemaining = getChecklistRemaining(checklists?.preTrip);
-  if (preTripRemaining > 0) {
-    reminders.push({
-      id: 'pre-trip',
-      tone: 'info',
-      title: '行前待辦尚未完成',
-      description: `還有 ${preTripRemaining} 項。`
-    });
-  }
-
-  return reminders.slice(0, 3);
 };
 
 const reminderClasses = {
@@ -858,6 +741,7 @@ const TodayTab = ({ onTabChange }) => {
     tripDetails,
     currentLocation,
     checklists,
+    checklistStatusByListId,
     budgetTarget,
     remainingBudget,
     canEdit,
@@ -879,43 +763,24 @@ const TodayTab = ({ onTabChange }) => {
     () => getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay),
     [tripDetails?.dateRange?.start, selectedDay]
   );
-  const nextEvent = useMemo(
-    () => pickNextEvent(events, new Date(), selectedDayIsoDate),
-    [events, selectedDayIsoDate]
-  );
-  const routeStops = useMemo(
-    () => dayEvents.map((event, index) => buildRouteStop(event, index)).filter(Boolean),
-    [dayEvents]
-  );
-  const origin = useMemo(
-    () => getTripRouteOrigin(tripDetails, currentLocation),
-    [currentLocation, tripDetails]
-  );
-  const routeUrl = buildGoogleMapsMultiStopDirectionsUrl(
+  const daySummary = useTripDaySummary({
+    events,
+    selectedDayIsoDate,
+    tripDetails,
+    currentLocation,
+    checklists,
+    checklistStatusByListId,
+    budgetTarget,
+    remainingBudget
+  });
+  const {
+    nextEvent,
+    routeStops,
     origin,
-    routeStops.map((stop) => stop.destination)
-  );
-  const reminders = useMemo(
-    () => buildReminders({
-      events,
-      routeStops,
-      tripDetails,
-      budgetTarget,
-      remainingBudget,
-      checklists
-    }),
-    [events, routeStops, tripDetails, budgetTarget, remainingBudget, checklists]
-  );
-  const dayStatus = useMemo(
-    () => buildDayStatus({
-      events,
-      routeStops,
-      checklists,
-      nextEvent,
-      dayIsoDate: selectedDayIsoDate
-    }),
-    [events, routeStops, checklists, nextEvent, selectedDayIsoDate]
-  );
+    routeUrl,
+    reminders,
+    dayStatus
+  } = daySummary;
   const airportDayFlights = useMemo(
     () => getAirportDayFlights({ itinerary, selectedDay, tripDetails }),
     [itinerary, selectedDay, tripDetails]

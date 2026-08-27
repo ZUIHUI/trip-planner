@@ -4,7 +4,7 @@
  * DESIGN.md remains the source of truth for tokens, hierarchy, and interaction.
  */
 
-:root {
+.tp-legacy-story-token-reference {
   --story-ink: #173f43;
   --story-charcoal: #006d77;
   --story-slate: #3e6165;
@@ -89,7 +89,7 @@
   --atlas-line: 62 97 101;
 }
 
-.dark {
+.tp-legacy-story-token-reference.dark {
   --story-ink: #edf6f9;
   --story-charcoal: #fafcfc;
   --story-slate: #cadde1;
@@ -230,30 +230,34 @@ body {
 }
 
 .tp-button-primary {
-  background: var(--story-ink) !important;
-  border-color: var(--story-ink) !important;
-  color: var(--story-canvas) !important;
+  background: var(--tp-primary) !important;
+  border-color: var(--tp-primary) !important;
+  color: var(--tp-on-primary) !important;
 }
 
 .tp-button-primary:hover:not(:disabled),
 .tp-button-primary:active:not(:disabled) {
-  background: var(--story-charcoal) !important;
-  border-color: var(--story-charcoal) !important;
+  background: var(--tp-primary-strong) !important;
+  border-color: var(--tp-primary-strong) !important;
 }
 
 .tp-button-secondary {
-  background: var(--story-canvas) !important;
-  border-color: var(--story-border) !important;
-  color: var(--story-ink) !important;
+  background: var(--tp-surface) !important;
+  border-color: var(--tp-border) !important;
+  color: var(--tp-primary-strong) !important;
 }
 
 .tp-button-secondary:hover:not(:disabled) {
-  background: var(--story-surface) !important;
-  border-color: var(--story-border) !important;
+  background: var(--tp-primary-soft) !important;
+  border-color: var(--tp-primary) !important;
+}
+
+.tp-button-ghost {
+  color: var(--tp-primary-strong) !important;
 }
 
 .tp-button-ghost:hover:not(:disabled) {
-  background: var(--story-surface) !important;
+  background: var(--tp-primary-soft) !important;
 }
 
 .tp-input,
@@ -313,9 +317,14 @@ textarea.tp-input:focus {
 
 .tp-auth-story-preview.tp-auth-atlas-preview {
   background:
-    radial-gradient(circle at 80% 15%, rgba(131, 197, 190, 0.5), transparent 16rem),
-    radial-gradient(circle at 18% 82%, rgba(127, 179, 200, 0.18), transparent 16rem),
-    linear-gradient(135deg, var(--story-teal) 0%, #245e66 52%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 80% 15%, color-mix(in srgb, var(--tp-sea-glass) 38%, transparent), transparent 16rem),
+    radial-gradient(circle at 18% 82%, color-mix(in srgb, var(--tp-ocean-mist) 16%, transparent), transparent 16rem),
+    linear-gradient(
+      135deg,
+      var(--tp-surface-dark) 0%,
+      color-mix(in srgb, var(--tp-primary) 46%, var(--tp-surface-dark)) 52%,
+      color-mix(in srgb, var(--tp-primary-strong) 34%, var(--tp-surface-dark)) 100%
+    ) !important;
   border: 0 !important;
   border-radius: 12px !important;
   box-shadow: var(--story-shadow-hero) !important;
@@ -367,9 +376,14 @@ textarea.tp-input:focus {
 /* Trip library: immersive cover at the doorway, efficient controls below. */
 .tp-story-command-hero {
   background:
-    radial-gradient(circle at 82% 0%, rgba(131, 197, 190, 0.58), transparent 24rem),
-    radial-gradient(circle at 12% 110%, rgba(127, 179, 200, 0.16), transparent 22rem),
-    linear-gradient(135deg, var(--story-teal) 0%, #245e66 56%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--tp-sea-glass) 40%, transparent), transparent 24rem),
+    radial-gradient(circle at 12% 110%, color-mix(in srgb, var(--tp-ocean-mist) 16%, transparent), transparent 22rem),
+    linear-gradient(
+      135deg,
+      var(--tp-surface-dark) 0%,
+      color-mix(in srgb, var(--tp-primary) 46%, var(--tp-surface-dark)) 56%,
+      color-mix(in srgb, var(--tp-primary-strong) 34%, var(--tp-surface-dark)) 100%
+    ) !important;
   border: 0 !important;
   box-shadow: var(--story-shadow-hero) !important;
   color: #ffffff !important;
@@ -410,8 +424,8 @@ textarea.tp-input:focus {
 .tp-story-command-hero .tp-atlas-map-strip {
   background:
     linear-gradient(180deg, rgba(250, 252, 252, 0.94), rgba(237, 246, 249, 0.86)),
-    linear-gradient(90deg, rgba(0, 109, 119, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(0, 109, 119, 0.08) 1px, transparent 1px) !important;
+    linear-gradient(90deg, color-mix(in srgb, var(--tp-primary) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, color-mix(in srgb, var(--tp-primary) 8%, transparent) 1px, transparent 1px) !important;
   background-size: auto, 28px 28px, 28px 28px !important;
   border-color: rgba(255, 255, 255, 0.42) !important;
 }
@@ -444,9 +458,14 @@ textarea.tp-input:focus {
 
 .tp-app-header-surface {
   background:
-    radial-gradient(circle at 78% 8%, rgba(131, 197, 190, 0.56), transparent 22rem),
-    radial-gradient(circle at 16% 110%, rgba(127, 179, 200, 0.16), transparent 20rem),
-    linear-gradient(135deg, var(--story-teal) 0%, #245e66 58%, var(--story-teal-soft) 100%) !important;
+    radial-gradient(circle at 78% 8%, color-mix(in srgb, var(--tp-sea-glass) 42%, transparent), transparent 22rem),
+    radial-gradient(circle at 16% 110%, color-mix(in srgb, var(--tp-ocean-mist) 16%, transparent), transparent 20rem),
+    linear-gradient(
+      135deg,
+      var(--tp-surface-dark) 0%,
+      color-mix(in srgb, var(--tp-primary) 46%, var(--tp-surface-dark)) 58%,
+      color-mix(in srgb, var(--tp-primary-strong) 34%, var(--tp-surface-dark)) 100%
+    ) !important;
 }
 
 .tp-app-header-cover {
@@ -515,6 +534,34 @@ textarea.tp-input:focus {
   border-radius: 12px !important;
 }
 
+.tp-v4-desktop-map-toolbar {
+  background: color-mix(in srgb, var(--tp-paper) 92%, transparent) !important;
+  border-color: color-mix(in srgb, var(--tp-border) 74%, transparent) !important;
+}
+
+.tp-v4-desktop-map-card {
+  background: color-mix(in srgb, var(--tp-paper) 94%, transparent) !important;
+  border-color: var(--tp-border) !important;
+}
+
+.tp-route-preview-surface,
+.tp-route-preview-loading {
+  background: var(--tp-surface-strong) !important;
+}
+
+.tp-route-preview-surface {
+  color: var(--tp-body) !important;
+}
+
+.tp-route-preview-icon {
+  background: var(--tp-paper) !important;
+  color: var(--tp-primary) !important;
+}
+
+.tp-route-preview-loading {
+  color: var(--tp-primary-strong) !important;
+}
+
 .tp-v4-planner-heading > span,
 .tp-v4-panel-section-heading > div > span,
 .tp-v4-rail-trip > span,
@@ -548,13 +595,11 @@ textarea.tp-input:focus {
 }
 
 .tp-journey-hero {
-  background:
-    radial-gradient(circle at 84% 8%, rgba(131, 197, 190, 0.52), transparent 15rem),
-    linear-gradient(135deg, var(--story-teal) 0%, #245e66 58%, var(--story-teal-soft) 100%) !important;
+  background: var(--tp-main-card-gradient) !important;
   border: 0 !important;
   border-radius: 12px !important;
   box-shadow: var(--story-shadow-hero) !important;
-  color: #ffffff !important;
+  color: var(--tp-main-card-text) !important;
 }
 
 .tp-journey-hero h3,
@@ -563,19 +608,19 @@ textarea.tp-input:focus {
 .tp-journey-hero svg,
 .tp-journey-hero .text-brand-100,
 .tp-journey-hero .text-brand-50 {
-  color: #ffffff !important;
-  text-shadow: none !important;
+  color: var(--tp-main-card-text) !important;
+  text-shadow: var(--tp-main-card-text-shadow) !important;
 }
 
 .tp-journey-hero .tp-trip-weather-card {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
-  color: #ffffff !important;
+  background: var(--tp-main-card-glass) !important;
+  border-color: var(--tp-main-card-glass-border) !important;
+  color: var(--tp-main-card-text) !important;
   backdrop-filter: blur(10px);
 }
 
 .tp-journey-hero .tp-trip-weather-card * {
-  color: #ffffff !important;
+  color: var(--tp-main-card-text) !important;
 }
 
 .tp-v4-next-action-primary,
@@ -588,14 +633,14 @@ textarea.tp-input:focus {
 
 .tp-v4-next-action-secondary,
 .tp-journey-hero .tp-button-secondary {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.26) !important;
-  color: #ffffff !important;
+  background: var(--tp-main-card-glass) !important;
+  border-color: var(--tp-main-card-glass-border) !important;
+  color: var(--tp-main-card-text) !important;
 }
 
 .tp-command-center {
   background:
-    radial-gradient(circle at 92% 0%, rgba(131, 197, 190, 0.34), transparent 15rem),
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--tp-sea-glass) 30%, transparent), transparent 15rem),
     linear-gradient(135deg, color-mix(in srgb, var(--story-cream) 52%, var(--story-canvas)), var(--story-canvas)) !important;
   border-color: color-mix(in srgb, var(--story-sky) 32%, var(--story-border)) !important;
 }
@@ -607,8 +652,12 @@ textarea.tp-input:focus {
 
 .tp-share-story-card > div:first-child {
   background:
-    radial-gradient(circle at 88% 0%, rgba(131, 197, 190, 0.5), transparent 14rem),
-    linear-gradient(135deg, var(--story-teal), var(--story-teal-soft));
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--tp-sea-glass) 34%, transparent), transparent 14rem),
+    linear-gradient(
+      135deg,
+      var(--tp-surface-dark),
+      color-mix(in srgb, var(--tp-primary) 46%, var(--tp-surface-dark))
+    );
   border-radius: 12px 12px 0 0;
   margin: -16px -16px 18px;
   padding: 20px 16px;
@@ -650,8 +699,9 @@ textarea.tp-input:focus {
 .tp-bottom-nav .tp-nav-active,
 .tp-atlas-dock .tp-nav-active,
 .tp-mobile-trips-dock .is-active {
-  background: var(--story-ink) !important;
-  color: var(--story-canvas) !important;
+  background: var(--tp-primary) !important;
+  border-color: var(--tp-primary) !important;
+  color: var(--tp-on-primary) !important;
 }
 
 .tp-nav-active svg,
@@ -662,13 +712,13 @@ textarea.tp-input:focus {
 .tp-atlas-dock .tp-nav-item.tp-nav-active .tp-nav-label,
 .tp-mobile-trips-dock .is-active svg,
 .tp-mobile-trips-dock .is-active span {
-  color: var(--story-canvas) !important;
+  color: var(--tp-on-primary) !important;
 }
 
 @media (min-width: 768px) {
   .tp-auth-shell {
     background:
-      radial-gradient(circle at 12% 12%, rgba(131, 197, 190, 0.28), transparent 28rem),
+      radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--tp-sea-glass) 28%, transparent), transparent 28rem),
       radial-gradient(circle at 96% 90%, rgba(255, 221, 210, 0.34), transparent 30rem),
       var(--story-surface-soft) !important;
   }
@@ -700,6 +750,10 @@ textarea.tp-input:focus {
   .tp-app-header .tp-page-container > div {
     width: 100%;
   }
+}
+
+.tp-itinerary-day-note {
+  display: none;
 }
 
 @media (min-width: 1180px) {
@@ -734,9 +788,14 @@ textarea.tp-input:focus {
 
   .tp-mobile-auth-hero {
     background:
-      radial-gradient(circle at 82% 14%, rgba(131, 197, 190, 0.6), transparent 12rem),
-      radial-gradient(circle at 10% 100%, rgba(127, 179, 200, 0.16), transparent 12rem),
-      linear-gradient(145deg, var(--story-teal) 0%, #245e66 58%, var(--story-teal-soft) 100%) !important;
+      radial-gradient(circle at 82% 14%, color-mix(in srgb, var(--tp-sea-glass) 42%, transparent), transparent 12rem),
+      radial-gradient(circle at 10% 100%, color-mix(in srgb, var(--tp-ocean-mist) 14%, transparent), transparent 12rem),
+      linear-gradient(
+        145deg,
+        var(--tp-surface-dark) 0%,
+        color-mix(in srgb, var(--tp-primary) 46%, var(--tp-surface-dark)) 58%,
+        color-mix(in srgb, var(--tp-primary-strong) 34%, var(--tp-surface-dark)) 100%
+      ) !important;
     color: #ffffff !important;
     min-height: 18.5rem !important;
     padding-bottom: 4rem !important;
@@ -780,8 +839,13 @@ textarea.tp-input:focus {
   .tp-mobile-trips-hero,
   .tp-mobile-detail-hero {
     background:
-      radial-gradient(circle at 82% 12%, rgba(131, 197, 190, 0.52), transparent 12rem),
-      linear-gradient(145deg, var(--story-teal) 0%, #245e66 58%, var(--story-teal-soft) 100%) !important;
+      radial-gradient(circle at 82% 12%, color-mix(in srgb, var(--tp-sea-glass) 38%, transparent), transparent 12rem),
+      linear-gradient(
+        145deg,
+        var(--tp-surface-dark) 0%,
+        color-mix(in srgb, var(--tp-primary) 46%, var(--tp-surface-dark)) 58%,
+        color-mix(in srgb, var(--tp-primary-strong) 34%, var(--tp-surface-dark)) 100%
+      ) !important;
     color: #ffffff !important;
   }
 
@@ -797,10 +861,17 @@ textarea.tp-input:focus {
     text-shadow: 0 2px 10px rgba(10, 10, 10, 0.62) !important;
   }
 
+  .tp-mobile-detail-hero .tp-mobile-detail-chips > span {
+    color: var(--tp-primary-strong) !important;
+    text-shadow: none !important;
+  }
+
+  .tp-mobile-detail-hero .tp-mobile-detail-chips > .tp-trip-weather-chip {
+    color: var(--tp-ink) !important;
+  }
+
   .tp-mobile-trips-hero.has-trip-cover {
-    background-image:
-      linear-gradient(180deg, rgba(10, 10, 10, 0.35) 0%, rgba(10, 10, 10, 0.28) 38%, rgba(10, 10, 10, 0.88) 100%),
-      var(--tp-mobile-trip-hero-image) !important;
+    background-image: var(--tp-photo-scrim), var(--tp-mobile-trip-hero-image) !important;
   }
 
   .tp-mobile-trips-sheet {
@@ -827,12 +898,16 @@ textarea.tp-input:focus {
   .tp-mobile-trip-row-cover {
     background-color: var(--story-surface-soft) !important;
     background-image:
-      linear-gradient(135deg, rgba(127, 179, 200, 0.16), rgba(131, 197, 190, 0.42)) !important;
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--tp-ocean-mist) 16%, transparent),
+        color-mix(in srgb, var(--tp-sea-glass) 42%, transparent)
+      ) !important;
     color: var(--story-teal) !important;
   }
 
   .tp-mobile-trips-continue-count {
-    background: rgba(131, 197, 190, 0.18) !important;
+    background: color-mix(in srgb, var(--tp-sea-glass) 18%, transparent) !important;
   }
 
   .tp-mobile-trips-continue-count strong,
@@ -910,8 +985,14 @@ textarea.tp-input:focus {
   }
 
   .tp-mobile-detail-tabs button.is-active {
-    background: var(--story-ink) !important;
-    color: var(--story-canvas) !important;
+    background: var(--tp-primary) !important;
+    border-color: var(--tp-primary) !important;
+    color: var(--tp-on-primary) !important;
+  }
+
+  .tp-mobile-detail-tabs button.is-active svg,
+  .tp-mobile-detail-tabs button.is-active span {
+    color: var(--tp-on-primary) !important;
   }
 
   .tp-mobile-feature-header {
@@ -940,6 +1021,193 @@ textarea.tp-input:focus {
     border-color: var(--story-teal) !important;
     box-shadow: 0 16px 30px -24px rgba(23, 63, 67, 0.68) !important;
     color: var(--story-canvas) !important;
+  }
+}
+
+@media (min-width: 1180px) {
+  .tp-mobile-detail-stage-itinerary .tp-day-selector-strip {
+    margin-bottom: 18px;
+    padding-inline: 0 !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-day-selector-track {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    gap: 8px !important;
+    padding: 0 !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-day-selector-chip {
+    background: var(--story-canvas) !important;
+    border: 1px solid var(--story-border) !important;
+    border-radius: 9999px !important;
+    color: var(--story-slate) !important;
+    min-height: 40px;
+    min-width: max-content !important;
+    padding: 9px 14px !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-day-selector-chip[aria-pressed="true"] {
+    background: var(--tp-primary) !important;
+    border-color: var(--tp-primary) !important;
+    color: var(--tp-on-primary) !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-day-heading {
+    background: var(--story-canvas);
+    border: 1px solid var(--story-border) !important;
+    border-radius: 12px;
+    margin-top: 0 !important;
+    padding: 18px !important;
+  }
+
+  .tp-itinerary-day-note {
+    color: var(--story-steel) !important;
+    display: block;
+    font-size: 14px !important;
+    line-height: 1.5;
+  }
+
+  .tp-itinerary-route-panel {
+    display: none;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-timeline {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-timeline-row {
+    border-left-color: var(--story-border) !important;
+    border-left-width: 1px !important;
+    margin-left: 64px !important;
+    padding-bottom: 0 !important;
+    padding-left: 26px !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-timeline-row > .tp-soft-pulse {
+    background: var(--story-canvas) !important;
+    border-color: var(--story-mint-deep) !important;
+    height: 12px !important;
+    left: -6.5px !important;
+    top: 21px !important;
+    width: 12px !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-event-card {
+    border-color: var(--story-border) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    padding: 16px !important;
+  }
+
+  .tp-mobile-detail-stage-itinerary .tp-itinerary-event-time {
+    color: var(--story-steel) !important;
+    font-size: 13px !important;
+    position: absolute;
+    right: calc(100% + 42px);
+    text-align: right;
+    top: 19px;
+    width: 58px;
+  }
+
+  .tp-v4-panel-section-heading > .tp-button-ghost {
+    font-size: 12px !important;
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+  }
+
+  .tp-v4-panel-checklist {
+    border-top: 1px solid var(--story-border);
+    margin-top: 18px;
+    padding-top: 17px;
+  }
+
+  .tp-v4-panel-checklist .tp-v4-panel-section-heading > strong {
+    color: var(--story-steel);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tp-v4-panel-progress {
+    background: var(--story-surface);
+    border-radius: 9999px;
+    height: 6px;
+    margin-top: 13px;
+    overflow: hidden;
+  }
+
+  .tp-v4-panel-progress > span {
+    background: var(--story-mint-deep);
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+    transition: width 180ms ease;
+  }
+
+  .tp-v4-panel-checklist ul {
+    display: grid;
+    gap: 9px;
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 0;
+  }
+
+  .tp-v4-panel-checklist li {
+    align-items: center;
+    color: var(--story-ink);
+    display: flex;
+    font-size: 14px;
+    font-weight: 500;
+    gap: 9px;
+    line-height: 1.5;
+  }
+
+  .tp-v4-panel-checklist li svg {
+    color: var(--story-steel);
+    flex: 0 0 auto;
+  }
+
+  .tp-v4-panel-checklist li.is-done {
+    color: var(--story-steel);
+  }
+
+  .tp-v4-panel-checklist li.is-done svg {
+    color: var(--story-mint-deep);
+  }
+
+  .tp-v4-panel-checklist li.is-done span {
+    text-decoration: line-through;
+  }
+
+  .tp-v4-panel-checklist-empty {
+    color: var(--story-steel);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 14px 0 0;
+  }
+
+  .tp-v4-panel-link {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--story-teal);
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 600;
+    gap: 4px;
+    margin-top: 14px;
+    min-height: 36px;
+    padding: 0;
+  }
+
+  .tp-v4-panel-link:focus-visible {
+    border-radius: 6px;
+    outline: 2px solid var(--story-mint-deep);
+    outline-offset: 3px;
   }
 }
 

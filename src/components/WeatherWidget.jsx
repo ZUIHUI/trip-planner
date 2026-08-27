@@ -3,6 +3,8 @@ import { getWeatherForDate } from '../services/weatherService';
 import CuteWeatherIcon from './CuteWeatherIcon';
 import { logger } from '../utils/logger';
 
+const CHIP_WEATHER_LOADING_TIMEOUT_MS = 6000;
+
 const WeatherWidget = ({ 
   date, 
   currentLocation = null,  // 現在可能是 GPS 對象 { latitude, longitude, locationName }
@@ -13,6 +15,7 @@ const WeatherWidget = ({
 }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [chipLoadingTimedOut, setChipLoadingTimedOut] = useState(false);
   const lastRequestKeyRef = useRef(null);
   const inFlightRequestKeyRef = useRef(null);
   
@@ -88,7 +91,34 @@ const WeatherWidget = ({
     };
   }, [date, displayLocation, lat, lon, requestKey]);
 
+  useEffect(() => {
+    if (variant !== 'chip' || !loading) {
+      setChipLoadingTimedOut(false);
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setChipLoadingTimedOut(true);
+    }, CHIP_WEATHER_LOADING_TIMEOUT_MS);
+
+    return () => clearTimeout(timer);
+  }, [loading, requestKey, variant]);
+
   if (loading) {
+    if (variant === 'chip') {
+      return (
+        <span
+          className="tp-trip-weather-chip"
+          role="status"
+          aria-live="polite"
+          aria-label={`${displayLocation}天氣${chipLoadingTimedOut ? '待更新' : '載入中'}`}
+          title={displayLocation}
+        >
+          {chipLoadingTimedOut ? '🌤️ 天氣待更新' : '☁️ 天氣載入中'}
+        </span>
+      );
+    }
+
     if (variant === 'compact') {
       return (
         <div className="tp-trip-weather-card rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/90">
@@ -111,6 +141,20 @@ const WeatherWidget = ({
   }
 
   if (!weather) {
+    if (variant === 'chip') {
+      return (
+        <span
+          className="tp-trip-weather-chip"
+          role="status"
+          aria-live="polite"
+          aria-label={`${displayLocation}天氣暫時無法取得`}
+          title={displayLocation}
+        >
+          🌤️ 天氣待更新
+        </span>
+      );
+    }
+
     if (variant === 'compact') {
       return (
         <div className="tp-trip-weather-card rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80">
@@ -146,6 +190,22 @@ const WeatherWidget = ({
     }
     return '';
   };
+
+  if (variant === 'chip') {
+    const weatherLabel = `${displayLocation} ${weather.temperature}°C ${weather.description}`;
+
+    return (
+      <span
+        className="tp-trip-weather-chip"
+        role="status"
+        aria-live="polite"
+        aria-label={weatherLabel}
+        title={`${displayLocation} · ${weather.description}`}
+      >
+        {weather.icon || '🌤️'} {weather.temperature}°C
+      </span>
+    );
+  }
 
   if (variant === 'compact') {
     return (

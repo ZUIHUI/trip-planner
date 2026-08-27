@@ -46,9 +46,9 @@ const GoogleRoutePreview = ({
     const isMissingKey = previewStatus === GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey;
 
     return (
-      <div className={`relative flex min-h-56 items-center justify-center overflow-hidden bg-[#eef4f2] px-6 text-center dark:bg-slate-900 ${className}`}>
-        <div className="max-w-xs text-slate-600 dark:text-slate-300">
-          <span className="mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-300">
+      <div className={`tp-route-preview-surface relative flex min-h-56 items-center justify-center overflow-hidden px-6 text-center ${className}`}>
+        <div className="max-w-xs">
+          <span className="tp-route-preview-icon mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full shadow-sm">
             <Map size={21} aria-hidden="true" />
           </span>
           <p className="mt-3 text-sm font-black">
@@ -66,12 +66,12 @@ const GoogleRoutePreview = ({
 
   return (
     <div
-      className={`relative isolate min-h-56 overflow-hidden bg-[#eef4f2] dark:bg-slate-900 ${className}`}
+      className={`tp-route-preview-surface relative isolate min-h-56 overflow-hidden ${className}`}
       aria-busy={!isLoaded}
     >
       {!isLoaded && (
         <div
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-[#eef4f2] text-brand-800 dark:bg-slate-900 dark:text-brand-200"
+          className="tp-route-preview-loading pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
           role="status"
           aria-live="polite"
         >

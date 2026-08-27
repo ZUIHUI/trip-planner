@@ -1,54 +1,32 @@
 import React from 'react';
-import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, Wallet } from 'lucide-react';
-import DaySelector from '../DaySelector';
-import EventCard from '../EventCard';
+import { CalendarDays, ChevronDown, ChevronUp, Map, Pencil, Wallet } from 'lucide-react';
 import DayReadinessStrip from './DayReadinessStrip';
-import ItineraryRoutePanel from './ItineraryRoutePanel';
-import { Button, Card, EmptyState, Input } from '../ui';
+import { Button, Card, Input } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { plainTextInputProps } from '../../utils/mobileInputProps';
-import { getTripDayDisplayLabel } from '../../utils/tripDates';
+import { getTripDayIsoDate } from '../../utils/tripEvents';
+import { useTripDaySummary } from '../../hooks/useTripDaySummary';
 import EditingNotice from './EditingNotice';
 import MobileMockupFrame from './MobileMockupFrame';
+import TripDayStrip from './TripDayStrip';
+import TripRoutePanel from './TripRoutePanel';
+import TripTaskSummary from './TripTaskSummary';
+import TripTimeline from './TripTimeline';
 
-const currencySymbol = (currency) => (currency === 'TWD' ? 'NT$' : '¥');
-
-const readEventCost = (event) => {
-  const amount = Number(event?.cost?.amount ?? event?.cost);
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-  return {
-    amount,
-    currency: event?.cost?.currency || event?.currency || 'JPY'
-  };
-};
-
-const formatCostSummary = (costItems) => {
-  if (!costItems.length) return '未設定';
-
-  const totals = costItems.reduce((acc, item) => {
-    acc[item.currency] = (acc[item.currency] || 0) + item.amount;
-    return acc;
-  }, {});
-
-  return Object.entries(totals)
-    .map(([currency, amount]) => `${currencySymbol(currency)}${amount.toLocaleString()}`)
-    .join(' / ');
-};
-
-const ItineraryTab = () => {
+const ItineraryTab = ({ onTabChange }) => {
   const {
     itinerary,
     selectedDay,
     setSelectedDay,
     currentDayData,
-    currentDayTitle,
-    currentDayDate,
     currentDayDisplayTitle,
     currentDayLabel,
     tripDetails,
     currentLocation,
+    checklists,
+    checklistStatusByListId,
     canEdit,
     showSecondaryModules,
     toggleSecondaryModules,
@@ -58,7 +36,6 @@ const ItineraryTab = () => {
     startDayMetaEdit,
     cancelDayMetaEdit,
     saveDayMeta,
-    openAddModal,
     openEditModal,
     handleDeleteEvent,
     handleMoveEvent,
@@ -86,19 +63,22 @@ const ItineraryTab = () => {
     }
   }, [isEditingDayMeta, stopCollaborationEditing]);
 
-  const todayCostItems = (currentDayData?.events || [])
-    .map(readEventCost)
-    .filter(Boolean);
-  const todayCostSummary = formatCostSummary(todayCostItems);
-  const todayCostEventCount = todayCostItems.length;
+  const selectedDayIsoDate = getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay);
+  const daySummary = useTripDaySummary({
+    events: currentDayData?.events || [],
+    selectedDayIsoDate,
+    tripDetails,
+    currentLocation,
+    checklists,
+    checklistStatusByListId
+  });
+  const todayCostSummary = daySummary.costSummary;
+  const todayCostEventCount = daySummary.costEventCount;
   const shouldShowCostToggle = todayCostEventCount > 0;
   const currentDayIndex = itinerary.findIndex((item) => item.day === selectedDay);
   const previousDayItem = currentDayIndex > 0 ? itinerary[currentDayIndex - 1] : null;
   const nextMoveDayItem = currentDayIndex >= 0 && currentDayIndex < itinerary.length - 1
     ? itinerary[currentDayIndex + 1]
-    : null;
-  const nextDayItem = itinerary.length > 1
-    ? itinerary[((currentDayIndex >= 0 ? currentDayIndex : 0) + 1) % itinerary.length]
     : null;
   const pendingViewportRef = React.useRef(null);
 
@@ -124,11 +104,6 @@ const ItineraryTab = () => {
     });
   }, [selectedDay]);
 
-  const handleSelectNextDay = () => {
-    if (!nextDayItem) return;
-    selectDayWithoutViewportJump(nextDayItem.day);
-  };
-
   return (
     <MobileMockupFrame
       icon={CalendarDays}
@@ -141,22 +116,7 @@ const ItineraryTab = () => {
       ]}
       tone="accent"
     >
-      <DaySelector itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} tripDetails={tripDetails} />
-      {nextDayItem && (
-        <div className="mt-3 px-5 sm:hidden">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleSelectNextDay}
-            className="w-full justify-center"
-            aria-label={`前往 ${getTripDayDisplayLabel(nextDayItem, tripDetails)}`}
-          >
-            下一天
-            <span className="font-black">{getTripDayDisplayLabel(nextDayItem, tripDetails)}</span>
-            <ChevronRight size={16} />
-          </Button>
-        </div>
-      )}
+      <TripDayStrip itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} tripDetails={tripDetails} />
 
       <div className="mx-auto mt-5 max-w-6xl px-5 pb-40 sm:px-7 sm:pb-28 lg:px-10">
         {shouldShowCostToggle && (
@@ -169,7 +129,7 @@ const ItineraryTab = () => {
         )}
 
         <section
-          className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} flex flex-col gap-4 border-b border-slate-200 pb-5 sm:mt-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}
+          className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} tp-itinerary-day-heading flex flex-col gap-4 border-b border-slate-200 pb-5 sm:mt-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}
           {...(isEditingDayMeta ? getEditingHandlers(dayEditingTarget) : {})}
         >
           <div className="min-w-0 flex-1">
@@ -208,6 +168,10 @@ const ItineraryTab = () => {
                 <>
                   <p className="text-xs font-bold tracking-wide text-brand-700 dark:text-brand-300">{currentDayLabel}</p>
                   <h2 className="mt-1 truncate text-2xl font-black text-slate-950 dark:text-white">{currentDayDisplayTitle}</h2>
+                  <p className="tp-itinerary-day-note mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    已排 {currentDayData.events.length} 個行程
+                    {todayCostEventCount > 0 ? ` · ${todayCostEventCount} 個含費用` : ' · 尚未記錄花費'}
+                  </p>
                 </>
               )
             ) : (
@@ -237,49 +201,49 @@ const ItineraryTab = () => {
           className="mt-4"
         />
 
-        <ItineraryRoutePanel
-          currentDayData={currentDayData}
+        <div className="tp-itinerary-route-panel tp-itinerary-route-primary">
+          <TripRoutePanel
+            currentDayData={currentDayData}
+            tripDetails={tripDetails}
+            currentLocation={currentLocation}
+            daySummary={daySummary}
+          />
+        </div>
+
+        <TripTimeline
+          events={currentDayData?.events || []}
           tripDetails={tripDetails}
-          currentLocation={currentLocation}
+          previousDay={previousDayItem}
+          nextDay={nextMoveDayItem}
+          canEdit={canEdit}
+          onEdit={openEditModal}
+          onDelete={handleDeleteEvent}
+          onMove={handleMoveEvent}
+          onMoveToDay={handleMoveEventToAdjacentDay}
+          onOpenGoogleMaps={handleOpenGoogleMaps}
+          editingByEventId={editingByEventId}
         />
 
-        <div className="mt-6 space-y-4">
-          {currentDayData && currentDayData.events.length === 0 ? (
-            <EmptyState
-              icon={CalendarDays}
-              title="目前尚無行程"
-              actionLabel="新增第一個行程"
-              onAction={openAddModal}
+        <div className="tp-itinerary-tablet-context" aria-label="平板每日摘要">
+          <details className="tp-itinerary-tablet-route">
+            <summary>
+              <span><Map size={17} aria-hidden="true" /> 今日路線</span>
+              <strong>{daySummary.routeStops.length} 站</strong>
+            </summary>
+            <TripRoutePanel
+              currentDayData={currentDayData}
+              tripDetails={tripDetails}
+              currentLocation={currentLocation}
+              daySummary={daySummary}
             />
-          ) : (
-            (currentDayData?.events || []).map((event, index) => {
-              const prevEvent = index > 0 ? currentDayData.events[index - 1] : null;
-              const prevLocation = prevEvent
-                ? prevEvent.locationPlace || prevEvent.location
-                : tripDetails?.accommodation?.address || tripDetails?.accommodation?.name || '';
-
-              return (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  prevLocation={prevLocation}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteEvent}
-                  onMove={handleMoveEvent}
-                  onMoveToDay={handleMoveEventToAdjacentDay}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < currentDayData.events.length - 1}
-                  canMoveToPreviousDay={Boolean(previousDayItem)}
-                  canMoveToNextDay={Boolean(nextMoveDayItem)}
-                  previousDayLabel={previousDayItem ? getTripDayDisplayLabel(previousDayItem, tripDetails) : ''}
-                  nextDayLabel={nextMoveDayItem ? getTripDayDisplayLabel(nextMoveDayItem, tripDetails) : ''}
-                  canEdit={canEdit}
-                  onOpenGoogleMaps={handleOpenGoogleMaps}
-                  editingMembers={editingByEventId?.[event.id] || []}
-                />
-              );
-            })
-          )}
+          </details>
+          <TripTaskSummary
+            tasks={daySummary.preTripTasks}
+            pendingTasks={daySummary.pendingPreTripTasks}
+            completedCount={daySummary.completedPreTripCount}
+            collapsible
+            onViewAll={onTabChange ? () => onTabChange('preTrip') : undefined}
+          />
         </div>
 
         {showSecondaryModules && currentDayData && shouldShowCostToggle && (

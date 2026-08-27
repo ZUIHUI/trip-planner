@@ -1455,6 +1455,39 @@ export const updateTripMemberProfile = async ({ tripId, user, displayName = '', 
   return true;
 };
 
+export const removeTripMember = async ({ tripId, memberUid, user }) => {
+  requireUser(user);
+  const safeTripId = String(tripId || '').trim();
+  const safeMemberUid = String(memberUid || '').trim();
+
+  if (!safeTripId || !safeMemberUid) {
+    throw new Error('請選擇要移除的旅伴。');
+  }
+  if (safeMemberUid === user.uid) {
+    throw new Error('行程建立者不能移除自己。');
+  }
+
+  return runTransaction(db, async (transaction) => {
+    const tripRef = getTripDocRef(safeTripId);
+    const memberRef = getMemberDocRef(safeTripId, safeMemberUid);
+    const [tripSnap, memberSnap] = await Promise.all([
+      transaction.get(tripRef),
+      transaction.get(memberRef)
+    ]);
+
+    if (!tripSnap.exists()) {
+      throw new Error('找不到這趟旅程。');
+    }
+    if (tripSnap.data()?.access?.ownerUid !== user.uid) {
+      throw new Error('只有行程建立者可以移除旅伴。');
+    }
+    if (!memberSnap.exists()) return false;
+
+    transaction.delete(memberRef);
+    return true;
+  });
+};
+
 export const updateCurrentUserMemberProfiles = async ({ user, displayName = '', photoURL = '' } = {}) => {
   requireUser(user);
   const snapshot = await getDocs(query(collectionGroup(db, 'members'), where('uid', '==', user.uid)));

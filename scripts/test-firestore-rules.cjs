@@ -131,6 +131,7 @@ const run = async () => {
       await setDoc(doc(db, 'trips/trip-secure/members/editorUid'), member('editorUid', 'editor'));
       await setDoc(doc(db, 'trips/trip-secure/members/viewerUid'), member('viewerUid', 'view'));
       await setDoc(doc(db, 'trips/trip-secure/members/readerUid'), member('readerUid', 'view'));
+      await setDoc(doc(db, 'trips/trip-secure/members/removableUid'), member('removableUid', 'view'));
       await setDoc(doc(db, 'trips/trip-secure/handbooks/latest'), {
         schemaVersion: 1,
         generatedAt: now,
@@ -206,6 +207,11 @@ const run = async () => {
       role: 'editor',
       updatedAt: now
     }));
+
+    await assertFails(deleteDoc(doc(editorDb, 'trips/trip-secure/members/viewerUid')));
+    await assertFails(deleteDoc(doc(viewerDb, 'trips/trip-secure/members/viewerUid')));
+    await assertFails(deleteDoc(doc(ownerDb, 'trips/trip-secure/members/ownerUid')));
+    await assertSucceeds(deleteDoc(doc(ownerDb, 'trips/trip-secure/members/removableUid')));
 
     await assertSucceeds(updateDoc(doc(ownerDb, 'trips/trip-secure'), {
       invite: {
