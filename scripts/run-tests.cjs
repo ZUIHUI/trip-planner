@@ -419,6 +419,7 @@ test('normalizes AI recommendations with Google place source data', () => {
 
 test('wires AI recommendations through server-only OpenAI configuration', () => {
   const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
+  const envExample = fs.readFileSync(path.join(__dirname, '..', '.env.example'), 'utf8');
 
   assert.equal(normalizeTripRecommendationMode('placeIdeas'), 'placeIdeas');
   assert.equal(normalizeTripRecommendationMode('bad'), '');
@@ -427,6 +428,11 @@ test('wires AI recommendations through server-only OpenAI configuration', () => 
   assert.equal(recommendationResponseSchema.properties.recommendations.items.properties.googlePlace.required.includes('placeId'), true);
   assert.match(functionsSource, /const OPENAI_API_KEY = defineSecret\('OPENAI_API_KEY'\)/);
   assert.match(functionsSource, /getConfiguredOpenAIKey/);
+  assert.equal(
+    (functionsSource.match(/process\.env\.OPENAI_MODEL \|\| 'gpt-5\.6-sol'/g) || []).length,
+    2
+  );
+  assert.match(envExample, /^OPENAI_MODEL=gpt-5\.6-sol$/m);
   assert.match(functionsSource, /exports\.generateTripRecommendations = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY,\s*GOOGLE_GEOCODING_API_KEY\]/);
   assert.match(functionsSource, /buildExternalPlaceCandidateContext/);
   assert.match(functionsSource, /mode !== 'placeIdeas'/);

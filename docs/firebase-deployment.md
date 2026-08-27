@@ -134,7 +134,7 @@ present. The prune command can miss manually created Secret versions without a
 Firebase-managed label, so review those versions separately. Destroyed secret
 versions cannot be restored.
 
-AI trip recommendations use the `generateTripRecommendations` callable Function. Keep `OPENAI_API_KEY` as a Functions secret; optionally set `OPENAI_MODEL` as a Functions runtime environment value when a different OpenAI model should be used. Do not expose either provider key through `VITE_` frontend variables.
+AI trip recommendations use the `generateTripRecommendations` callable Function. The application default is `gpt-5.6-sol`. Keep `OPENAI_API_KEY` as a Functions secret; optionally set `OPENAI_MODEL` as a Functions runtime environment value when a different OpenAI model should be used. A deployed `OPENAI_MODEL` value takes precedence over the application default, so update any existing override to `gpt-5.6-sol` when migrating. Do not expose either provider key through `VITE_` frontend variables.
 
 Email verification completes sign-in by creating a Firebase custom token. The Cloud Functions runtime service account must be able to sign tokens; if `verifyEmailLoginCode` logs `iam.serviceAccounts.signBlob` or `auth/insufficient-permission`, grant `roles/iam.serviceAccountTokenCreator` to the Functions service account on itself before redeploying Functions.
 
