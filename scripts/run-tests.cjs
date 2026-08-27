@@ -419,6 +419,7 @@ test('normalizes AI recommendations with Google place source data', () => {
 
 test('wires AI recommendations through server-only OpenAI configuration', () => {
   const functionsSource = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
+  const envExampleSource = fs.readFileSync(path.join(__dirname, '..', '.env.example'), 'utf8');
 
   assert.equal(normalizeTripRecommendationMode('placeIdeas'), 'placeIdeas');
   assert.equal(normalizeTripRecommendationMode('bad'), '');
@@ -432,6 +433,12 @@ test('wires AI recommendations through server-only OpenAI configuration', () => 
   assert.match(functionsSource, /mode !== 'placeIdeas'/);
   assert.match(functionsSource, /userIdea: request\.data\?\.userIdea/);
   assert.match(functionsSource, /AI place recommendation Google fallback/);
+  assert.equal(
+    (functionsSource.match(/String\(process\.env\.OPENAI_MODEL \|\| 'gpt-5\.6-sol'\)\.trim\(\) \|\| 'gpt-5\.6-sol'/g) || []).length,
+    2
+  );
+  assert.match(envExampleSource, /^OPENAI_MODEL=gpt-5\.6-sol$/m);
+  assert.match(functionsSource, /process\.env\.OPENAI_IMAGE_MODEL \|\| 'gpt-image-2'/);
   assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
 });
 
