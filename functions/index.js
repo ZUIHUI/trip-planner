@@ -1567,7 +1567,7 @@ const openAIProviderErrorCode = (status) => {
 };
 
 const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
-  const model = String(process.env.OPENAI_MODEL || 'gpt-5.5').trim() || 'gpt-5.5';
+  const model = String(process.env.OPENAI_MODEL || 'gpt-5.6-sol').trim() || 'gpt-5.6-sol';
   let response = null;
   let payload = null;
 
@@ -1634,7 +1634,7 @@ const callOpenAITripRecommendations = async ({ apiKey, mode, snapshot }) => {
 };
 
 const callOpenAITripHandbook = async ({ apiKey, snapshot }) => {
-  const model = String(process.env.OPENAI_MODEL || 'gpt-5.5').trim() || 'gpt-5.5';
+  const model = String(process.env.OPENAI_MODEL || 'gpt-5.6-sol').trim() || 'gpt-5.6-sol';
   let response = null;
   let payload = null;
 
