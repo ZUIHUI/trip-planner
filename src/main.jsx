@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import '@fontsource-variable/noto-serif-tc/wght.css';
 import './styles/index.css';
 import './styles/uiux-v4.css';
 import './styles/experience-v5.css';

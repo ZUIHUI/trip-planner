@@ -448,8 +448,10 @@ const LoginPage = () => {
                 <PlaneTakeoff size={22} />
               </div>
               <p className="tp-auth-story-kicker">PLAN TOGETHER · TRAVEL BETTER</p>
-              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">把每一次出發，整理成大家都跟得上的旅程</h1>
-              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">從第一個想法到旅途中的下一站，行程、地圖、旅伴與預算都在一起。</p>
+              <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">
+                把想去的地方，<br />排成一段好旅程。
+              </h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">行程、地圖、預算與旅伴資訊都在一起，從計畫到出發，隨時清楚同步。</p>
             </div>
 
             <label className="mb-3 flex items-center gap-3 rounded-lg border border-[#e0e9e0] bg-white/75 px-3 py-2 text-sm font-semibold text-stone-600 shadow-sm supports-[backdrop-filter]:backdrop-blur dark:border-brand-200/20 dark:bg-brand-50/60 dark:text-brand-800">

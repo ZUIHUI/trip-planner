@@ -114,11 +114,13 @@ corresponding `data-theme` value.
 
 ### Typography
 
-Use the shared `--tp-font-editorial` family throughout the product: `Noto Serif
-TC`, `Source Han Serif TC`, `Songti TC`, `PMingLiU`, `MingLiU`, then the system
-serif fallback. This is the same refined Ming-style family used by destination
-titles such as Osaka. Body copy, navigation, dates, buttons, and form controls
-all consume the same token so typography remains coherent across themes.
+Use the shared `--tp-font-editorial` family throughout the product. The Vite
+entry imports the self-hosted `Noto Serif TC Variable` web font from Fontsource,
+followed by `Noto Serif TC`, `Source Han Serif TC`, `Songti TC`, `PMingLiU`,
+`MingLiU`, then the system serif fallback. This is the same refined Ming-style
+family used by destination titles such as Osaka. Body copy, navigation, dates,
+buttons, and form controls all consume the same token so typography remains
+coherent across themes and devices.
 
 | Token | Size / line height | Use |
 |---|---|---|

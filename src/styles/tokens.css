@@ -47,7 +47,7 @@
   --tp-trips-route-art: url("data:image/svg+xml,%3Csvg viewBox='0 0 390 330' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M52 260 C118 196 124 118 194 132 C257 145 249 70 329 54' fill='none' stroke='%23ffffff' stroke-opacity='.45' stroke-width='2' stroke-dasharray='7 11' stroke-linecap='round'/%3E%3Cpath d='M46 270 C118 210 139 158 202 166 C268 174 276 106 344 86' fill='none' stroke='%2383c5be' stroke-opacity='.92' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
   --tp-detail-route-art: url("data:image/svg+xml,%3Csvg viewBox='0 0 390 360' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M34 275 C94 229 119 166 198 166 C266 166 264 104 351 89' fill='none' stroke='%23ffffff' stroke-opacity='.45' stroke-width='2.1' stroke-dasharray='8 10' stroke-linecap='round'/%3E%3Cpath d='M48 292 C128 232 150 195 220 194 C289 193 298 132 364 119' fill='none' stroke='%2383c5be' stroke-opacity='.92' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --tp-font-editorial: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", "MingLiU", serif;
+  --tp-font-editorial: "Noto Serif TC Variable", "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", "MingLiU", serif;
   --tp-font-sans: var(--tp-font-editorial);
   --tp-text-display: clamp(2rem, 5vw, 3.5rem);
   --tp-text-h1: 1.75rem;

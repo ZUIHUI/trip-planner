@@ -2659,10 +2659,12 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   const experienceCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
   const design = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
   const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src/main.jsx'), 'utf8');
+  const packageSource = fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8');
   const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
   const headerSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/Header.jsx'), 'utf8');
   const tripListSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripListPage.jsx'), 'utf8');
   const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
+  const loginSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/LoginPage.jsx'), 'utf8');
   const moreTabSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MoreTab.jsx'), 'utf8');
   const agentInstructions = fs.readFileSync(path.join(__dirname, '..', 'AGENTS.md'), 'utf8');
 
@@ -2671,11 +2673,17 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /--tp-canvas:\s*#f8fcfe;/);
   assert.match(css, /--tp-ink:\s*#173f52;/);
   assert.match(css, /--tp-touch-min:\s*44px;/);
-  assert.match(css, /--tp-font-editorial:\s*"Noto Serif TC",\s*"Source Han Serif TC",\s*"Songti TC",\s*"PMingLiU",\s*"MingLiU",\s*serif;/);
+  assert.match(css, /--tp-font-editorial:\s*"Noto Serif TC Variable",\s*"Noto Serif TC",\s*"Source Han Serif TC",\s*"Songti TC",\s*"PMingLiU",\s*"MingLiU",\s*serif;/);
   assert.match(css, /--tp-font-sans:\s*var\(--tp-font-editorial\);/);
+  assert.match(mainSource, /@fontsource-variable\/noto-serif-tc\/wght\.css/);
+  assert.match(packageSource, /"@fontsource-variable\/noto-serif-tc"/);
+  assert.match(design, /self-hosted `Noto Serif TC Variable` web font from Fontsource/);
   assert.match(css, /:root\[data-theme\] body\s*\{[\s\S]+?font-family:\s*var\(--tp-font-editorial\)/);
   assert.match(css, /:root\[data-theme\] :where\(button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, strong, small, label, legend, a, time\)\s*\{[\s\S]+?font-family:\s*var\(--tp-font-editorial\)/);
-  assert.match(design, /same refined Ming-style family used by destination\s+titles such as Osaka/);
+  assert.match(design, /same refined Ming-style\s+family used by destination titles such as Osaka/);
+  assert.match(loginSource, /把想去的地方，[\s\S]*<br \/>[\s\S]*排成一段好旅程。/);
+  assert.match(loginSource, /行程、地圖、預算與旅伴資訊都在一起，從計畫到出發，隨時清楚同步。/);
+  assert.doesNotMatch(loginSource, /大家都跟得上的旅程/);
   assert.match(css, /--tp-tracking-body:\s*0\.018em;/);
   assert.match(css, /--tp-tracking-heading:\s*0\.035em;/);
   assert.match(css, /--tp-tracking-control:\s*0\.025em;/);
