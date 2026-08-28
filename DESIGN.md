@@ -67,7 +67,9 @@ Photo covers may retain a scrim when needed for readable text.
 **Ocean Pearl** (`light`) uses airy sky-blue heroes, clear-water route accents,
 pearl-white planning surfaces, and a cool ocean photo scrim. **Deep Sea Night** (`dark`)
 uses the same roles at low luminance with luminous sea-glass actions and deep
-teal work surfaces.
+teal work surfaces. Its page sheets, cards, forms, dialogs, inputs, and bottom
+docks must use `--tp-paper`, `--tp-surface`, or `--tp-surface-dark`; plain white
+surfaces are reserved for photo-overlay text, small decorative details, and print.
 
 #### Soft Pink
 
@@ -112,8 +114,11 @@ corresponding `data-theme` value.
 
 ### Typography
 
-Use Inter, `Noto Sans TC`, `Microsoft JhengHei`, then system sans-serif. Product
-copy never uses a display serif or a monospace face.
+Use the shared `--tp-font-editorial` family throughout the product: `Noto Serif
+TC`, `Source Han Serif TC`, `Songti TC`, `PMingLiU`, `MingLiU`, then the system
+serif fallback. This is the same refined Ming-style family used by destination
+titles such as Osaka. Body copy, navigation, dates, buttons, and form controls
+all consume the same token so typography remains coherent across themes.
 
 | Token | Size / line height | Use |
 |---|---|---|
@@ -128,6 +133,13 @@ copy never uses a display serif or a monospace face.
 
 Use weights 400, 500, and 600. Headings use 600; primary action and active
 navigation labels use 600 or 500. Do not shrink planning body copy below 16px.
+
+Letter spacing is subtle but consistent across the complete product. Body copy
+uses `--tp-tracking-body` (`0.018em`), headings use `--tp-tracking-heading`
+(`0.035em`), buttons and form controls use `--tp-tracking-control` (`0.025em`),
+and form labels use `--tp-tracking-label` (`0.06em`). Display titles and short
+uppercase English accents may use a wider component-specific value when the
+extra spacing is part of their visual role.
 
 ### Spacing, radius, and elevation
 

@@ -796,11 +796,13 @@ const TripListPage = () => {
         <header
           className={`tp-mobile-trips-hero ${continueTripTheme.className} ${continueTripCoverImageUrl ? 'has-trip-cover' : continueTrip ? 'has-trip-theme' : ''}`}
         >
-          <div className="tp-mobile-trips-route" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
+          {!continueTripCoverImageUrl && (
+            <div className="tp-mobile-trips-route" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
           <div className="tp-mobile-trips-topline">
             <div className="min-w-0">
               <span className="tp-mobile-trips-eyebrow">{continueTrip ? continueTripTheme.label : '海岸地圖'}</span>

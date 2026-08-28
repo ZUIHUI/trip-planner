@@ -42,11 +42,13 @@
     radial-gradient(circle at 84% 8%, rgba(255, 255, 255, 0.58), transparent 15rem),
     linear-gradient(135deg, #e5f7fc 0%, #7fcee5 58%, #4a9dc2 100%);
   --tp-photo-scrim: linear-gradient(180deg, rgba(23, 63, 82, 0.22) 0%, rgba(23, 63, 82, 0.5) 48%, rgba(15, 50, 69, 0.9) 100%);
+  --tp-trips-photo-scrim: linear-gradient(180deg, rgba(10, 10, 10, 0.08) 0%, rgba(10, 10, 10, 0.12) 54%, rgba(10, 10, 10, 0.58) 100%);
   --tp-auth-route-art: url("data:image/svg+xml,%3Csvg viewBox='0 0 390 360' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M52 252 C114 196 116 135 190 134 C252 132 244 82 325 70' fill='none' stroke='%23ffffff' stroke-opacity='.45' stroke-width='2.2' stroke-dasharray='7 10' stroke-linecap='round'/%3E%3Cpath d='M58 262 C130 210 151 176 210 174 C278 172 282 120 345 104' fill='none' stroke='%2383c5be' stroke-opacity='.92' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E");
   --tp-trips-route-art: url("data:image/svg+xml,%3Csvg viewBox='0 0 390 330' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M52 260 C118 196 124 118 194 132 C257 145 249 70 329 54' fill='none' stroke='%23ffffff' stroke-opacity='.45' stroke-width='2' stroke-dasharray='7 11' stroke-linecap='round'/%3E%3Cpath d='M46 270 C118 210 139 158 202 166 C268 174 276 106 344 86' fill='none' stroke='%2383c5be' stroke-opacity='.92' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
   --tp-detail-route-art: url("data:image/svg+xml,%3Csvg viewBox='0 0 390 360' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M34 275 C94 229 119 166 198 166 C266 166 264 104 351 89' fill='none' stroke='%23ffffff' stroke-opacity='.45' stroke-width='2.1' stroke-dasharray='8 10' stroke-linecap='round'/%3E%3Cpath d='M48 292 C128 232 150 195 220 194 C289 193 298 132 364 119' fill='none' stroke='%2383c5be' stroke-opacity='.92' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E");
 
-  --tp-font-sans: Inter, "Noto Sans TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --tp-font-editorial: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", "MingLiU", serif;
+  --tp-font-sans: var(--tp-font-editorial);
   --tp-text-display: clamp(2rem, 5vw, 3.5rem);
   --tp-text-h1: 1.75rem;
   --tp-text-h2: 1.375rem;
@@ -55,6 +57,10 @@
   --tp-text-small: 0.875rem;
   --tp-text-caption: 0.8125rem;
   --tp-text-micro: 0.6875rem;
+  --tp-tracking-body: 0.018em;
+  --tp-tracking-heading: 0.035em;
+  --tp-tracking-control: 0.025em;
+  --tp-tracking-label: 0.06em;
 
   --tp-space-1: 0.25rem;
   --tp-space-2: 0.5rem;
@@ -167,6 +173,39 @@
   --shadow-card-hover: var(--tp-shadow-float);
   --shadow-popover: var(--tp-shadow-float);
   --shadow-nav: 0 -1px 0 rgba(39, 121, 151, 0.12);
+}
+
+:root[data-theme] body {
+  font-family: var(--tp-font-editorial);
+  font-kerning: normal;
+  letter-spacing: var(--tp-tracking-body);
+}
+
+:root[data-theme] :where(button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, strong, small, label, legend, a, time) {
+  font-family: var(--tp-font-editorial);
+}
+
+:root[data-theme] :where(h1, h2, h3, h4, h5, h6, .tp-section-title) {
+  letter-spacing: var(--tp-tracking-heading);
+}
+
+:root[data-theme] :where(button, input, select, textarea) {
+  letter-spacing: var(--tp-tracking-control);
+}
+
+:root[data-theme] :where(label, legend) {
+  letter-spacing: var(--tp-tracking-label);
+}
+
+:root[data-theme] .tracking-tight,
+:root[data-theme] .tp-app-header h1,
+:root[data-theme] .tp-workspace-shell-content h2,
+:root[data-theme] .tp-workspace-shell-content h3,
+:root[data-theme] .tp-mobile-feature-heading h2,
+:root[data-theme] .tp-mobile-detail-stage h2,
+:root[data-theme] .tp-mobile-detail-stage h3,
+:root[data-theme] .tp-mobile-settings-header h2 {
+  letter-spacing: var(--tp-tracking-heading) !important;
 }
 
 :root[data-theme="soft-pink"] {
@@ -290,6 +329,10 @@
   --tp-on-dark-muted: #f4f1e7;
   --tp-focus-ring: #725600;
   --tp-photo-scrim: linear-gradient(180deg, rgba(10, 10, 10, 0.18) 0%, rgba(10, 10, 10, 0.5) 48%, rgba(10, 10, 10, 0.9) 100%);
+  --tp-sunny-action: #e7d27c;
+  --tp-sunny-action-hover: #dcc465;
+  --tp-sunny-action-border: #cbb65f;
+  --tp-sunny-action-text: #2c281b;
   --tp-theme-hero:
     radial-gradient(circle at 84% 8%, rgba(255, 255, 255, 0.62), transparent 15rem),
     linear-gradient(135deg, #fff8cc 0%, var(--tp-primary) 58%, color-mix(in srgb, var(--tp-primary) 86%, var(--tp-primary-strong)) 100%);
@@ -400,6 +443,69 @@
 
 :root[data-theme] .tp-mobile-trips-route::before {
   background-image: var(--tp-trips-route-art) !important;
+}
+
+@media (max-width: 767px) {
+  :root[data-theme] .tp-mobile-trips-hero.has-trip-cover {
+    background-image: var(--tp-trips-photo-scrim), var(--tp-mobile-trip-hero-image) !important;
+    background-position: center 42% !important;
+    background-size: cover !important;
+  }
+
+  :root[data-theme] .tp-mobile-trips-hero.has-trip-cover .tp-mobile-trips-route {
+    display: none;
+  }
+
+  :root[data-theme] .tp-mobile-trips-topline h1 {
+    font-family: var(--tp-font-editorial);
+    font-kerning: normal;
+    font-size: clamp(2rem, 9.4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    line-height: 1.05;
+    width: fit-content;
+  }
+
+  :root[data-theme] .tp-mobile-trips-topline h1::after {
+    background: none;
+    border-radius: 0;
+    content: "MY JOURNEYS";
+    display: block;
+    font-family: var(--tp-font-editorial);
+    font-size: 0.56rem;
+    font-weight: 800;
+    height: auto;
+    letter-spacing: 0.28em;
+    line-height: 1;
+    margin-top: 0.55rem;
+    opacity: 0.78;
+    width: auto;
+  }
+
+  :root[data-theme] .tp-mobile-detail-copy h1 {
+    font-family: var(--tp-font-editorial);
+    font-kerning: normal;
+    font-size: clamp(2rem, 9.4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    line-height: 1.05;
+  }
+
+  :root[data-theme] .tp-mobile-detail-copy h1::after {
+    content: "MY JOURNEYS";
+    display: block;
+    font-family: var(--tp-font-editorial);
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    line-height: 1;
+    margin-top: 0.55rem;
+    opacity: 0.78;
+  }
+
+  :root[data-theme] .tp-mobile-detail-shell.has-cover .tp-mobile-detail-route {
+    display: none;
+  }
 }
 
 :root[data-theme] .tp-mobile-detail-route::before {
@@ -520,6 +626,32 @@
   color: var(--tp-primary-strong) !important;
 }
 
+:root[data-theme="sunny-yellow"] .tp-button-primary,
+:root[data-theme="sunny-yellow"] .tp-mobile-action-tabs button.is-active,
+:root[data-theme="sunny-yellow"] .tp-mobile-trip-filters button[aria-pressed="true"],
+:root[data-theme="sunny-yellow"] .tp-mobile-trips-search-panel .tp-mobile-trip-filters .tp-filter-chip[aria-pressed="true"],
+:root[data-theme="sunny-yellow"] .tp-mobile-trips-dock button.is-active,
+:root[data-theme="sunny-yellow"] .tp-nav-active {
+  background: var(--tp-sunny-action) !important;
+  border-color: var(--tp-sunny-action-border) !important;
+  box-shadow: 0 12px 24px -20px rgba(85, 72, 22, 0.46) !important;
+  color: var(--tp-sunny-action-text) !important;
+}
+
+:root[data-theme="sunny-yellow"] .tp-button-primary:hover:not(:disabled),
+:root[data-theme="sunny-yellow"] .tp-button-primary:active:not(:disabled) {
+  background: var(--tp-sunny-action-hover) !important;
+  border-color: var(--tp-sunny-action-border) !important;
+}
+
+:root[data-theme="sunny-yellow"] .tp-mobile-action-tabs button.is-active :where(span, svg),
+:root[data-theme="sunny-yellow"] .tp-mobile-trip-filters button[aria-pressed="true"] :where(span, svg),
+:root[data-theme="sunny-yellow"] .tp-mobile-trips-dock button.is-active :where(span, svg),
+:root[data-theme="sunny-yellow"] .tp-nav-active :where(span, svg),
+:root[data-theme="sunny-yellow"] .tp-button-primary :where(span, svg) {
+  color: inherit !important;
+}
+
 :root[data-theme="light"] .tp-journey-hero .tp-button-primary,
 :root[data-theme="light"] .tp-journey-hero > button,
 :root[data-theme="light"] .tp-story-command-hero .tp-action-mode-button[aria-pressed="true"],
@@ -630,6 +762,68 @@
   --atlas-amber: 224 178 125;
   --atlas-mint: 131 197 190;
   --atlas-line: 170 196 200;
+}
+
+/* Deep Sea Night must replace legacy white page shells with night surfaces. */
+:root[data-theme="dark"] .tp-mobile-trips-nickname-form,
+:root[data-theme="dark"] .tp-mobile-trips-sheet,
+:root[data-theme="dark"] .tp-mobile-trips-search-panel,
+:root[data-theme="dark"] .tp-mobile-trips-list-panel,
+:root[data-theme="dark"] .tp-mobile-auth-sheet,
+:root[data-theme="dark"] .tp-mobile-auth-email-panel,
+:root[data-theme="dark"] .tp-workspace-shell-content,
+:root[data-theme="dark"] .tp-mobile-detail-sheet,
+:root[data-theme="dark"] .tp-mobile-settings-body,
+:root[data-theme="dark"] .tp-atlas-auth-card,
+:root[data-theme="dark"] .tp-atlas-auth-card > .mb-6,
+:root[data-theme="dark"] .tp-desktop-trips-nickname-form,
+:root[data-theme="dark"] .tp-list-shell .tp-command-hero,
+:root[data-theme="dark"] .tp-mobile-atlas-account,
+:root[data-theme="dark"] .tp-mobile-atlas-account-edit,
+:root[data-theme="dark"] .tp-mobile-atlas-summary-card,
+:root[data-theme="dark"] .tp-story-command-hero .tp-atlas-map-strip,
+:root[data-theme="dark"] .tp-v4-desktop-map-toolbar,
+:root[data-theme="dark"] .tp-v4-desktop-map-card {
+  background: linear-gradient(180deg, var(--tp-surface-soft), var(--tp-paper)) !important;
+  border-color: var(--tp-border) !important;
+  box-shadow: 0 24px 56px -40px rgba(0, 0, 0, 0.82) !important;
+  color: var(--tp-ink) !important;
+}
+
+:root[data-theme="dark"] .tp-mobile-trips-nickname-form .tp-input,
+:root[data-theme="dark"] .tp-mobile-trips-nickname-form button[type="button"],
+:root[data-theme="dark"] .tp-mobile-auth-email-panel .tp-input,
+:root[data-theme="dark"] .tp-mobile-auth-primary,
+:root[data-theme="dark"] .tp-desktop-trips-account-button,
+:root[data-theme="dark"] .tp-desktop-trips-nickname-form button[type="button"],
+:root[data-theme="dark"] .tp-mobile-atlas-icon-button,
+:root[data-theme="dark"] .tp-mobile-atlas-logout-button,
+:root[data-theme="dark"] .tp-mobile-atlas-dashboard-actions button:not(.is-active),
+:root[data-theme="dark"] .tp-mobile-detail-stage-itinerary .tp-itinerary-event-card {
+  background: var(--tp-surface) !important;
+  border-color: var(--tp-border) !important;
+  box-shadow: none !important;
+  color: var(--tp-ink) !important;
+}
+
+:root[data-theme="dark"] :is(.tp-input, .tp-select, textarea.tp-input) {
+  background: var(--tp-surface) !important;
+  border-color: var(--tp-border) !important;
+  color: var(--tp-ink) !important;
+}
+
+:root[data-theme="dark"] .tp-mobile-auth-primary:hover,
+:root[data-theme="dark"] .tp-desktop-trips-account-button:hover,
+:root[data-theme="dark"] .tp-mobile-trips-nickname-form button[type="button"]:hover,
+:root[data-theme="dark"] .tp-desktop-trips-nickname-form button[type="button"]:hover {
+  background: var(--tp-surface-soft) !important;
+  border-color: var(--tp-border-strong) !important;
+}
+
+:root[data-theme="dark"] :is(.tp-atlas-dock, .tp-bottom-nav, .tp-mobile-trips-dock) {
+  background: color-mix(in srgb, var(--tp-surface-dark) 94%, transparent) !important;
+  border-color: var(--tp-border-soft) !important;
+  box-shadow: 0 -18px 42px -34px rgba(0, 0, 0, 0.92) !important;
 }
 
 :where(button, a, input, select, textarea, summary):focus-visible {

@@ -961,10 +961,6 @@ const TripDetailPage = () => {
   const mobileDetailHeroStyle = shouldShowCoverBackground
     ? { '--tp-mobile-detail-cover-image': `url("${coverImageUrl}")` }
     : undefined;
-  const mobileDetailDayCount = getDateRangeDays(
-    tripDetails?.dateRange?.start,
-    tripDetails?.dateRange?.end
-  );
   const mobileDetailTravelerCount = memberTravelers.length || members.length || 1;
   const mobileDetailStatusLabel = mobileDetailStatusLabels[tripDetails?.status] || mobileDetailStatusLabels.planning;
   const mobileDetailActiveLabel = MOBILE_DETAIL_TABS.find((tab) => (
@@ -1791,11 +1787,13 @@ const TripDetailPage = () => {
       >
         <header className="tp-mobile-detail-hero">
           <div className="tp-mobile-detail-photo" aria-hidden="true" />
-          <div className="tp-mobile-detail-route" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
+          {!shouldShowCoverBackground && (
+            <div className="tp-mobile-detail-route" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
 
           <div className="tp-mobile-detail-topbar">
             <button
@@ -1833,8 +1831,6 @@ const TripDetailPage = () => {
               </span>
             </div>
             <div className="tp-mobile-detail-chips">
-              <span>{mobileDetailDayCount > 0 ? `${mobileDetailDayCount} 天` : '設定日期'}</span>
-              {currentDayData?.events?.length > 0 && <span>今日 {currentDayData.events.length} 個</span>}
               {isSaving || isSavingTripDetails ? (
                 <span role="status" aria-live="polite">儲存中</span>
               ) : (
