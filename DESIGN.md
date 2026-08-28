@@ -133,8 +133,9 @@ coherent across themes and devices.
 | `--tp-text-caption` | `13px / 1.4` | Metadata and helper text |
 | `--tp-text-micro` | `11px / 1.4` | Small uppercase section labels |
 
-Use weights 400, 500, and 600. Headings use 600; primary action and active
-navigation labels use 600 or 500. Do not shrink planning body copy below 16px.
+Use weights 400, 500, 600, and 700. Headings use 700 for a clear editorial
+hierarchy; primary action and active navigation labels use 600 or 500. Do not
+shrink planning body copy below 16px.
 
 Letter spacing is subtle but consistent across the complete product. Body copy
 uses `--tp-tracking-body` (`0.018em`), headings use `--tp-tracking-heading`
@@ -149,6 +150,8 @@ extra spacing is part of their visual role.
 - Compact controls: 8px radius. Cards: 12px. Feature/hero panels: 16px.
 - Pills and circular controls: `9999px`.
 - Planning cards are predominantly flat: hairline border plus no shadow.
+- Loading states use a flat themed surface without an outer border; the compact
+  loading icon may retain a solid hairline for definition.
 - Floating rails and photo heroes may use the documented card/hero shadows.
 - Interactive controls have a 40px desktop minimum and 44px touch minimum.
 
@@ -207,6 +210,9 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
   timeline and context rail.
 - Embedded preview and external navigation must share the same origin, stops,
   and travel mode.
+- A missing Google Maps Embed key must fall back to the cloud-geocoded
+  OpenStreetMap route preview with visible attribution; do not replace the map
+  with a permanent configuration-error card.
 - A route panel summarizes transportation; it does not duplicate event editing.
 
 ### Task summary

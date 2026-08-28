@@ -186,7 +186,26 @@
 }
 
 :root[data-theme] :where(h1, h2, h3, h4, h5, h6, .tp-section-title) {
+  font-weight: 700 !important;
   letter-spacing: var(--tp-tracking-heading);
+}
+
+:root[data-theme] .tp-loading-state {
+  background: var(--tp-surface-soft) !important;
+  border: 0 !important;
+  box-shadow: none;
+  color: var(--tp-body) !important;
+}
+
+:root[data-theme] .tp-loading-icon {
+  background: color-mix(in srgb, var(--tp-primary-soft) 78%, var(--tp-paper));
+  border: 1px solid var(--tp-border);
+  color: var(--tp-primary-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-paper) 56%, transparent);
+}
+
+:root[data-theme] .tp-static-loading-line {
+  background: var(--tp-border-soft) !important;
 }
 
 :root[data-theme] :where(button, input, select, textarea) {

@@ -562,6 +562,63 @@ textarea.tp-input:focus {
   color: var(--tp-primary-strong) !important;
 }
 
+.tp-osm-route-preview {
+  background: var(--tp-surface-strong) !important;
+}
+
+.tp-osm-route-tile {
+  height: 256px !important;
+  max-width: none !important;
+  width: 256px !important;
+}
+
+.tp-osm-route-line-halo,
+.tp-osm-route-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tp-osm-route-line-halo {
+  stroke: color-mix(in srgb, var(--tp-paper) 92%, transparent);
+  stroke-width: 8;
+}
+
+.tp-osm-route-line {
+  stroke: var(--tp-primary);
+  stroke-dasharray: 8 6;
+  stroke-width: 4;
+}
+
+.tp-osm-route-marker {
+  background: var(--tp-primary) !important;
+  border: 2px solid var(--tp-paper);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--tp-ink) 30%, transparent);
+  color: var(--tp-on-primary) !important;
+  font-size: 11px;
+  font-weight: 600;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  width: 28px;
+}
+
+.tp-osm-route-badge,
+.tp-osm-attribution {
+  background: color-mix(in srgb, var(--tp-paper) 92%, transparent) !important;
+  border: 1px solid var(--tp-border-soft);
+  color: var(--tp-ink) !important;
+}
+
+.tp-osm-attribution {
+  text-decoration: none;
+}
+
+.tp-osm-attribution:hover,
+.tp-osm-attribution:focus-visible {
+  color: var(--tp-primary-strong) !important;
+  text-decoration: underline;
+}
+
 .tp-v4-planner-heading > span,
 .tp-v4-panel-section-heading > div > span,
 .tp-v4-rail-trip > span,

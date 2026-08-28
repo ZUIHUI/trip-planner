@@ -48,6 +48,12 @@ const {
   getGoogleMapsEmbedPreviewStatus
 } = require('../src/utils/googleMapsEmbed.js');
 const {
+  OPEN_STREET_MAP_MAX_ROUTE_STOPS,
+  buildOpenStreetMapRoutePreviewModel,
+  getRoutePreviewCoordinate,
+  selectOpenStreetMapRouteStops
+} = require('../src/utils/openStreetMapPreview.js');
+const {
   hasUsableCoordinatePair,
   readFiniteCoordinate
 } = require('../src/utils/placeCoordinates.js');
@@ -988,18 +994,62 @@ test('distinguishes empty routes from missing Google Maps Embed configuration', 
   );
 });
 
-test('documents the browser-restricted Maps Embed key and keeps preview errors distinct', () => {
+test('uses a cloud-geocoded OpenStreetMap fallback when the Embed key is absent', () => {
   const envExample = fs.readFileSync(path.join(__dirname, '..', '.env.example'), 'utf8');
   const previewSource = fs.readFileSync(
     path.join(__dirname, '..', 'src', 'components', 'trip', 'GoogleRoutePreview.jsx'),
     'utf8'
   );
+  const fallbackSource = fs.readFileSync(
+    path.join(__dirname, '..', 'src', 'components', 'trip', 'OpenStreetMapRoutePreview.jsx'),
+    'utf8'
+  );
+  const firebaseConfig = fs.readFileSync(path.join(__dirname, '..', 'firebase.json'), 'utf8');
 
   assert.match(envExample, /^VITE_GOOGLE_MAPS_EMBED_API_KEY=\s*$/m);
   assert.match(envExample, /Google Maps Embed API/);
-  assert.match(previewSource, /地圖預覽暫時無法載入/);
+  assert.match(envExample, /OpenStreetMap route preview/);
+  assert.match(previewSource, /GOOGLE_MAPS_EMBED_PREVIEW_STATUS\.missingKey/);
+  assert.match(previewSource, /OpenStreetMapRoutePreview/);
+  assert.doesNotMatch(previewSource, /地圖預覽暫時無法載入/);
   assert.match(previewSource, /尚無可預覽路線/);
   assert.match(previewSource, /getGoogleMapsEmbedPreviewStatus/);
+  assert.match(fallbackSource, /geocodePlace/);
+  assert.match(fallbackSource, /© OpenStreetMap contributors/);
+  assert.match(fallbackSource, /正在透過雲端服務取得停靠點座標/);
+  assert.match(firebaseConfig, /img-src[^;]+https:\/\/tile\.openstreetmap\.org/);
+});
+
+test('builds a bounded OpenStreetMap tile and marker model in itinerary order', () => {
+  const points = [
+    { name: 'Tokyo Station', lat: 35.681236, lng: 139.767125 },
+    { name: 'Senso-ji', location: { lat: 35.714765, lng: 139.796655 } },
+    { name: 'Tokyo Skytree', geometry: { location: { lat: 35.710063, lng: 139.8107 } } }
+  ];
+  const model = buildOpenStreetMapRoutePreviewModel(points, { width: 390, height: 240 });
+
+  assert.equal(model.points.length, 3);
+  assert.deepEqual(model.points.map((point) => point.label), ['Tokyo Station', 'Senso-ji', 'Tokyo Skytree']);
+  assert.deepEqual(model.points.map((point) => point.number), [1, 2, 3]);
+  assert.equal(model.zoom >= 2 && model.zoom <= 16, true);
+  assert.equal(model.tiles.length > 0 && model.tiles.length <= 12, true);
+  assert.equal(model.tiles.every((tile) => /^https:\/\/tile\.openstreetmap\.org\/\d+\/\d+\/\d+\.png$/.test(tile.url)), true);
+  assert.deepEqual(
+    getRoutePreviewCoordinate({ address: 'Osaka Station', lat: 0, lng: 0 }),
+    null
+  );
+  assert.deepEqual(
+    getRoutePreviewCoordinate({ address: 'Osaka Station', lat: 34.7025, lng: 135.4959 }),
+    { lat: 34.7025, lng: 135.4959, label: 'Osaka Station' }
+  );
+
+  const manyStops = Array.from(
+    { length: OPEN_STREET_MAP_MAX_ROUTE_STOPS + 4 },
+    (_, index) => ({ id: `stop-${index + 1}` })
+  );
+  const selectedStops = selectOpenStreetMapRouteStops(manyStops);
+  assert.equal(selectedStops.length, OPEN_STREET_MAP_MAX_ROUTE_STOPS);
+  assert.equal(selectedStops.at(-1).id, manyStops.at(-1).id);
 });
 
 test('builds an authenticated Google Maps Embed route in itinerary order', () => {
@@ -2660,6 +2710,7 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   const design = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
   const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src/main.jsx'), 'utf8');
   const packageSource = fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8');
+  const statesSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/States.jsx'), 'utf8');
   const buttonSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/ui/Button.jsx'), 'utf8');
   const headerSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/Header.jsx'), 'utf8');
   const tripListSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripListPage.jsx'), 'utf8');
@@ -2690,6 +2741,12 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /--tp-tracking-label:\s*0\.06em;/);
   assert.match(css, /:root\[data-theme\] body\s*\{[\s\S]+?letter-spacing:\s*var\(--tp-tracking-body\)/);
   assert.match(css, /:root\[data-theme\] :where\(h1, h2, h3, h4, h5, h6, \.tp-section-title\)\s*\{[\s\S]+?letter-spacing:\s*var\(--tp-tracking-heading\)/);
+  assert.match(css, /:root\[data-theme\] :where\(h1, h2, h3, h4, h5, h6, \.tp-section-title\)\s*\{[\s\S]+?font-weight:\s*700\s*!important/);
+  assert.match(css, /:root\[data-theme\] \.tp-loading-state\s*\{[\s\S]+?border:\s*0\s*!important/);
+  assert.match(css, /:root\[data-theme\] \.tp-loading-icon\s*\{[\s\S]+?background:\s*color-mix/);
+  assert.match(statesSource, /className="tp-loading-icon[^"]+"[\s\S]+?<Compass size=\{22\}/);
+  assert.match(design, /Headings use 700 for a clear editorial\s+hierarchy/);
+  assert.match(design, /Loading states use a flat themed surface without an outer border/);
   assert.match(css, /:root\[data-theme\] :where\(button, input, select, textarea\)\s*\{[\s\S]+?letter-spacing:\s*var\(--tp-tracking-control\)/);
   assert.match(css, /:root\[data-theme\] :where\(label, legend\)\s*\{[\s\S]+?letter-spacing:\s*var\(--tp-tracking-label\)/);
   assert.match(design, /Letter spacing is subtle but consistent across the complete product/);

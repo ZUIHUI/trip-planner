@@ -40,7 +40,9 @@ export const LoadingState = ({ label = '載入中...', className = '' }) => (
     role="status"
     aria-live="polite"
   >
-    <Compass className="mx-auto mb-3 text-brand-600" size={28} />
+    <span className="tp-loading-icon mx-auto mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full" aria-hidden="true">
+      <Compass size={22} />
+    </span>
     <p className="text-sm font-semibold">{label}</p>
     <div className="tp-static-loading-line mx-auto mt-3 h-1.5 w-16 rounded-full bg-slate-100 dark:bg-slate-800" aria-hidden="true" />
   </div>

@@ -5,6 +5,7 @@ import {
   buildGoogleMapsEmbedRouteUrl,
   getGoogleMapsEmbedPreviewStatus
 } from '../../utils/googleMapsEmbed';
+import OpenStreetMapRoutePreview from './OpenStreetMapRoutePreview';
 
 const googleMapsEmbedApiKey = String(
   import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY || ''
@@ -42,22 +43,27 @@ const GoogleRoutePreview = ({
     setIsLoaded(false);
   }, [embedUrl]);
 
-  if (previewStatus !== GOOGLE_MAPS_EMBED_PREVIEW_STATUS.ready) {
-    const isMissingKey = previewStatus === GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey;
+  if (previewStatus === GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey) {
+    return (
+      <OpenStreetMapRoutePreview
+        routeStops={routeStops}
+        title={title.replace('Google Maps', '').trim() || '今日路線地圖預覽'}
+        className={className}
+        loading={loading}
+      />
+    );
+  }
 
+  if (previewStatus !== GOOGLE_MAPS_EMBED_PREVIEW_STATUS.ready) {
     return (
       <div className={`tp-route-preview-surface relative flex min-h-56 items-center justify-center overflow-hidden px-6 text-center ${className}`}>
         <div className="max-w-xs">
           <span className="tp-route-preview-icon mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full shadow-sm">
             <Map size={21} aria-hidden="true" />
           </span>
-          <p className="mt-3 text-sm font-black">
-            {isMissingKey ? '地圖預覽暫時無法載入' : '尚無可預覽路線'}
-          </p>
+          <p className="mt-3 text-sm font-black">尚無可預覽路線</p>
           <p className="mt-1 text-xs font-semibold leading-5 opacity-75">
-            {isMissingKey
-              ? '地圖服務尚未完成設定，仍可使用「開路線」前往 Google Maps。'
-              : '行程加入地點後，Google Maps 會依時間順序顯示今日路線。'}
+            行程加入地點後，地圖會依時間順序顯示今日路線。
           </p>
         </div>
       </div>
