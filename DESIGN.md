@@ -156,8 +156,10 @@ extra spacing is part of their visual role.
 - Interactive controls have a 40px desktop minimum and 44px touch minimum.
 - Icon framing is optically consistent: a 40x40px semantic background board
   carries a 20px glyph. Irregular glyphs align by the board, not their paths.
-- Mobile cover-to-sheet joins use a 28px radius. Cards remain 12px and compact
-  controls remain 8px so the hierarchy is visible without oversized rounding.
+- Mobile photo covers keep a 28px lower radius. The overlapping Trip Workspace
+  sheet uses a quieter 20px top radius, while cards remain 12px and compact
+  controls remain 8px. This avoids stacked concentric curves while preserving
+  a clear radius hierarchy.
 
 ## Layout system
 

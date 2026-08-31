@@ -2845,6 +2845,8 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /--v4-primary:\s*var\(--tp-primary\);/);
   assert.match(css, /--story-ink:\s*var\(--tp-ink\);/);
   assert.match(css, /--radius-card:\s*var\(--tp-radius-card\);/);
+  assert.match(css, /--tp-detail-sheet-radius:\s*20px;/);
+  assert.match(css, /:root\[data-theme\] \.tp-workspace-shell-content\.tp-mobile-detail-sheet\s*\{[\s\S]+?border-radius:\s*var\(--tp-detail-sheet-radius\) var\(--tp-detail-sheet-radius\) var\(--tp-radius-card\) var\(--tp-radius-card\)\s*!important;/);
   assert.match(css, /--v4-shadow:\s*none;/);
   assert.match(css, /:where\(button, a, input, select, textarea, summary\):focus-visible/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);

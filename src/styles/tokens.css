@@ -81,6 +81,7 @@
   --tp-icon-frame-size: 40px;
   --tp-icon-glyph-size: 20px;
   --tp-hero-sheet-radius: 28px;
+  --tp-detail-sheet-radius: 20px;
   --tp-nav-surface: color-mix(in srgb, var(--tp-paper) 92%, transparent);
   --tp-nav-border: color-mix(in srgb, var(--tp-border) 88%, transparent);
   --tp-nav-active: color-mix(in srgb, var(--tp-primary-soft) 78%, var(--tp-paper));
@@ -1479,8 +1480,15 @@
   :root[data-theme] .tp-workspace-shell-content.tp-mobile-detail-sheet {
     background: var(--tp-paper) !important;
     border: 1px solid var(--tp-border-soft) !important;
-    border-radius: var(--tp-hero-sheet-radius) var(--tp-hero-sheet-radius) var(--tp-radius-card) var(--tp-radius-card) !important;
     box-shadow: 0 24px 54px -44px color-mix(in srgb, var(--tp-ink) 42%, transparent) !important;
+  }
+
+  :root[data-theme] .tp-mobile-trips-sheet {
+    border-radius: var(--tp-hero-sheet-radius) var(--tp-hero-sheet-radius) var(--tp-radius-card) var(--tp-radius-card) !important;
+  }
+
+  :root[data-theme] .tp-workspace-shell-content.tp-mobile-detail-sheet {
+    border-radius: var(--tp-detail-sheet-radius) var(--tp-detail-sheet-radius) var(--tp-radius-card) var(--tp-radius-card) !important;
   }
 
   :root[data-theme] .tp-mobile-trips-sheet {
