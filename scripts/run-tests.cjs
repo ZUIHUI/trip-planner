@@ -3088,6 +3088,34 @@ test('fuses the compact itinerary reference without duplicating desktop route su
   assert.match(css, /\.tp-v4-panel-link:focus-visible/);
 });
 
+test('publishes a public privacy policy grounded in the current storage and responsibility model', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'src/App.jsx'), 'utf8');
+  const privacySource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/PrivacyPolicyPage.jsx'), 'utf8');
+  const loginSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/LoginPage.jsx'), 'utf8');
+  const settingsSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/SettingsPanel.jsx'), 'utf8');
+  const privacyCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/privacy-policy.css'), 'utf8');
+
+  assert.match(appSource, /<Route path="\/privacy" element=\{<PrivacyPolicyPage\s*\/>\}\s*\/>/);
+  assert.doesNotMatch(appSource, /path="\/privacy"[^\n]+ProtectedRoute/);
+  assert.match(privacySource, /const APP_ORIGIN = 'https:\/\/trip-planner-36455\.firebaseapp\.com'/);
+  assert.match(privacySource, /`\$\{APP_ORIGIN\}\/privacy`/);
+  assert.match(privacySource, /Firebase Authentication/);
+  assert.match(privacySource, /Cloud Firestore/);
+  assert.match(privacySource, /Realtime Database/);
+  assert.match(privacySource, /localStorage／sessionStorage/);
+  assert.match(privacySource, /OpenAI API/);
+  assert.match(privacySource, /旅程建立者/);
+  assert.match(privacySource, /旅伴與內容提供者/);
+  assert.match(privacySource, /Trip Planner 維護者/);
+  assert.match(privacySource, /不代表所有底層副本在同一時間永久抹除/);
+  assert.match(privacySource, /移除旅伴後/);
+  assert.match(loginSource, /<Link to="\/privacy">隱私權政策<\/Link>/);
+  assert.match(settingsSource, /<Link to="\/privacy">/);
+  assert.match(privacyCss, /min-height:\s*2\.75rem/);
+  assert.match(privacyCss, /var\(--tp-focus-ring\)/);
+  assert.doesNotMatch(privacyCss, /#[0-9a-f]{3,8}/i);
+});
+
 let failed = 0;
 tests.forEach(({ name, fn }) => {
   try {

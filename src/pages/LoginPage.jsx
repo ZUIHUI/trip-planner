@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { CalendarDays, Link2, Loader2, Mail, MapPinned, PlaneTakeoff, RefreshCw, Sparkles, UsersRound } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Card, Field, Input, LoadingState, PageContainer } from '../components/ui';
@@ -434,6 +434,10 @@ const LoginPage = () => {
           )}
 
           <InstallAppPrompt className="tp-mobile-auth-install" />
+          <p className="tp-auth-privacy-note">
+            我們如何儲存與使用資料，以及建立者與旅伴的責任，請見
+            <Link to="/privacy">隱私權政策</Link>。
+          </p>
         </section>
       </section>
 
@@ -547,6 +551,9 @@ const LoginPage = () => {
                 {error}
               </p>
             )}
+            <p className="tp-auth-privacy-note">
+              登入前請閱讀<Link to="/privacy">隱私權政策</Link>，了解資料儲存、共享與責任歸屬。
+            </p>
           </Card>
           <aside className="tp-auth-atlas-preview tp-auth-story-preview" aria-label="Trip Planner 工作台摘要">
             <div className="tp-auth-preview-map" aria-hidden="true">

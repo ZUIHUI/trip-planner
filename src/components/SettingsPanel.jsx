@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Check,
   Heart,
@@ -8,6 +9,7 @@ import {
   Palette,
   Plus,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
   Sun,
   Trash2,
@@ -428,8 +430,13 @@ const SettingsPanel = ({
             </div>
           </Section>
 
-          <div className="py-2 text-center text-xs text-slate-500 dark:text-slate-400">
-            Trip Planner v1.0.0
+          <div className="tp-settings-legal">
+            <Link to="/privacy">
+              <ShieldCheck size={15} aria-hidden="true" />
+              隱私權政策
+            </Link>
+            <p>資料儲存、共享權限與責任歸屬</p>
+            <span>Trip Planner v1.0.0</span>
           </div>
         </div>
       </div>

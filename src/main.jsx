@@ -7,6 +7,7 @@ import './styles/uiux-v4.css';
 import './styles/experience-v5.css';
 import './styles/trip-workspace.css';
 import './styles/tokens.css';
+import './styles/privacy-policy.css';
 import { initializeStoredAppTheme } from './utils/appTheme';
 
 initializeStoredAppTheme();

@@ -10,6 +10,7 @@ import { lazyWithReload } from './utils/lazyComponent';
 import { TP_ROUTE_CONTENT_MOTION } from './utils/motionPresets';
 
 const LoginPage = lazyWithReload(() => import('./pages/LoginPage'));
+const PrivacyPolicyPage = lazyWithReload(() => import('./pages/PrivacyPolicyPage'));
 const TripListPage = lazyWithReload(() => import('./pages/TripListPage'));
 const TripDetailPage = lazyWithReload(() => import('./pages/TripDetailPage'));
 
@@ -30,6 +31,7 @@ const AnimatedRoutes = () => {
       >
         <Routes location={location}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/" element={<ProtectedRoute><TripListPage /></ProtectedRoute>} />
           <Route path="/trip/:tripId" element={<ProtectedRoute><TripDetailPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
