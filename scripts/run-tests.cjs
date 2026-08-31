@@ -3129,6 +3129,8 @@ test('keeps the journey overview focused while incomplete readiness stays action
   assert.doesNotMatch(todaySource, /DayReadinessStrip|TravelStatusPanel|StatusMetric|StatusSummaryPill|dayStatus/);
   assert.doesNotMatch(todaySource, />今日狀態</);
   assert.doesNotMatch(todaySource, /const QuickActions|<QuickActions|旅途中快速操作|handleOpenDayPlanAi/);
+  assert.match(todaySource, /if \(!reminders\.length\) return null;/);
+  assert.doesNotMatch(todaySource, /今天看起來準備好了|CheckCircle2/);
   assert.match(todaySource, /<ReminderStrip reminders=\{reminders\} \/>[\s\S]+?<DaySwitcher[\s\S]+?<TodayHero[\s\S]+?<AirportDayFlightCard[\s\S]+?<TodayTimeline/);
   assert.match(itinerarySource, /import DayReadinessStrip from '\.\/DayReadinessStrip';[\s\S]+?<DayReadinessStrip/);
   assert.match(readinessSource, /if \(!readiness\.totalEvents \|\| readiness\.isComplete\) return null;/);

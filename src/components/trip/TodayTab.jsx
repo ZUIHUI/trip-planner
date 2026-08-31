@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import {
   AlertTriangle,
   CalendarDays,
-  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -323,16 +322,7 @@ const TodayHero = ({
 };
 
 const ReminderStrip = ({ reminders }) => {
-  if (!reminders.length) {
-    return (
-      <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100">
-        <CheckCircle2 size={19} className="mt-0.5 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-black">今天看起來準備好了</p>
-        </div>
-      </div>
-    );
-  }
+  if (!reminders.length) return null;
 
   return (
     <section className="space-y-3" aria-label="重要提醒">
