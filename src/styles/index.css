@@ -646,27 +646,27 @@ body {
 @keyframes tp-ai-panel-pet-hop {
   0% {
     opacity: 0;
-    transform: translateY(3px) scaleX(1.06) scaleY(0.9);
+    transform: translateY(3px);
   }
   16% {
     opacity: 1;
-    transform: translateY(2px) scaleX(1.1) scaleY(0.86);
+    transform: translateY(2px);
   }
   42% {
-    transform: translateY(-14px) scaleX(0.94) scaleY(1.08);
+    transform: translateY(-14px);
   }
   58% {
-    transform: translateY(-16px) scaleX(0.98) scaleY(1.02);
+    transform: translateY(-16px);
   }
   76% {
-    transform: translateY(0) scaleX(1.09) scaleY(0.88);
+    transform: translateY(0);
   }
   88% {
-    transform: translateY(-3px) scaleX(0.98) scaleY(1.03);
+    transform: translateY(-3px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scaleX(1) scaleY(1);
+    transform: translateY(0);
   }
 }
 

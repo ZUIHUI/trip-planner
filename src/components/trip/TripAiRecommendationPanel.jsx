@@ -145,6 +145,10 @@ const petAnimationStates = {
   review: { row: 8, frames: 6, duration: '920ms' }
 };
 
+const PET_IDLE_ACTIONS = ['waving', 'waiting', 'jumping'];
+const PET_IDLE_ACTION_DELAY = 4200;
+const PET_PANEL_GREETING_DURATION = 980;
+
 const petMoodAnimation = {
   error: 'failed',
   happy: 'waving',
@@ -169,6 +173,7 @@ const AiTravelPet = ({
   const spriteHeight = Math.round(PET_CELL_HEIGHT * spriteScale);
   const rowY = Math.round(animation.row * PET_CELL_HEIGHT * spriteScale) * -1;
   const lastFrameIndex = Math.max(animation.frames - 1, 0);
+  const frameStepCount = Math.max(lastFrameIndex, 1);
   const toX = Math.round(lastFrameIndex * PET_CELL_WIDTH * spriteScale) * -1;
   const backgroundWidth = Math.round(PET_CELL_WIDTH * PET_ATLAS_COLUMNS * spriteScale);
   const backgroundHeight = Math.round(PET_CELL_HEIGHT * PET_ATLAS_ROWS * spriteScale);
@@ -180,7 +185,7 @@ const AiTravelPet = ({
     backgroundPosition: `0px ${rowY}px`,
     animationDuration: animation.duration,
     animationIterationCount: loop ? 'infinite' : '1',
-    animationTimingFunction: `steps(${animation.frames})`,
+    animationTimingFunction: `steps(${frameStepCount})`,
     '--tp-pet-row-y': `${rowY}px`,
     '--tp-pet-to-x': `${toX}px`
   };
@@ -194,6 +199,7 @@ const AiTravelPet = ({
     >
       <span
         className={`tp-ai-pet-sprite ${isButton || !animate ? 'tp-ai-pet-sprite-static' : ''} block select-none`}
+        data-animation-state={resolvedAnimationState}
         style={spriteStyle}
       />
     </div>
@@ -323,10 +329,13 @@ const TripAiRecommendationPanel = ({
   const [companionPosition, setCompanionPosition] = useState(readCompanionPosition);
   const [companionDragState, setCompanionDragState] = useState('idle');
   const [companionTravelDirection, setCompanionTravelDirection] = useState('right');
+  const [idlePetAnimation, setIdlePetAnimation] = useState('idle');
+  const [isPanelGreetingActive, setIsPanelGreetingActive] = useState(false);
   const [portalTarget, setPortalTarget] = useState(null);
   const companionDragRef = useRef(null);
   const companionLandingTimeoutRef = useRef(null);
   const suppressCompanionClickRef = useRef(false);
+  const idleActionIndexRef = useRef(0);
   const recommendations = response?.recommendations || [];
   const petMood = error
     ? 'error'
@@ -335,12 +344,15 @@ const TripAiRecommendationPanel = ({
     ? 'waiting'
     : (companionDragState === 'dragging'
         ? (companionTravelDirection === 'left' ? 'runningLeft' : 'runningRight')
-        : (companionDragState === 'landing' ? 'jumping' : (petMoodAnimation[petMood] || 'idle')));
-  const panelPetAnimation = error
-    ? 'failed'
-    : (isLoading ? 'running' : (recommendations.length ? 'review' : 'jumping'));
+        : (companionDragState === 'landing'
+            ? 'jumping'
+            : (petMood === 'idle' ? idlePetAnimation : (petMoodAnimation[petMood] || 'idle'))));
+  const panelPetAnimation = isPanelGreetingActive
+    ? 'waving'
+    : (error ? 'failed' : (isLoading ? 'running' : (recommendations.length ? 'review' : 'idle')));
   const shouldLoopFloatingPet = companionDragState === 'dragging'
     || (companionDragState === 'idle' && (floatingPetAnimation === 'idle' || floatingPetAnimation === 'running'));
+  const shouldLoopPanelPet = panelPetAnimation === 'idle' || panelPetAnimation === 'running';
   const activeModeOption = useMemo(
     () => modeOptions.find((option) => option.id === mode) || modeOptions[0],
     [mode]
@@ -369,6 +381,55 @@ const TripAiRecommendationPanel = ({
       window.clearTimeout(companionLandingTimeoutRef.current);
     }
   }, []);
+
+  useEffect(() => {
+    if (
+      typeof window === 'undefined'
+      || isOpen
+      || petMood !== 'idle'
+      || companionDragState !== 'idle'
+      || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setIdlePetAnimation('idle');
+      return undefined;
+    }
+
+    let actionTimer;
+    let resetTimer;
+    const scheduleNextIdleAction = () => {
+      actionTimer = window.setTimeout(() => {
+        const nextAction = PET_IDLE_ACTIONS[idleActionIndexRef.current % PET_IDLE_ACTIONS.length];
+        idleActionIndexRef.current += 1;
+        setIdlePetAnimation(nextAction);
+
+        const actionDuration = Number.parseInt(petAnimationStates[nextAction].duration, 10) || 900;
+        resetTimer = window.setTimeout(() => {
+          setIdlePetAnimation('idle');
+          scheduleNextIdleAction();
+        }, actionDuration + 180);
+      }, PET_IDLE_ACTION_DELAY);
+    };
+
+    scheduleNextIdleAction();
+    return () => {
+      window.clearTimeout(actionTimer);
+      window.clearTimeout(resetTimer);
+    };
+  }, [companionDragState, isOpen, petMood]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsPanelGreetingActive(false);
+      return undefined;
+    }
+    if (!isPanelGreetingActive || typeof window === 'undefined') return undefined;
+
+    const greetingTimer = window.setTimeout(
+      () => setIsPanelGreetingActive(false),
+      PET_PANEL_GREETING_DURATION
+    );
+    return () => window.clearTimeout(greetingTimer);
+  }, [isOpen, isPanelGreetingActive]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -482,8 +543,14 @@ const TripAiRecommendationPanel = ({
       return;
     }
 
+    setIsPanelGreetingActive(true);
     onOpen?.(mode);
   }, [mode, onOpen]);
+
+  const handleCompanionSummon = useCallback(() => {
+    setIsPanelGreetingActive(true);
+    onSummon?.(mode);
+  }, [mode, onSummon]);
 
   const handleGenerateRecommendations = useCallback(() => {
     onGenerate?.('dayPlan', { userIdea: initialIdeaText });
@@ -509,7 +576,7 @@ const TripAiRecommendationPanel = ({
       >
         <button
           type="button"
-          onClick={() => onSummon?.(mode)}
+          onClick={handleCompanionSummon}
           className="touch-target tp-press-feedback tp-ai-companion-button inline-flex h-16 w-16 items-center justify-center rounded-full transition hover:-translate-y-1 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
           aria-label="叫回旅伴"
           title="叫回旅伴"
@@ -554,7 +621,7 @@ const TripAiRecommendationPanel = ({
                 <AiTravelPet
                   key={panelPetAnimation}
                   animationState={panelPetAnimation}
-                  loop={panelPetAnimation === 'running'}
+                  loop={shouldLoopPanelPet}
                 />
               </div>
               <div className="min-w-0">
