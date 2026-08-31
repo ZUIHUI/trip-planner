@@ -204,7 +204,7 @@ const SettingsPanel = ({
 
   return (
     <div className="tp-mobile-settings-backdrop fixed inset-0 z-[100] flex items-end justify-center bg-slate-950/55 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="設定">
-      <div className="tp-mobile-settings-sheet max-h-[100svh] w-full overflow-y-auto rounded-t-lg border border-slate-200 bg-slate-50 shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg dark:border-slate-800 dark:bg-slate-950">
+      <div className="tp-mobile-settings-sheet flex max-h-[100svh] w-full flex-col overflow-hidden rounded-t-lg border border-slate-200 bg-slate-50 shadow-2xl sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg dark:border-slate-800 dark:bg-slate-950">
         <div className="tp-mobile-settings-header sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div>
             <p className="tp-mobile-settings-eyebrow">Trip controls</p>
@@ -220,7 +220,7 @@ const SettingsPanel = ({
           </button>
         </div>
 
-        <div className="tp-mobile-settings-body space-y-4 p-4">
+        <div className="tp-mobile-settings-body min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           <Section
             icon={Palette}
             title="外觀主題"

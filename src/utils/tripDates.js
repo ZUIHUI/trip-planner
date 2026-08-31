@@ -49,6 +49,53 @@ const createValidLocalDate = (year, month, day) => {
   return date;
 };
 
+const getDateYear = (dateInput) => {
+  const matched = String(dateInput || '').trim().match(/^(\d{4})[-/.]\d{1,2}[-/.]\d{1,2}$/);
+  return matched ? Number(matched[1]) : null;
+};
+
+export const getTripDayMonthLength = (monthInput, referenceDate = '') => {
+  const month = Number(monthInput);
+  if (!Number.isInteger(month) || month < 1 || month > 12) return 31;
+
+  const referenceYear = getDateYear(referenceDate);
+  const year = referenceYear || 2000;
+  return new Date(year, month, 0).getDate();
+};
+
+export const getTripDayDateParts = (dateInput, referenceDate = '') => {
+  const text = String(dateInput || '').trim();
+  const fullDateMatch = text.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  const monthDayMatch = text.match(/^(\d{1,2})[-/.](\d{1,2})$/);
+  const matched = fullDateMatch || monthDayMatch;
+
+  if (!matched) return { month: '', day: '' };
+
+  const month = Number(fullDateMatch ? matched[2] : matched[1]);
+  const day = Number(fullDateMatch ? matched[3] : matched[2]);
+  const validationDate = fullDateMatch ? text : referenceDate;
+  const monthLength = getTripDayMonthLength(month, validationDate);
+
+  if (
+    !Number.isInteger(month)
+    || !Number.isInteger(day)
+    || month < 1
+    || month > 12
+    || day < 1
+    || day > monthLength
+  ) {
+    return { month: '', day: '' };
+  }
+
+  return { month: pad(month), day: pad(day) };
+};
+
+export const buildTripDayDateText = ({ month = '', day = '' } = {}, referenceDate = '') => {
+  const parts = getTripDayDateParts(`${month}/${day}`, referenceDate);
+  if (!parts.month || !parts.day) return '';
+  return `${Number(parts.month)}/${Number(parts.day)}`;
+};
+
 export const toDateInputValue = (dateText) => {
   if (typeof dateText !== 'string') return '';
   const trimmed = dateText.trim();
@@ -121,6 +168,19 @@ const getDerivedTripDayIsoDate = (day = {}, tripDetails = {}) => {
   }
 
   return toIsoDateText(derivedDate);
+};
+
+export const getTripDayWeekdayForDate = (dateInput, day = {}, tripDetails = {}) => {
+  const derivedIsoDate = getDerivedTripDayIsoDate({
+    ...day,
+    isoDate: '',
+    date: dateInput
+  }, tripDetails);
+  if (!derivedIsoDate) return '';
+
+  const [year, month, date] = derivedIsoDate.split('-').map(Number);
+  const localDate = createValidLocalDate(year, month, date);
+  return localDate ? WEEKDAY_NAMES[localDate.getDay()].replace('.', '') : '';
 };
 
 export const normalizeTripWeekday = (weekday) => {

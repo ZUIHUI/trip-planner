@@ -153,8 +153,7 @@ const IdeasTab = () => {
       subtitle="收集景點、投票，並排進旅程。"
       stats={[
         { value: Array.isArray(placePool) ? placePool.length : 0, label: '地點' },
-        { value: selectedDay, label: '天數' },
-        { value: canManageIdeas ? '可編輯' : '唯讀', label: '權限' }
+        { value: selectedDay, label: '天數' }
       ]}
       tone="info"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-40 sm:gap-6 sm:px-7 sm:pb-28 lg:max-w-6xl lg:px-10"

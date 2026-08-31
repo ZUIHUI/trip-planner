@@ -65,6 +65,7 @@ import {
   getTripDayDisplayLabel,
   getTripDayDisplayTitle,
   getTripDayLabelByNumber,
+  getTripDayWeekdayForDate,
   getTripDisplayDates,
   isGenericTripDayTitle
 } from '../utils/tripDates';
@@ -1377,9 +1378,13 @@ const TripDetailPage = () => {
 
   const saveDayMeta = () => {
     if (!canEdit) return;
+    const nextDate = dayMetaDraft.date.trim() || currentDayDate;
     handleUpdateDayMeta(selectedDay, {
       title: dayMetaDraft.title.trim() || '當日行程',
-      date: dayMetaDraft.date.trim() || currentDayDate
+      date: nextDate,
+      weekday: getTripDayWeekdayForDate(nextDate, currentDayData, tripDetails)
+        || currentDayData?.weekday
+        || ''
     });
     setIsEditingDayMeta(false);
   };

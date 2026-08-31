@@ -1,11 +1,16 @@
 import React from 'react';
 import { CalendarDays, ChevronDown, ChevronUp, Map, Pencil, Wallet } from 'lucide-react';
 import DayReadinessStrip from './DayReadinessStrip';
-import { Button, Card, Input } from '../ui';
+import { Button, Card, Input, Select } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
 import { useCollaborationEditing } from '../../hooks/useCollaborationEditing';
 import { getEditingMembersForTarget } from '../../utils/presence';
 import { plainTextInputProps } from '../../utils/mobileInputProps';
+import {
+  buildTripDayDateText,
+  getTripDayDateParts,
+  getTripDayMonthLength
+} from '../../utils/tripDates';
 import { getTripDayIsoDate } from '../../utils/tripEvents';
 import { useTripDaySummary } from '../../hooks/useTripDaySummary';
 import EditingNotice from './EditingNotice';
@@ -14,6 +19,11 @@ import TripDayStrip from './TripDayStrip';
 import TripRoutePanel from './TripRoutePanel';
 import TripTaskSummary from './TripTaskSummary';
 import TripTimeline from './TripTimeline';
+
+const tripDayMonthOptions = Array.from(
+  { length: 12 },
+  (_, index) => String(index + 1).padStart(2, '0')
+);
 
 const ItineraryTab = ({ onTabChange }) => {
   const {
@@ -64,6 +74,30 @@ const ItineraryTab = ({ onTabChange }) => {
   }, [isEditingDayMeta, stopCollaborationEditing]);
 
   const selectedDayIsoDate = getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay);
+  const selectedDateParts = getTripDayDateParts(dayMetaDraft.date, selectedDayIsoDate);
+  const fallbackDateParts = getTripDayDateParts(selectedDayIsoDate, selectedDayIsoDate);
+  const dayDateParts = {
+    month: selectedDateParts.month || fallbackDateParts.month || '01',
+    day: selectedDateParts.day || fallbackDateParts.day || '01'
+  };
+  const tripDayDateOptions = Array.from(
+    { length: getTripDayMonthLength(dayDateParts.month, selectedDayIsoDate) },
+    (_, index) => String(index + 1).padStart(2, '0')
+  );
+
+  const handleDayDatePartChange = (part, value) => {
+    const nextParts = { ...dayDateParts, [part]: value };
+
+    if (part === 'month') {
+      const monthLength = getTripDayMonthLength(value, selectedDayIsoDate);
+      nextParts.day = String(Math.min(Number(nextParts.day), monthLength)).padStart(2, '0');
+    }
+
+    const nextDate = buildTripDayDateText(nextParts, selectedDayIsoDate);
+    if (!nextDate) return;
+    setDayMetaDraft((previousDraft) => ({ ...previousDraft, date: nextDate }));
+  };
+
   const daySummary = useTripDaySummary({
     events: currentDayData?.events || [],
     selectedDayIsoDate,
@@ -128,14 +162,14 @@ const ItineraryTab = ({ onTabChange }) => {
         )}
 
         <section
-          className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} tp-itinerary-day-heading flex flex-col gap-4 border-b border-slate-200 pb-5 sm:mt-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800`}
+          className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} tp-itinerary-day-heading border-b border-slate-200 pb-5 sm:mt-5 dark:border-slate-800`}
           {...(isEditingDayMeta ? getEditingHandlers(dayEditingTarget) : {})}
         >
           <div className="min-w-0 flex-1">
             <EditingNotice target={dayEditingTarget} members={dayEditingMembers} />
             {currentDayData ? (
               isEditingDayMeta ? (
-                <div className="grid gap-3 sm:grid-cols-[1fr_0.7fr_auto] sm:items-end">
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(13rem,0.85fr)_auto] sm:items-end">
                   <div>
                     <label className="tp-label" htmlFor="day-title">日期標題</label>
                     <Input
@@ -147,17 +181,35 @@ const ItineraryTab = ({ onTabChange }) => {
                       enterKeyHint="next"
                     />
                   </div>
-                  <div>
-                    <label className="tp-label" htmlFor="day-date">日期</label>
-                    <Input
-                      id="day-date"
-                      {...plainTextInputProps}
-                      value={dayMetaDraft.date}
-                      onChange={(event) => setDayMetaDraft({ ...dayMetaDraft, date: event.target.value })}
-                      placeholder={currentDayLabel}
-                      enterKeyHint="done"
-                    />
-                  </div>
+                  <fieldset className="min-w-0">
+                    <legend className="tp-label">日期</legend>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="sr-only" htmlFor="day-date-month">月份</label>
+                      <Select
+                        id="day-date-month"
+                        aria-label="月份"
+                        value={dayDateParts.month}
+                        onChange={(event) => handleDayDatePartChange('month', event.target.value)}
+                        className="min-w-0"
+                      >
+                        {tripDayMonthOptions.map((month) => (
+                          <option key={month} value={month}>{Number(month)} 月</option>
+                        ))}
+                      </Select>
+                      <label className="sr-only" htmlFor="day-date-day">日期</label>
+                      <Select
+                        id="day-date-day"
+                        aria-label="日期"
+                        value={dayDateParts.day}
+                        onChange={(event) => handleDayDatePartChange('day', event.target.value)}
+                        className="min-w-0"
+                      >
+                        {tripDayDateOptions.map((day) => (
+                          <option key={day} value={day}>{Number(day)} 日</option>
+                        ))}
+                      </Select>
+                    </div>
+                  </fieldset>
                   <div className="flex gap-2">
                     <Button onClick={saveDayMeta} size="sm">儲存</Button>
                     <Button onClick={cancelDayMetaEdit} variant="secondary" size="sm">取消</Button>
@@ -166,7 +218,19 @@ const ItineraryTab = ({ onTabChange }) => {
               ) : (
                 <>
                   <p className="text-xs font-bold tracking-wide text-brand-700 dark:text-brand-300">{currentDayLabel}</p>
-                  <h2 className="mt-1 truncate text-2xl font-black text-slate-950 dark:text-white">{currentDayDisplayTitle}</h2>
+                  <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                    <h2 className="min-w-0 truncate text-2xl font-black text-slate-950 dark:text-white">{currentDayDisplayTitle}</h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={startDayMetaEdit}
+                      className="shrink-0"
+                      aria-label="編輯日期"
+                      title="編輯日期"
+                    >
+                      <Pencil size={15} />
+                    </Button>
+                  </div>
                   <p className="tp-itinerary-day-note mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
                     已排 {currentDayData.events.length} 個行程
                     {todayCostEventCount > 0 ? ` · ${todayCostEventCount} 個含費用` : ' · 尚未記錄花費'}
@@ -177,20 +241,6 @@ const ItineraryTab = ({ onTabChange }) => {
               <p className="text-slate-500 dark:text-slate-400">載入中...</p>
             )}
           </div>
-
-          {currentDayData && !isEditingDayMeta && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={startDayMetaEdit}
-              className="self-start !px-2 sm:self-auto sm:!px-3"
-              aria-label="編輯日期"
-              title="編輯日期"
-            >
-              <Pencil size={15} />
-              <span className="hidden sm:inline">編輯日期</span>
-            </Button>
-          )}
         </section>
 
         <DayReadinessStrip

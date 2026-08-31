@@ -11,9 +11,13 @@ const {
   validateRequiredText
 } = require('../src/utils/validation.js');
 const {
+  buildTripDayDateText,
+  getTripDayDateParts,
   getTripDayDisplayLabel,
   getTripDayDisplayTitle,
   getTripDayLabelByNumber,
+  getTripDayMonthLength,
+  getTripDayWeekdayForDate,
   getTripDisplayDates
 } = require('../src/utils/tripDates.js');
 const {
@@ -1387,6 +1391,8 @@ test('keeps mobile day switching and core PWA interactions stable', () => {
   assert.match(itinerarySource, /selectDayWithoutViewportJump/);
   assert.match(itinerarySource, /pendingViewportRef/);
   assert.match(itinerarySource, /window\.scrollTo\(\{/);
+  assert.match(itinerarySource, /className="mt-1 flex min-w-0 items-center gap-1\.5"/);
+  assert.match(itinerarySource, /<h2 className="min-w-0 truncate[^\"]+">\{currentDayDisplayTitle\}<\/h2>[\s\S]+?<Button[\s\S]+?size="icon"[\s\S]+?aria-label="編輯日期"/);
   assert.match(stylesSource, /overflow-anchor:\s*none !important/);
   assert.match(stylesSource, /scroll-behavior:\s*auto !important/);
   assert.doesNotMatch(buttonSource, /whileHover|whileTap|scale:\s*0\.988/);
@@ -2846,7 +2852,9 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /--story-ink:\s*var\(--tp-ink\);/);
   assert.match(css, /--radius-card:\s*var\(--tp-radius-card\);/);
   assert.match(css, /--tp-detail-sheet-radius:\s*20px;/);
+  assert.match(css, /--tp-detail-sheet-overlap:\s*36px;/);
   assert.match(css, /:root\[data-theme\] \.tp-workspace-shell-content\.tp-mobile-detail-sheet\s*\{[\s\S]+?border-radius:\s*var\(--tp-detail-sheet-radius\) var\(--tp-detail-sheet-radius\) var\(--tp-radius-card\) var\(--tp-radius-card\)\s*!important;/);
+  assert.match(css, /\.tp-workspace-shell \.tp-atlas-page-frame\.tp-detail-page-frame\s*\{[\s\S]+?margin-top:\s*calc\(-1 \* var\(--tp-detail-sheet-overlap\)\)\s*!important;/);
   assert.match(css, /--v4-shadow:\s*none;/);
   assert.match(css, /:where\(button, a, input, select, textarea, summary\):focus-visible/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
@@ -2939,10 +2947,14 @@ test('persists accessible complete app themes', () => {
   assert.equal(stored.get('trip_planner_theme'), APP_THEME.DARK);
 
   const settingsSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/SettingsPanel.jsx'), 'utf8');
+  const tokenCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/tokens.css'), 'utf8');
   const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src/main.jsx'), 'utf8');
   assert.match(settingsSource, /id:\s*'soft-pink'[\s\S]+?柔和粉[\s\S]+?糖果粉與櫻花重點色/);
   assert.match(settingsSource, /id:\s*'sunny-yellow'[\s\S]+?晴光黃/);
   assert.match(settingsSource, /aria-pressed=\{isSelected\}/);
+  assert.match(settingsSource, /tp-mobile-settings-sheet[^\"]*flex[^\"]*flex-col[^\"]*overflow-hidden/);
+  assert.match(settingsSource, /tp-mobile-settings-body[^\"]*min-h-0[^\"]*flex-1[^\"]*overflow-y-auto/);
+  assert.match(tokenCss, /@media \(max-width: 767px\) \{[\s\S]+?:root\[data-theme\] \.tp-mobile-settings-sheet \{[\s\S]+?border-radius:\s*0\s*!important;/);
   assert.match(mainSource, /initializeStoredAppTheme\(\)/);
 });
 
@@ -3001,6 +3013,35 @@ test('formats itinerary days as date plus abbreviated weekday without generic Da
   assert.match(functionsSource, /isDuplicateDayTitle/);
   assert.match(tripNavigationSource, /label:\s*'旅程總覽'/);
   assert.match(tripNavigationSource, /label:\s*'行程安排'/);
+});
+
+test('selects itinerary month and day with calendar-aware limits', () => {
+  assert.deepEqual(getTripDayDateParts('10/25', '2026-10-25'), {
+    month: '10',
+    day: '25'
+  });
+  assert.deepEqual(getTripDayDateParts('2028-02-29', '2028-02-01'), {
+    month: '02',
+    day: '29'
+  });
+  assert.deepEqual(getTripDayDateParts('2/29', '2026-02-01'), {
+    month: '',
+    day: ''
+  });
+  assert.equal(getTripDayMonthLength('02', '2028-02-01'), 29);
+  assert.equal(getTripDayMonthLength('02', '2026-02-01'), 28);
+  assert.equal(buildTripDayDateText({ month: '02', day: '03' }, '2026-02-01'), '2/3');
+  assert.equal(buildTripDayDateText({ month: '02', day: '29' }, '2026-02-01'), '');
+  assert.equal(
+    getTripDayWeekdayForDate('10/26', { day: 1 }, { dateRange: { start: '2026-10-25' } }),
+    'Mon'
+  );
+
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  assert.match(itinerarySource, /id="day-date-month"/);
+  assert.match(itinerarySource, /id="day-date-day"/);
+  assert.match(itinerarySource, /getTripDayMonthLength\(dayDateParts\.month, selectedDayIsoDate\)/);
+  assert.doesNotMatch(itinerarySource, /id="day-date"/);
 });
 
 test('vertically centers the compact mobile trip hero details without a duplicate top navigation', () => {
@@ -3071,7 +3112,7 @@ test('keeps the journey overview focused while incomplete readiness stays action
   assert.doesNotMatch(todaySource, /DayReadinessStrip|TravelStatusPanel|StatusMetric|StatusSummaryPill|dayStatus/);
   assert.doesNotMatch(todaySource, />今日狀態</);
   assert.doesNotMatch(todaySource, /const QuickActions|<QuickActions|旅途中快速操作|handleOpenDayPlanAi/);
-  assert.match(todaySource, /<ReminderStrip reminders=\{reminders\} \/>[\s\S]+?<AirportDayFlightCard[\s\S]+?<TodayTimeline/);
+  assert.match(todaySource, /<ReminderStrip reminders=\{reminders\} \/>[\s\S]+?<DaySwitcher[\s\S]+?<TodayHero[\s\S]+?<AirportDayFlightCard[\s\S]+?<TodayTimeline/);
   assert.match(itinerarySource, /import DayReadinessStrip from '\.\/DayReadinessStrip';[\s\S]+?<DayReadinessStrip/);
   assert.match(readinessSource, /if \(!readiness\.totalEvents \|\| readiness\.isComplete\) return null;/);
   assert.match(readinessSource, /今日還有 \{readiness\.incompleteCount\} 個行程待補/);
@@ -3090,6 +3131,8 @@ test('uses semantic tones across the primary mobile trip sections', () => {
   assert.match(todaySource, /<MobileMockupFrame[\s\S]*?tone="primary"/);
   assert.match(itinerarySource, /<MobileMockupFrame[\s\S]*?tone="primary"/);
   assert.match(ideasSource, /<MobileMockupFrame[\s\S]*?tone="info"/);
+  assert.match(ideasSource, /stats=\{\[[\s\S]+?label: '地點'[\s\S]+?label: '天數'[\s\S]+?\]\}/);
+  assert.doesNotMatch(ideasSource, /label: '權限'/);
   assert.match(moreSource, /<MobileMockupFrame[\s\S]*?tone="primary"/);
   [todaySource, itinerarySource, ideasSource, moreSource].forEach((source) => {
     assert.doesNotMatch(source, /tone="(?:teal|accent|coral|soft|sky|sand)"/);

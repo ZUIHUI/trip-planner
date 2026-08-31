@@ -585,6 +585,8 @@ const TodayTab = ({ onTabChange }) => {
       tone="primary"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
     >
+      <ReminderStrip reminders={reminders} />
+
       <DaySwitcher
         itinerary={itinerary}
         selectedDay={selectedDay}
@@ -606,8 +608,6 @@ const TodayTab = ({ onTabChange }) => {
         tripDetails={tripDetails}
         canEdit={canEdit}
       />
-
-      <ReminderStrip reminders={reminders} />
 
       <AirportDayFlightCard
         flights={airportDayFlights}

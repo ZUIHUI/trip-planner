@@ -157,9 +157,10 @@ extra spacing is part of their visual role.
 - Icon framing is optically consistent: a 40x40px semantic background board
   carries a 20px glyph. Irregular glyphs align by the board, not their paths.
 - Mobile photo covers keep a 28px lower radius. The overlapping Trip Workspace
-  sheet uses a quieter 20px top radius, while cards remain 12px and compact
-  controls remain 8px. This avoids stacked concentric curves while preserving
-  a clear radius hierarchy.
+  sheet overlaps the cover by 36px and uses a quieter 20px top radius, while
+  cards remain 12px and compact controls remain 8px. Keeping overlap and radius
+  as separate tokens avoids stacked concentric curves while preserving a clear
+  hierarchy.
 
 ## Layout system
 

@@ -82,6 +82,7 @@
   --tp-icon-glyph-size: 20px;
   --tp-hero-sheet-radius: 28px;
   --tp-detail-sheet-radius: 20px;
+  --tp-detail-sheet-overlap: 36px;
   --tp-nav-surface: color-mix(in srgb, var(--tp-paper) 92%, transparent);
   --tp-nav-border: color-mix(in srgb, var(--tp-border) 88%, transparent);
   --tp-nav-active: color-mix(in srgb, var(--tp-primary-soft) 78%, var(--tp-paper));
@@ -1055,6 +1056,7 @@
 @media (max-width: 767px) {
   :root[data-theme] .tp-mobile-settings-sheet {
     background: var(--tp-canvas) !important;
+    border-radius: 0 !important;
   }
 
   :root[data-theme] .tp-mobile-settings-header {
@@ -1496,7 +1498,7 @@
   }
 
   .tp-workspace-shell .tp-atlas-page-frame.tp-detail-page-frame {
-    margin-top: calc(-1 * var(--tp-hero-sheet-radius)) !important;
+    margin-top: calc(-1 * var(--tp-detail-sheet-overlap)) !important;
     padding-bottom: calc(5.6rem + env(safe-area-inset-bottom)) !important;
   }
 
