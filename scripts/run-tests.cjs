@@ -2970,6 +2970,20 @@ test('keeps overview timeline event cards wide enough on mobile', () => {
   assert.match(todaySource, /className="touch-target absolute right-2 top-2[^"]+h-11 w-11/);
 });
 
+test('keeps the journey overview focused while readiness stays available in itinerary', () => {
+  const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
+  const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const contextRailSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripContextRail.jsx'), 'utf8');
+  const designSource = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
+
+  assert.doesNotMatch(todaySource, /DayReadinessStrip|TravelStatusPanel|StatusMetric|StatusSummaryPill|dayStatus/);
+  assert.doesNotMatch(todaySource, />今日狀態</);
+  assert.match(todaySource, /<ReminderStrip reminders=\{reminders\} \/>[\s\S]+?<AirportDayFlightCard[\s\S]+?<TodayTimeline/);
+  assert.match(itinerarySource, /import DayReadinessStrip from '\.\/DayReadinessStrip';[\s\S]+?<DayReadinessStrip/);
+  assert.match(contextRailSource, /資料完整/);
+  assert.match(designSource, /journey\s+overview must not repeat a readiness banner or a full daily-status card/i);
+});
+
 test('uses the same sea-glass icon tone across the primary mobile trip sections', () => {
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');

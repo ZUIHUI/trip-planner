@@ -188,6 +188,15 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 
 ## Shared planning components
 
+### Journey overview
+
+- Prioritize the day hero, important reminders, flights, timeline, and route so
+  travelers reach the active itinerary without crossing duplicate summaries.
+- Keep readiness editing prompts in the itinerary workspace. The journey
+  overview must not repeat a readiness banner or a full daily-status card.
+- Desktop may retain compact readiness context in the right rail; it must remain
+  read-mostly and must not recreate the removed center-column status surface.
+
 ### Date strip
 
 - Render user-facing dates as `10/25 Wed.` when a date is available.

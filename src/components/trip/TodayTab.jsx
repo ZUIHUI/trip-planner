@@ -22,7 +22,6 @@ import {
 import WeatherWidget from '../WeatherWidget';
 import { Badge, Button, Card } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
-import DayReadinessStrip from './DayReadinessStrip';
 import MobileMockupFrame from './MobileMockupFrame';
 import {
   formatDailyCost,
@@ -411,137 +410,6 @@ const QuickActions = ({
   );
 };
 
-const StatusMetric = ({ icon: Icon, label, value, tone = 'slate' }) => {
-  const toneClasses = {
-    amber: 'bg-amber-50 text-amber-800 dark:bg-amber-950/35 dark:text-amber-100',
-    brand: 'bg-brand-50 text-brand-800 dark:bg-brand-950/35 dark:text-brand-100',
-    emerald: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/35 dark:text-emerald-100',
-    slate: 'bg-[#f4f8f5]/80 text-stone-700 dark:bg-brand-100/45 dark:text-brand-900',
-    sky: 'bg-sky-50 text-sky-800 dark:bg-sky-950/35 dark:text-sky-100'
-  };
-
-  return (
-    <div className={`rounded-lg px-4 py-3 ${toneClasses[tone] || toneClasses.slate}`}>
-      <div className="flex items-center gap-1.5 text-xs font-black opacity-75">
-        <Icon size={13} />
-        {label}
-      </div>
-      <p className="mt-1 truncate text-base font-black">{value}</p>
-    </div>
-  );
-};
-
-const StatusSummaryPill = ({ icon: Icon, label, value, tone = 'slate' }) => {
-  const toneClasses = {
-    amber: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100',
-    brand: 'border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900/70 dark:bg-brand-950/35 dark:text-brand-100',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100',
-    slate: 'border-[#e0e9e0] bg-[#f4f8f5]/80 text-stone-700 dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800',
-    sky: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/70 dark:bg-sky-950/30 dark:text-sky-100'
-  };
-
-  return (
-    <span className={`inline-flex min-w-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${toneClasses[tone] || toneClasses.slate}`}>
-      <Icon size={13} className="shrink-0" />
-      <span className="shrink-0 opacity-75">{label}</span>
-      <span className="min-w-0 truncate">{value}</span>
-    </span>
-  );
-};
-
-const TravelStatusPanel = ({ status }) => {
-  const [showDetails, setShowDetails] = useState(false);
-  const hasRouteWarning = status.missingLocationCount > 0;
-  const hasChecklistWarning = status.checklistRemaining > 0;
-  const summaryText = status.totalEvents
-    ? `${status.completedEvents}/${status.totalEvents} 已過，下一站 ${status.nextTime}`
-    : '未排程';
-
-  return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="text-lg font-black text-stone-800 dark:text-brand-900">今日狀態</h3>
-          <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">{summaryText}</p>
-        </div>
-        <Badge variant={status.totalEvents ? 'info' : 'muted'}>
-          {status.totalEvents ? `${status.progressPercent}%` : '未排程'}
-        </Badge>
-      </div>
-
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-        <div
-          className="tp-progress-glow h-full rounded-full bg-brand-700 transition-all duration-300 dark:bg-brand-500"
-          style={{ width: `${status.progressPercent}%` }}
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-3">
-        <StatusSummaryPill
-          icon={Navigation}
-          label="導航"
-          value={`${status.routeStopCount}/${status.totalEvents}`}
-          tone={hasRouteWarning ? 'amber' : 'brand'}
-        />
-        <StatusSummaryPill
-          icon={AlertTriangle}
-          label="待確認"
-          value={`${status.checklistRemaining} 項`}
-          tone={hasChecklistWarning ? 'amber' : 'slate'}
-        />
-      </div>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowDetails((open) => !open)}
-        aria-expanded={showDetails}
-        className="mt-4 w-full justify-center"
-      >
-        {showDetails ? '收起細節' : '查看細節'}
-        {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-      </Button>
-
-      {showDetails && (
-        <div className="mt-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <StatusMetric
-              icon={CheckCircle2}
-              label="已過行程"
-              value={`${status.completedEvents}/${status.totalEvents}`}
-              tone="emerald"
-            />
-            <StatusMetric
-              icon={Clock}
-              label="下一站"
-              value={status.nextTime}
-              tone="sky"
-            />
-            <StatusMetric
-              icon={Navigation}
-              label="可導航"
-              value={`${status.routeStopCount}/${status.totalEvents}`}
-              tone={hasRouteWarning ? 'amber' : 'brand'}
-            />
-            <StatusMetric
-              icon={AlertTriangle}
-              label="待確認"
-              value={`${status.checklistRemaining} 項`}
-              tone={hasChecklistWarning ? 'amber' : 'slate'}
-            />
-          </div>
-
-          {hasRouteWarning && (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
-              缺地點：{status.missingLocationCount} 個
-            </p>
-          )}
-        </div>
-      )}
-    </Card>
-  );
-};
-
 const ReminderStrip = ({ reminders }) => {
   if (!reminders.length) {
     return (
@@ -780,8 +648,7 @@ const TodayTab = ({ onTabChange }) => {
     routeStops,
     origin,
     routeUrl,
-    reminders,
-    dayStatus
+    reminders
   } = daySummary;
   const airportDayFlights = useMemo(
     () => getAirportDayFlights({ itinerary, selectedDay, tripDetails }),
@@ -849,14 +716,6 @@ const TodayTab = ({ onTabChange }) => {
         flights={airportDayFlights}
         onEditFlights={() => onTabChange?.('flights')}
       />
-
-      <DayReadinessStrip
-        events={dayEvents}
-        canEdit={canEdit}
-        onOpenEvent={openEditModal}
-      />
-
-      <TravelStatusPanel status={dayStatus} />
 
       <TodayTimeline
         events={events}
