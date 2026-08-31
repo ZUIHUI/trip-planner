@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   CalendarDays,
   ChevronLeft,
+  ChevronRight,
   Plus,
   Save,
   Settings,
@@ -925,6 +926,13 @@ const TripDetailPage = () => {
   };
 
   const currentDayData = itinerary.find(d => d.day === selectedDay);
+  const currentDayIndex = itinerary.findIndex((day) => Number(day?.day) === Number(selectedDay));
+  const nextDayData = currentDayIndex >= 0 && itinerary.length > 1
+    ? itinerary[(currentDayIndex + 1) % itinerary.length]
+    : null;
+  const nextDayActionLabel = nextDayData
+    ? `切換到 ${getTripDayDisplayLabel(nextDayData, tripDetails)}`
+    : '目前只有一天行程';
   const currentDayTitle = isGenericTripDayTitle(currentDayData?.title)
     ? ''
     : String(currentDayData?.title || '').trim();
@@ -1440,6 +1448,22 @@ const TripDetailPage = () => {
       });
     });
   }, []);
+
+  const goToNextDay = useCallback(() => {
+    if (!nextDayData) return;
+
+    setSelectedDay(nextDayData.day);
+    window.requestAnimationFrame(() => {
+      const itineraryStage = document.querySelector('.tp-mobile-detail-stage-itinerary');
+      if (!itineraryStage) return;
+      const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const compactHeaderOffset = window.matchMedia?.('(max-width: 767px)').matches ? 64 : 16;
+      scrollElementToAppTop(itineraryStage, {
+        offset: compactHeaderOffset,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      });
+    });
+  }, [nextDayData]);
 
   const openMapsUrl = (url) => {
     if (!url) return;
@@ -2082,7 +2106,7 @@ const TripDetailPage = () => {
       {activeTab === 'itinerary' && (
         <div className={`tp-itinerary-action-dock fixed bottom-[var(--footer-nav-height)] left-0 right-0 z-40 px-4 pb-2 transition-all duration-200 sm:left-auto sm:right-6 sm:w-[min(430px,calc(100vw-3rem))] sm:px-0 lg:bottom-28 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
           <div className="tp-panel mx-auto max-w-4xl p-3 shadow-lg sm:max-w-none">
-            <div className="sm:hidden">
+            <div className="grid grid-cols-2 gap-2 sm:hidden">
               <Button
                 onClick={openAddModal}
                 disabled={!canEdit}
@@ -2091,8 +2115,19 @@ const TripDetailPage = () => {
                 <Plus size={17} />
                 新增行程
               </Button>
+              <Button
+                variant="secondary"
+                onClick={goToNextDay}
+                disabled={!nextDayData}
+                className="w-full"
+                aria-label={nextDayActionLabel}
+                title={nextDayActionLabel}
+              >
+                <ChevronRight size={17} />
+                下一天
+              </Button>
             </div>
-            <div className="hidden grid-cols-2 gap-2 sm:grid">
+            <div className="hidden grid-cols-3 gap-2 sm:grid">
               <Button
                 onClick={openAddModal}
                 disabled={!canEdit}
@@ -2100,6 +2135,17 @@ const TripDetailPage = () => {
               >
                 <Plus size={16} />
                 新增
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={goToNextDay}
+                disabled={!nextDayData}
+                className="w-full min-w-0 whitespace-nowrap !px-1 text-xs sm:!px-2"
+                aria-label={nextDayActionLabel}
+                title={nextDayActionLabel}
+              >
+                <ChevronRight size={16} />
+                下一天
               </Button>
               <Button
                 variant="secondary"

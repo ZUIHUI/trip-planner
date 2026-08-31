@@ -12,3 +12,10 @@ export const TP_TAB_CONTENT_MOTION = {
   exit: { opacity: 0, y: -5 },
   transition: TP_MOTION_TRANSITIONS.panel
 };
+
+export const TP_ROUTE_CONTENT_MOTION = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: TP_MOTION_TRANSITIONS.panel
+};

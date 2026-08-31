@@ -1960,6 +1960,21 @@ test('keeps high-friction mobile form controls explicit', () => {
   assert.match(logisticsSource, /compactSummary/);
 });
 
+test('keeps mobile trip navigation fixed to the viewport', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'src/App.jsx'), 'utf8');
+  const motionSource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/motionPresets.js'), 'utf8');
+  const tokensSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/tokens.css'), 'utf8');
+  const routeMotionSource = motionSource.match(/export const TP_ROUTE_CONTENT_MOTION = \{([\s\S]*?)\n\};/)?.[1] || '';
+
+  assert.match(appSource, /import \{ TP_ROUTE_CONTENT_MOTION \} from '\.\/utils\/motionPresets'/);
+  assert.match(appSource, /\{\.\.\.TP_ROUTE_CONTENT_MOTION\}/);
+  assert.doesNotMatch(routeMotionSource, /\by\s*:/);
+  assert.match(
+    tokensSource,
+    /\.tp-bottom-nav,\s*\n\.tp-atlas-dock\.tp-bottom-nav\s*\{[^}]*position:\s*fixed\s*!important;/
+  );
+});
+
 test('normalizes trip detail section documents for the app', () => {
   assert.deepEqual(normalizeTripDetailDocumentForApp({
     id: 'meta',
@@ -3062,7 +3077,13 @@ test('fuses the compact itinerary reference without duplicating desktop route su
   assert.match(css, /@media \(min-width: 1180px\)[\s\S]*?\.tp-itinerary-route-panel\s*\{\s*display:\s*none/);
   assert.match(workspaceCss, /@media \(min-width: 768px\) and \(max-width: 1179px\)[\s\S]*?\.tp-itinerary-tablet-context/);
   assert.match(workspaceCss, /@media \(min-width: 1180px\)[\s\S]*?\.tp-itinerary-action-dock/);
-  assert.doesNotMatch(tripDetailSource, /goToNextDay|前往下一天/);
+  assert.match(tripDetailSource, /const nextDayData =/);
+  assert.match(tripDetailSource, /itinerary\[\(currentDayIndex \+ 1\) % itinerary\.length\]/);
+  assert.match(tripDetailSource, /const goToNextDay = useCallback/);
+  assert.match(tripDetailSource, /onClick=\{goToNextDay\}/);
+  assert.match(tripDetailSource, /disabled=\{!nextDayData\}/);
+  assert.match(tripDetailSource, />\s*下一天\s*<\/Button>/);
+  assert.doesNotMatch(tripDetailSource, /最後一天/);
   assert.match(css, /\.tp-day-selector-chip\[aria-pressed="true"\]/);
   assert.match(css, /\.tp-v4-panel-link:focus-visible/);
 });

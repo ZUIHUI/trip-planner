@@ -7,7 +7,7 @@ import { FeedbackProvider } from './contexts/FeedbackContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoadingState } from './components/ui';
 import { lazyWithReload } from './utils/lazyComponent';
-import { TP_TAB_CONTENT_MOTION } from './utils/motionPresets';
+import { TP_ROUTE_CONTENT_MOTION } from './utils/motionPresets';
 
 const LoginPage = lazyWithReload(() => import('./pages/LoginPage'));
 const TripListPage = lazyWithReload(() => import('./pages/TripListPage'));
@@ -26,7 +26,7 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location.pathname}
-        {...TP_TAB_CONTENT_MOTION}
+        {...TP_ROUTE_CONTENT_MOTION}
       >
         <Routes location={location}>
           <Route path="/login" element={<LoginPage />} />
