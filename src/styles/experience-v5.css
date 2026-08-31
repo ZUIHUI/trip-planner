@@ -923,10 +923,6 @@ textarea.tp-input:focus {
     text-shadow: none !important;
   }
 
-  .tp-mobile-detail-hero .tp-mobile-detail-chips > .tp-trip-weather-chip {
-    color: var(--tp-ink) !important;
-  }
-
   .tp-mobile-trips-hero.has-trip-cover {
     background-image: var(--tp-photo-scrim), var(--tp-mobile-trip-hero-image) !important;
   }
@@ -1009,7 +1005,7 @@ textarea.tp-input:focus {
 
   .tp-mobile-detail-copy {
     bottom: auto !important;
-    top: calc(50% + 0.75rem) !important;
+    top: calc(50% + 0.125rem) !important;
     transform: translateY(-50%) !important;
   }
 

@@ -576,8 +576,7 @@ textarea.tp-input::placeholder {
     line-height: 1.6;
   }
 
-  .tp-mobile-trips-eyebrow,
-  .tp-mobile-detail-kicker {
+  .tp-mobile-trips-eyebrow {
     background: rgba(255, 255, 255, 0.15) !important;
     color: #fff !important;
   }

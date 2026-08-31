@@ -2944,9 +2944,8 @@ test('persists accessible complete app themes', () => {
   assert.match(mainSource, /initializeStoredAppTheme\(\)/);
 });
 
-test('shows useful destination weather instead of self-presence in mobile hero chips', () => {
+test('places trip status first in mobile hero chips without weather', () => {
   const tripDetailSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripDetailPage.jsx'), 'utf8');
-  const weatherSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/WeatherWidget.jsx'), 'utf8');
   const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
   const experienceSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
   const designSource = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
@@ -2955,21 +2954,14 @@ test('shows useful destination weather instead of self-presence in mobile hero c
     .map((match) => match[0])
     .find((rule) => rule.includes('--tp-primary-strong')) || '';
 
-  assert.match(chipMarkup, /<WeatherWidget[\s\S]+?variant="chip"/);
-  assert.match(chipMarkup, /currentDayWeatherDate/);
-  assert.match(chipMarkup, /currentDayWeatherLocation/);
+  assert.match(chipMarkup, /<span>\{mobileDetailStatusLabel\}<\/span>[\s\S]+?role="status"/);
+  assert.doesNotMatch(chipMarkup, /WeatherWidget|currentDayWeatherDate|currentDayWeatherLocation/);
   assert.doesNotMatch(chipMarkup, /presenceUi|你在線/);
-  assert.match(tripDetailSource, /import \{ getTripDayIsoDate \} from '\.\.\/utils\/tripEvents';/);
-  assert.match(weatherSource, /variant === 'chip'/);
-  assert.match(weatherSource, /CHIP_WEATHER_LOADING_TIMEOUT_MS = 6000/);
-  assert.match(weatherSource, /chipLoadingTimedOut \? '🌤️ 天氣待更新' : '☁️ 天氣載入中'/);
-  assert.match(weatherSource, /aria-label=\{weatherLabel\}/);
-  assert.match(weatherSource, /\{weather\.icon \|\| '🌤️'\} \{weather\.temperature\}°C/);
+  assert.doesNotMatch(tripDetailSource, /import WeatherWidget|tp-mobile-detail-kicker|getTripDayIsoDate|getWeatherEventLocation/);
   assert.match(chipRule, /color:\s*var\(--tp-primary-strong\)/);
   assert.match(chipRule, /font-weight:\s*600/);
   assert.doesNotMatch(chipRule, /font-weight:\s*950/);
   assert.match(experienceSource, /\.tp-mobile-detail-hero \.tp-mobile-detail-chips > span \{[\s\S]+?color:\s*var\(--tp-primary-strong\)\s*!important;[\s\S]+?text-shadow:\s*none\s*!important;/);
-  assert.match(experienceSource, /\.tp-mobile-detail-hero \.tp-mobile-detail-chips > \.tp-trip-weather-chip \{[\s\S]+?color:\s*var\(--tp-ink\)\s*!important;/);
   assert.match(designSource, /do not use[\s\S]+?`你在線` as permanent hero content/i);
 });
 
@@ -3018,7 +3010,7 @@ test('vertically centers the compact mobile trip hero details without a duplicat
 
   assert.match(heroHeightRule, /min-height:\s*16rem\s*!important/);
   assert.match(heroCopyRule, /bottom:\s*auto\s*!important/);
-  assert.match(heroCopyRule, /top:\s*calc\(50%\s*\+\s*0\.75rem\)\s*!important/);
+  assert.match(heroCopyRule, /top:\s*calc\(50%\s*\+\s*0\.125rem\)\s*!important/);
   assert.match(heroCopyRule, /transform:\s*translateY\(-50%\)\s*!important/);
   assert.doesNotMatch(detailSource, /<nav className="tp-mobile-detail-tabs"/);
   assert.match(tokenCss, /\.tp-mobile-detail-tabs\s*\{\s*display:\s*none\s*!important/);

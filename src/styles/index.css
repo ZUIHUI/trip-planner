@@ -6669,18 +6669,6 @@ textarea.tp-input {
     z-index: 2;
   }
 
-  .tp-mobile-detail-kicker {
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 999px;
-    color: #fff;
-    display: inline-flex;
-    font-size: 0.72rem;
-    font-weight: 950;
-    letter-spacing: 0;
-    padding: 0.4rem 0.68rem;
-  }
-
   .tp-mobile-detail-copy h1 {
     color: #fff;
     font-size: clamp(2rem, 10vw, 3.05rem);
@@ -6732,12 +6720,6 @@ textarea.tp-input {
     min-height: 2rem;
     padding: 0.44rem 0.72rem;
     text-shadow: none;
-  }
-
-  .tp-mobile-detail-chips > .tp-trip-weather-chip {
-    background: var(--tp-sea-glass-soft);
-    background: color-mix(in srgb, var(--tp-sea-glass-soft) 78%, var(--tp-canvas));
-    color: var(--tp-ink);
   }
 
   .tp-workspace-shell .tp-atlas-page-frame.tp-detail-page-frame {

@@ -11,7 +11,6 @@ import {
   UsersRound
 } from 'lucide-react';
 import Header from '../components/Header';
-import WeatherWidget from '../components/WeatherWidget';
 import Modal from '../components/Modal';
 import BottomNavigation from '../components/BottomNavigation';
 import CompactScrollHeader from '../components/CompactScrollHeader';
@@ -69,7 +68,6 @@ import {
   getTripDisplayDates,
   isGenericTripDayTitle
 } from '../utils/tripDates';
-import { getTripDayIsoDate } from '../utils/tripEvents';
 import { getTripDetailsPatchSections } from '../utils/tripDetailsPatch';
 import { normalizeCoverImageUrl } from '../utils/coverImage';
 import { buildPresenceUiState } from '../utils/presence';
@@ -172,11 +170,6 @@ const mobileDetailStatusLabels = {
   done: 'Archived'
 };
 const sameJsonValue = (left, right) => JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
-
-const getWeatherEventLocation = (event) => {
-  const location = event?.locationPlace || event?.location?.name || event?.location || '';
-  return typeof location === 'string' ? location.trim() : '';
-};
 
 const getMobileDetailTheme = (details = {}) => {
   const rawTitle = String(details?.title || '').toLowerCase();
@@ -939,11 +932,6 @@ const TripDetailPage = () => {
   const currentDayDate = isGenericTripDayTitle(currentDayData?.date)
     ? ''
     : String(currentDayData?.date || '').trim();
-  const currentDayWeatherDate = getTripDayIsoDate(tripDetails?.dateRange?.start, selectedDay)
-    || currentDayDate;
-  const currentDayWeatherLocation = (currentDayData?.events || [])
-    .map(getWeatherEventLocation)
-    .find(Boolean) || '';
   const currentDayDisplayTitle = getTripDayDisplayTitle(currentDayData);
   const currentDayLabel = getTripDayDisplayLabel(currentDayData, tripDetails);
   const tripDisplayDates = getTripDisplayDates(tripDetails);
@@ -1860,7 +1848,6 @@ const TripDetailPage = () => {
           </div>
 
           <div className="tp-mobile-detail-copy">
-            <span className="tp-mobile-detail-kicker">{mobileDetailStatusLabel}</span>
             <h1>{tripDetails?.title || 'Untitled trip'}</h1>
             <div className="tp-mobile-detail-meta">
               <span>
@@ -1873,18 +1860,9 @@ const TripDetailPage = () => {
               </span>
             </div>
             <div className="tp-mobile-detail-chips">
-              {isSaving || isSavingTripDetails ? (
+              <span>{mobileDetailStatusLabel}</span>
+              {(isSaving || isSavingTripDetails) && (
                 <span role="status" aria-live="polite">儲存中</span>
-              ) : (
-                <WeatherWidget
-                  variant="chip"
-                  date={currentDayWeatherDate}
-                  firstEventLocation={currentDayWeatherLocation}
-                  accommodation={tripDetails?.accommodation?.address
-                    || tripDetails?.accommodation?.name
-                    || tripDetails?.title
-                    || '東京'}
-                />
               )}
             </div>
           </div>
