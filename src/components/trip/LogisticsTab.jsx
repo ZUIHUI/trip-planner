@@ -1186,7 +1186,7 @@ const LogisticsTab = () => {
         { value: tripSnapshot.budget, label: '預算' },
         { value: activeMobileSectionLabel, label: '區塊' }
       ]}
-      tone="teal"
+      tone="info"
       className="mt-2 min-w-0 max-w-full space-y-4 overflow-x-hidden px-4 pb-10 sm:px-6 lg:px-8"
     >
       <CompletionPanel tripDetails={tripDetails} />

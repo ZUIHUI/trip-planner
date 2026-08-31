@@ -1,61 +1,23 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import {
-  CheckSquare,
-  Compass,
-  DollarSign,
-  LayoutDashboard,
-  Luggage,
-  Map,
-  Menu,
-  ShoppingCart,
-  Star,
-  Ticket,
-  UsersRound,
-} from 'lucide-react';
-
-const mobileTabs = [
-  { id: 'today', label: '旅程總覽', icon: Compass },
-  { id: 'itinerary', label: '行程安排', icon: Map },
-  { id: 'ideas', label: '靈感', icon: Star },
-  { id: 'more', label: '更多', icon: Menu }
-];
-
-const desktopTabs = [
-  { id: 'today', label: '旅程總覽', icon: Compass },
-  { id: 'summary', label: '控制台', icon: LayoutDashboard },
-  { id: 'itinerary', label: '行程安排', icon: Map },
-  { id: 'ideas', label: '靈感', icon: Star },
-  { id: 'flights', label: '資訊', icon: Ticket },
-  { id: 'preTrip', label: '行前', icon: CheckSquare },
-  { id: 'packing', label: '行李', icon: Luggage },
-  { id: 'expenses', label: '記帳', icon: DollarSign },
-  { id: 'shopping', label: '購物', icon: ShoppingCart },
-  { id: 'companions', label: '旅伴', icon: UsersRound }
-];
-
-const mobileMoreTabIds = [
-  'summary',
-  'flights',
-  'preTrip',
-  'packing',
-  'expenses',
-  'shopping',
-  'companions',
-  'more'
-];
+  MOBILE_TRIP_NAV_ITEMS,
+  MORE_CHILD_TAB_IDS,
+  isMobileTripNavActive
+} from './trip/tripNavigation';
+import { TP_MOTION_TRANSITIONS } from '../utils/motionPresets';
 
 const PresenceTabMarker = ({ count = 0 }) => {
   if (!count) return null;
 
   return (
     <motion.span
-      className="tp-status-pulse absolute right-1.5 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-black leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900"
+      className="tp-status-pulse tp-nav-presence-marker"
       title={`${count} 位旅伴在這裡`}
       aria-label={`${count} 位旅伴在這裡`}
       initial={{ opacity: 0, scale: 0.7 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 560, damping: 32, mass: 0.5 }}
+      transition={TP_MOTION_TRANSITIONS.spring}
     >
       {count > 1 ? count : ''}
     </motion.span>
@@ -69,78 +31,56 @@ const BottomNavigation = ({ activeTab, onTabChange, isModalOpen = false, presenc
 
   const getMobilePresenceCount = (tabId) => {
     if (tabId === 'more') {
-      return mobileMoreTabIds.reduce((total, id) => total + Number(presenceByTab?.[id] || 0), 0);
+      return [...MORE_CHILD_TAB_IDS].reduce((total, id) => total + Number(presenceByTab?.[id] || 0), 0);
     }
 
     return Number(presenceByTab?.[tabId] || 0);
   };
 
-  const isMobileTabActive = (tabId) => (
-    tabId === 'more'
-      ? mobileMoreTabIds.includes(activeTab)
-      : activeTab === tabId
-  );
-
-  const buildTabClass = (isActive) => `touch-target tp-press-feedback tp-nav-item relative flex ${isActive ? 'tp-nav-active' : ''}`;
-
   return (
     <>
       <nav
-        className={`tp-ambient-dock tp-bottom-nav tp-atlas-dock fixed bottom-0 left-0 right-0 z-[var(--z-bottom-nav)] border-t border-[#e0e9e0] bg-white/[0.86] pb-[calc(0.625rem+env(safe-area-inset-bottom))] transition-all duration-200 supports-[backdrop-filter]:backdrop-blur lg:bottom-4 lg:left-1/2 lg:right-auto lg:w-[min(1080px,calc(100vw-3rem))] lg:-translate-x-1/2 lg:rounded-lg lg:border lg:border-[#e0e9e0] lg:pb-0 dark:border-brand-200/20 dark:bg-[#09100d]/[0.94] ${
+        className={`tp-ambient-dock tp-bottom-nav tp-atlas-dock ${
           isModalOpen ? 'pointer-events-none translate-y-full opacity-0' : 'pointer-events-auto translate-y-0 opacity-100'
         }`}
         aria-label="主要功能導覽"
       >
-        <div className="tp-atlas-dock-track tp-bottom-nav-mobile-track mx-auto flex h-[4.5rem] max-w-4xl items-center gap-2 px-3 lg:hidden">
-          {mobileTabs.map((tab) => {
+        <div className="tp-atlas-dock-track tp-bottom-nav-mobile-track">
+          {MOBILE_TRIP_NAV_ITEMS.map((tab) => {
             const Icon = tab.icon;
-            const isActive = isMobileTabActive(tab.id);
+            const isActive = isMobileTripNavActive(tab.id, activeTab);
             return (
               <motion.button
                 key={tab.id}
                 type="button"
                 onClick={() => handleTabChange(tab.id)}
-                whileTap={{ scale: 0.992 }}
-                transition={{ type: 'tween', duration: 0.08, ease: 'easeOut' }}
-                className={`${buildTabClass(isActive)} flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-xs font-bold transition-colors duration-150`}
+                whileTap={{ y: 1 }}
+                transition={TP_MOTION_TRANSITIONS.micro}
+                className={`touch-target tp-press-feedback tp-nav-item ${isActive ? 'tp-nav-active' : ''}`}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
                 title={tab.label}
               >
+                {isActive && (
+                  <motion.span
+                    layoutId="tp-bottom-nav-active-pill"
+                    className="tp-nav-active-pill"
+                    transition={TP_MOTION_TRANSITIONS.spring}
+                    aria-hidden="true"
+                  />
+                )}
                 <PresenceTabMarker count={getMobilePresenceCount(tab.id)} />
-                <Icon size={22} className={`transition-transform duration-150 ${isActive ? 'scale-105' : ''}`} />
-                <span className="tp-nav-label truncate">{tab.label}</span>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        <div className="tp-atlas-dock-track tp-bottom-nav-desktop-track mx-auto hidden h-[4.5rem] max-w-7xl items-center gap-2 px-3 lg:flex">
-          {desktopTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <motion.button
-                key={tab.id}
-                type="button"
-                onClick={() => handleTabChange(tab.id)}
-                whileTap={{ scale: 0.992 }}
-                transition={{ type: 'tween', duration: 0.08, ease: 'easeOut' }}
-                className={`${buildTabClass(isActive)} min-w-0 flex-1 flex-col items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-xs font-bold transition-colors duration-150`}
-                aria-current={isActive ? 'page' : undefined}
-                aria-label={tab.label}
-                title={tab.label}
-              >
-                <PresenceTabMarker count={presenceByTab?.[tab.id] || 0} />
-                <Icon size={21} className={`transition-transform duration-150 ${isActive ? 'scale-105' : ''}`} />
-                <span className="tp-nav-label max-w-full truncate">{tab.label}</span>
+                <span className="tp-nav-item-content">
+                  <Icon size={20} />
+                  <span className="tp-nav-label">{tab.mobileLabel || tab.label}</span>
+                </span>
               </motion.button>
             );
           })}
         </div>
       </nav>
 
-      <div className="tp-bottom-nav-spacer h-[calc(5.75rem+env(safe-area-inset-bottom))] lg:h-28" />
+      <div className="tp-bottom-nav-spacer" />
     </>
   );
 };

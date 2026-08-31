@@ -154,13 +154,21 @@ extra spacing is part of their visual role.
   loading icon may retain a solid hairline for definition.
 - Floating rails and photo heroes may use the documented card/hero shadows.
 - Interactive controls have a 40px desktop minimum and 44px touch minimum.
+- Icon framing is optically consistent: a 40x40px semantic background board
+  carries a 20px glyph. Irregular glyphs align by the board, not their paths.
+- Mobile cover-to-sheet joins use a 28px radius. Cards remain 12px and compact
+  controls remain 8px so the hierarchy is visible without oversized rounding.
 
 ## Layout system
 
 ### Mobile: below 768px
 
 - One content column.
-- The trip cover and four-item bottom navigation provide orientation.
+- The trip cover and one four-item bottom navigation provide orientation. Do
+  not repeat the same four tabs below the cover.
+- Trip Library and Trip Workspace reveal the shared compact title bar only
+  after the observed hero leaves the viewport. It contains the page/trip title,
+  current section context, and the relevant account, back, or settings action.
 - The itinerary has one horizontal date strip. Do not add a second next-day or
   previous-day mechanism beside it.
 - A single floating add action is the dominant creation entry.
@@ -187,6 +195,19 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 1440px rather than assuming the named breakpoints cover the boundary states.
 
 ## Shared planning components
+
+### Navigation
+
+- `TRIP_NAV_ITEMS` is the single source for item labels, icons, order, desktop
+  rail groups, and the mobile More-child mapping.
+- Mobile bottom navigation and the desktop workspace rail use a shared sliding
+  selection surface. Labels and icons move at most 1px for press feedback; do
+  not scale the active item.
+- Changing a workspace section returns the main content to its start with the
+  compact-header offset applied. Content enters over 160–200ms with 6–8px of
+  vertical movement.
+- At 1180px and above, the desktop rail is the only persistent workspace
+  navigation. The mobile bottom dock and its spacer are not rendered visually.
 
 ### Journey overview
 
@@ -258,8 +279,9 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 
 Text over photography must use `--tp-on-dark` or `--tp-on-dark-muted` and the
 shared atmospheric scrim `--tp-photo-scrim`. The scrim combines the active
-theme's dark surface with a lower-edge readability gradient; a plain translucent
-rectangle is not sufficient for unpredictable travel photos.
+theme's dark hue with three opacity stops and a lower-edge readability gradient;
+it never uses pure black. A plain translucent rectangle is not sufficient for
+unpredictable travel photos.
 
 Compact context chips over a trip cover use a translucent canvas surface with
 theme-primary text, medium weight, and an explicit border. Prefer useful trip
@@ -289,9 +311,19 @@ photography.
 ## Motion
 
 - Micro transitions: 150ms ease.
-- Panel state changes: 200ms ease.
+- Panel and section state changes: 160–200ms ease with no more than 8px travel.
 - Motion supports continuity only; it never delays data entry.
 - Do not add scale-on-hover or perpetual decorative motion to planning cards.
+
+## Semantic module tones
+
+- Modules accept only `neutral`, `primary`, `info`, `success`, `warning`, or
+  `danger`. Decorative names such as teal, sky, sand, coral, or soft are legacy
+  aliases and must not be used by active components.
+- A tone changes the icon board, hairline, small label, or progress treatment.
+  Main titles and body copy remain `--tp-ink`, `--tp-body`, and `--tp-muted`.
+- Every theme supplies low-chroma semantic tone surfaces. Success, warning, and
+  danger remain recognizable and never inherit a meaning from the theme accent.
 
 ## Do
 

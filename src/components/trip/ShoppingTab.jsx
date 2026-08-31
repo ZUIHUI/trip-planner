@@ -296,7 +296,7 @@ const ShoppingTab = () => {
         { value: remainingCount, label: '剩餘' },
         { value: shoppingCategories?.length || 0, label: '分類' }
       ]}
-      tone="coral"
+      tone="warning"
       className="mt-2 pb-44 sm:pb-28 lg:pb-20"
       {...getEditingHandlers(editingTarget)}
     >

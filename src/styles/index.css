@@ -1101,7 +1101,7 @@ body {
   z-index: 0;
 }
 
-.tp-page-shell > :not(.fixed):not(.sticky) {
+.tp-page-shell > :not(.fixed):not(.sticky):not(.tp-compact-scroll-header) {
   position: relative;
   z-index: 1;
 }

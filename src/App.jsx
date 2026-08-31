@@ -7,13 +7,14 @@ import { FeedbackProvider } from './contexts/FeedbackContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoadingState } from './components/ui';
 import { lazyWithReload } from './utils/lazyComponent';
+import { TP_TAB_CONTENT_MOTION } from './utils/motionPresets';
 
 const LoginPage = lazyWithReload(() => import('./pages/LoginPage'));
 const TripListPage = lazyWithReload(() => import('./pages/TripListPage'));
 const TripDetailPage = lazyWithReload(() => import('./pages/TripDetailPage'));
 
 const RouteFallback = () => (
-  <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <main className="tp-route-loading">
     <LoadingState label="載入頁面中..." />
   </main>
 );
@@ -25,10 +26,7 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        {...TP_TAB_CONTENT_MOTION}
       >
         <Routes location={location}>
           <Route path="/login" element={<LoginPage />} />

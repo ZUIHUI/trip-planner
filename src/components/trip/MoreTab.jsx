@@ -50,7 +50,7 @@ const getLogisticsStatus = (tripDetails = {}) => {
   return '尚未補齊';
 };
 
-const ModuleButton = ({ icon: Icon, title, description, meta, tone = 'soft', onClick }) => (
+const ModuleButton = ({ icon: Icon, title, description, meta, tone = 'neutral', onClick }) => (
   <button
     type="button"
     onClick={onClick}
@@ -135,7 +135,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           { value: members?.length || 0, label: '成員' },
           { value: onlineCount, label: '在線' }
         ]}
-        tone="teal"
+        tone="success"
         className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
       >
         <Card className="p-4">
@@ -144,7 +144,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
               <UsersRound size={20} />
             </span>
             <div className="min-w-0">
-              <h2 className="text-lg font-black text-slate-950 dark:text-white">旅伴與邀請</h2>
+              <h2 className="tp-module-card-title">旅伴與邀請</h2>
             </div>
           </div>
         </Card>
@@ -165,7 +165,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
         { value: members?.length || 0, label: '成員' },
         { value: onlineCount, label: '在線' }
       ]}
-      tone="accent"
+      tone="primary"
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
     >
       <section className="tp-v4-module-summary" aria-label="旅程管理摘要">
@@ -187,7 +187,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="旅程控制台"
           description="日期、住宿與旅程摘要"
           meta={`${eventCount} 行程`}
-          tone="soft"
+          tone="neutral"
           onClick={() => onTabChange?.('summary')}
         />
         <ModuleButton
@@ -195,7 +195,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="航班與住宿"
           description="航班資料、住宿地址"
           meta={getLogisticsStatus(tripDetails)}
-          tone="sky"
+          tone="info"
           onClick={() => onTabChange?.('flights')}
         />
         <ModuleButton
@@ -203,7 +203,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="行前準備"
           description="票券、預約與提醒"
           meta={getChecklistStatus(checklists?.preTrip)}
-          tone="sand"
+          tone="success"
           onClick={() => onTabChange?.('preTrip')}
         />
         <ModuleButton
@@ -211,7 +211,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="行李清單"
           description="分類、數量與完成度"
           meta={getChecklistStatus(checklists?.packing, '尚未建立')}
-          tone="soft"
+          tone="neutral"
           onClick={() => onTabChange?.('packing')}
         />
       </ModuleSection>
@@ -222,7 +222,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="支出與預算"
           description="共同分帳、預算與匯率"
           meta={Array.isArray(expenses) && expenses.length ? `${expenses.length} 筆` : '尚未記帳'}
-          tone="coral"
+          tone="primary"
           onClick={() => onTabChange?.('expenses')}
         />
         <ModuleButton
@@ -230,7 +230,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="購物清單"
           description="店家、照片與備註"
           meta="共同清單"
-          tone="sand"
+          tone="warning"
           onClick={() => onTabChange?.('shopping')}
         />
         <ModuleButton
@@ -238,7 +238,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="旅伴與分享"
           description="邀請碼、權限與在線狀態"
           meta={onlineCount ? `${onlineCount} 在線` : `${members?.length || 0} 位旅伴`}
-          tone="sky"
+          tone="success"
           onClick={() => onTabChange?.('companions')}
         />
         <ModuleButton
@@ -246,7 +246,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="設定"
           description="主題、GPS 與介面偏好"
           meta="個人化"
-          tone="soft"
+          tone="neutral"
           onClick={onOpenSettings}
         />
       </ModuleSection>
@@ -257,7 +257,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
           title="旅遊手冊"
           description="整理旅程內容並匯出 PDF"
           meta="PDF"
-          tone="sky"
+          tone="info"
           onClick={onOpenHandbook}
         />
       </ModuleSection>
@@ -272,7 +272,7 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
       </Card>
 
       <section className="space-y-3" aria-label="提醒與裝置">
-        <h2 className="px-1 text-sm font-black text-slate-950 dark:text-white">提醒與裝置</h2>
+        <h2 className="tp-module-section-title">提醒與裝置</h2>
         <InstallAppPrompt />
         <TripNotificationCard tripId={tripId} currentUser={currentUser} />
       </section>

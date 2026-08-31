@@ -7,7 +7,7 @@ const MobileMockupFrame = ({
   subtitle,
   stats = [],
   action = null,
-  tone = 'teal',
+  tone = 'neutral',
   children,
   className = '',
   ...restProps

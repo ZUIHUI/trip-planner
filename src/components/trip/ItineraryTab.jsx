@@ -114,7 +114,7 @@ const ItineraryTab = ({ onTabChange }) => {
         { value: todayCostEventCount, label: '含費用' },
         { value: itinerary.length || 0, label: '天數' }
       ]}
-      tone="accent"
+      tone="primary"
     >
       <TripDayStrip itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} tripDetails={tripDetails} />
 

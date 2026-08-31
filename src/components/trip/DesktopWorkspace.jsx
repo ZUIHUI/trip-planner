@@ -1,18 +1,8 @@
 import React, { useMemo } from 'react';
+import { motion } from 'motion/react';
 import {
-  CheckSquare,
-  ChevronRight,
-  CircleDollarSign,
-  Compass,
-  LayoutDashboard,
-  Lightbulb,
-  Luggage,
-  Map,
   Navigation,
-  Plane,
   Settings,
-  ShoppingBag,
-  UsersRound
 } from 'lucide-react';
 import { Badge, Button } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
@@ -21,22 +11,8 @@ import { formatEventTime, getEventLocationText, getTripDayIsoDate } from '../../
 import { useTripDaySummary } from '../../hooks/useTripDaySummary';
 import GoogleRoutePreview from './GoogleRoutePreview';
 import TripContextRail from './TripContextRail';
-
-const primaryModules = [
-  { id: 'today', label: '旅程總覽', icon: Compass },
-  { id: 'itinerary', label: '行程安排', icon: Map },
-  { id: 'ideas', label: '靈感與地點', icon: Lightbulb }
-];
-
-const planningModules = [
-  { id: 'summary', label: '旅程控制台', icon: LayoutDashboard },
-  { id: 'flights', label: '航班與住宿', icon: Plane },
-  { id: 'preTrip', label: '行前準備', icon: CheckSquare },
-  { id: 'packing', label: '行李清單', icon: Luggage },
-  { id: 'expenses', label: '支出與預算', icon: CircleDollarSign },
-  { id: 'shopping', label: '購物清單', icon: ShoppingBag },
-  { id: 'companions', label: '旅伴與分享', icon: UsersRound }
-];
+import { PRIMARY_TRIP_NAV_ITEMS, PLANNING_TRIP_NAV_ITEMS } from './tripNavigation';
+import { TP_MOTION_TRANSITIONS } from '../../utils/motionPresets';
 
 const NavigationGroup = ({ label, items, activeTab, onTabChange }) => (
   <section className="tp-v4-rail-section">
@@ -46,17 +22,26 @@ const NavigationGroup = ({ label, items, activeTab, onTabChange }) => (
         const Icon = item.icon;
         const isActive = activeTab === item.id;
         return (
-          <button
+          <motion.button
             key={item.id}
             type="button"
             className={isActive ? 'is-active' : ''}
             onClick={() => onTabChange(item.id)}
             aria-current={isActive ? 'page' : undefined}
           >
-            <Icon size={17} />
-            <span>{item.label}</span>
-            {isActive && <ChevronRight size={15} aria-hidden="true" />}
-          </button>
+            {isActive && (
+              <motion.span
+                layoutId="tp-desktop-nav-active-pill"
+                className="tp-v4-rail-active-indicator"
+                transition={TP_MOTION_TRANSITIONS.spring}
+                aria-hidden="true"
+              />
+            )}
+            <span className="tp-v4-rail-nav-content">
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </span>
+          </motion.button>
         );
       })}
     </div>
@@ -81,7 +66,7 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
         <small>{getTripDisplayDates(tripDetails) || '日期待設定'}</small>
       </div>
 
-      <NavigationGroup label="旅途中" items={primaryModules} activeTab={activeTab} onTabChange={onTabChange} />
+      <NavigationGroup label="旅途中" items={PRIMARY_TRIP_NAV_ITEMS} activeTab={activeTab} onTabChange={onTabChange} />
 
       {activeTab !== 'itinerary' && (
         <section className="tp-v4-rail-section tp-v4-rail-days">
@@ -110,7 +95,7 @@ export const DesktopWorkspaceRail = ({ activeTab, onTabChange, onOpenSettings })
         </section>
       )}
 
-      <NavigationGroup label="行前規劃" items={planningModules} activeTab={activeTab} onTabChange={onTabChange} />
+      <NavigationGroup label="行前規劃" items={PLANNING_TRIP_NAV_ITEMS} activeTab={activeTab} onTabChange={onTabChange} />
 
       <button type="button" className="tp-v4-rail-settings" onClick={onOpenSettings}>
         <Settings size={17} />

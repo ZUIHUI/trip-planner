@@ -169,7 +169,7 @@ const ExpensesTab = () => {
         { value: safeExpenses.length, label: '筆數' },
         { value: unsettledCount, label: '未結清' }
       ]}
-      tone="teal"
+      tone="primary"
       className="mt-2 px-4 pb-20 sm:px-6 lg:px-8"
       {...getEditingHandlers(editingTarget)}
     >

@@ -776,7 +776,7 @@ const SummaryTab = ({ onTabChange, onAddEvent, onOpenHandbook }) => {
         { value: `${budgetProgress || 0}%`, label: '預算' },
         { value: readinessItems.length, label: '提醒' }
       ]}
-      tone="teal"
+      tone="primary"
       className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 pb-12 sm:gap-6 sm:px-7 lg:px-10"
     >
       <CommandCenterCard

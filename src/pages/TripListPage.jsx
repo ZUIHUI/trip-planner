@@ -31,6 +31,8 @@ import { Badge, Button, Card, EmptyState, Input, LoadingState, PageContainer } f
 import { useFeedback } from '../contexts/FeedbackContext';
 import { useAuth } from '../contexts/AuthContext';
 import InstallAppPrompt from '../components/InstallAppPrompt';
+import CompactScrollHeader from '../components/CompactScrollHeader';
+import { scrollAppTo } from '../utils/appScroll';
 import { inviteCodeInputProps, plainTextInputProps, searchInputProps } from '../utils/mobileInputProps';
 import {
   LAST_OPENED_TRIP_KEY,
@@ -206,13 +208,9 @@ const ActionModeButton = ({ active, icon: Icon, title, meta, onClick }) => (
     type="button"
     onClick={onClick}
     aria-pressed={active}
-    className={`touch-target tp-action-mode-button tp-press-feedback tp-hover-icon tp-tap-ripple group flex min-w-0 items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
-      active
-        ? 'border-brand-300 bg-white text-brand-800 shadow-sm ring-1 ring-brand-100 dark:border-brand-300/30 dark:bg-brand-100/65 dark:text-brand-900 dark:ring-brand-300/20'
-        : 'border-[#e0e9e0] bg-white/70 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/40 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/55'
-    }`}
+    className={`touch-target tp-action-mode-button tp-press-feedback tp-hover-icon tp-tap-ripple ${active ? 'is-active' : ''}`}
   >
-    <span className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${active ? 'tp-soft-pulse bg-white/90 text-brand-700 shadow-sm dark:bg-brand-50/75 dark:text-brand-900' : 'bg-brand-50 text-stone-500 group-hover:text-brand-700 dark:bg-brand-100/50 dark:text-brand-700 dark:group-hover:text-brand-900'}`}>
+    <span className="tp-action-mode-icon">
       <Icon size={18} />
     </span>
     <span className="min-w-0">
@@ -228,14 +226,9 @@ const TripFilterChip = ({ active, label, count, onClick }) => (
     onClick={onClick}
     aria-pressed={active}
     layout
-    animate={{ scale: active ? 1.025 : 1 }}
-    whileTap={{ scale: 0.96 }}
+    whileTap={{ y: 1 }}
     transition={{ type: 'spring', stiffness: 520, damping: 36, mass: 0.55 }}
-    className={`touch-target tp-filter-chip tp-press-feedback shrink-0 rounded-lg border px-3 py-2 text-sm font-black transition ${
-      active
-        ? 'border-brand-700 bg-brand-700 text-white shadow-sm dark:border-brand-800 dark:bg-brand-800 dark:text-brand-50'
-        : 'border-[#e0e9e0] bg-white/80 text-stone-600 hover:border-brand-200 hover:bg-white hover:text-brand-800 hover:shadow-sm dark:border-brand-200/20 dark:bg-brand-100/45 dark:text-brand-800 dark:hover:border-brand-400/40 dark:hover:bg-brand-100/60'
-    }`}
+    className={`touch-target tp-filter-chip tp-press-feedback ${active ? 'is-active' : ''}`}
   >
     <span>{label}</span>
     <span className="ml-1 text-xs opacity-70">{count}</span>
@@ -271,8 +264,8 @@ const TripCard = ({
             onError={onCoverError}
           />
         ) : (
-          <div className="flex h-36 w-full items-center justify-center border-b border-[#e0e9e0] bg-[#f4f8f5] text-brand-700 sm:h-40 dark:border-brand-200/20 dark:bg-brand-50/50 dark:text-brand-900">
-            <div className="rounded-lg bg-white/80 p-3 ring-1 ring-[#e0e9e0] supports-[backdrop-filter]:backdrop-blur dark:bg-brand-100/70 dark:ring-brand-300/20">
+          <div className="tp-trip-card-placeholder">
+            <div className="tp-trip-card-placeholder-icon">
               <Compass size={28} />
             </div>
           </div>
@@ -281,11 +274,11 @@ const TripCard = ({
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="truncate text-lg font-bold text-slate-900 dark:text-white">
+              <p className="tp-trip-card-title">
                 {trip.title || '未命名旅程'}
               </p>
-              <div className="mt-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <CalendarDays size={15} className="shrink-0 text-brand-600" />
+              <div className="tp-trip-card-meta">
+                <CalendarDays size={15} />
                 <span className="truncate">{formatDateRange(trip)}</span>
               </div>
             </div>
@@ -296,18 +289,18 @@ const TripCard = ({
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-lg bg-sky-50/80 px-4 py-3 dark:bg-sky-950/30">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">行程數</p>
-              <p className="mt-1 font-bold text-slate-900 dark:text-white">{trip.eventCount || 0} 個</p>
+            <div className="tp-trip-card-metric is-info">
+              <p>行程數</p>
+              <strong>{trip.eventCount || 0} 個</strong>
             </div>
-            <div className="rounded-lg bg-[#f4f8f5]/80 px-4 py-3 dark:bg-brand-100/45">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">最近更新</p>
-              <p className="mt-1 font-bold text-slate-900 dark:text-white">{formatDateTime(trip.updatedAt)}</p>
+            <div className="tp-trip-card-metric is-neutral">
+              <p>最近更新</p>
+              <strong>{formatDateTime(trip.updatedAt)}</strong>
             </div>
           </div>
 
           {trip.accessRole === 'view' && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#f4f8f5]/80 px-4 py-3 text-xs font-bold text-stone-600 dark:bg-brand-100/45 dark:text-brand-800">
+            <div className="tp-trip-card-readonly">
               <ShieldCheck size={14} className="shrink-0" />
               <span className="truncate">只能查看</span>
             </div>
@@ -315,13 +308,13 @@ const TripCard = ({
         </div>
       </button>
 
-      <div className="border-t border-[#e0e9e0] px-5 py-4 dark:border-brand-200/20">
+      <div className="tp-trip-card-footer">
         <div className={`flex items-center gap-2 ${canDelete ? 'justify-between' : 'justify-end'}`}>
           {canDelete && (
             <button
               type="button"
               onClick={onToggleExpanded}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-stone-500 hover:bg-brand-50 hover:text-stone-800 dark:text-brand-700 dark:hover:bg-brand-100/55 dark:hover:text-brand-900"
+              className="tp-trip-card-manage"
               aria-expanded={expanded}
             >
               {expanded ? '收合管理' : '管理'}
@@ -334,7 +327,7 @@ const TripCard = ({
         </div>
 
         {expanded && canDelete && (
-            <div className="mt-4 flex justify-end border-t border-[#e0e9e0] pt-4 dark:border-brand-200/20">
+            <div className="tp-trip-card-delete">
             <Button variant="danger" size="sm" onClick={onDelete} aria-label={`刪除 ${trip.title || '未命名旅程'}`}>
               <Trash2 size={14} />
               刪除旅程
@@ -414,6 +407,7 @@ const TripListPage = () => {
   const uid = currentUser?.uid || '';
   const newTripInputRef = useRef(null);
   const mobileNewTripInputRef = useRef(null);
+  const mobileTripsHeroRef = useRef(null);
   const [trips, setTrips] = useState([]);
   const [newTripTitle, setNewTripTitle] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -788,12 +782,28 @@ const TripListPage = () => {
         <span />
       </div>
 
+      <CompactScrollHeader
+        observeRef={mobileTripsHeroRef}
+        title="我的旅程"
+        subtitle={`${totalTripCount} 趟旅程`}
+        onAction={() => {
+          handleStartNicknameEdit();
+          scrollAppTo({
+            top: 0,
+            behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+          });
+        }}
+        actionLabel="帳號與暱稱"
+        ActionIcon={UserRound}
+      />
+
       <section
         className={`tp-mobile-trips-shell ${continueTripTheme.className}`}
         style={continueTripHeroStyle}
         aria-label="旅程手機儀表板"
       >
         <header
+          ref={mobileTripsHeroRef}
           className={`tp-mobile-trips-hero ${continueTripTheme.className} ${continueTripCoverImageUrl ? 'has-trip-cover' : continueTrip ? 'has-trip-theme' : ''}`}
         >
           {!continueTripCoverImageUrl && (
@@ -1101,7 +1111,7 @@ const TripListPage = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.65 }}
         >
-          <div className="tp-command-hero-rule absolute inset-x-0 top-0 h-px bg-[#e0e9e0] dark:bg-brand-300/25" />
+          <div className="tp-command-hero-rule" />
           <div className="tp-command-hero-grid grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(340px,1fr)] lg:items-start xl:gap-7">
             <div className="tp-command-hero-intro min-w-0">
               <div className="flex min-w-0 items-start gap-3">
@@ -1110,8 +1120,8 @@ const TripListPage = () => {
                 </div>
                 <div className="min-w-0">
                   <span className="tp-story-eyebrow">TRIP LIBRARY</span>
-                  <h1 className="text-2xl font-black text-stone-800 dark:text-brand-900">下一趟，一起排得更好</h1>
-                  <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  <h1 className="tp-command-title">下一趟，一起排得更好</h1>
+                  <p className="tp-command-subtitle">
                     {totalTripCount ? `共 ${totalTripCount} 趟旅程，其中 ${ownedTripCount} 趟由你管理` : '建立旅程，開始整理日期、地點與旅伴。'}
                   </p>
                 </div>
@@ -1197,7 +1207,7 @@ const TripListPage = () => {
                 <motion.form
                   key="create-trip"
                   onSubmit={handleCreateTrip}
-                  className="grid gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
+                  className="tp-command-action-form"
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 12 }}
@@ -1222,7 +1232,7 @@ const TripListPage = () => {
                 <motion.form
                   key="join-trip"
                   onSubmit={handleJoinByInviteCode}
-                  className="grid gap-4 rounded-lg border border-[#e0e9e0] bg-white/80 p-4 shadow-sm supports-[backdrop-filter]:backdrop-blur sm:grid-cols-[1fr_auto] dark:border-brand-200/20 dark:bg-brand-50/70"
+                  className="tp-command-action-form"
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}
@@ -1248,7 +1258,7 @@ const TripListPage = () => {
 
             <div className="tp-command-hero-toolbar">
               <div className="tp-command-hero-search relative">
-                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={16} className="tp-command-search-icon" />
                 <label className="sr-only" htmlFor="trip-search">搜尋旅程</label>
                 <Input
                   id="trip-search"
@@ -1286,7 +1296,7 @@ const TripListPage = () => {
             <div>
               <h2 className="tp-section-title">我的旅程</h2>
               {hasTrips && (
-                <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+                <p className="tp-list-count-copy">
                   顯示 {sortedAndFilteredTrips.length} / {totalTripCount}
                 </p>
               )}
@@ -1294,7 +1304,7 @@ const TripListPage = () => {
           </div>
 
           {cloudSyncWarning && (
-            <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100" role="status" aria-live="polite">
+            <div className="tp-semantic-banner tp-semantic-banner-warning" role="status" aria-live="polite">
               <AlertTriangle size={17} className="mt-0.5 shrink-0" />
               <p>{cloudSyncWarning}</p>
             </div>

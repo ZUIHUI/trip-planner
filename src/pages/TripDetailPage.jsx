@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   CalendarDays,
@@ -6,15 +7,14 @@ import {
   Plus,
   Save,
   Settings,
-  UsersRound,
-  Lightbulb,
-  Map as MapIcon,
-  Menu as MenuIcon
+  UsersRound
 } from 'lucide-react';
 import Header from '../components/Header';
 import WeatherWidget from '../components/WeatherWidget';
 import Modal from '../components/Modal';
 import BottomNavigation from '../components/BottomNavigation';
+import CompactScrollHeader from '../components/CompactScrollHeader';
+import { scrollElementToAppTop } from '../utils/appScroll';
 import TodayTab from '../components/trip/TodayTab';
 import ItineraryTab from '../components/trip/ItineraryTab';
 import IdeasTab from '../components/trip/IdeasTab';
@@ -97,6 +97,8 @@ import {
   getTripIndexKey
 } from '../utils/storageKeys';
 import { logger } from '../utils/logger';
+import { getTripNavLabel, MORE_CHILD_TAB_IDS } from '../components/trip/tripNavigation';
+import { TP_TAB_CONTENT_MOTION } from '../utils/motionPresets';
 
 const EditEventForm = lazyWithReload(() => import('../components/EditEventForm'));
 const EventDetailView = lazyWithReload(() => import('../components/EventDetailView'));
@@ -121,13 +123,6 @@ const RATE_CACHE_KEY = 'trip_planner_jpy_rate_cache';
 const RATE_REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const RATE_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 小時
 const MAX_AUTO_GENERATED_DAYS = 30;
-const MORE_CHILD_TABS = new Set(['summary', 'flights', 'preTrip', 'packing', 'expenses', 'shopping', 'companions']);
-const MOBILE_DETAIL_TABS = [
-  { id: 'today', label: '旅程總覽', icon: CalendarDays },
-  { id: 'itinerary', label: '行程安排', icon: MapIcon },
-  { id: 'ideas', label: '靈感', icon: Lightbulb },
-  { id: 'more', label: '更多', icon: MenuIcon }
-];
 const mobileDetailThemePresets = [
   {
     id: 'coast',
@@ -339,6 +334,7 @@ const TripDetailPage = () => {
   const [rateUpdateError, setRateUpdateError] = useState('');
   const shoppingListRef = useRef(null);
   const expenseTrackerRef = useRef(null);
+  const mobileDetailHeroRef = useRef(null);
 
   // 初始旅程資料結構
   const defaultTripDetails = useMemo(() => ({
@@ -963,11 +959,7 @@ const TripDetailPage = () => {
     : undefined;
   const mobileDetailTravelerCount = memberTravelers.length || members.length || 1;
   const mobileDetailStatusLabel = mobileDetailStatusLabels[tripDetails?.status] || mobileDetailStatusLabels.planning;
-  const mobileDetailActiveLabel = MOBILE_DETAIL_TABS.find((tab) => (
-    tab.id === 'more'
-      ? activeTab === 'more' || MORE_CHILD_TABS.has(activeTab)
-      : tab.id === activeTab
-  ))?.label || 'Details';
+  const mobileDetailActiveLabel = getTripNavLabel(activeTab);
 
   useEffect(() => {
     setSelectedEventLocation(null);
@@ -1434,6 +1426,21 @@ const TripDetailPage = () => {
     navigate('/');
   };
 
+  const handleTabChange = useCallback((nextTab) => {
+    setActiveTab(nextTab);
+
+    window.requestAnimationFrame(() => {
+      const workspaceMain = document.getElementById('trip-workspace-main');
+      if (!workspaceMain) return;
+      const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const compactHeaderOffset = window.matchMedia?.('(max-width: 767px)').matches ? 64 : 16;
+      scrollElementToAppTop(workspaceMain, {
+        offset: compactHeaderOffset,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      });
+    });
+  }, []);
+
   const openMapsUrl = (url) => {
     if (!url) return;
     const openedWindow = window.open(url, '_blank', 'noopener,noreferrer');
@@ -1759,7 +1766,7 @@ const TripDetailPage = () => {
   }
 
   const isAnyModalOpen = isEditModalOpen || isSettingsOpen || isExpenseModalOpen || isShoppingModalOpen || tripHandbook.isOpen;
-  const showMoreBackButton = MORE_CHILD_TABS.has(activeTab);
+  const showMoreBackButton = activeTab !== 'more' && MORE_CHILD_TAB_IDS.has(activeTab);
 
   return (
     <TripWorkspaceProvider value={tripWorkspaceValue}>
@@ -1780,7 +1787,18 @@ const TripDetailPage = () => {
         <span />
         <span />
       </div>
+      <CompactScrollHeader
+        observeRef={mobileDetailHeroRef}
+        title={tripDetails?.title || '未命名旅程'}
+        subtitle={mobileDetailActiveLabel}
+        onBack={handleBackToTrips}
+        backLabel="返回旅程列表"
+        onAction={() => setIsSettingsOpen(true)}
+        actionLabel="旅程設定"
+        ActionIcon={Settings}
+      />
       <section
+        ref={mobileDetailHeroRef}
         className={`tp-mobile-detail-shell ${shouldShowCoverBackground ? 'has-cover' : 'has-generated-map'}`}
         style={mobileDetailHeroStyle}
         aria-label="Trip mobile overview"
@@ -1866,33 +1884,11 @@ const TripDetailPage = () => {
           <div className="tp-v4-workspace-grid">
             <DesktopWorkspaceRail
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
               onOpenSettings={() => setIsSettingsOpen(true)}
             />
 
             <main className="tp-v4-workspace-main" id="trip-workspace-main">
-              <nav className="tp-mobile-detail-tabs" aria-label="旅程頁面導覽">
-                {MOBILE_DETAIL_TABS.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = tab.id === 'more'
-                    ? activeTab === 'more' || MORE_CHILD_TABS.has(activeTab)
-                    : activeTab === tab.id;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      className={isActive ? 'is-active' : ''}
-                      aria-current={isActive ? 'page' : undefined}
-                      onClick={() => setActiveTab(tab.id)}
-                    >
-                      <Icon size={15} />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-
               <div className="tp-v4-state-stack">
                 <PermissionBanner isReadOnly={isReadOnly} />
                 <SyncStatusBanner
@@ -1913,8 +1909,8 @@ const TripDetailPage = () => {
                 <div className="mx-auto mb-4 flex max-w-4xl px-5 sm:px-7 lg:hidden">
                   <button
                     type="button"
-                    onClick={() => setActiveTab('more')}
-                    className="touch-target inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition hover:bg-sky-50 hover:text-brand-800 active:scale-95 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    onClick={() => handleTabChange('more')}
+                    className="touch-target tp-more-back-button"
                     aria-label="回到更多"
                     title="回到更多"
                   >
@@ -1923,22 +1919,28 @@ const TripDetailPage = () => {
                 </div>
               )}
 
-              <section className={`tp-mobile-detail-stage tp-mobile-detail-stage-${activeTab}`} aria-label={`${mobileDetailActiveLabel} content`}>
-            <Suspense fallback={<ModuleFallback />}>
+              <AnimatePresence mode="wait" initial={false}>
+              <motion.section
+                key={activeTab}
+                className={`tp-mobile-detail-stage tp-mobile-detail-stage-${activeTab} tp-tab-content-motion`}
+                aria-label={`${mobileDetailActiveLabel} content`}
+                {...TP_TAB_CONTENT_MOTION}
+              >
+              <Suspense fallback={<ModuleFallback />}>
             {activeTab === 'today' && (
-              <TodayTab onTabChange={setActiveTab} />
+              <TodayTab onTabChange={handleTabChange} />
             )}
 
             {activeTab === 'summary' && (
               <SummaryTab
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
                 onAddEvent={openAddModal}
                 onOpenHandbook={tripHandbook.openPanel}
               />
             )}
 
             {activeTab === 'itinerary' && (
-              <ItineraryTab onTabChange={setActiveTab} />
+              <ItineraryTab onTabChange={handleTabChange} />
             )}
 
             {activeTab === 'ideas' && (
@@ -1948,7 +1950,7 @@ const TripDetailPage = () => {
             {(activeTab === 'more' || activeTab === 'companions') && (
               <MoreTab
                 section={activeTab === 'companions' ? 'companions' : 'home'}
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
                 onOpenSettings={() => setIsSettingsOpen(true)}
                 onOpenHandbook={tripHandbook.openPanel}
               />
@@ -1973,11 +1975,12 @@ const TripDetailPage = () => {
             {activeTab === 'expenses' && (
               <ExpensesTab />
             )}
-            </Suspense>
-              </section>
+              </Suspense>
+              </motion.section>
+              </AnimatePresence>
             </main>
 
-            <DesktopPlannerPanel activeTab={activeTab} onTabChange={setActiveTab} />
+            <DesktopPlannerPanel activeTab={activeTab} onTabChange={handleTabChange} />
           </div>
         </div>
       </PageContainer>
@@ -2167,29 +2170,29 @@ const TripDetailPage = () => {
 
       <BottomNavigation
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         isModalOpen={isAnyModalOpen}
         presenceByTab={presenceUi.onlineByTab}
       />
 
       {/* GPS 位置監視 - 當啟用 GPS 時顯示狀態 */}
       {enableGPS && (
-        <div className="tp-panel fixed bottom-4 right-4 z-30 max-w-xs p-3 text-sm shadow-lg">
+        <div className="tp-panel tp-gps-status-panel">
           {isLocating ? (
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-brand-500 ring-4 ring-brand-500/15"></div>
-              <span className="text-slate-600 dark:text-slate-300">定位中...</span>
+              <div className="tp-gps-status-dot"></div>
+              <span className="tp-gps-status-copy">定位中...</span>
             </div>
           ) : locationError ? (
             <div className="flex items-center gap-2">
-              <span className="text-red-600">定位失敗：{locationError}</span>
+              <span className="tp-gps-status-error">定位失敗：{locationError}</span>
             </div>
           ) : currentLocation ? (
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">GPS</span>
+              <span className="tp-gps-status-badge">GPS</span>
               <div>
-                <p className="font-bold text-slate-900 dark:text-white">{currentLocation.locationName}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">精準度：{Math.round(currentLocation.accuracy)}m</p>
+                <p className="tp-gps-status-title">{currentLocation.locationName}</p>
+                <p className="tp-gps-status-meta">精準度：{Math.round(currentLocation.accuracy)}m</p>
               </div>
             </div>
           ) : null}

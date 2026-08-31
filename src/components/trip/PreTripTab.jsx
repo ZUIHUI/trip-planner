@@ -182,7 +182,7 @@ const PreTripTab = () => {
         { value: doneCount, label: '完成' },
         { value: remainingCount, label: '剩餘' }
       ]}
-      tone="teal"
+      tone="success"
       className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
     >
       <Card className="tp-mobile-feature-card p-4" {...getEditingHandlers(editingTarget)}>

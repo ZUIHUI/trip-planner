@@ -185,7 +185,7 @@ const PackingTab = () => {
         { value: packedCount, label: '已打包' },
         { value: remainingCount, label: '剩餘' }
       ]}
-      tone="coral"
+      tone="neutral"
       className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
     >
       <Card className="tp-mobile-feature-card p-3 sm:p-4" {...getEditingHandlers(editingTarget)}>
