@@ -943,7 +943,7 @@ test('does not rewrite missing asset requests to the SPA document', () => {
   const firebaseConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'firebase.json'), 'utf8'));
   const rewriteSources = firebaseConfig.hosting.rewrites.map((rewrite) => rewrite.source);
 
-  assert.deepEqual(rewriteSources, ['/', '/login', '/trip/**']);
+  assert.deepEqual(rewriteSources, ['/', '/login', '/privacy', '/trip/**']);
   assert.equal(rewriteSources.includes('**'), false);
 });
 
@@ -3090,6 +3090,7 @@ test('fuses the compact itinerary reference without duplicating desktop route su
 
 test('publishes a public privacy policy grounded in the current storage and responsibility model', () => {
   const appSource = fs.readFileSync(path.join(__dirname, '..', 'src/App.jsx'), 'utf8');
+  const firebaseConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'firebase.json'), 'utf8'));
   const privacySource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/PrivacyPolicyPage.jsx'), 'utf8');
   const loginSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/LoginPage.jsx'), 'utf8');
   const settingsSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/SettingsPanel.jsx'), 'utf8');
@@ -3097,6 +3098,17 @@ test('publishes a public privacy policy grounded in the current storage and resp
 
   assert.match(appSource, /<Route path="\/privacy" element=\{<PrivacyPolicyPage\s*\/>\}\s*\/>/);
   assert.doesNotMatch(appSource, /path="\/privacy"[^\n]+ProtectedRoute/);
+  assert.deepEqual(
+    firebaseConfig.hosting.rewrites.find((rewrite) => rewrite.source === '/privacy'),
+    { source: '/privacy', destination: '/index.html' }
+  );
+  assert.equal(
+    firebaseConfig.hosting.headers
+      .find((entry) => entry.source === '/privacy')
+      ?.headers.find((header) => header.key === 'Cache-Control')
+      ?.value,
+    'no-cache, no-store, must-revalidate'
+  );
   assert.match(privacySource, /const APP_ORIGIN = 'https:\/\/trip-planner-36455\.firebaseapp\.com'/);
   assert.match(privacySource, /`\$\{APP_ORIGIN\}\/privacy`/);
   assert.match(privacySource, /Firebase Authentication/);

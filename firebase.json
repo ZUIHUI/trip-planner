@@ -34,6 +34,19 @@
         ]
       },
       {
+        "source": "/privacy",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      },
+      {
         "source": "/trip/**",
         "headers": [
           {
@@ -183,6 +196,10 @@
       },
       {
         "source": "/login",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/privacy",
         "destination": "/index.html"
       },
       {
