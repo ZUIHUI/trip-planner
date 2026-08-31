@@ -172,6 +172,10 @@ extra spacing is part of their visual role.
 - Trip Library and Trip Workspace reveal the shared compact title bar only
   after the observed hero leaves the viewport. It contains the page/trip title,
   current section context, and the relevant account, back, or settings action.
+- Owner-only deletion in the mobile Trip Library stays hidden below each trip
+  row until a deliberate left swipe reveals the 72px action area. Right swipe
+  or tapping the revealed row closes it; keyboard focus and arrow keys retain
+  access without making the destructive action visually persistent.
 - The itinerary has one horizontal date strip. Do not add a second next-day or
   previous-day mechanism beside it.
 - A single floating add action is the dominant creation entry.

@@ -942,6 +942,10 @@ textarea.tp-input:focus {
     border-radius: 12px !important;
   }
 
+  .tp-mobile-trip-row-main {
+    background: var(--story-canvas) !important;
+  }
+
   .tp-mobile-trips-continue-cover {
     background-color: var(--story-surface-soft) !important;
     color: var(--story-teal) !important;

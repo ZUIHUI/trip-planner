@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -96,6 +96,10 @@ const tripGridItemMotion = {
   hidden: { opacity: 0, y: 10, scale: 0.985 },
   visible: { opacity: 1, y: 0, scale: 1 }
 };
+
+const MOBILE_TRIP_DELETE_REVEAL_PX = 72;
+const MOBILE_TRIP_DELETE_SWIPE_THRESHOLD_PX = 24;
+const MOBILE_TRIP_DELETE_SWIPE_VELOCITY = 450;
 
 const formatDateTime = (value) => {
   if (!value) return '尚未更新';
@@ -345,19 +349,92 @@ const MobileTripRow = ({
   onCoverError,
   onOpen,
   onDelete,
-  canDelete = false
+  canDelete = false,
+  isDeleteRevealed = false,
+  onRevealDelete,
+  onCloseDelete,
+  onInteractionStart
 }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const didDragRef = useRef(false);
+  const swipeHintId = React.useId();
   const coverImageUrl = normalizeCoverImageUrl(trip.coverImage);
   const showCover = coverImageUrl && !coverFailed;
   const tripTheme = getTripTheme(trip);
 
+  const handleMainClick = () => {
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
+
+    if (isDeleteRevealed) {
+      onCloseDelete?.();
+      return;
+    }
+
+    onOpen();
+  };
+
+  const handleMainKeyDown = (event) => {
+    if (!canDelete) return;
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      onRevealDelete?.();
+    }
+
+    if (event.key === 'ArrowRight' || event.key === 'Escape') {
+      event.preventDefault();
+      onCloseDelete?.();
+    }
+  };
+
+  const handleDragEnd = (_, info) => {
+    if (!canDelete) return;
+
+    const swipedLeft = info.offset.x <= -MOBILE_TRIP_DELETE_SWIPE_THRESHOLD_PX
+      || info.velocity.x <= -MOBILE_TRIP_DELETE_SWIPE_VELOCITY;
+    const swipedRight = info.offset.x >= MOBILE_TRIP_DELETE_SWIPE_THRESHOLD_PX
+      || info.velocity.x >= MOBILE_TRIP_DELETE_SWIPE_VELOCITY;
+
+    if (isDeleteRevealed ? !swipedRight : swipedLeft) {
+      onRevealDelete?.();
+      return;
+    }
+
+    onCloseDelete?.();
+  };
+
   return (
-    <article className={`tp-mobile-trip-row ${tripTheme.className}`} style={tripTheme.style}>
-      <button
+    <article
+      className={`tp-mobile-trip-row ${isDeleteRevealed ? 'is-delete-revealed' : ''} ${tripTheme.className}`}
+      style={tripTheme.style}
+    >
+      <motion.button
         type="button"
-        onClick={onOpen}
+        drag={canDelete ? 'x' : false}
+        dragConstraints={{ left: -MOBILE_TRIP_DELETE_REVEAL_PX, right: 0 }}
+        dragElastic={0.04}
+        dragMomentum={false}
+        animate={{ x: canDelete && isDeleteRevealed ? -MOBILE_TRIP_DELETE_REVEAL_PX : 0 }}
+        transition={prefersReducedMotion
+          ? { duration: 0 }
+          : { type: 'spring', stiffness: 520, damping: 42, mass: 0.55 }}
+        onPointerDown={onInteractionStart}
+        onDragStart={() => {
+          didDragRef.current = false;
+          onInteractionStart?.();
+        }}
+        onDrag={(_, info) => {
+          if (Math.abs(info.offset.x) > 6) didDragRef.current = true;
+        }}
+        onDragEnd={handleDragEnd}
+        onClick={handleMainClick}
+        onKeyDown={handleMainKeyDown}
         className="tp-mobile-trip-row-main"
         aria-label={`開啟 ${trip.title || '旅程'}`}
+        aria-describedby={canDelete ? swipeHintId : undefined}
       >
         <span className="tp-mobile-trip-row-cover" aria-hidden="true">
           {showCover ? (
@@ -385,16 +462,26 @@ const MobileTripRow = ({
             <span>{formatDateTime(trip.updatedAt)}</span>
           </span>
         </span>
-      </button>
+      </motion.button>
       {canDelete && (
-        <button
-          type="button"
-          className="tp-mobile-trip-row-delete"
-          onClick={onDelete}
-          aria-label={`刪除 ${trip.title || '旅程'}`}
-        >
-          <Trash2 size={16} />
-        </button>
+        <>
+          <button
+            type="button"
+            className="tp-mobile-trip-row-delete"
+            onFocus={onRevealDelete}
+            onClick={() => {
+              onCloseDelete?.();
+              onDelete();
+            }}
+            aria-label={`刪除 ${trip.title || '旅程'}`}
+          >
+            <Trash2 size={17} />
+            <span>刪除</span>
+          </button>
+          <span id={swipeHintId} className="sr-only">
+            向左滑動顯示刪除操作，向右滑動收回。鍵盤可使用左右方向鍵。
+          </span>
+        </>
       )}
     </article>
   );
@@ -419,6 +506,7 @@ const TripListPage = () => {
   const [failedCoverImages, setFailedCoverImages] = useState({});
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [expandedCards, setExpandedCards] = useState({});
+  const [revealedMobileTripId, setRevealedMobileTripId] = useState(null);
   const [nicknameDraft, setNicknameDraft] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [isSavingNickname, setIsSavingNickname] = useState(false);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
@@ -1089,8 +1177,19 @@ const TripListPage = () => {
                         }))
                       }
                       onOpen={() => openTripDetail(trip.id)}
-                      onDelete={() => handleDeleteTrip(trip.id)}
+                      onDelete={() => {
+                        setRevealedMobileTripId(null);
+                        handleDeleteTrip(trip.id);
+                      }}
                       canDelete={trip.accessRole === 'owner'}
+                      isDeleteRevealed={revealedMobileTripId === trip.id}
+                      onRevealDelete={() => setRevealedMobileTripId(trip.id)}
+                      onCloseDelete={() => setRevealedMobileTripId((currentTripId) => (
+                        currentTripId === trip.id ? null : currentTripId
+                      ))}
+                      onInteractionStart={() => setRevealedMobileTripId((currentTripId) => (
+                        currentTripId && currentTripId !== trip.id ? null : currentTripId
+                      ))}
                     />
                   </motion.div>
                 ))}

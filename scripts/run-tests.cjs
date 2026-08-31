@@ -2029,6 +2029,23 @@ test('focuses the matching mobile trip action field from the bottom dock', () =>
   assert.ok((tripListSource.match(/onAnimationComplete=\{focusPendingTripActionInput\}/g) || []).length >= 4);
 });
 
+test('keeps mobile trip deletion hidden until a deliberate swipe', () => {
+  const tripListSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripListPage.jsx'), 'utf8');
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
+  const designSource = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
+
+  assert.match(tripListSource, /const MOBILE_TRIP_DELETE_REVEAL_PX = 72;/);
+  assert.match(tripListSource, /drag=\{canDelete \? 'x' : false\}/);
+  assert.match(tripListSource, /dragConstraints=\{\{ left: -MOBILE_TRIP_DELETE_REVEAL_PX, right: 0 \}\}/);
+  assert.match(tripListSource, /animate=\{\{ x: canDelete && isDeleteRevealed \? -MOBILE_TRIP_DELETE_REVEAL_PX : 0 \}\}/);
+  assert.match(tripListSource, /onFocus=\{onRevealDelete\}/);
+  assert.match(tripListSource, /向左滑動顯示刪除操作，向右滑動收回。鍵盤可使用左右方向鍵。/);
+  assert.match(indexSource, /\.tp-mobile-trip-row\s*\{[^}]*display:\s*block;[^}]*overflow:\s*hidden;[^}]*position:\s*relative;/);
+  assert.match(indexSource, /\.tp-mobile-trip-row-main\s*\{[^}]*touch-action:\s*pan-y;[^}]*width:\s*100%;/);
+  assert.match(indexSource, /\.tp-mobile-trip-row-delete\s*\{[^}]*inset:\s*0 0 0 auto;[^}]*pointer-events:\s*none;[^}]*position:\s*absolute;[^}]*width:\s*4\.5rem;/);
+  assert.match(designSource, /Owner-only deletion in the mobile Trip Library stays hidden/);
+});
+
 test('normalizes trip detail section documents for the app', () => {
   assert.deepEqual(normalizeTripDetailDocumentForApp({
     id: 'meta',
