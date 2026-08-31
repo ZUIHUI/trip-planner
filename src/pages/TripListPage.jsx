@@ -406,7 +406,10 @@ const TripListPage = () => {
   const { currentUser, userProfile, updateDisplayName, logout } = useAuth();
   const uid = currentUser?.uid || '';
   const newTripInputRef = useRef(null);
+  const joinTripInputRef = useRef(null);
   const mobileNewTripInputRef = useRef(null);
+  const mobileJoinTripInputRef = useRef(null);
+  const pendingActionFocusRef = useRef(null);
   const mobileTripsHeroRef = useRef(null);
   const [trips, setTrips] = useState([]);
   const [newTripTitle, setNewTripTitle] = useState('');
@@ -545,18 +548,43 @@ const TripListPage = () => {
   };
   const continueTripLabel = lastOpenedTrip ? '接著上次規劃' : '最近有動靜';
 
+  const getActiveTripActionInput = (mode) => {
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+    if (mode === 'join') {
+      return isMobile ? mobileJoinTripInputRef.current : joinTripInputRef.current;
+    }
+    return isMobile ? mobileNewTripInputRef.current : newTripInputRef.current;
+  };
+
+  const focusPendingTripActionInput = () => {
+    const requestedMode = pendingActionFocusRef.current;
+    if (!requestedMode) return;
+
+    const targetInput = getActiveTripActionInput(requestedMode);
+    if (!targetInput) return;
+
+    targetInput.focus();
+    pendingActionFocusRef.current = null;
+  };
+
+  const focusTripActionInput = (mode) => {
+    pendingActionFocusRef.current = mode;
+    setActionMode(mode);
+    if (typeof window !== 'undefined') {
+      window.setTimeout(focusPendingTripActionInput, 0);
+    }
+  };
+
   const focusActiveNewTripInput = () => {
-    const targetInput = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
-      ? mobileNewTripInputRef.current
-      : newTripInputRef.current;
-    targetInput?.focus();
+    getActiveTripActionInput('create')?.focus();
   };
 
   const focusNewTripTitle = () => {
-    setActionMode('create');
-    if (typeof window !== 'undefined') {
-      window.setTimeout(focusActiveNewTripInput, 0);
-    }
+    focusTripActionInput('create');
+  };
+
+  const focusJoinTripCode = () => {
+    focusTripActionInput('join');
   };
 
   const handleCreateTrip = async (event) => {
@@ -907,7 +935,7 @@ const TripListPage = () => {
             <button
               type="button"
               className={actionMode === 'join' ? 'is-active' : ''}
-              onClick={() => setActionMode('join')}
+              onClick={focusJoinTripCode}
               aria-pressed={actionMode === 'join'}
             >
               <KeyRound size={17} />
@@ -925,6 +953,7 @@ const TripListPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                onAnimationComplete={focusPendingTripActionInput}
               >
                 <label className="sr-only" htmlFor="mobile-new-trip-title">新增旅程名稱</label>
                 <Input
@@ -950,10 +979,12 @@ const TripListPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                onAnimationComplete={focusPendingTripActionInput}
               >
                 <label className="sr-only" htmlFor="mobile-trip-invite-code">邀請碼</label>
                 <Input
                   id="mobile-trip-invite-code"
+                  ref={mobileJoinTripInputRef}
                   {...inviteCodeInputProps}
                   value={inviteCode}
                   onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}
@@ -1090,7 +1121,7 @@ const TripListPage = () => {
             <Plus size={20} />
             <span>新增</span>
           </button>
-          <button type="button" onClick={() => setActionMode('join')}>
+          <button type="button" onClick={focusJoinTripCode}>
             <KeyRound size={19} />
             <span>加入</span>
           </button>
@@ -1212,6 +1243,7 @@ const TripListPage = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 12 }}
                   transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  onAnimationComplete={focusPendingTripActionInput}
                 >
                   <label className="sr-only" htmlFor="new-trip-title">新的旅程名稱</label>
                   <Input
@@ -1237,10 +1269,12 @@ const TripListPage = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}
                   transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  onAnimationComplete={focusPendingTripActionInput}
                 >
                   <label className="sr-only" htmlFor="trip-invite-code">邀請碼</label>
                   <Input
                     id="trip-invite-code"
+                    ref={joinTripInputRef}
                     {...inviteCodeInputProps}
                     value={inviteCode}
                     onChange={(event) => setInviteCode(normalizeInviteCodeInput(event.target.value))}

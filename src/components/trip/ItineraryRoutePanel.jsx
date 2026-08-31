@@ -9,22 +9,6 @@ import {
 import { Button, Card } from '../ui';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
-const RouteMetric = ({ label, value, tone = 'slate' }) => {
-  const toneClasses = {
-    amber: 'bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100',
-    emerald: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100',
-    slate: 'bg-slate-50 text-slate-700 dark:bg-slate-800/70 dark:text-slate-200',
-    sky: 'bg-sky-50 text-sky-800 dark:bg-sky-950/30 dark:text-sky-100'
-  };
-
-  return (
-    <div className={`min-w-0 rounded-lg px-3 py-2 ${toneClasses[tone] || toneClasses.slate}`}>
-      <p className="text-[11px] font-black uppercase tracking-wide opacity-70">{label}</p>
-      <p className="mt-1 truncate text-sm font-black">{value}</p>
-    </div>
-  );
-};
-
 const MissingLocationNotice = ({ missingEvents }) => {
   if (!missingEvents.length) return null;
 
@@ -79,8 +63,6 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation, day
     routeStops,
     missingEvents,
     totalEvents,
-    routeStopCount,
-    missingCount,
     completenessPercent,
     originText,
     hasCompleteRoute
@@ -90,16 +72,6 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation, day
     origin,
     routeStops.map((stop) => stop.destination)
   );
-  const routeStatusLabel = hasCompleteRoute
-    ? '可完整導航'
-    : routeStopCount
-      ? '可部分導航'
-      : '缺少地點';
-  const routeStatusTone = hasCompleteRoute
-    ? 'emerald'
-    : routeStopCount
-      ? 'amber'
-      : 'slate';
 
   if (!currentDayData || totalEvents === 0) {
     return null;
@@ -146,13 +118,6 @@ const ItineraryRoutePanel = ({ currentDayData, tripDetails, currentLocation, day
                 style={{ width: `${completenessPercent}%` }}
               />
             </div>
-          </div>
-
-          <div className="mb-4 grid grid-cols-2 gap-2">
-            <RouteMetric label="可導航" value={`${routeStopCount} 站`} tone={routeStopCount ? 'emerald' : 'slate'} />
-            <RouteMetric label="缺地點" value={`${missingCount} 個`} tone={missingCount ? 'amber' : 'emerald'} />
-            <RouteMetric label="起點" value={originLabel} tone={originText ? 'sky' : 'slate'} />
-            <RouteMetric label="狀態" value={routeStatusLabel} tone={routeStatusTone} />
           </div>
 
           <div className="space-y-3">

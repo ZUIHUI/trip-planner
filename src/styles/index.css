@@ -643,6 +643,33 @@ body {
   }
 }
 
+@keyframes tp-ai-panel-pet-hop {
+  0% {
+    opacity: 0;
+    transform: translateY(3px) scaleX(1.06) scaleY(0.9);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(2px) scaleX(1.1) scaleY(0.86);
+  }
+  42% {
+    transform: translateY(-14px) scaleX(0.94) scaleY(1.08);
+  }
+  58% {
+    transform: translateY(-16px) scaleX(0.98) scaleY(1.02);
+  }
+  76% {
+    transform: translateY(0) scaleX(1.09) scaleY(0.88);
+  }
+  88% {
+    transform: translateY(-3px) scaleX(0.98) scaleY(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleX(1) scaleY(1);
+  }
+}
+
 @keyframes tp-ai-companion-lift {
   from {
     transform: translateY(0) rotate(0deg) scale(1);
@@ -745,6 +772,14 @@ body {
 
 .tp-ai-pet-presence-static {
   animation: none;
+}
+
+.tp-ai-panel-pet {
+  animation: tp-ai-panel-pet-hop 560ms cubic-bezier(0.2, 0.78, 0.28, 1) both;
+  animation-iteration-count: 1;
+  flex: 0 0 auto;
+  transform-origin: center bottom;
+  will-change: transform;
 }
 
 .tp-ai-companion-button {
@@ -973,6 +1008,7 @@ body {
   .tp-nav-active svg,
   .tp-ai-pet-presence,
   .tp-ai-pet-sprite,
+  .tp-ai-panel-pet,
   .tp-ai-companion-button {
     animation: none !important;
   }
@@ -1101,7 +1137,7 @@ body {
   z-index: 0;
 }
 
-.tp-page-shell > :not(.fixed):not(.sticky):not(.tp-compact-scroll-header) {
+.tp-page-shell > :not(.fixed):not(.sticky):not(.tp-compact-scroll-header):not(.tp-bottom-nav) {
   position: relative;
   z-index: 1;
 }

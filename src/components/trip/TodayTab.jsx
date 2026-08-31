@@ -15,7 +15,6 @@ import {
   Navigation,
   Plane,
   Plus,
-  Sparkles,
   StickyNote,
   Wallet
 } from 'lucide-react';
@@ -38,20 +37,6 @@ import { useTripDaySummary } from '../../hooks/useTripDaySummary';
 import GoogleRoutePreview from './GoogleRoutePreview';
 
 const emptyFlightText = '未設定';
-
-const quickActionMotion = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.055
-    }
-  }
-};
-
-const quickActionItemMotion = {
-  hidden: { opacity: 0, y: 10, scale: 0.985 },
-  visible: { opacity: 1, y: 0, scale: 1 }
-};
 
 const reminderClasses = {
   danger: 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200',
@@ -337,79 +322,6 @@ const TodayHero = ({
   );
 };
 
-const QuickActions = ({
-  canEdit,
-  nextEvent,
-  routeUrl,
-  selectedDayLabel,
-  onAddEvent,
-  onNavigateNext,
-  onOpenAiRecommendations
-}) => {
-  const hasNextDestination = Boolean(getEventLocationText(nextEvent));
-
-  return (
-    <motion.div
-      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-      aria-label="旅途中快速操作"
-      variants={quickActionMotion}
-      initial="hidden"
-      animate="visible"
-    >
-      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
-        <Button
-          variant="secondary"
-          onClick={onNavigateNext}
-          disabled={!hasNextDestination}
-          className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
-        >
-          <Navigation size={16} />
-          導航
-        </Button>
-      </motion.div>
-      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
-        {routeUrl ? (
-          <Button
-            as="a"
-            href={routeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="secondary"
-            className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
-          >
-            <Map size={16} />
-            路線
-          </Button>
-        ) : (
-          <Button variant="secondary" disabled className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs">
-            <Map size={16} />
-            路線
-          </Button>
-        )}
-      </motion.div>
-      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
-        <Button onClick={onAddEvent} disabled={!canEdit} className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs">
-          <Plus size={16} />
-          新增
-        </Button>
-      </motion.div>
-      <motion.div variants={quickActionItemMotion} transition={{ type: 'spring', stiffness: 430, damping: 34, mass: 0.55 }}>
-        <Button
-          variant="secondary"
-          onClick={onOpenAiRecommendations}
-          disabled={!canEdit}
-          className="w-full min-w-0 !px-2 !py-3 text-sm sm:text-xs"
-          aria-label={`幫我排 ${selectedDayLabel}`}
-          title={`幫我排 ${selectedDayLabel}`}
-        >
-          <Sparkles size={16} />
-          幫排
-        </Button>
-      </motion.div>
-    </motion.div>
-  );
-};
-
 const ReminderStrip = ({ reminders }) => {
   if (!reminders.length) {
     return (
@@ -617,8 +529,7 @@ const TodayTab = ({ onTabChange }) => {
     canEdit,
     openAddModal,
     openEditModal,
-    handleOpenGoogleMaps,
-    openAiRecommendations
+    handleOpenGoogleMaps
   } = useTripWorkspace();
 
   const dayEvents = useMemo(
@@ -661,10 +572,6 @@ const TodayTab = ({ onTabChange }) => {
     handleOpenGoogleMaps(origin, destination);
   };
 
-  const handleOpenDayPlanAi = () => {
-    openAiRecommendations?.('dayPlan');
-  };
-
   return (
     <MobileMockupFrame
       icon={CalendarDays}
@@ -698,16 +605,6 @@ const TodayTab = ({ onTabChange }) => {
         onOpenEvent={openEditModal}
         tripDetails={tripDetails}
         canEdit={canEdit}
-      />
-
-      <QuickActions
-        canEdit={canEdit}
-        nextEvent={nextEvent}
-        routeUrl={routeUrl}
-        selectedDayLabel={currentDayLabel}
-        onAddEvent={openAddModal}
-        onNavigateNext={handleNavigateNext}
-        onOpenAiRecommendations={handleOpenDayPlanAi}
       />
 
       <ReminderStrip reminders={reminders} />

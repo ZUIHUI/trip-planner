@@ -1,25 +1,11 @@
 import React, { useMemo } from 'react';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '../ui';
 import { buildDayReadiness } from '../../utils/eventReadiness';
 
 const DayReadinessStrip = ({ events = [], canEdit, onOpenEvent, className = '' }) => {
   const readiness = useMemo(() => buildDayReadiness(events), [events]);
-  if (!readiness.totalEvents) return null;
-
-  if (readiness.isComplete) {
-    return (
-      <div className={`flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-100 ${className}`}>
-        <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-black">今日行程資料完整</p>
-          <p className="mt-0.5 text-xs font-semibold opacity-80">
-            {readiness.readyCount} 個行程都可用於路線與今日模式。
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!readiness.totalEvents || readiness.isComplete) return null;
 
   const targetEvent = readiness.firstIncompleteEvent;
   const actionLabel = canEdit ? '補第一個' : '查看';

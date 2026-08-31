@@ -762,7 +762,7 @@ test('keeps a successful email-code request ready for verification after reload'
   assert.equal(values.has(EMAIL_LOGIN_CHALLENGE_STORAGE_KEY), false);
 });
 
-test('keeps AI recommendation entry points visible in trip tabs', () => {
+test('keeps the AI companion available without duplicate overview shortcuts', () => {
   const panelSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TripAiRecommendationPanel.jsx'), 'utf8');
   const hookSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'hooks', 'useTripAiRecommendations.js'), 'utf8');
   const serviceSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'services', 'tripAiService.js'), 'utf8');
@@ -770,12 +770,13 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'TodayTab.jsx'), 'utf8');
   const ideasSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'IdeasTab.jsx'), 'utf8');
   const stylesSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'styles', 'index.css'), 'utf8');
-  const petAssetPath = path.join(__dirname, '..', 'src', 'assets', 'ai', 'pixel-navibun.png');
-  const petAtlasPath = path.join(__dirname, '..', 'src', 'assets', 'ai', 'pixel-navibun-atlas.png');
+  const petAtlasPath = path.join(__dirname, '..', 'src', 'assets', 'ai', 'jiyi-spritesheet.webp');
 
   assert.match(panelSource, /const AiTravelPet/);
-  assert.match(panelSource, /pixel-navibun-atlas\.png/);
+  assert.match(panelSource, /jiyi-spritesheet\.webp/);
+  assert.doesNotMatch(panelSource, /pixel-navibun/);
   assert.match(panelSource, /petAnimationStates/);
+  assert.match(panelSource, /runningRight:[\s\S]+?runningLeft:[\s\S]+?waving:[\s\S]+?jumping:[\s\S]+?failed:[\s\S]+?waiting:[\s\S]+?running:[\s\S]+?review:/);
   assert.match(panelSource, /petMood/);
   assert.match(panelSource, /lastFrameIndex = Math\.max\(animation\.frames - 1, 0\)/);
   assert.match(panelSource, /tp-ai-pet-presence/);
@@ -793,10 +794,19 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(panelSource, /onPointerMove=\{handleCompanionPointerMove\}/);
   assert.match(panelSource, /onPointerUp=\{handleCompanionPointerEnd\}/);
   assert.match(panelSource, /data-drag-state=\{companionDragState\}/);
-  assert.match(panelSource, /floatingPetMood/);
+  assert.match(panelSource, /const handleCompanionPointerDown[\s\S]+?suppressCompanionClickRef\.current = false;[\s\S]+?companionDragRef\.current =/);
+  assert.match(panelSource, /const PET_DRAG_THRESHOLD = 12;/);
+  assert.match(panelSource, /if \(!drag\.moved && Math\.hypot\(dx, dy\) < PET_DRAG_THRESHOLD\) return;/);
+  assert.match(panelSource, /if \(!drag\.moved\) \{[\s\S]+?setCompanionDragState\('idle'\);[\s\S]+?return;[\s\S]+?\}[\s\S]+?persistCompanionPosition/);
+  assert.match(panelSource, /persistCompanionPosition\(finalPosition\);[\s\S]+?suppressCompanionClickRef\.current = true;/);
+  assert.match(panelSource, /const floatingPetAnimation = companionDragState === 'lifted'[\s\S]+?'runningLeft' : 'runningRight'[\s\S]+?'jumping'/);
+  assert.match(panelSource, /const panelPetAnimation = error[\s\S]+?'failed'[\s\S]+?'running'[\s\S]+?'review'[\s\S]+?'jumping'/);
+  assert.match(panelSource, /setCompanionTravelDirection\(horizontalDelta < 0 \? 'left' : 'right'\)/);
+  assert.match(panelSource, /setCompanionDragState\('landing'\)[\s\S]+?setCompanionDragState\('idle'\)/);
   assert.match(panelSource, /AI_INITIAL_IDEA_MAX_LENGTH = 600/);
   assert.match(panelSource, /id="trip-ai-initial-idea"/);
   assert.match(panelSource, /title="旅伴"/);
+  assert.match(panelSource, /className="tp-ai-panel-pet"[\s\S]+?animationState=\{panelPetAnimation\}[\s\S]+?loop=\{panelPetAnimation === 'running'\}/);
   assert.match(panelSource, /onGenerate\?\.\('dayPlan', \{ userIdea: initialIdeaText \}\)/);
   assert.doesNotMatch(panelSource, /modeOptions\.map|id: 'placeIdeas'/);
   assert.doesNotMatch(panelSource, /召喚 AI 旅伴|開啟 AI 旅伴|隱藏 AI 旅伴|關閉 AI 旅伴|AI 推薦/);
@@ -813,20 +823,26 @@ test('keeps AI recommendation entry points visible in trip tabs', () => {
   assert.match(tripDetailSource, /isCompanionHidden=\{tripAi\.isCompanionHidden\}/);
   assert.match(tripDetailSource, /onHideCompanion=\{tripAi\.hideCompanion\}/);
   assert.match(tripDetailSource, /onSummon=\{tripAi\.summonCompanion\}/);
-  assert.match(todaySource, /幫我排 \$\{selectedDayLabel\}/);
+  assert.doesNotMatch(todaySource, /幫我排 \$\{selectedDayLabel\}/);
   assert.doesNotMatch(todaySource, /AI 旅伴幫我排/);
-  assert.equal(fs.existsSync(petAssetPath), true);
   assert.equal(fs.existsSync(petAtlasPath), true);
   assert.match(stylesSource, /@keyframes tp-ai-pet-sprite/);
   assert.match(stylesSource, /@keyframes tp-ai-pet-presence/);
+  assert.match(stylesSource, /@keyframes tp-ai-panel-pet-hop/);
+  const panelPetMotionSource = stylesSource.match(/@keyframes tp-ai-panel-pet-hop \{([\s\S]*?)\n\}/)?.[1] || '';
+  assert.match(panelPetMotionSource, /translateY\(-16px\)/);
+  assert.match(panelPetMotionSource, /scaleX\(1\.09\) scaleY\(0\.88\)/);
+  assert.doesNotMatch(panelPetMotionSource, /translateX/);
   assert.match(stylesSource, /@keyframes tp-ai-companion-lift/);
   assert.match(stylesSource, /@keyframes tp-ai-companion-land/);
   assert.match(stylesSource, /\.tp-ai-pet-sprite/);
   assert.match(stylesSource, /animation-iteration-count: 1/);
   assert.match(stylesSource, /\.tp-ai-pet-presence/);
+  assert.match(stylesSource, /\.tp-ai-panel-pet\s*\{[\s\S]+?animation-iteration-count:\s*1/);
+  assert.match(stylesSource, /@media \(prefers-reduced-motion: reduce\)[\s\S]+?\.tp-ai-panel-pet/);
   assert.match(stylesSource, /\.tp-ai-companion-button\[data-drag-state="dragging"\]/);
   assert.match(stylesSource, /\.tp-ai-companion-button\[data-drag-state="landing"\]/);
-  assert.match(todaySource, /openAiRecommendations\?\.\('dayPlan'\)/);
+  assert.doesNotMatch(todaySource, /openAiRecommendations/);
   assert.doesNotMatch(ideasSource, /openAiRecommendations\?\.\('placeIdeas'\)/);
 });
 
@@ -1962,6 +1978,8 @@ test('keeps high-friction mobile form controls explicit', () => {
 
 test('keeps mobile trip navigation fixed to the viewport', () => {
   const appSource = fs.readFileSync(path.join(__dirname, '..', 'src/App.jsx'), 'utf8');
+  const designSource = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
+  const indexSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/index.css'), 'utf8');
   const motionSource = fs.readFileSync(path.join(__dirname, '..', 'src/utils/motionPresets.js'), 'utf8');
   const tokensSource = fs.readFileSync(path.join(__dirname, '..', 'src/styles/tokens.css'), 'utf8');
   const routeMotionSource = motionSource.match(/export const TP_ROUTE_CONTENT_MOTION = \{([\s\S]*?)\n\};/)?.[1] || '';
@@ -1973,6 +1991,27 @@ test('keeps mobile trip navigation fixed to the viewport', () => {
     tokensSource,
     /\.tp-bottom-nav,\s*\n\.tp-atlas-dock\.tp-bottom-nav\s*\{[^}]*position:\s*fixed\s*!important;/
   );
+  assert.match(indexSource, /\.tp-page-shell\s*>\s*:not\(\.fixed\):not\(\.sticky\):not\(\.tp-compact-scroll-header\):not\(\.tp-bottom-nav\)/);
+  assert.match(tokensSource, /\.tp-bottom-nav-spacer\s*\{[^}]*pointer-events:\s*none;/);
+  assert.match(tokensSource, /\.tp-mobile-trips-dock button\.is-active,\s*\n\s*:root\[data-theme\] \.tp-bottom-nav \.tp-nav-active-pill\s*\{[\s\S]+?background:\s*var\(--tp-primary\)/);
+  assert.match(tokensSource, /\.tp-bottom-nav \.tp-nav-active[\s\S]+?color:\s*var\(--tp-on-primary\)/);
+  assert.match(tokensSource, /data-theme="sunny-yellow"[\s\S]+?\.tp-nav-active-pill[\s\S]+?var\(--tp-sunny-action\)/);
+  assert.match(designSource, /Trip Library and Trip Workspace mobile docks use the same theme-primary/);
+});
+
+test('focuses the matching mobile trip action field from the bottom dock', () => {
+  const tripListSource = fs.readFileSync(path.join(__dirname, '..', 'src/pages/TripListPage.jsx'), 'utf8');
+  const mobileDockSource = tripListSource.match(/<nav className="tp-mobile-trips-dock"[\s\S]*?<\/nav>/)?.[0] || '';
+
+  assert.match(tripListSource, /const pendingActionFocusRef = useRef\(null\)/);
+  assert.match(tripListSource, /const focusTripActionInput = \(mode\) => \{[\s\S]+?pendingActionFocusRef\.current = mode;[\s\S]+?setActionMode\(mode\);[\s\S]+?window\.setTimeout\(focusPendingTripActionInput, 0\)/);
+  assert.match(tripListSource, /const focusNewTripTitle = \(\) => \{\s*focusTripActionInput\('create'\)/);
+  assert.match(tripListSource, /const focusJoinTripCode = \(\) => \{\s*focusTripActionInput\('join'\)/);
+  assert.match(tripListSource, /id="mobile-new-trip-title"\s+ref=\{mobileNewTripInputRef\}/);
+  assert.match(tripListSource, /id="mobile-trip-invite-code"\s+ref=\{mobileJoinTripInputRef\}/);
+  assert.match(mobileDockSource, /onClick=\{focusNewTripTitle\}[\s\S]+?<span>新增<\/span>/);
+  assert.match(mobileDockSource, /onClick=\{focusJoinTripCode\}[\s\S]+?<span>加入<\/span>/);
+  assert.ok((tripListSource.match(/onAnimationComplete=\{focusPendingTripActionInput\}/g) || []).length >= 4);
 });
 
 test('normalizes trip detail section documents for the app', () => {
@@ -3019,18 +3058,24 @@ test('keeps overview timeline event cards wide enough on mobile', () => {
   assert.match(todaySource, /className="touch-target absolute right-2 top-2[^"]+h-11 w-11/);
 });
 
-test('keeps the journey overview focused while readiness stays available in itinerary', () => {
+test('keeps the journey overview focused while incomplete readiness stays actionable in itinerary', () => {
   const todaySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TodayTab.jsx'), 'utf8');
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const readinessSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/DayReadinessStrip.jsx'), 'utf8');
   const contextRailSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/TripContextRail.jsx'), 'utf8');
   const designSource = fs.readFileSync(path.join(__dirname, '..', 'DESIGN.md'), 'utf8');
 
   assert.doesNotMatch(todaySource, /DayReadinessStrip|TravelStatusPanel|StatusMetric|StatusSummaryPill|dayStatus/);
   assert.doesNotMatch(todaySource, />今日狀態</);
+  assert.doesNotMatch(todaySource, /const QuickActions|<QuickActions|旅途中快速操作|handleOpenDayPlanAi/);
   assert.match(todaySource, /<ReminderStrip reminders=\{reminders\} \/>[\s\S]+?<AirportDayFlightCard[\s\S]+?<TodayTimeline/);
   assert.match(itinerarySource, /import DayReadinessStrip from '\.\/DayReadinessStrip';[\s\S]+?<DayReadinessStrip/);
+  assert.match(readinessSource, /if \(!readiness\.totalEvents \|\| readiness\.isComplete\) return null;/);
+  assert.match(readinessSource, /今日還有 \{readiness\.incompleteCount\} 個行程待補/);
+  assert.doesNotMatch(readinessSource, /今天的行程已準備好|時間與地點都已補齊/);
+  assert.doesNotMatch(readinessSource, /今日行程資料完整|今日模式/);
   assert.match(contextRailSource, /資料完整/);
-  assert.match(designSource, /journey\s+overview must not repeat a readiness banner or a full daily-status card/i);
+  assert.match(designSource, /journey\s+overview\s+must not repeat a readiness banner or a full daily-status card/i);
 });
 
 test('uses semantic tones across the primary mobile trip sections', () => {
@@ -3051,6 +3096,7 @@ test('uses semantic tones across the primary mobile trip sections', () => {
 test('fuses the compact itinerary reference without duplicating desktop route surfaces', () => {
   const desktopSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/DesktopWorkspace.jsx'), 'utf8');
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const routePanelSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryRoutePanel.jsx'), 'utf8');
   const eventCardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/EventCard.jsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
   const workspaceCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/trip-workspace.css'), 'utf8');
@@ -3070,6 +3116,11 @@ test('fuses the compact itinerary reference without duplicating desktop route su
   assert.match(contextRailSource, /<h3>\{activeTab === 'itinerary' \? '今日路線' : '下一站'\}<\/h3>/);
   assert.match(taskSummarySource, /tp-v4-panel-checklist/);
   assert.match(itinerarySource, /tp-itinerary-route-panel/);
+  assert.match(itinerarySource, /stats=\{\[[\s\S]+?label: '行程'[\s\S]+?label: '含費用'[\s\S]+?\]\}/);
+  assert.doesNotMatch(itinerarySource, /label: '天數'/);
+  assert.match(routePanelSource, /路線完整度/);
+  assert.match(routePanelSource, /<MissingLocationNotice missingEvents=\{missingEvents\} \/>/);
+  assert.doesNotMatch(routePanelSource, /RouteMetric|routeStatusLabel|routeStatusTone/);
   assert.match(timelineSource, /tp-itinerary-timeline/);
   assert.match(itinerarySource, /tp-itinerary-tablet-context/);
   assert.doesNotMatch(itinerarySource, /下一天/);

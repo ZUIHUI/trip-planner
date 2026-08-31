@@ -10,7 +10,8 @@ import {
   X
 } from 'lucide-react';
 import { Badge, Button } from '../ui';
-import pixelNaviBunAtlas from '../../assets/ai/pixel-navibun-atlas.png';
+// Petdex jiyi by tukauilh: https://petdex.dev/pets/jiyi
+import jiyiSpritesheet from '../../assets/ai/jiyi-spritesheet.webp';
 import { getTripDayLabelByNumber } from '../../utils/tripDates';
 
 const modeOptions = [
@@ -25,6 +26,7 @@ const PET_ATLAS_COLUMNS = 8;
 const PET_ATLAS_ROWS = 9;
 const PET_BUTTON_SIZE = 64;
 const PET_DRAG_MARGIN = 8;
+const PET_DRAG_THRESHOLD = 12;
 const PET_MOBILE_BOTTOM_OFFSET = 84;
 const PET_DESKTOP_BOTTOM_OFFSET = 112;
 const PORTAL_FOOTER_NAV_HEIGHT = 'calc(5.2rem + env(safe-area-inset-bottom))';
@@ -151,10 +153,17 @@ const petMoodAnimation = {
   thinking: 'running'
 };
 
-const AiTravelPet = ({ mood = 'idle', size = 'md', animate = true }) => {
+const AiTravelPet = ({
+  mood = 'idle',
+  animationState,
+  size = 'md',
+  animate = true,
+  loop = false
+}) => {
   const isButton = size === 'button';
   const wrapperSize = isButton ? 'h-16 w-16' : 'h-20 w-20';
-  const animation = petAnimationStates[petMoodAnimation[mood] || 'idle'];
+  const resolvedAnimationState = animationState || petMoodAnimation[mood] || 'idle';
+  const animation = petAnimationStates[resolvedAnimationState] || petAnimationStates.idle;
   const spriteWidth = isButton ? 58 : 74;
   const spriteScale = spriteWidth / PET_CELL_WIDTH;
   const spriteHeight = Math.round(PET_CELL_HEIGHT * spriteScale);
@@ -166,10 +175,11 @@ const AiTravelPet = ({ mood = 'idle', size = 'md', animate = true }) => {
   const spriteStyle = {
     width: `${spriteWidth}px`,
     height: `${spriteHeight}px`,
-    backgroundImage: `url(${pixelNaviBunAtlas})`,
+    backgroundImage: `url(${jiyiSpritesheet})`,
     backgroundSize: `${backgroundWidth}px ${backgroundHeight}px`,
     backgroundPosition: `0px ${rowY}px`,
     animationDuration: animation.duration,
+    animationIterationCount: loop ? 'infinite' : '1',
     animationTimingFunction: `steps(${animation.frames})`,
     '--tp-pet-row-y': `${rowY}px`,
     '--tp-pet-to-x': `${toX}px`
@@ -312,16 +322,25 @@ const TripAiRecommendationPanel = ({
   const [initialIdeaText, setInitialIdeaText] = useState('');
   const [companionPosition, setCompanionPosition] = useState(readCompanionPosition);
   const [companionDragState, setCompanionDragState] = useState('idle');
+  const [companionTravelDirection, setCompanionTravelDirection] = useState('right');
   const [portalTarget, setPortalTarget] = useState(null);
   const companionDragRef = useRef(null);
+  const companionLandingTimeoutRef = useRef(null);
   const suppressCompanionClickRef = useRef(false);
   const recommendations = response?.recommendations || [];
   const petMood = error
     ? 'error'
     : (isLoading ? 'thinking' : (recommendations.length ? 'happy' : 'idle'));
-  const floatingPetMood = (companionDragState === 'lifted' || companionDragState === 'dragging')
-    ? 'lifted'
-    : petMood;
+  const floatingPetAnimation = companionDragState === 'lifted'
+    ? 'waiting'
+    : (companionDragState === 'dragging'
+        ? (companionTravelDirection === 'left' ? 'runningLeft' : 'runningRight')
+        : (companionDragState === 'landing' ? 'jumping' : (petMoodAnimation[petMood] || 'idle')));
+  const panelPetAnimation = error
+    ? 'failed'
+    : (isLoading ? 'running' : (recommendations.length ? 'review' : 'jumping'));
+  const shouldLoopFloatingPet = companionDragState === 'dragging'
+    || (companionDragState === 'idle' && (floatingPetAnimation === 'idle' || floatingPetAnimation === 'running'));
   const activeModeOption = useMemo(
     () => modeOptions.find((option) => option.id === mode) || modeOptions[0],
     [mode]
@@ -343,6 +362,12 @@ const TripAiRecommendationPanel = ({
 
     setPortalTarget(document.body);
     return () => setPortalTarget(null);
+  }, []);
+
+  useEffect(() => () => {
+    if (companionLandingTimeoutRef.current && typeof window !== 'undefined') {
+      window.clearTimeout(companionLandingTimeoutRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -374,10 +399,20 @@ const TripAiRecommendationPanel = ({
   const handleCompanionPointerDown = useCallback((event) => {
     if (isOpen || (event.button != null && event.button !== 0)) return;
 
+    // A drag does not always emit the click that normally consumes this flag.
+    // Starting a new pointer gesture means any earlier suppression is stale.
+    suppressCompanionClickRef.current = false;
+
+    if (companionLandingTimeoutRef.current && typeof window !== 'undefined') {
+      window.clearTimeout(companionLandingTimeoutRef.current);
+      companionLandingTimeoutRef.current = null;
+    }
+
     companionDragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
+      lastClientX: event.clientX,
       origin: companionPosition,
       moved: false
     };
@@ -391,11 +426,18 @@ const TripAiRecommendationPanel = ({
 
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    const hasMoved = Math.abs(dx) + Math.abs(dy) > 4;
-    if (hasMoved) {
+    const horizontalDelta = event.clientX - drag.lastClientX;
+
+    if (!drag.moved && Math.hypot(dx, dy) < PET_DRAG_THRESHOLD) return;
+
+    if (!drag.moved) {
       drag.moved = true;
       setCompanionDragState('dragging');
     }
+    if (Math.abs(horizontalDelta) > 1) {
+      setCompanionTravelDirection(horizontalDelta < 0 ? 'left' : 'right');
+    }
+    drag.lastClientX = event.clientX;
 
     setCompanionPosition(clampCompanionPosition({
       x: drag.origin.x + dx,
@@ -410,6 +452,11 @@ const TripAiRecommendationPanel = ({
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     companionDragRef.current = null;
 
+    if (!drag.moved) {
+      setCompanionDragState('idle');
+      return;
+    }
+
     const finalPosition = clampCompanionPosition({
       x: drag.origin.x + event.clientX - drag.startX,
       y: drag.origin.y + event.clientY - drag.startY
@@ -417,13 +464,15 @@ const TripAiRecommendationPanel = ({
     setCompanionPosition(finalPosition);
     persistCompanionPosition(finalPosition);
 
-    if (drag.moved) {
-      suppressCompanionClickRef.current = true;
-      event.preventDefault();
-      return;
+    suppressCompanionClickRef.current = true;
+    setCompanionDragState('landing');
+    if (typeof window !== 'undefined') {
+      companionLandingTimeoutRef.current = window.setTimeout(() => {
+        setCompanionDragState('idle');
+        companionLandingTimeoutRef.current = null;
+      }, 420);
     }
-
-    setCompanionDragState('idle');
+    event.preventDefault();
   }, []);
 
   const handleCompanionClick = useCallback((event) => {
@@ -489,9 +538,10 @@ const TripAiRecommendationPanel = ({
           title="旅伴"
         >
           <AiTravelPet
-            mood={floatingPetMood}
+            key={floatingPetAnimation}
+            animationState={floatingPetAnimation}
             size="button"
-            animate={companionDragState === 'lifted' || companionDragState === 'dragging'}
+            loop={shouldLoopFloatingPet}
           />
         </button>
       )}
@@ -500,7 +550,13 @@ const TripAiRecommendationPanel = ({
         <section className="tp-panel max-h-[min(74vh,640px)] w-[calc(100vw-1.5rem)] max-w-md overflow-y-auto p-4 shadow-2xl sm:w-[420px]">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
-              <AiTravelPet mood={petMood} />
+              <div className="tp-ai-panel-pet">
+                <AiTravelPet
+                  key={panelPetAnimation}
+                  animationState={panelPetAnimation}
+                  loop={panelPetAnimation === 'running'}
+                />
+              </div>
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-wide text-brand-700 dark:text-brand-300">
                   旅伴

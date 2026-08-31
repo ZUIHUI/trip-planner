@@ -111,8 +111,7 @@ const ItineraryTab = ({ onTabChange }) => {
       title={currentDayDisplayTitle}
       stats={[
         { value: currentDayData?.events?.length || 0, label: '行程' },
-        { value: todayCostEventCount, label: '含費用' },
-        { value: itinerary.length || 0, label: '天數' }
+        { value: todayCostEventCount, label: '含費用' }
       ]}
       tone="primary"
     >

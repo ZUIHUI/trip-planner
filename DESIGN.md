@@ -203,6 +203,8 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 - Mobile bottom navigation and the desktop workspace rail use a shared sliding
   selection surface. Labels and icons move at most 1px for press feedback; do
   not scale the active item.
+- Trip Library and Trip Workspace mobile docks use the same theme-primary
+  selected fill, high-contrast text, radius, and restrained elevation.
 - Changing a workspace section returns the main content to its start with the
   compact-header offset applied. Content enters over 160–200ms with 6–8px of
   vertical movement.
@@ -213,8 +215,9 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 
 - Prioritize the day hero, important reminders, flights, timeline, and route so
   travelers reach the active itinerary without crossing duplicate summaries.
-- Keep readiness editing prompts in the itinerary workspace. The journey
-  overview must not repeat a readiness banner or a full daily-status card.
+- Show readiness editing prompts in the itinerary workspace only when data is
+  incomplete. A fully ready day needs no success banner. The journey overview
+  must not repeat a readiness banner or a full daily-status card.
 - Desktop may retain compact readiness context in the right rail; it must remain
   read-mostly and must not recreate the removed center-column status surface.
 
