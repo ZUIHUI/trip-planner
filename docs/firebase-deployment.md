@@ -88,17 +88,16 @@ VITE_PRIMARY_OWNER_EMAIL=owner@example.com
 VITE_GOOGLE_MAPS_EMBED_API_KEY=your_http_referrer_restricted_embed_key
 ```
 
-`VITE_GOOGLE_MAPS_EMBED_API_KEY` is optional and intentionally browser-visible because Google Maps Embed API requires the key in the iframe URL. Use a dedicated key restricted to Maps Embed API and these HTTP referrers:
+`VITE_GOOGLE_MAPS_EMBED_API_KEY` is an optional browser-visible override. When it is empty, route previews reuse the referrer-restricted Firebase web API key pinned in `src/services/firebase.js`; that key must remain enabled for Maps Embed API. Any override should be restricted to Maps Embed API and these HTTP referrers:
 
 - `https://trip-planner-36455.web.app/*`
 - `https://trip-planner-36455.firebaseapp.com/*`
 - `http://localhost:5173/*`
 - `http://127.0.0.1:5173/*`
 
-When this frontend key is absent, the route panel falls back to the deployed
-`geocodeGooglePlace` Callable Function for missing coordinates and renders a
-keyless OpenStreetMap preview with visible attribution. Keep
-`GOOGLE_GEOCODING_API_KEY` server-only; never copy it into a `VITE_` variable.
+Route panels always render Google Maps. They no longer switch providers when
+the optional override is absent. Keep `GOOGLE_GEOCODING_API_KEY` server-only;
+never copy it into a `VITE_` variable.
 
 Store the value in ignored `.env.production.local` for production builds. Keep all other provider API keys in Firebase Functions secrets, and never reuse the server-only `GOOGLE_GEOCODING_API_KEY` for the iframe.
 

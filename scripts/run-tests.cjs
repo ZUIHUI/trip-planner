@@ -52,15 +52,6 @@ const {
   getGoogleMapsEmbedPreviewStatus
 } = require('../src/utils/googleMapsEmbed.js');
 const {
-  OPEN_STREET_MAP_MAX_ZOOM,
-  OPEN_STREET_MAP_MAX_ROUTE_STOPS,
-  OPEN_STREET_MAP_MIN_ZOOM,
-  buildOpenStreetMapRoutePreviewModel,
-  getRoutePreviewCoordinate,
-  panOpenStreetMapCenter,
-  selectOpenStreetMapRouteStops
-} = require('../src/utils/openStreetMapPreview.js');
-const {
   hasUsableCoordinatePair,
   readFiniteCoordinate
 } = require('../src/utils/placeCoordinates.js');
@@ -1026,85 +1017,40 @@ test('distinguishes empty routes from missing Google Maps Embed configuration', 
   );
 });
 
-test('uses a cloud-geocoded OpenStreetMap fallback when the Embed key is absent', () => {
+test('always uses Google Maps and reuses the Firebase web key by default', () => {
   const envExample = fs.readFileSync(path.join(__dirname, '..', '.env.example'), 'utf8');
   const previewSource = fs.readFileSync(
     path.join(__dirname, '..', 'src', 'components', 'trip', 'GoogleRoutePreview.jsx'),
     'utf8'
   );
-  const fallbackSource = fs.readFileSync(
-    path.join(__dirname, '..', 'src', 'components', 'trip', 'OpenStreetMapRoutePreview.jsx'),
+  const firebaseSource = fs.readFileSync(
+    path.join(__dirname, '..', 'src', 'services', 'firebase.js'),
     'utf8'
   );
   const firebaseConfig = fs.readFileSync(path.join(__dirname, '..', 'firebase.json'), 'utf8');
 
   assert.match(envExample, /^VITE_GOOGLE_MAPS_EMBED_API_KEY=\s*$/m);
   assert.match(envExample, /Google Maps Embed API/);
-  assert.match(envExample, /OpenStreetMap route preview/);
+  assert.match(envExample, /reuses its referrer-restricted Firebase web API key/);
+  assert.match(previewSource, /VITE_GOOGLE_MAPS_EMBED_API_KEY \|\| firebaseWebApiKey/);
+  assert.match(previewSource, /import \{ firebaseWebApiKey \} from '..\/..\/services\/firebase'/);
   assert.match(previewSource, /GOOGLE_MAPS_EMBED_PREVIEW_STATUS\.missingKey/);
-  assert.match(previewSource, /OpenStreetMapRoutePreview/);
-  assert.doesNotMatch(previewSource, /地圖預覽暫時無法載入/);
+  assert.doesNotMatch(previewSource, /OpenStreetMapRoutePreview/);
+  assert.match(previewSource, /Google 地圖目前無法載入/);
   assert.match(previewSource, /尚無可預覽路線/);
   assert.match(previewSource, /getGoogleMapsEmbedPreviewStatus/);
   assert.match(previewSource, /sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"/);
   assert.doesNotMatch(previewSource, /allow-popups|allow-top-navigation/);
-  assert.match(previewSource, /可直接拖曳與縮放/);
-  assert.match(fallbackSource, /geocodePlace/);
-  assert.match(fallbackSource, /© OpenStreetMap contributors/);
-  assert.match(fallbackSource, /正在透過雲端服務取得停靠點座標/);
-  assert.match(fallbackSource, /onPointerDown=\{handlePointerDown\}/);
-  assert.match(fallbackSource, /onWheel=\{handleWheel\}/);
-  assert.match(fallbackSource, /aria-label="放大地圖"/);
-  assert.match(fallbackSource, /aria-label="縮小地圖"/);
-  assert.match(fallbackSource, /aria-label="重設路線範圍"/);
-  assert.match(firebaseConfig, /img-src[^;]+https:\/\/tile\.openstreetmap\.org/);
-});
-
-test('builds a bounded OpenStreetMap tile and marker model in itinerary order', () => {
-  const points = [
-    { name: 'Tokyo Station', lat: 35.681236, lng: 139.767125 },
-    { name: 'Senso-ji', location: { lat: 35.714765, lng: 139.796655 } },
-    { name: 'Tokyo Skytree', geometry: { location: { lat: 35.710063, lng: 139.8107 } } }
-  ];
-  const model = buildOpenStreetMapRoutePreviewModel(points, { width: 390, height: 240 });
-
-  assert.equal(model.points.length, 3);
-  assert.deepEqual(model.points.map((point) => point.label), ['Tokyo Station', 'Senso-ji', 'Tokyo Skytree']);
-  assert.deepEqual(model.points.map((point) => point.number), [1, 2, 3]);
-  assert.equal(model.zoom >= 2 && model.zoom <= 16, true);
-  assert.equal(model.tiles.length > 0 && model.tiles.length <= 12, true);
-  assert.equal(model.tiles.every((tile) => /^https:\/\/tile\.openstreetmap\.org\/\d+\/\d+\/\d+\.png$/.test(tile.url)), true);
-  assert.deepEqual(
-    getRoutePreviewCoordinate({ address: 'Osaka Station', lat: 0, lng: 0 }),
-    null
-  );
-  assert.deepEqual(
-    getRoutePreviewCoordinate({ address: 'Osaka Station', lat: 34.7025, lng: 135.4959 }),
-    { lat: 34.7025, lng: 135.4959, label: 'Osaka Station' }
-  );
-
-  const manyStops = Array.from(
-    { length: OPEN_STREET_MAP_MAX_ROUTE_STOPS + 4 },
-    (_, index) => ({ id: `stop-${index + 1}` })
-  );
-  const selectedStops = selectOpenStreetMapRouteStops(manyStops);
-  assert.equal(selectedStops.length, OPEN_STREET_MAP_MAX_ROUTE_STOPS);
-  assert.equal(selectedStops.at(-1).id, manyStops.at(-1).id);
-
-  const zoomedModel = buildOpenStreetMapRoutePreviewModel(points, {
-    width: 390,
-    height: 240,
-    zoom: OPEN_STREET_MAP_MAX_ZOOM + 4,
-    center: model.center
-  });
-  assert.equal(zoomedModel.zoom, OPEN_STREET_MAP_MAX_ZOOM);
-  assert.deepEqual(zoomedModel.center, model.center);
-
-  const pannedCenter = panOpenStreetMapCenter(model.center, model.zoom, 80, 0);
-  assert.equal(pannedCenter.lng < model.center.lng, true);
+  assert.doesNotMatch(previewSource, /可直接拖曳與縮放/);
+  assert.match(firebaseSource, /export const firebaseWebApiKey = firebaseConfigDefaults\.apiKey/);
+  assert.doesNotMatch(firebaseConfig, /https:\/\/tile\.openstreetmap\.org/);
   assert.equal(
-    panOpenStreetMapCenter(model.center, OPEN_STREET_MAP_MIN_ZOOM - 4, 0, 0) !== null,
-    true
+    fs.existsSync(path.join(__dirname, '..', 'src', 'components', 'trip', 'OpenStreetMapRoutePreview.jsx')),
+    false
+  );
+  assert.equal(
+    fs.existsSync(path.join(__dirname, '..', 'src', 'utils', 'openStreetMapPreview.js')),
+    false
   );
 });
 

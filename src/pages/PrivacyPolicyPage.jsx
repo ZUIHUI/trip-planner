@@ -263,7 +263,7 @@ const PrivacyPolicyPage = () => {
               <h3>提供功能所需的外部處理</h3>
               <ul>
                 <li><strong>Google／Firebase：</strong>登入、資料庫、後端運算、網站託管、儲存、Google Places／Geocoding 及選用的 Google 地圖嵌入。地點關鍵字、地址或座標可能送往 Google。</li>
-                <li><strong>OpenStreetMap／Nominatim：</strong>在 Google 地圖預覽不可用時提供圖磚、路線預覽與地點解析；請求可能包含地點文字、座標、IP 與瀏覽器資訊。</li>
+                <li><strong>OpenStreetMap／Nominatim：</strong>僅在部分地點解析流程作為備援；請求可能包含地點文字、座標、IP 與瀏覽器資訊。介面中的路線地圖固定使用 Google Maps。</li>
                 <li><strong>Open-Meteo：</strong>提供天氣與部分地點解析；請求包含城市名稱或座標，服務商紀錄依其政策處理。</li>
                 <li><strong>OpenAI API：</strong>只在你主動使用 AI 推薦或產生旅遊手冊時處理旅程摘要與你的提示。</li>
                 <li><strong>郵件與推播供應商：</strong>Gmail／SMTP 用於寄送登入驗證碼；瀏覽器或作業系統的推播服務使用訂閱端點傳送你主動啟用的提醒。</li>

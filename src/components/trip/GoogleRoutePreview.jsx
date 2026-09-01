@@ -1,14 +1,14 @@
-import React, { useEffect, useId, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Map, Route } from 'lucide-react';
 import {
   GOOGLE_MAPS_EMBED_PREVIEW_STATUS,
   buildGoogleMapsEmbedRouteUrl,
   getGoogleMapsEmbedPreviewStatus
 } from '../../utils/googleMapsEmbed';
-import OpenStreetMapRoutePreview from './OpenStreetMapRoutePreview';
+import { firebaseWebApiKey } from '../../services/firebase';
 
 const googleMapsEmbedApiKey = String(
-  import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY || ''
+  import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY || firebaseWebApiKey || ''
 ).trim();
 
 const GoogleRoutePreview = ({
@@ -18,7 +18,6 @@ const GoogleRoutePreview = ({
   loading = 'lazy'
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const interactionHintId = useId();
   const destinations = useMemo(
     () => routeStops.map((stop) => stop?.destination || stop).filter(Boolean),
     [routeStops]
@@ -46,12 +45,17 @@ const GoogleRoutePreview = ({
 
   if (previewStatus === GOOGLE_MAPS_EMBED_PREVIEW_STATUS.missingKey) {
     return (
-      <OpenStreetMapRoutePreview
-        routeStops={routeStops}
-        title={title.replace('Google Maps', '').trim() || '今日路線地圖預覽'}
-        className={className}
-        loading={loading}
-      />
+      <div className={`tp-route-preview-surface relative flex min-h-56 items-center justify-center overflow-hidden px-6 text-center ${className}`}>
+        <div className="max-w-xs">
+          <span className="tp-route-preview-icon mx-auto inline-flex h-11 w-11 items-center justify-center rounded-full shadow-sm">
+            <Map size={21} aria-hidden="true" />
+          </span>
+          <p className="mt-3 text-sm font-black">Google 地圖目前無法載入</p>
+          <p className="mt-1 text-xs font-semibold leading-5 opacity-75">
+            請確認網站建置已包含可使用 Maps Embed API 的瀏覽器金鑰。
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -89,13 +93,6 @@ const GoogleRoutePreview = ({
         </div>
       )}
 
-      <span
-        id={interactionHintId}
-        className="tp-route-preview-interaction-hint pointer-events-none absolute left-2 top-2 z-30 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-      >
-        可直接拖曳與縮放
-      </span>
-
       <iframe
         key={embedUrl}
         title={title}
@@ -104,7 +101,6 @@ const GoogleRoutePreview = ({
         loading={loading}
         allowFullScreen
         sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-        aria-describedby={interactionHintId}
         referrerPolicy="strict-origin-when-cross-origin"
         onLoad={() => setIsLoaded(true)}
       />

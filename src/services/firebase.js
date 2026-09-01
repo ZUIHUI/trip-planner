@@ -15,6 +15,10 @@ const firebaseConfigDefaults = {
   measurementId: 'G-H1NYSN3EYE'
 };
 
+// Firebase web API keys are public identifiers. The same referrer-restricted
+// browser key is also enabled for Maps Embed API in this Firebase project.
+export const firebaseWebApiKey = firebaseConfigDefaults.apiKey;
+
 const getRuntimeAuthDomain = () => {
   if (typeof window === 'undefined') {
     return firebaseConfigDefaults.authDomain;
