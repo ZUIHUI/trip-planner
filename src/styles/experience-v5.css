@@ -566,6 +566,46 @@ textarea.tp-input:focus {
   background: var(--tp-surface-strong) !important;
 }
 
+.tp-osm-route-canvas {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.tp-osm-route-canvas.is-dragging {
+  cursor: grabbing;
+}
+
+.tp-osm-route-canvas:focus-visible {
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--tp-primary) 72%, transparent);
+  outline: none;
+}
+
+.tp-osm-route-controls button {
+  align-items: center;
+  background: color-mix(in srgb, var(--tp-paper) 94%, transparent) !important;
+  border: 1px solid var(--tp-border-soft);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--tp-ink) 12%, transparent);
+  color: var(--tp-ink) !important;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.tp-osm-route-controls button:hover:not(:disabled),
+.tp-osm-route-controls button:focus-visible {
+  background: var(--tp-primary-soft) !important;
+  border-color: var(--tp-primary);
+  color: var(--tp-primary-strong) !important;
+}
+
+.tp-osm-route-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .tp-osm-route-tile {
   height: 256px !important;
   max-width: none !important;
@@ -603,10 +643,15 @@ textarea.tp-input:focus {
 }
 
 .tp-osm-route-badge,
-.tp-osm-attribution {
+.tp-osm-attribution,
+.tp-route-preview-interaction-hint {
   background: color-mix(in srgb, var(--tp-paper) 92%, transparent) !important;
   border: 1px solid var(--tp-border-soft);
   color: var(--tp-ink) !important;
+}
+
+.tp-route-preview-interaction-hint {
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--tp-ink) 12%, transparent);
 }
 
 .tp-osm-attribution {

@@ -52,9 +52,12 @@ const {
   getGoogleMapsEmbedPreviewStatus
 } = require('../src/utils/googleMapsEmbed.js');
 const {
+  OPEN_STREET_MAP_MAX_ZOOM,
   OPEN_STREET_MAP_MAX_ROUTE_STOPS,
+  OPEN_STREET_MAP_MIN_ZOOM,
   buildOpenStreetMapRoutePreviewModel,
   getRoutePreviewCoordinate,
+  panOpenStreetMapCenter,
   selectOpenStreetMapRouteStops
 } = require('../src/utils/openStreetMapPreview.js');
 const {
@@ -1043,9 +1046,17 @@ test('uses a cloud-geocoded OpenStreetMap fallback when the Embed key is absent'
   assert.doesNotMatch(previewSource, /地圖預覽暫時無法載入/);
   assert.match(previewSource, /尚無可預覽路線/);
   assert.match(previewSource, /getGoogleMapsEmbedPreviewStatus/);
+  assert.match(previewSource, /sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"/);
+  assert.doesNotMatch(previewSource, /allow-popups|allow-top-navigation/);
+  assert.match(previewSource, /可直接拖曳與縮放/);
   assert.match(fallbackSource, /geocodePlace/);
   assert.match(fallbackSource, /© OpenStreetMap contributors/);
   assert.match(fallbackSource, /正在透過雲端服務取得停靠點座標/);
+  assert.match(fallbackSource, /onPointerDown=\{handlePointerDown\}/);
+  assert.match(fallbackSource, /onWheel=\{handleWheel\}/);
+  assert.match(fallbackSource, /aria-label="放大地圖"/);
+  assert.match(fallbackSource, /aria-label="縮小地圖"/);
+  assert.match(fallbackSource, /aria-label="重設路線範圍"/);
   assert.match(firebaseConfig, /img-src[^;]+https:\/\/tile\.openstreetmap\.org/);
 });
 
@@ -1079,6 +1090,22 @@ test('builds a bounded OpenStreetMap tile and marker model in itinerary order', 
   const selectedStops = selectOpenStreetMapRouteStops(manyStops);
   assert.equal(selectedStops.length, OPEN_STREET_MAP_MAX_ROUTE_STOPS);
   assert.equal(selectedStops.at(-1).id, manyStops.at(-1).id);
+
+  const zoomedModel = buildOpenStreetMapRoutePreviewModel(points, {
+    width: 390,
+    height: 240,
+    zoom: OPEN_STREET_MAP_MAX_ZOOM + 4,
+    center: model.center
+  });
+  assert.equal(zoomedModel.zoom, OPEN_STREET_MAP_MAX_ZOOM);
+  assert.deepEqual(zoomedModel.center, model.center);
+
+  const pannedCenter = panOpenStreetMapCenter(model.center, model.zoom, 80, 0);
+  assert.equal(pannedCenter.lng < model.center.lng, true);
+  assert.equal(
+    panOpenStreetMapCenter(model.center, OPEN_STREET_MAP_MIN_ZOOM - 4, 0, 0) !== null,
+    true
+  );
 });
 
 test('builds an authenticated Google Maps Embed route in itinerary order', () => {

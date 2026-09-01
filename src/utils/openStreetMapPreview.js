@@ -3,10 +3,10 @@ import { normalizePlaceText } from './placeText';
 
 export const OPEN_STREET_MAP_TILE_SIZE = 256;
 export const OPEN_STREET_MAP_MAX_ROUTE_STOPS = 12;
+export const OPEN_STREET_MAP_MIN_ZOOM = 2;
+export const OPEN_STREET_MAP_MAX_ZOOM = 16;
 
 const MAX_MERCATOR_LATITUDE = 85.05112878;
-const MIN_ZOOM = 2;
-const MAX_ZOOM = 16;
 const DEFAULT_SINGLE_POINT_ZOOM = 14;
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -27,6 +27,49 @@ const projectCoordinate = ({ lat, lng }, zoom) => {
       1 - Math.log(Math.tan(latitudeRadians) + (1 / Math.cos(latitudeRadians))) / Math.PI
     ) / 2 * worldSize
   };
+};
+
+const unprojectCoordinate = ({ x, y }, zoom) => {
+  const worldSize = OPEN_STREET_MAP_TILE_SIZE * (2 ** zoom);
+  const boundedY = clamp(y, 0, worldSize);
+  const mercator = Math.PI - (2 * Math.PI * boundedY) / worldSize;
+
+  return {
+    lat: clamp(
+      Math.atan(Math.sinh(mercator)) * 180 / Math.PI,
+      -MAX_MERCATOR_LATITUDE,
+      MAX_MERCATOR_LATITUDE
+    ),
+    lng: normalizeLongitude((x / worldSize) * 360 - 180)
+  };
+};
+
+const normalizeMapCenter = (center) => {
+  if (!center || typeof center !== 'object') return null;
+  const lat = readFiniteCoordinate(center.lat, center.latitude);
+  const lng = readFiniteCoordinate(center.lng, center.longitude);
+  if (lat === null || lng === null) return null;
+
+  return {
+    lat: clamp(lat, -MAX_MERCATOR_LATITUDE, MAX_MERCATOR_LATITUDE),
+    lng: normalizeLongitude(lng)
+  };
+};
+
+export const panOpenStreetMapCenter = (center, zoom, deltaX = 0, deltaY = 0) => {
+  const normalizedCenter = normalizeMapCenter(center);
+  const normalizedZoom = clamp(
+    Math.round(Number(zoom) || OPEN_STREET_MAP_MIN_ZOOM),
+    OPEN_STREET_MAP_MIN_ZOOM,
+    OPEN_STREET_MAP_MAX_ZOOM
+  );
+  if (!normalizedCenter) return null;
+
+  const projectedCenter = projectCoordinate(normalizedCenter, normalizedZoom);
+  return unprojectCoordinate({
+    x: projectedCenter.x - (Number(deltaX) || 0),
+    y: projectedCenter.y - (Number(deltaY) || 0)
+  }, normalizedZoom);
 };
 
 export const getRoutePreviewCoordinate = (place, fallbackLabel = '') => {
@@ -78,12 +121,16 @@ const chooseZoom = (points, width, height, padding) => {
   const heightRatio = availableHeight / Math.max(1e-9, bounds.maxY - bounds.minY);
   const zoom = Math.floor(Math.log2(Math.min(widthRatio, heightRatio)));
 
-  return clamp(Number.isFinite(zoom) ? zoom : DEFAULT_SINGLE_POINT_ZOOM, MIN_ZOOM, MAX_ZOOM);
+  return clamp(
+    Number.isFinite(zoom) ? zoom : DEFAULT_SINGLE_POINT_ZOOM,
+    OPEN_STREET_MAP_MIN_ZOOM,
+    OPEN_STREET_MAP_MAX_ZOOM
+  );
 };
 
 export const buildOpenStreetMapRoutePreviewModel = (
   points = [],
-  { width = 800, height = 400, padding = 48 } = {}
+  { width = 800, height = 400, padding = 48, zoom: requestedZoom, center: requestedCenter } = {}
 ) => {
   const normalizedPoints = (Array.isArray(points) ? points : [])
     .map((point, index) => {
@@ -97,10 +144,20 @@ export const buildOpenStreetMapRoutePreviewModel = (
   const safeWidth = Math.max(240, Number(width) || 800);
   const safeHeight = Math.max(200, Number(height) || 400);
   const safePadding = clamp(Number(padding) || 0, 20, Math.min(safeWidth, safeHeight) / 3);
-  const zoom = chooseZoom(normalizedPoints, safeWidth, safeHeight, safePadding);
+  const numericZoom = Number(requestedZoom);
+  const zoom = Number.isFinite(numericZoom)
+    ? clamp(Math.round(numericZoom), OPEN_STREET_MAP_MIN_ZOOM, OPEN_STREET_MAP_MAX_ZOOM)
+    : chooseZoom(normalizedPoints, safeWidth, safeHeight, safePadding);
   const bounds = getBoundsAtZoom(normalizedPoints, zoom);
-  const centerX = (bounds.minX + bounds.maxX) / 2;
-  const centerY = (bounds.minY + bounds.maxY) / 2;
+  const normalizedCenter = normalizeMapCenter(requestedCenter);
+  const projectedCenter = normalizedCenter
+    ? projectCoordinate(normalizedCenter, zoom)
+    : {
+        x: (bounds.minX + bounds.maxX) / 2,
+        y: (bounds.minY + bounds.maxY) / 2
+      };
+  const centerX = projectedCenter.x;
+  const centerY = projectedCenter.y;
   const topLeftX = centerX - safeWidth / 2;
   const topLeftY = centerY - safeHeight / 2;
   const tileCount = 2 ** zoom;
@@ -129,6 +186,7 @@ export const buildOpenStreetMapRoutePreviewModel = (
     width: safeWidth,
     height: safeHeight,
     zoom,
+    center: unprojectCoordinate(projectedCenter, zoom),
     tiles,
     points: normalizedPoints.map((point, index) => ({
       ...point,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { Map, Route } from 'lucide-react';
 import {
   GOOGLE_MAPS_EMBED_PREVIEW_STATUS,
@@ -18,6 +18,7 @@ const GoogleRoutePreview = ({
   loading = 'lazy'
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const interactionHintId = useId();
   const destinations = useMemo(
     () => routeStops.map((stop) => stop?.destination || stop).filter(Boolean),
     [routeStops]
@@ -88,6 +89,13 @@ const GoogleRoutePreview = ({
         </div>
       )}
 
+      <span
+        id={interactionHintId}
+        className="tp-route-preview-interaction-hint pointer-events-none absolute left-2 top-2 z-30 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+      >
+        可直接拖曳與縮放
+      </span>
+
       <iframe
         key={embedUrl}
         title={title}
@@ -95,6 +103,8 @@ const GoogleRoutePreview = ({
         className="absolute inset-0 z-10 h-full w-full border-0"
         loading={loading}
         allowFullScreen
+        sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+        aria-describedby={interactionHintId}
         referrerPolicy="strict-origin-when-cross-origin"
         onLoad={() => setIsLoaded(true)}
       />
