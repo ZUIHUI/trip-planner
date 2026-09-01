@@ -59,6 +59,22 @@ export const getTripItemId = (itemOrId) => {
   return normalizeId(itemOrId);
 };
 
+export const moveTripItemByOffset = (items = [], itemId = '', offset = 0) => {
+  const sourceItems = asArray(items);
+  const safeItemId = getTripItemId(itemId);
+  const safeOffset = Number(offset);
+  if (!safeItemId || !Number.isInteger(safeOffset) || safeOffset === 0) return sourceItems;
+
+  const sourceIndex = sourceItems.findIndex((item) => getTripItemId(item) === safeItemId);
+  const targetIndex = sourceIndex + safeOffset;
+  if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= sourceItems.length) return sourceItems;
+
+  const nextItems = sourceItems.slice();
+  const [movedItem] = nextItems.splice(sourceIndex, 1);
+  nextItems.splice(targetIndex, 0, movedItem);
+  return nextItems;
+};
+
 const sameIds = (left = [], right = []) => (
   left.length === right.length && left.every((item, index) => item === right[index])
 );

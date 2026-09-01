@@ -1171,19 +1171,23 @@ export const updateTripDayFields = async ({
   });
   const rootItinerary = withoutUndefined(buildRootItineraryMirror(itinerary));
   const rootItineraryDays = withoutUndefined(buildRootItineraryDaysMirror(rootItinerary));
-  const batch = writeBatch(db);
 
-  batch.set(getTripDayDocRef(tripId, safeDayNumber), {
+  await setDoc(getTripDayDocRef(tripId, safeDayNumber), {
     ...payload,
     createdAt: day?.createdAt || now
   }, { merge: true });
 
-  batch.update(getTripDocRef(tripId), {
-    itinerary: rootItinerary,
-    itineraryDays: rootItineraryDays,
-    ...buildTripFieldUpdateMeta({ user, clientId, operation: 'trip-day', now })
+  await updateTripRootMirrorFields({
+    tripId,
+    user,
+    clientId,
+    operation: 'trip-day',
+    now,
+    fields: {
+      itinerary: rootItinerary,
+      itineraryDays: rootItineraryDays
+    }
   });
-  await batch.commit();
 
   return normalizeTripDayDocumentForApp(payload);
 };

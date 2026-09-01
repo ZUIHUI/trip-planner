@@ -96,7 +96,8 @@ const {
   buildChecklistItemDocument,
   buildShoppingItemDocument,
   getSparseOrderKeyForItem,
-  getTripItemChanges
+  getTripItemChanges,
+  moveTripItemByOffset
 } = require('../src/utils/tripItemDocuments.js');
 const {
   applyShoppingCategoryDocumentsToList,
@@ -1845,12 +1846,36 @@ test('detects trip detail patch sections for field-level saves', () => {
   assert.equal(changedUntracked.changed.any, true);
 });
 
+test('edits and reorders pre-trip checklist items with accessible controls', () => {
+  const items = [
+    { id: 'passport', text: 'Passport' },
+    { id: 'insurance', text: 'Insurance' },
+    { id: 'booking', text: 'Booking' }
+  ];
+  const movedUp = moveTripItemByOffset(items, 'insurance', -1);
+  const movedDown = moveTripItemByOffset(movedUp, 'insurance', 1);
+
+  assert.deepEqual(movedUp.map((item) => item.id), ['insurance', 'passport', 'booking']);
+  assert.deepEqual(movedDown.map((item) => item.id), ['passport', 'insurance', 'booking']);
+  assert.strictEqual(moveTripItemByOffset(items, 'passport', -1), items);
+  assert.strictEqual(moveTripItemByOffset(items, 'missing', 1), items);
+
+  const checklistSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/Checklist.jsx'), 'utf8');
+  assert.match(checklistSource, /setEditingId\(getTripItemId\(item\)\)/);
+  assert.match(checklistSource, /待辦內容不能空白/);
+  assert.match(checklistSource, /moveTripItemByOffset\(safeItems, id, offset\)/);
+  assert.match(checklistSource, /aria-pressed=\{sortMode\}/);
+  assert.match(checklistSource, /將 \$\{item\.text\} 上移/);
+  assert.match(checklistSource, /將 \$\{item\.text\} 下移/);
+});
+
 test('saves split trip detail documents before best-effort root mirrors', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'src/services/tripService.js'), 'utf8');
   const metaBody = source.match(/export const updateTripMetaFields[\s\S]*?return meta;\r?\n};/)?.[0] || '';
   const accommodationBody = source.match(/export const updateTripAccommodationFields[\s\S]*?return nextAccommodation;\r?\n};/)?.[0] || '';
   const flightsBody = source.match(/export const updateTripFlightsFields[\s\S]*?return nextFlights;\r?\n};/)?.[0] || '';
   const budgetBody = source.match(/export const updateTripBudgetFields[\s\S]*?return nextBudget;\r?\n};/)?.[0] || '';
+  const dayBody = source.match(/export const updateTripDayFields[\s\S]*?return normalizeTripDayDocumentForApp\(payload\);\r?\n};/)?.[0] || '';
 
   assert.match(source, /const updateTripRootMirrorFields = async/);
   assert.match(metaBody, /await setDoc\(detailRef/);
@@ -1865,6 +1890,13 @@ test('saves split trip detail documents before best-effort root mirrors', () => 
   assert.match(budgetBody, /await setDoc\(getTripDetailDocRef/);
   assert.match(budgetBody, /await updateTripRootMirrorFields/);
   assert.doesNotMatch(budgetBody, /batch\.update/);
+  assert.match(dayBody, /await setDoc\(getTripDayDocRef/);
+  assert.match(dayBody, /await updateTripRootMirrorFields/);
+  assert.doesNotMatch(dayBody, /batch\.update/);
+  assert.ok(
+    dayBody.indexOf('await setDoc') < dayBody.indexOf('await updateTripRootMirrorFields'),
+    'day document must be saved before the legacy root mirror is attempted'
+  );
 });
 
 test('keeps companion invite flows as an explicit navigation destination', () => {
