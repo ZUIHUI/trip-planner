@@ -234,6 +234,9 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 - Never substitute generic `Day N` or `第 N 天` for a known date.
 - Preserve trip order; do not independently re-sort days in each screen.
 - Use `aria-pressed` for the selected day and provide a readable label.
+- In the itinerary workspace, the date strip flows directly into the editable
+  day heading and timeline. Do not insert a duplicate day-summary hero between
+  these elements.
 
 ### Timeline and event cards
 
@@ -248,6 +251,9 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 
 - Route stop order must come from the same shared daily summary used by the
   timeline and context rail.
+- In the itinerary workspace, the timeline remains the primary content and the
+  route view follows the timeline and supporting details at the bottom of the
+  mobile or tablet flow.
 - Embedded preview and external navigation must share the same origin, stops,
   and travel mode.
 - A missing Google Maps Embed key must fall back to the cloud-geocoded
@@ -260,6 +266,14 @@ Maximum readable workspace width is 1440px. Verify 320, 390, 768, 1180, and
 - Show unfinished tasks first and cap compact summaries.
 - Completion uses sea glass and explicit text/icon state; never color alone.
 - The right rail and tablet panel consume the same shared task data.
+- The full pre-trip checklist groups items by category. Users can choose a
+  category while adding or editing an item; legacy items without one appear in
+  `Other`. Manual ordering stays within a category so controls always match the
+  visible grouping.
+- The pre-trip workspace opens directly on the editable checklist card. Do not
+  repeat its total, completed, and remaining counts in a separate summary hero.
+- The More workspace opens directly on its tool sections. Do not repeat trip,
+  member, online, checklist, packing, or budget totals in header summary cards.
 
 ### Context rail
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, ChevronDown, ChevronUp, Map, Pencil, Wallet } from 'lucide-react';
+import { ChevronDown, ChevronUp, Map, Pencil, Wallet } from 'lucide-react';
 import DayReadinessStrip from './DayReadinessStrip';
 import { Button, Card, Input, Select } from '../ui';
 import { useTripWorkspace } from '../../contexts/TripWorkspaceContext';
@@ -140,29 +140,14 @@ const ItineraryTab = ({ onTabChange }) => {
 
   return (
     <MobileMockupFrame
-      icon={CalendarDays}
-      eyebrow={currentDayLabel}
-      title={currentDayDisplayTitle}
-      stats={[
-        { value: currentDayData?.events?.length || 0, label: '行程' },
-        { value: todayCostEventCount, label: '含費用' }
-      ]}
       tone="primary"
+      showHeader={false}
     >
       <TripDayStrip itinerary={itinerary} selectedDay={selectedDay} onSelectDay={selectDayWithoutViewportJump} tripDetails={tripDetails} />
 
-      <div className="mx-auto mt-5 max-w-6xl px-5 pb-40 sm:px-7 sm:pb-28 lg:px-10">
-        {shouldShowCostToggle && (
-          <div className="flex justify-stretch sm:justify-end">
-            <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={toggleSecondaryModules} aria-expanded={showSecondaryModules}>
-              {showSecondaryModules ? '收合花費' : '今日花費'}
-              {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </Button>
-          </div>
-        )}
-
+      <div className="mx-auto mt-3 max-w-6xl px-5 pb-40 sm:px-7 sm:pb-28 lg:px-10">
         <section
-          className={`${shouldShowCostToggle ? 'mt-5' : 'mt-3'} tp-itinerary-day-heading border-b border-slate-200 pb-5 sm:mt-5 dark:border-slate-800`}
+          className="tp-itinerary-day-heading border-b border-slate-200 pb-5 dark:border-slate-800"
           {...(isEditingDayMeta ? getEditingHandlers(dayEditingTarget) : {})}
         >
           <div className="min-w-0 flex-1">
@@ -231,10 +216,6 @@ const ItineraryTab = ({ onTabChange }) => {
                       <Pencil size={15} />
                     </Button>
                   </div>
-                  <p className="tp-itinerary-day-note mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    已排 {currentDayData.events.length} 個行程
-                    {todayCostEventCount > 0 ? ` · ${todayCostEventCount} 個含費用` : ' · 尚未記錄花費'}
-                  </p>
                 </>
               )
             ) : (
@@ -242,22 +223,6 @@ const ItineraryTab = ({ onTabChange }) => {
             )}
           </div>
         </section>
-
-        <DayReadinessStrip
-          events={currentDayData?.events || []}
-          canEdit={canEdit}
-          onOpenEvent={openEditModal}
-          className="mt-4"
-        />
-
-        <div className="tp-itinerary-route-panel tp-itinerary-route-primary">
-          <TripRoutePanel
-            currentDayData={currentDayData}
-            tripDetails={tripDetails}
-            currentLocation={currentLocation}
-            daySummary={daySummary}
-          />
-        </div>
 
         <TripTimeline
           events={currentDayData?.events || []}
@@ -273,30 +238,24 @@ const ItineraryTab = ({ onTabChange }) => {
           editingByEventId={editingByEventId}
         />
 
-        <div className="tp-itinerary-tablet-context" aria-label="平板每日摘要">
-          <details className="tp-itinerary-tablet-route">
-            <summary>
-              <span><Map size={17} aria-hidden="true" /> 今日路線</span>
-              <strong>{daySummary.routeStops.length} 站</strong>
-            </summary>
-            <TripRoutePanel
-              currentDayData={currentDayData}
-              tripDetails={tripDetails}
-              currentLocation={currentLocation}
-              daySummary={daySummary}
-            />
-          </details>
-          <TripTaskSummary
-            tasks={daySummary.preTripTasks}
-            pendingTasks={daySummary.pendingPreTripTasks}
-            completedCount={daySummary.completedPreTripCount}
-            collapsible
-            onViewAll={onTabChange ? () => onTabChange('preTrip') : undefined}
-          />
-        </div>
+        <DayReadinessStrip
+          events={currentDayData?.events || []}
+          canEdit={canEdit}
+          onOpenEvent={openEditModal}
+          className="mt-6"
+        />
+
+        {shouldShowCostToggle && (
+          <div className="mt-6 flex justify-stretch sm:justify-end">
+            <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={toggleSecondaryModules} aria-expanded={showSecondaryModules}>
+              {showSecondaryModules ? '收合花費' : '今日花費'}
+              {showSecondaryModules ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </Button>
+          </div>
+        )}
 
         {showSecondaryModules && currentDayData && shouldShowCostToggle && (
-          <Card className="mt-7 p-5">
+          <Card className="mt-4 p-5">
             <div className="flex items-start gap-4">
               <div className="tp-icon-chip bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
                 <Wallet size={20} />
@@ -315,6 +274,37 @@ const ItineraryTab = ({ onTabChange }) => {
             </div>
           </Card>
         )}
+
+        <div className="tp-itinerary-tablet-context" aria-label="平板每日摘要">
+          <TripTaskSummary
+            tasks={daySummary.preTripTasks}
+            pendingTasks={daySummary.pendingPreTripTasks}
+            completedCount={daySummary.completedPreTripCount}
+            collapsible
+            onViewAll={onTabChange ? () => onTabChange('preTrip') : undefined}
+          />
+          <details className="tp-itinerary-tablet-route">
+            <summary>
+              <span><Map size={17} aria-hidden="true" /> 今日路線</span>
+              <strong>{daySummary.routeStops.length} 站</strong>
+            </summary>
+            <TripRoutePanel
+              currentDayData={currentDayData}
+              tripDetails={tripDetails}
+              currentLocation={currentLocation}
+              daySummary={daySummary}
+            />
+          </details>
+        </div>
+
+        <div className="tp-itinerary-route-panel tp-itinerary-route-primary mt-7">
+          <TripRoutePanel
+            currentDayData={currentDayData}
+            tripDetails={tripDetails}
+            currentLocation={currentLocation}
+            daySummary={daySummary}
+          />
+        </div>
       </div>
     </MobileMockupFrame>
   );

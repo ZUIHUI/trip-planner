@@ -47,8 +47,6 @@ const PreTripTab = () => {
     () => mergeRealtimeChecklistStatus(checklists.preTrip, checklistStatusByListId?.preTrip),
     [checklists.preTrip, checklistStatusByListId]
   );
-  const doneCount = visibleItems.filter((item) => item.done).length;
-  const remainingCount = Math.max(visibleItems.length - doneCount, 0);
   const handleUpdate = useCallback((newItems) => {
     if (!canEdit) return;
     const updateSeq = updateSeqRef.current + 1;
@@ -173,17 +171,9 @@ const PreTripTab = () => {
 
   return (
     <MobileMockupFrame
-      icon={CheckSquare}
-      eyebrow="出發前"
-      title="行前清單"
-      subtitle="出發前確認證件、預訂與重要事項。"
-      stats={[
-        { value: visibleItems.length, label: '事項' },
-        { value: doneCount, label: '完成' },
-        { value: remainingCount, label: '剩餘' }
-      ]}
       tone="success"
-      className="mt-2 space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
+      showHeader={false}
+      className="space-y-4 px-4 pb-10 sm:px-6 lg:px-8"
     >
       <Card className="tp-mobile-feature-card p-4" {...getEditingHandlers(editingTarget)}>
         <div className="mb-4 flex items-center gap-3">

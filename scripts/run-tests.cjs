@@ -97,7 +97,9 @@ const {
   buildShoppingItemDocument,
   getSparseOrderKeyForItem,
   getTripItemChanges,
-  moveTripItemByOffset
+  moveTripItemByOffset,
+  moveTripItemWithinCategory,
+  normalizeChecklistCategory
 } = require('../src/utils/tripItemDocuments.js');
 const {
   applyShoppingCategoryDocumentsToList,
@@ -1846,27 +1848,42 @@ test('detects trip detail patch sections for field-level saves', () => {
   assert.equal(changedUntracked.changed.any, true);
 });
 
-test('edits and reorders pre-trip checklist items with accessible controls', () => {
+test('categorizes edits and reorders pre-trip checklist items with accessible controls', () => {
   const items = [
-    { id: 'passport', text: 'Passport' },
-    { id: 'insurance', text: 'Insurance' },
-    { id: 'booking', text: 'Booking' }
+    { id: 'passport', text: 'Passport', category: 'documents' },
+    { id: 'insurance', text: 'Insurance', category: 'health' },
+    { id: 'visa', text: 'Visa', category: 'documents' },
+    { id: 'booking', text: 'Booking', category: 'bookings' }
   ];
   const movedUp = moveTripItemByOffset(items, 'insurance', -1);
   const movedDown = moveTripItemByOffset(movedUp, 'insurance', 1);
+  const movedWithinCategory = moveTripItemWithinCategory(items, 'passport', 1);
 
-  assert.deepEqual(movedUp.map((item) => item.id), ['insurance', 'passport', 'booking']);
-  assert.deepEqual(movedDown.map((item) => item.id), ['passport', 'insurance', 'booking']);
+  assert.deepEqual(movedUp.map((item) => item.id), ['insurance', 'passport', 'visa', 'booking']);
+  assert.deepEqual(movedDown.map((item) => item.id), ['passport', 'insurance', 'visa', 'booking']);
   assert.strictEqual(moveTripItemByOffset(items, 'passport', -1), items);
   assert.strictEqual(moveTripItemByOffset(items, 'missing', 1), items);
+  assert.deepEqual(
+    movedWithinCategory.map((item) => item.id),
+    ['insurance', 'visa', 'passport', 'booking']
+  );
+  assert.strictEqual(moveTripItemWithinCategory(items, 'visa', 1), items);
+  assert.equal(normalizeChecklistCategory('  documents  '), 'documents');
+  assert.equal(normalizeChecklistCategory(''), 'other');
 
   const checklistSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/Checklist.jsx'), 'utf8');
+  const preTripSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/PreTripTab.jsx'), 'utf8');
   assert.match(checklistSource, /setEditingId\(getTripItemId\(item\)\)/);
   assert.match(checklistSource, /待辦內容不能空白/);
-  assert.match(checklistSource, /moveTripItemByOffset\(safeItems, id, offset\)/);
+  assert.match(checklistSource, /moveTripItemWithinCategory\(safeItems, id, offset\)/);
+  assert.match(checklistSource, /aria-label="新項目分類"/);
+  assert.match(checklistSource, /調整 \$\{item\.text\} 的分類/);
+  assert.match(checklistSource, /categoryGroups\.map\(\(group\) =>/);
   assert.match(checklistSource, /aria-pressed=\{sortMode\}/);
   assert.match(checklistSource, /將 \$\{item\.text\} 上移/);
   assert.match(checklistSource, /將 \$\{item\.text\} 下移/);
+  assert.match(preTripSource, /showHeader=\{false\}/);
+  assert.doesNotMatch(preTripSource, /stats=\{\[|remainingCount|doneCount/);
 });
 
 test('saves split trip detail documents before best-effort root mirrors', () => {
@@ -2921,7 +2938,7 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /:root\[data-theme="soft-pink"\] \.tp-journey-hero \.tp-button-primary,[\s\S]+?background:\s*var\(--tp-surface\)/);
   assert.match(experienceCss, /\.tp-route-preview-surface,[\s\S]+?background:\s*var\(--tp-surface-strong\)/);
   assert.match(headerSource, /backgroundImage:\s*`var\(--tp-photo-scrim\), url\(\$\{coverImageUrl\}\)`/);
-  assert.match(moreTabSource, /icon=\{Settings\}[\s\S]+?tone="primary"/);
+  assert.match(moreTabSource, /return \(\s*<MobileMockupFrame\s+tone="primary"\s+showHeader=\{false\}/);
   assert.doesNotMatch(moreTabSource, /tone="(?:soft|sky|sand|coral|teal|accent)"/);
   assert.match(agentInstructions, /read the root `DESIGN\.md` completely/i);
   assert.match(design, /actual planning product/i);
@@ -3158,6 +3175,8 @@ test('uses semantic tones across the primary mobile trip sections', () => {
   assert.match(ideasSource, /stats=\{\[[\s\S]+?label: '地點'[\s\S]+?label: '天數'[\s\S]+?\]\}/);
   assert.doesNotMatch(ideasSource, /label: '權限'/);
   assert.match(moreSource, /<MobileMockupFrame[\s\S]*?tone="primary"/);
+  assert.match(moreSource, /showHeader=\{false\}/);
+  assert.doesNotMatch(moreSource, /TRIP CONTROL|tp-v4-module-summary/);
   [todaySource, itinerarySource, ideasSource, moreSource].forEach((source) => {
     assert.doesNotMatch(source, /tone="(?:teal|accent|coral|soft|sky|sand)"/);
   });
@@ -3166,6 +3185,7 @@ test('uses semantic tones across the primary mobile trip sections', () => {
 test('fuses the compact itinerary reference without duplicating desktop route surfaces', () => {
   const desktopSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/DesktopWorkspace.jsx'), 'utf8');
   const itinerarySource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryTab.jsx'), 'utf8');
+  const mobileFrameSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/MobileMockupFrame.jsx'), 'utf8');
   const routePanelSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/trip/ItineraryRoutePanel.jsx'), 'utf8');
   const eventCardSource = fs.readFileSync(path.join(__dirname, '..', 'src/components/EventCard.jsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'src/styles/experience-v5.css'), 'utf8');
@@ -3186,8 +3206,17 @@ test('fuses the compact itinerary reference without duplicating desktop route su
   assert.match(contextRailSource, /<h3>\{activeTab === 'itinerary' \? '今日路線' : '下一站'\}<\/h3>/);
   assert.match(taskSummarySource, /tp-v4-panel-checklist/);
   assert.match(itinerarySource, /tp-itinerary-route-panel/);
-  assert.match(itinerarySource, /stats=\{\[[\s\S]+?label: '行程'[\s\S]+?label: '含費用'[\s\S]+?\]\}/);
-  assert.doesNotMatch(itinerarySource, /label: '天數'/);
+  assert.match(mobileFrameSource, /showHeader = true/);
+  assert.match(mobileFrameSource, /\{showHeader && \(/);
+  assert.match(itinerarySource, /showHeader=\{false\}/);
+  assert.doesNotMatch(itinerarySource, /icon=\{CalendarDays\}|stats=\{\[/);
+  const dayStripIndex = itinerarySource.indexOf('<TripDayStrip');
+  const dayHeadingIndex = itinerarySource.indexOf('tp-itinerary-day-heading');
+  const timelineIndex = itinerarySource.indexOf('<TripTimeline');
+  const routeIndex = itinerarySource.indexOf('tp-itinerary-route-primary');
+  assert.ok(dayStripIndex < dayHeadingIndex, 'date strip should lead directly into the day heading');
+  assert.ok(dayHeadingIndex < timelineIndex, 'day heading should appear before the timeline');
+  assert.ok(timelineIndex < routeIndex, 'route view should appear after the timeline');
   assert.match(routePanelSource, /路線完整度/);
   assert.match(routePanelSource, /<MissingLocationNotice missingEvents=\{missingEvents\} \/>/);
   assert.doesNotMatch(routePanelSource, /RouteMetric|routeStatusLabel|routeStatusTone/);

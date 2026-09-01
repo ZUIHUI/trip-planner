@@ -13,6 +13,11 @@ const normalizeOrderKey = (value, fallback = ORDER_STEP) => {
 
 export const makeTripChecklistItemId = () => `checklist-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 export const makeTripShoppingItemId = () => `shopping-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export const DEFAULT_CHECKLIST_CATEGORY = 'other';
+
+export const normalizeChecklistCategory = (value) => (
+  cleanString(value).trim() || DEFAULT_CHECKLIST_CATEGORY
+);
 
 export const readItemOrderKey = (item, fallback = null) => {
   const value = Number(item?.orderKey);
@@ -68,6 +73,35 @@ export const moveTripItemByOffset = (items = [], itemId = '', offset = 0) => {
   const sourceIndex = sourceItems.findIndex((item) => getTripItemId(item) === safeItemId);
   const targetIndex = sourceIndex + safeOffset;
   if (sourceIndex < 0 || targetIndex < 0 || targetIndex >= sourceItems.length) return sourceItems;
+
+  const nextItems = sourceItems.slice();
+  const [movedItem] = nextItems.splice(sourceIndex, 1);
+  nextItems.splice(targetIndex, 0, movedItem);
+  return nextItems;
+};
+
+export const moveTripItemWithinCategory = (items = [], itemId = '', offset = 0) => {
+  const sourceItems = asArray(items);
+  const safeItemId = getTripItemId(itemId);
+  const safeOffset = Number(offset);
+  if (!safeItemId || !Number.isInteger(safeOffset) || safeOffset === 0) return sourceItems;
+
+  const sourceIndex = sourceItems.findIndex((item) => getTripItemId(item) === safeItemId);
+  if (sourceIndex < 0) return sourceItems;
+
+  const category = normalizeChecklistCategory(sourceItems[sourceIndex]?.category);
+  const categoryItems = sourceItems.filter((item) => (
+    normalizeChecklistCategory(item?.category) === category
+  ));
+  const categoryIndex = categoryItems.findIndex((item) => getTripItemId(item) === safeItemId);
+  const targetCategoryIndex = categoryIndex + safeOffset;
+  if (categoryIndex < 0 || targetCategoryIndex < 0 || targetCategoryIndex >= categoryItems.length) {
+    return sourceItems;
+  }
+
+  const targetId = getTripItemId(categoryItems[targetCategoryIndex]);
+  const targetIndex = sourceItems.findIndex((item) => getTripItemId(item) === targetId);
+  if (targetIndex < 0) return sourceItems;
 
   const nextItems = sourceItems.slice();
   const [movedItem] = nextItems.splice(sourceIndex, 1);
@@ -150,7 +184,7 @@ export const normalizeChecklistItemDocumentForApp = (document = {}) => {
     orderKey: normalizeOrderKey(source.orderKey),
     text: cleanString(source.text),
     done: Boolean(source.done),
-    category: cleanString(source.category, 'other'),
+    category: normalizeChecklistCategory(source.category),
     assignedTo: source.assignedTo == null ? null : cleanString(String(source.assignedTo)),
     day: Number.isFinite(day) ? day : null,
     deleted: Boolean(source.deleted)
@@ -180,7 +214,7 @@ export const buildChecklistItemDocument = ({
     orderKey: Number(source.orderKey),
     text: cleanString(source.text),
     done: Boolean(source.done),
-    category: cleanString(source.category, 'other'),
+    category: normalizeChecklistCategory(source.category),
     assignedTo: source.assignedTo == null ? null : cleanString(String(source.assignedTo)),
     day: source.day == null ? null : Number(source.day),
     deleted: Boolean(deleted),

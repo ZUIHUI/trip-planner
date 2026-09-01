@@ -86,7 +86,6 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
     itinerary,
     checklists,
     expenses,
-    budgetProgress,
     collaboration,
     setCollaboration,
     currentUser,
@@ -105,8 +104,6 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
   const eventCount = (Array.isArray(itinerary) ? itinerary : [])
     .reduce((total, day) => total + (day.events?.length || 0), 0);
   const onlineCount = presenceUi?.otherOnlineMembers?.length || 0;
-  const preTripProgress = getChecklistProgress(checklists?.preTrip);
-  const packingProgress = getChecklistProgress(checklists?.packing);
   const collaborationCard = (
     <ShareCollaborationCard
       tripId={tripId}
@@ -156,31 +153,10 @@ const MoreTab = ({ onTabChange, onOpenSettings, onOpenHandbook, section = 'home'
 
   return (
     <MobileMockupFrame
-      icon={Settings}
-      eyebrow="更多"
-      title="旅行工具"
-      subtitle="從同一個儀表板開啟所有規劃模組。"
-      stats={[
-        { value: eventCount, label: '行程' },
-        { value: members?.length || 0, label: '成員' },
-        { value: onlineCount, label: '在線' }
-      ]}
       tone="primary"
+      showHeader={false}
       className="mx-auto flex min-w-0 max-w-4xl flex-col gap-5 px-5 pb-24 sm:gap-6 sm:px-7 lg:max-w-6xl lg:px-10"
     >
-      <section className="tp-v4-module-summary" aria-label="旅程管理摘要">
-        <div>
-          <span>TRIP CONTROL</span>
-          <h2>{tripDetails?.title || '我的旅程'}</h2>
-          <p>{presenceUi?.summaryText || '已同步'} · {members?.length || 0} 位旅伴</p>
-        </div>
-        <div className="tp-v4-module-summary-stats">
-          <div><strong>{preTripProgress.remaining}</strong><span>待辦</span></div>
-          <div><strong>{packingProgress.done}/{packingProgress.total}</strong><span>行李</span></div>
-          <div><strong>{budgetProgress || 0}%</strong><span>預算</span></div>
-        </div>
-      </section>
-
       <ModuleSection title="旅行準備">
         <ModuleButton
           icon={LayoutDashboard}
