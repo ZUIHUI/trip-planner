@@ -162,3 +162,34 @@ export const applyTripEventDocumentsToItinerary = (itinerary = [], eventDocument
       })
   }));
 };
+
+export const countTripEventsWithDocuments = (itinerary = [], eventDocuments = []) => {
+  const baseItinerary = asArray(itinerary);
+  const documents = asArray(eventDocuments).map(normalizeTripEventDocumentForApp);
+
+  if (!documents.length) {
+    return baseItinerary.reduce((total, day) => total + asArray(day?.events).length, 0);
+  }
+
+  const overlaidItinerary = applyTripEventDocumentsToItinerary(baseItinerary, documents);
+  const countedIds = new Set();
+  let total = 0;
+
+  overlaidItinerary.forEach((day) => {
+    asArray(day?.events).forEach((event) => {
+      const eventId = normalizeId(event?.id);
+      if (eventId) countedIds.add(eventId);
+      total += 1;
+    });
+  });
+
+  documents.forEach((event) => {
+    const eventId = normalizeId(event?.id);
+    if (!event.deleted && eventId && !countedIds.has(eventId)) {
+      countedIds.add(eventId);
+      total += 1;
+    }
+  });
+
+  return total;
+};

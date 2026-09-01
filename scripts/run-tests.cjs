@@ -80,6 +80,7 @@ const {
 const {
   applyTripEventDocumentsToItinerary,
   buildTripEventDocument,
+  countTripEventsWithDocuments,
   getAppendOrderKey,
   getOrderKeyBetween
 } = require('../src/utils/tripEventDocuments.js');
@@ -1426,6 +1427,27 @@ test('overlays trip event documents on legacy itinerary without rewriting base a
   assert.deepEqual(overlaid[1].events.map((event) => event.id), ['a']);
   assert.equal(overlaid[1].events[0].title, 'Moved A');
   assert.deepEqual(itinerary[0].events.map((event) => event.id), ['a', 'b']);
+});
+
+test('counts split event documents in trip list summaries without hiding legacy events', () => {
+  const itinerary = [
+    { day: 1, events: [{ id: 'legacy-a', title: 'Legacy A' }, { id: 'deleted-b', title: 'Legacy B' }] },
+    { day: 2, events: [] }
+  ];
+  const eventDocuments = [
+    { id: 'legacy-a', dayNumber: 2, title: 'Moved A', orderKey: 1000 },
+    { id: 'deleted-b', dayNumber: 1, deleted: true, orderKey: 2000 },
+    { id: 'split-c', dayNumber: 1, title: 'Split C', orderKey: 500 },
+    { id: 'split-d', dayNumber: 7, title: 'Split D', orderKey: 500 }
+  ];
+
+  assert.equal(countTripEventsWithDocuments(itinerary, eventDocuments), 3);
+  assert.equal(countTripEventsWithDocuments(itinerary, []), 2);
+  assert.equal(countTripEventsWithDocuments([], eventDocuments), 3);
+
+  const serviceSource = fs.readFileSync(path.join(__dirname, '..', 'src/services/tripService.js'), 'utf8');
+  assert.match(serviceSource, /getTripListEventCount/);
+  assert.match(serviceSource, /eventCount,\s*updatedAt/);
 });
 
 test('overlays trip day documents on itinerary metadata without rewriting events', () => {

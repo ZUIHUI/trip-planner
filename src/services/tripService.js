@@ -25,6 +25,7 @@ import {
   normalizeTripDocumentForApp
 } from '../domain/tripSchema';
 import {
+  countTripEventsWithDocuments,
   buildTripEventDocument,
   normalizeTripEventDocumentForApp
 } from '../utils/tripEventDocuments';
@@ -232,10 +233,30 @@ const getTripListMetaDetail = async (tripId) => {
   }
 };
 
-const enrichTripListItemWithActivity = async (item) => {
-  const [latestActivityAt, metaDetail] = await Promise.all([
+const getTripListEventCount = async ({ tripId, itinerary = [], fallbackCount = 0 }) => {
+  try {
+    const eventSnapshot = await getDocs(getTripEventCollectionRef(tripId));
+    if (eventSnapshot.empty) return fallbackCount;
+
+    const eventDocuments = eventSnapshot.docs.map((snapshotDoc) => (
+      normalizeTripEventDocumentForApp({ id: snapshotDoc.id, ...snapshotDoc.data() })
+    ));
+    return countTripEventsWithDocuments(itinerary, eventDocuments);
+  } catch (error) {
+    logger.warn('Trip list event count fallback used after split event read failed.', error);
+    return fallbackCount;
+  }
+};
+
+const enrichTripListItemWithActivity = async (item, itinerary = []) => {
+  const [latestActivityAt, metaDetail, eventCount] = await Promise.all([
     getTripLatestActivityAt(item?.id),
-    getTripListMetaDetail(item?.id)
+    getTripListMetaDetail(item?.id),
+    getTripListEventCount({
+      tripId: item?.id,
+      itinerary,
+      fallbackCount: Number(item?.eventCount || 0)
+    })
   ]);
   const latestUpdatedAt = getLatestIsoTimestamp(item?.updatedAt, latestActivityAt, metaDetail?.updatedAt);
   const metaPatch = metaDetail
@@ -250,6 +271,7 @@ const enrichTripListItemWithActivity = async (item) => {
   return {
     ...item,
     ...metaPatch,
+    eventCount,
     updatedAt: latestUpdatedAt || item?.updatedAt
   };
 };
@@ -1591,10 +1613,12 @@ export const listTrips = async ({ user } = {}) => {
   const tripsById = new Map();
   const ownedSnapshot = await getDocs(query(collection(db, 'trips'), where('access.ownerUid', '==', user.uid)));
   await Promise.all(ownedSnapshot.docs.map(async (snapshotDoc) => {
+    const rawData = snapshotDoc.data();
+    const normalized = normalizeTripDocumentForApp({ id: snapshotDoc.id, ...rawData });
     const item = await enrichTripListItemWithActivity({
-      ...buildTripListItem(snapshotDoc.id, snapshotDoc.data()),
+      ...buildTripListItem(snapshotDoc.id, rawData),
       accessRole: 'owner'
-    });
+    }, normalized.itinerary);
     tripsById.set(snapshotDoc.id, item);
   }));
 
@@ -1604,10 +1628,12 @@ export const listTrips = async ({ user } = {}) => {
     if (!tripRef || tripsById.has(tripRef.id)) return;
     const tripSnap = await getDoc(tripRef);
     if (tripSnap.exists()) {
+      const rawData = tripSnap.data();
+      const normalized = normalizeTripDocumentForApp({ id: tripSnap.id, ...rawData });
       const item = await enrichTripListItemWithActivity({
-        ...buildTripListItem(tripSnap.id, tripSnap.data()),
+        ...buildTripListItem(tripSnap.id, rawData),
         accessRole: memberDoc.data()?.role || 'view'
-      });
+      }, normalized.itinerary);
       tripsById.set(tripSnap.id, item);
     }
   }));
