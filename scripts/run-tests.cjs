@@ -2054,7 +2054,7 @@ test('keeps mobile trip navigation fixed to the viewport', () => {
   assert.match(tokensSource, /\.tp-bottom-nav-spacer\s*\{[^}]*pointer-events:\s*none;/);
   assert.match(tokensSource, /\.tp-mobile-trips-dock button\.is-active,\s*\n\s*:root\[data-theme\] \.tp-bottom-nav \.tp-nav-active-pill\s*\{[\s\S]+?background:\s*var\(--tp-primary\)/);
   assert.match(tokensSource, /\.tp-bottom-nav \.tp-nav-active[\s\S]+?color:\s*var\(--tp-on-primary\)/);
-  assert.match(tokensSource, /data-theme="sunny-yellow"[\s\S]+?\.tp-nav-active-pill[\s\S]+?var\(--tp-sunny-action\)/);
+  assert.match(tokensSource, /data-theme="sunny-yellow"[\s\S]+?\.tp-nav-active-pill[\s\S]+?var\(--tp-seat-action\)/);
   assert.match(designSource, /Trip Library and Trip Workspace mobile docks use the same theme-primary/);
 });
 
@@ -2903,11 +2903,17 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-main-card-text:\s*#fffafa;/);
   assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-main-card-glass:\s*rgba\(119, 33, 69, 0\.36\);/);
   assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-main-card-gradient:[\s\S]+?#f1a3be[\s\S]+?#e076a1[\s\S]+?#c95785/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-primary:\s*#ffd51e;/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-sunny-action:\s*#e7d27c;/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-sunny-action-text:\s*#2c281b;/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-canvas:\s*#f7f6f2;/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-ink:\s*#0a0a0a;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-coral:\s*#fd273b;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-mint:\s*#69e7d5;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-sky:\s*#96dafa;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-butter:\s*#f1cd8a;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-map-gradient:[\s\S]+?var\(--tp-seat-sky\)[\s\S]+?var\(--tp-seat-butter\)/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-tone-warning-bg:[\s\S]+?var\(--tp-seat-butter\)/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-primary:\s*#7351ad;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-action:\s*#7351ad;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-seat-action-text:\s*#ffffff;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-canvas:\s*#f3f7f8;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-ink:\s*#2b2932;/);
   assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-main-card-gradient:\s*var\(--tp-theme-hero\);/);
   assert.match(css, /--v4-primary:\s*var\(--tp-primary\);/);
   assert.match(css, /--story-ink:\s*var\(--tp-ink\);/);
@@ -2952,9 +2958,12 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.doesNotMatch(tripDetailSource, /mobileDetailDayCount/);
   assert.doesNotMatch(tripDetailSource, /今日\s*\{currentDayData\.events\.length\}\s*個/);
   assert.match(css, /:root\[data-theme="soft-pink"\]\s*\{[\s\S]+?--tp-detail-route-art:[\s\S]+?%23d9a7b5/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-detail-route-art:[\s\S]+?%23f1c75b/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\]\s*\{[\s\S]+?--tp-detail-route-art:[\s\S]+?%237351ad/);
   assert.match(css, /:root\[data-theme="sunny-yellow"\] \.tp-journey-hero h3,[\s\S]+?color:\s*var\(--tp-ink\)\s*!important;/);
-  assert.match(css, /:root\[data-theme="sunny-yellow"\] \.tp-button-primary,[\s\S]+?background:\s*var\(--tp-sunny-action\)\s*!important;[\s\S]+?color:\s*var\(--tp-sunny-action-text\)\s*!important;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\] \.tp-button-primary,[\s\S]+?background:\s*var\(--tp-seat-action\)\s*!important;[\s\S]+?color:\s*var\(--tp-seat-action-text\)\s*!important;/);
+  assert.match(css, /:root\[data-theme="sunny-yellow"\] \.tp-v4-desktop-map,[\s\S]+?background:\s*var\(--tp-seat-map-gradient\)\s*!important;/);
+  assert.match(css, /\.tp-theme-choice\[data-theme-option="sunny-yellow"\]\s*\{[\s\S]+?#96dafa[\s\S]+?#f1cd8a/);
+  assert.match(css, /\.tp-reminder-strip\s*\{[\s\S]+?background:\s*var\(--tp-tone-warning-bg\)/);
   assert.doesNotMatch(css, /:root\[data-theme="sunny-yellow"\] \.tp-journey-hero,\r?\n:root\[data-theme="sunny-yellow"\] \.tp-share-story-card/);
   assert.match(css, /:root\[data-theme\] \.tp-mobile-feature-icon,[\s\S]+?background:\s*color-mix\(in srgb,\s*var\(--tp-module-bg\)/);
   assert.match(css, /:root\[data-theme="soft-pink"\] \.tp-journey-hero \.tp-button-primary,[\s\S]+?background:\s*var\(--tp-surface\)/);
@@ -2966,7 +2975,7 @@ test('keeps the DESIGN.md visual system centralized and accessible', () => {
   assert.match(design, /actual planning product/i);
   assert.match(design, /Exactly one visually dominant add action/i);
   assert.match(design, /Complete visual themes/i);
-  assert.match(design, /Sunny Yellow/i);
+  assert.match(design, /Stadium Pastel/i);
   assert.match(design, /main journey card uses the original layered theme gradient/i);
   assert.match(design, /airy sky-blue heroes/i);
   assert.match(design, /page sheets, cards, forms, dialogs, inputs, and bottom\s+docks must use `--tp-paper`, `--tp-surface`, or `--tp-surface-dark`/i);
@@ -3011,7 +3020,7 @@ test('persists accessible complete app themes', () => {
   const tokenCss = fs.readFileSync(path.join(__dirname, '..', 'src/styles/tokens.css'), 'utf8');
   const mainSource = fs.readFileSync(path.join(__dirname, '..', 'src/main.jsx'), 'utf8');
   assert.match(settingsSource, /id:\s*'soft-pink'[\s\S]+?柔和粉[\s\S]+?糖果粉與櫻花重點色/);
-  assert.match(settingsSource, /id:\s*'sunny-yellow'[\s\S]+?晴光黃/);
+  assert.match(settingsSource, /id:\s*'sunny-yellow'[\s\S]+?晴彩色[\s\S]+?薄荷、天藍與柔彩座位色/);
   assert.match(settingsSource, /aria-pressed=\{isSelected\}/);
   assert.match(settingsSource, /tp-mobile-settings-sheet[^\"]*flex[^\"]*flex-col[^\"]*overflow-hidden/);
   assert.match(settingsSource, /tp-mobile-settings-body[^\"]*min-h-0[^\"]*flex-1[^\"]*overflow-y-auto/);
@@ -3293,6 +3302,10 @@ test('publishes a public privacy policy grounded in the current storage and resp
   assert.match(privacySource, /Trip Planner 維護者/);
   assert.match(privacySource, /不代表所有底層副本在同一時間永久抹除/);
   assert.match(privacySource, /移除旅伴後/);
+  assert.match(settingsSource, /VITE_APP_VERSION/);
+  assert.match(settingsSource, /VITE_APP_BUILD_NUMBER/);
+  assert.match(settingsSource, /VITE_APP_COMMIT_SHA/);
+  assert.doesNotMatch(settingsSource, /Trip Planner v1\.0\.0/);
   assert.match(loginSource, /<Link to="\/privacy">隱私權政策<\/Link>/);
   assert.match(settingsSource, /<Link to="\/privacy">/);
   assert.match(privacyCss, /min-height:\s*2\.75rem/);

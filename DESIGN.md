@@ -91,21 +91,24 @@ rules rather than introducing component-specific colors.
   photography but uses a rose photo scrim, candy-pink hero treatments, and
   blush workspace atmosphere; destination presets must not reintroduce Ocean colors.
 
-#### Sunny Yellow
+#### Stadium Pastel (legacy `sunny-yellow` id)
 
-Users may choose **Sunny Yellow** (`sunny-yellow`) for a clear, bright travel
-desk inspired by a highlighter accent on a clean editorial page.
+Users may choose **Stadium Pastel / 晴彩色** (`sunny-yellow`) for a bright,
+playful travel desk sampled from the seating zones of the provided stadium map.
+The legacy id remains unchanged so existing saved preferences continue to work.
 
-- Warm off-white `#f7f6f2` is the app canvas and pure white is the card color.
-- Bright yellow `#ffd51e` fills primary actions, selected navigation, hero and
-  main cards; these surfaces use near-black text rather than white text.
-- Near-black `#0a0a0a` provides the main hierarchy and a restrained deep gold
-  `#725600` is reserved for focus and accessible small accent text.
-- Lemon cream and pale yellow shape grouped and supportive surfaces without
-  replacing the white-card structure.
-- Cover photography keeps white overlaid text on a neutral dark scrim, while
-  route art, map previews, feature icons, buttons, focus, and workspace
-  atmosphere follow the yellow palette.
+- Cool off-white `#f3f7f8` is the app canvas and pure white is the card color.
+- Mint `#69e7d5`, sky `#96dafa`, lilac `#c49bf6`, soft pink `#f297a9`,
+  peach `#f59773`, coral `#fd273b`, and butter `#f1cd8a` form the visual palette.
+- Deep lilac `#7351ad` anchors primary actions, selected navigation, focus and
+  accessible accent text; these controls use white text.
+- The complete seat palette appears in the layered hero and main-card gradient.
+  Sky blue is visibly assigned to map and information surfaces, while butter yellow
+  marks reminders and the warm edge of the hero; supporting modules still use one
+  restrained tint at a time so planning content stays calm.
+- Cover photography keeps white overlaid text on a purple-charcoal scrim, while
+  route art, map previews, feature icons, buttons and workspace atmosphere use
+  the stadium palette.
 
 Theme choices are exposed as explicit labeled buttons. Selection uses
 `aria-pressed`, a check icon, border, and background change rather than color

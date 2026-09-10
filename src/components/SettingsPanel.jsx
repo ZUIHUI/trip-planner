@@ -33,6 +33,13 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 
 const fileSizeLabel = `${Math.round(MAX_COVER_IMAGE_FILE_SIZE_BYTES / 1024)}KB`;
+const appVersion = import.meta.env.VITE_APP_VERSION || '1.1.0';
+const appBuildNumber = import.meta.env.VITE_APP_BUILD_NUMBER;
+const appCommitSha = import.meta.env.VITE_APP_COMMIT_SHA;
+const appBuildDetails = [
+  appBuildNumber ? `Build ${appBuildNumber}` : '',
+  appCommitSha
+].filter(Boolean).join(' · ');
 
 const themeOptions = [
   {
@@ -49,8 +56,8 @@ const themeOptions = [
   },
   {
     id: 'sunny-yellow',
-    name: '晴光黃',
-    description: '暖白與高亮黃色',
+    name: '晴彩色',
+    description: '薄荷、天藍與柔彩座位色',
     icon: Sparkles
   },
   {
@@ -436,7 +443,10 @@ const SettingsPanel = ({
               隱私權政策
             </Link>
             <p>資料儲存、共享權限與責任歸屬</p>
-            <span>Trip Planner v1.0.0</span>
+            <span>
+              Trip Planner v{appVersion}
+              {appBuildDetails ? ` · ${appBuildDetails}` : ''}
+            </span>
           </div>
         </div>
       </div>

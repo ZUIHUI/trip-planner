@@ -1,9 +1,43 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+const packageMetadata = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8')
+);
+
+const readGitValue = (args) => {
+  try {
+    return execFileSync('git', args, {
+      cwd: new URL('.', import.meta.url),
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).trim();
+  } catch {
+    return '';
+  }
+};
+
+const appVersion = process.env.VITE_APP_VERSION || packageMetadata.version;
+const appBuildNumber = process.env.VITE_APP_BUILD_NUMBER
+  || process.env.BUILD_NUMBER
+  || readGitValue(['rev-list', '--count', 'HEAD']);
+const appCommitSha = (
+  process.env.VITE_APP_COMMIT_SHA
+  || process.env.VERCEL_GIT_COMMIT_SHA
+  || process.env.GITHUB_SHA
+  || readGitValue(['rev-parse', '--short=7', 'HEAD'])
+).slice(0, 7);
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+    'import.meta.env.VITE_APP_BUILD_NUMBER': JSON.stringify(appBuildNumber),
+    'import.meta.env.VITE_APP_COMMIT_SHA': JSON.stringify(appCommitSha)
+  },
   build: {
     rollupOptions: {
       output: {

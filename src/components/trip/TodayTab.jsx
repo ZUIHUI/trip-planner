@@ -38,9 +38,9 @@ import GoogleRoutePreview from './GoogleRoutePreview';
 const emptyFlightText = '未設定';
 
 const reminderClasses = {
-  danger: 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/70 dark:bg-red-950/30 dark:text-red-200',
-  info: 'border-brand-200 bg-brand-50 text-brand-800 dark:border-brand-900/70 dark:bg-brand-950/30 dark:text-brand-100',
-  warning: 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100'
+  danger: 'tp-reminder-card-danger',
+  info: 'tp-reminder-card-info',
+  warning: 'tp-reminder-card-warning'
 };
 
 const DaySwitcher = ({ itinerary, selectedDay, currentDayDisplayTitle, currentDayLabel, tripDetails, onSelectDay }) => {
@@ -325,15 +325,15 @@ const ReminderStrip = ({ reminders }) => {
   if (!reminders.length) return null;
 
   return (
-    <section className="space-y-3" aria-label="重要提醒">
-      <div className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
-        <AlertTriangle size={17} className="text-amber-600 dark:text-amber-300" />
+    <section className="tp-reminder-strip space-y-3" aria-label="重要提醒">
+      <div className="tp-reminder-strip-heading flex items-center gap-2 text-sm font-black">
+        <AlertTriangle size={17} />
         重要提醒
       </div>
       {reminders.map((reminder) => (
         <div
           key={reminder.id}
-          className={`rounded-lg border px-4 py-3 ${reminderClasses[reminder.tone] || reminderClasses.info}`}
+          className={`tp-reminder-card rounded-lg border px-4 py-3 ${reminderClasses[reminder.tone] || reminderClasses.info}`}
         >
           <p className="text-sm font-black">{reminder.title}</p>
           <p className="mt-0.5 text-xs font-semibold opacity-85">{reminder.description}</p>
