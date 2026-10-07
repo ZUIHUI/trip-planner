@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const vm = require('node:vm');
+const parser = require('@babel/parser');
 require('sucrase/register/js');
 
 const assert = require('node:assert/strict');
@@ -439,16 +441,92 @@ test('wires AI recommendations through server-only OpenAI configuration', () => 
   assert.match(functionsSource, /const OPENAI_API_KEY = defineSecret\('OPENAI_API_KEY'\)/);
   assert.match(functionsSource, /getConfiguredOpenAIKey/);
   assert.equal(
-    (functionsSource.match(/process\.env\.OPENAI_MODEL \|\| 'gpt-5\.6-sol'/g) || []).length,
+    (functionsSource.match(/String\(process\.env\.OPENAI_MODEL \|\| 'gpt-6\.1-sol'\)\.trim\(\) \|\| 'gpt-6\.1-sol'/g) || []).length,
     2
   );
-  assert.match(envExample, /^OPENAI_MODEL=gpt-5\.6-sol$/m);
+  assert.match(envExample, /^OPENAI_MODEL=gpt-6\.1-sol$/m);
+  assert.match(envExample, /^OPENAI_IMAGE_MODEL=gpt-image-2$/m);
+  assert.match(functionsSource, /process\.env\.OPENAI_IMAGE_MODEL \|\| 'gpt-image-2'/);
   assert.match(functionsSource, /exports\.generateTripRecommendations = onCall\(\s*\{\s*secrets: \[OPENAI_API_KEY,\s*GOOGLE_GEOCODING_API_KEY\]/);
   assert.match(functionsSource, /buildExternalPlaceCandidateContext/);
   assert.match(functionsSource, /mode !== 'placeIdeas'/);
   assert.match(functionsSource, /userIdea: request\.data\?\.userIdea/);
   assert.match(functionsSource, /AI place recommendation Google fallback/);
   assert.doesNotMatch(functionsSource, /VITE_OPENAI_API_KEY/);
+});
+
+test('preserves configurable OpenAI text and image models with low-effort Responses requests', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
+  const names = [
+    'OPENAI_RESPONSES_ENDPOINT', 'OPENAI_IMAGES_ENDPOINT', 'TRIP_HANDBOOK_IMAGE_TIMEOUT_MS',
+    'extractOpenAIResponseText', 'extractOpenAIImageBase64',
+    'callOpenAITripRecommendations', 'callOpenAITripHandbook', 'callOpenAITripHandbookImage'
+  ];
+  // Execute the real request functions without loading Firebase or exposing a live fetch.
+  const declarations = parser.parse(source).program.body.filter((node) => (
+    node.type === 'VariableDeclaration' && node.declarations.some(({ id }) => names.includes(id.name))
+  ));
+  assert.equal(declarations.length, names.length);
+  const env = {};
+  const requests = [];
+  const clients = vm.runInNewContext(
+    `${declarations.map((node) => source.slice(node.start, node.end)).join('\n')}
+    ({ callOpenAITripRecommendations, callOpenAITripHandbook, callOpenAITripHandbookImage })`,
+    {
+      process: { env }, Buffer, console,
+      HttpsError: Error,
+      recommendationPrompt: () => 'recommendation fixture',
+      handbookPrompt: () => 'handbook fixture',
+      recommendationResponseSchema, handbookResponseSchema,
+      buildTripHandbookImagePrompt: () => 'cover fixture',
+      getTimeoutSignal: () => undefined,
+      imageDataUrlFromBuffer: () => 'data:image/jpeg;base64,Y292ZXI=',
+      fetch: async (url, options) => {
+        requests.push({ url, ...options, body: JSON.parse(options.body) });
+        return {
+          ok: true,
+          json: async () => ({ output_text: '{}', data: [{ b64_json: 'Y292ZXI=' }] })
+        };
+      }
+    }
+  );
+  const options = { apiKey: 'test-key', mode: 'placeIdeas', snapshot: {}, handbook: {} };
+  const textPaths = [
+    [clients.callOpenAITripRecommendations, 'trip_recommendations', 2200, recommendationResponseSchema],
+    [clients.callOpenAITripHandbook, 'trip_handbook', 4200, handbookResponseSchema]
+  ];
+  env.OPENAI_IMAGE_MODEL = ' custom-image-model ';
+  for (const value of [undefined, '', ' \t ', ' gpt-5.6-sol ']) {
+    if (value === undefined) delete env.OPENAI_MODEL;
+    else env.OPENAI_MODEL = value;
+    for (const [call, name, maxOutputTokens, schema] of textPaths) {
+      await call(options);
+      assert.equal(requests.length, 1);
+      const { url, method, body } = requests.shift();
+      assert.equal(url, 'https://api.openai.com/v1/responses');
+      assert.equal(method, 'POST');
+      assert.equal(body.model, value?.trim() || 'gpt-6.1-sol', `${name}: ${JSON.stringify(value)}`);
+      assert.deepEqual(body.reasoning, { effort: 'low' });
+      assert.equal(body.max_output_tokens, maxOutputTokens);
+      assert.equal(body.text.verbosity, 'low');
+      assert.deepEqual(body.text.format, { type: 'json_schema', name, strict: true, schema });
+      for (const parameter of ['temperature', 'top_p', 'top_logprobs', 'logprobs']) {
+        assert.equal(Object.hasOwn(body, parameter), false);
+      }
+    }
+  }
+  env.OPENAI_MODEL = 'gpt-6.1-sol';
+  for (const value of [undefined, '', ' \t ', ' custom-image-model ']) {
+    if (value === undefined) delete env.OPENAI_IMAGE_MODEL;
+    else env.OPENAI_IMAGE_MODEL = value;
+    const image = await clients.callOpenAITripHandbookImage(options);
+    assert.equal(requests.length, 1);
+    const { url, body } = requests.shift();
+    assert.equal(url, 'https://api.openai.com/v1/images/generations');
+    assert.equal(body.model, value?.trim() || 'gpt-image-2');
+    assert.equal(image.model, body.model);
+    assert.equal(Object.hasOwn(body, 'reasoning'), false);
+  }
 });
 
 test('keeps non-sensitive function settings out of Secret Manager and removes FlightAPI lookup', () => {
@@ -3313,20 +3391,28 @@ test('publishes a public privacy policy grounded in the current storage and resp
   assert.doesNotMatch(privacyCss, /#[0-9a-f]{3,8}/i);
 });
 
-let failed = 0;
-tests.forEach(({ name, fn }) => {
-  try {
-    fn();
-    console.log(`ok - ${name}`);
-  } catch (error) {
-    failed += 1;
-    console.error(`not ok - ${name}`);
-    console.error(error);
+const runTests = async () => {
+  let failed = 0;
+  for (const { name, fn } of tests) {
+    try {
+      await fn();
+      console.log(`ok - ${name}`);
+    } catch (error) {
+      failed += 1;
+      console.error(`not ok - ${name}`);
+      console.error(error);
+    }
   }
+
+  if (failed) {
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(`${tests.length} tests passed.`);
+};
+
+runTests().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
 });
-
-if (failed) {
-  process.exit(1);
-}
-
-console.log(`${tests.length} tests passed.`);
